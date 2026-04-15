@@ -1,15 +1,15 @@
-"""RMF Review Workflow gateway router.
+"""CER Review Workflow gateway router.
 
-Provides a REST entry layer for the RMF review workbench:
-  - POST   /api/rmf/start              -> trigger smoke-run
-  - GET    /api/rmf/runs              -> list all RMF thread summaries
-  - GET    /api/rmf/runs/{thread_id}   -> list all runs for a thread
-  - GET    /api/rmf/run/{thread_id}/{run_id} -> rich run detail
-  - GET    /api/rmf/status/{thread_id} -> latest run status / summary
-  - POST   /api/rmf/human-decision   -> submit human gate decision + closure
-  - POST   /api/rmf/rework           -> trigger rework run for rework_required
-  - GET    /api/rmf/closure/{thread_id} -> closure result + next action summary
-  - GET    /api/rmf/artifacts/{thread_id} -> artifact path summary
+Provides a REST entry layer for the CER review workbench:
+  - POST   /api/cer/start              -> trigger smoke-run
+  - GET    /api/cer/runs              -> list all CER thread summaries
+  - GET    /api/cer/runs/{thread_id}   -> list all runs for a thread
+  - GET    /api/cer/run/{thread_id}/{run_id} -> rich run detail
+  - GET    /api/cer/status/{thread_id} -> latest run status / summary
+  - POST   /api/cer/human-decision   -> submit human gate decision + closure
+  - POST   /api/cer/rework           -> trigger rework run for rework_required
+  - GET    /api/cer/closure/{thread_id} -> closure result + next action summary
+  - GET    /api/cer/artifacts/{thread_id} -> artifact path summary
 """
 
 from __future__ import annotations
@@ -24,51 +24,38 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/rmf", tags=["rmf"])
+router = APIRouter(prefix="/api/cer", tags=["cer"])
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 
-
-# ---------------------------------------------------------------------------
-# Shared artifact step mapping
-# ---------------------------------------------------------------------------
-
 _ARTIFACT_STEP_MAP = [
-    ("06_final/final_report.md", "final_report.md", "rmf_report_agent"),
-    ("06_final/final_report.json", "final_report.json", "rmf_report_agent"),
-    ("06_final/capa_action_list.json", "capa_action_list.json", "rmf_report_agent"),
-    ("06_final/backflow_candidates.json", "backflow_candidates.json", "rmf_report_agent"),
-    ("07_gate_closure/gate_closure_report.md", "gate_closure_report.md", "rmf_gate_closure_agent"),
-    ("07_gate_closure/gate_closure_report.json", "gate_closure_report.json", "rmf_gate_closure_agent"),
-    ("07_gate_closure/next_action_packet.json", "next_action_packet.json", "rmf_gate_closure_agent"),
-    ("05_human_boundary/human_review_queue.json", "human_review_queue.json", "rmf_human_boundary_agent"),
-    ("05_human_boundary/provisional_gate_recommendation.json", "provisional_gate_recommendation.json", "rmf_human_boundary_agent"),
-    ("05_human_boundary/human_gate_decision.json", "human_gate_decision.json", "rmf_human_boundary_agent"),
-    ("04_dimension_review/dimension_assessment.json", "dimension_assessment.json", "rmf_dimension_review_agent"),
-    ("04_dimension_review/dimension_review_report.md", "dimension_review_report.md", "rmf_dimension_review_agent"),
-    ("03_rmf_precheck/rmf_precheck_report.json", "rmf_precheck_report.json", "rmf_precheck_agent"),
-    ("02_fmea_precheck/fmea_precheck_report.json", "fmea_precheck_report.json", "fmea_precheck_agent"),
-    ("01_parse/rmf_normalized.json", "rmf_normalized.json", "rmf_parse_normalize_agent"),
-    ("01_parse/fmea_normalized.json", "fmea_normalized.json", "rmf_parse_normalize_agent"),
-    ("00_manifest/run_manifest.json", "run_manifest.json", "rmf_intake_agent"),
-    ("00_manifest/input_inventory.json", "input_inventory.json", "rmf_intake_agent"),
-    ("00_manifest/missing_items_report.md", "missing_items_report.md", "rmf_intake_agent"),
+    ("06_review_package/review_package.json", "review_package.json", "cer_review_package_agent"),
+    ("06_review_package/review_package.md", "review_package.md", "cer_review_package_agent"),
+    ("07_gate_closure/gate_closure_report.json", "gate_closure_report.json", "cer_gate_closure_agent"),
+    ("07_gate_closure/next_action_packet.json", "next_action_packet.json", "cer_gate_closure_agent"),
+    ("05_human_boundary/human_review_queue.json", "human_review_queue.json", "cer_human_boundary_agent"),
+    ("05_human_boundary/provisional_gate_recommendation.json", "provisional_gate_recommendation.json", "cer_human_boundary_agent"),
+    ("05_human_boundary/human_gate_decision.json", "human_gate_decision.json", "cer_human_boundary_agent"),
+    ("04_cross_doc_consistency/cross_doc_consistency.json", "cross_doc_consistency.json", "cer_cross_doc_consistency_agent"),
+    ("03_five_dimension/five_dimension_review.json", "five_dimension_review.json", "cer_five_dimension_agent"),
+    ("02_hf_check/hf_check_report.json", "hf_check_report.json", "cer_hf_check_agent"),
+    ("01_parse/cer_normalized.json", "cer_normalized.json", "cer_parse_normalize_agent"),
+    ("01_parse/cross_doc_entities.json", "cross_doc_entities.json", "cer_parse_normalize_agent"),
+    ("01_parse/term_map.json", "term_map.json", "cer_parse_normalize_agent"),
+    ("00_manifest/run_manifest.json", "run_manifest.json", "cer_intake_agent"),
+    ("00_manifest/input_inventory.json", "input_inventory.json", "cer_intake_agent"),
+    ("00_manifest/missing_items_report.md", "missing_items_report.md", "cer_intake_agent"),
 ]
 
 
-# ---------------------------------------------------------------------------
-# Request / response models
-# ---------------------------------------------------------------------------
-
-
-class RMFStartRequest(BaseModel):
+class CERStartRequest(BaseModel):
     project_profile: str = Field(..., description="Absolute path to project_profile.yaml")
     input_root: str | None = Field(None, description="Optional override for input root")
     thread_id: str | None = Field(None, description="Optional thread id (generated if not provided)")
     mode: str = Field(default="smoke-run", description="Run mode: smoke-run | closure-only")
 
 
-class RMFStartResponse(BaseModel):
+class CERStartResponse(BaseModel):
     thread_id: str
     run_id: str
     mode: str
@@ -108,7 +95,7 @@ class ArtifactSummary(BaseModel):
     download_url: str
 
 
-class RMFStatusResponse(BaseModel):
+class CERStatusResponse(BaseModel):
     thread_id: str
     run_id: str | None
     mode: str | None
@@ -116,37 +103,34 @@ class RMFStatusResponse(BaseModel):
     executed_steps: list[str]
     artifact_root_virtual: str | None
     artifact_root_actual: str | None
-    has_final_report: bool
+    has_review_package: bool
     has_gate_closure_report: bool
     has_human_decision: bool
     has_human_review_queue: bool
     has_provisional_gate: bool
-    has_dimension_assessment: bool
-    has_fmea_precheck: bool
-    has_rmf_precheck: bool
+    has_five_dimension_review: bool
+    has_hf_check: bool
+    has_cross_doc_consistency: bool
     # Machine vs human distinction
-    final_recommended_gate: str | None = None  # machine recommendation from final_report
-    provisional_gate: str | None = None  # provisional gate from human_boundary
-    human_gate_required: bool | None = None
-    provisional_only: bool | None = None  # True if machine provisional only
+    final_recommended_gate: str | None = None
+    provisional_gate: str | None = None
+    human_gate_required: bool | None = True
+    provisional_only: bool | None = None
     # Human decision
-    human_decision_value: str | None = None  # pass / conditional_pass / rework_required
+    human_decision_value: str | None = None
     human_decision_reviewer: str | None = None
     human_decision_simulated: bool | None = None
     human_decision_date: str | None = None
     # Closure
-    final_gate_status: str | None = None  # final gate after human decision
+    final_gate_status: str | None = None
     closure_completed: bool = False
 
 
-class RMFArtifactsResponse(BaseModel):
+class CERArtifactsResponse(BaseModel):
     thread_id: str
     run_id: str
     artifact_root_actual: str
     artifacts: list[ArtifactSummary]
-
-
-# ---- Run listing ----
 
 
 class RunSummaryItem(BaseModel):
@@ -155,7 +139,7 @@ class RunSummaryItem(BaseModel):
     workflow_name: str
     executed_steps: list[str]
     artifact_root_actual: str
-    updated_at: float  # mtime
+    updated_at: float
 
 
 class ThreadRunsResponse(BaseModel):
@@ -178,9 +162,6 @@ class AllRunsResponse(BaseModel):
     threads: list[ThreadSummary]
 
 
-# ---- Rich run detail ----
-
-
 class RichRunResponse(BaseModel):
     thread_id: str
     run_id: str
@@ -189,34 +170,31 @@ class RichRunResponse(BaseModel):
     executed_steps: list[str]
     artifact_root_virtual: str
     artifact_root_actual: str
-    # Run manifest summary
-    project_id: str | None
-    project_name: str | None
-    primary_review_object: str | None
-    input_root: str | None
-    human_gate_required: bool
+    project_id: str | None = None
+    input_root: str | None = None
+    human_gate_required: bool = True
     # Step summaries
     intake_summary: dict | None = None
-    fmea_precheck_summary: dict | None = None
-    rmf_precheck_summary: dict | None = None
-    dimension_summary: dict | None = None
+    hf_check_summary: dict | None = None
+    five_dim_summary: dict | None = None
+    cross_doc_summary: dict | None = None
     human_boundary_summary: dict | None = None
+    review_package_summary: dict | None = None
+    # P0.5 quality-hardened sub-assessments
+    equivalence_assessment_summary: dict | None = None
+    literature_quality_summary: dict | None = None
     # Machine recommendation
     final_recommended_gate: str | None = None
     provisional_gate: str | None = None
     provisional_only: bool | None = None
-    human_gate_required_flag: bool | None = None
+    human_gate_required_flag: bool | None = True
     # Human decision
     human_decision: dict | None = None
     # Closure
     gate_closure: dict | None = None
     next_action_packet: dict | None = None
-    # Flags
     has_closure: bool = False
     closure_completed: bool = False
-
-
-# ---- Closure / next action ----
 
 
 class NextActionSummary(BaseModel):
@@ -225,7 +203,7 @@ class NextActionSummary(BaseModel):
     description: str | None
     blocking_actions_count: int = 0
     total_actions_count: int = 0
-    linked_capa_ids: list[str]
+    linked_capa_ids: list[str] = []
 
 
 class ClosureResponse(BaseModel):
@@ -240,42 +218,36 @@ class ClosureResponse(BaseModel):
     gate_closure_report: dict | None
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
-
-def _get_rmf_threads_base() -> Path:
+def _get_cer_threads_base() -> Path:
     from deerflow.config.paths import get_paths
     return get_paths().base_dir / "threads"
 
 
-def _scan_rmf_threads() -> list[str]:
-    """Return all thread_ids that have RMF runs."""
-    base = _get_rmf_threads_base()
+def _scan_cer_threads() -> list[str]:
+    """Return all thread_ids that have CER runs."""
+    base = _get_cer_threads_base()
     if not base.exists():
         return []
     threads = []
     for d in base.iterdir():
         if not d.is_dir():
             continue
-        rmf_path = d / "user-data" / "outputs" / "rmf_review_v1_1"
-        if rmf_path.exists():
+        cer_path = d / "user-data" / "outputs" / "cer_review_v0"
+        if cer_path.exists():
             threads.append(d.name)
     return threads
 
 
 def _get_runs_for_thread(thread_id: str) -> list[RunSummaryItem]:
-    """Return all runs for a thread, sorted newest first."""
     from deerflow.config.paths import get_paths
     paths = get_paths()
     outputs_dir = paths.sandbox_outputs_dir(thread_id)
-    rmf_base = outputs_dir / "rmf_review_v1_1"
-    if not rmf_base.exists():
+    cer_base = outputs_dir / "cer_review_v0"
+    if not cer_base.exists():
         return []
 
     runs: list[RunSummaryItem] = []
-    for run_dir in rmf_base.iterdir():
+    for run_dir in cer_base.iterdir():
         if not run_dir.is_dir():
             continue
         summary_path = run_dir / "artifacts" / "00_manifest" / "run_summary.json"
@@ -305,17 +277,10 @@ def _get_thread_summary(thread_id: str) -> ThreadSummary | None:
     artifact_root = Path(latest.artifact_root_actual)
     has_closure = (artifact_root / "07_gate_closure" / "gate_closure_report.json").exists()
     final_gate_status = None
-    final_recommended_gate = None
     if has_closure:
         try:
             gcr = json.loads((artifact_root / "07_gate_closure" / "gate_closure_report.json").read_text())
             final_gate_status = gcr.get("final_decision")
-        except Exception:
-            pass
-    if (artifact_root / "06_final" / "final_report.json").exists():
-        try:
-            fr = json.loads((artifact_root / "06_final" / "final_report.json").read_text())
-            final_recommended_gate = fr.get("gate_recommendation", {}).get("recommended_gate")
         except Exception:
             pass
     return ThreadSummary(
@@ -323,45 +288,38 @@ def _get_thread_summary(thread_id: str) -> ThreadSummary | None:
         latest_run_id=latest.run_id,
         latest_mode=latest.mode,
         latest_executed_steps=latest.executed_steps,
-        latest_final_recommended_gate=final_recommended_gate,
+        latest_final_recommended_gate=None,
         latest_final_gate_status=final_gate_status,
         latest_has_closure=has_closure,
         updated_at=latest.updated_at,
     )
 
 
-def _build_status_response(thread_id: str, summary: dict, artifact_root: Path) -> RMFStatusResponse:
-    """Build enriched RMFStatusResponse from run_summary and artifact files."""
-    has_final_report = (artifact_root / "06_final" / "final_report.md").exists()
+def _build_status_response(thread_id: str, summary: dict, artifact_root: Path) -> CERStatusResponse:
+    has_review_package = (artifact_root / "06_review_package" / "review_package.json").exists()
     has_gate_closure = (artifact_root / "07_gate_closure" / "gate_closure_report.json").exists()
     has_human_decision = (artifact_root / "05_human_boundary" / "human_gate_decision.json").exists()
     has_human_review_queue = (artifact_root / "05_human_boundary" / "human_review_queue.json").exists()
     has_provisional_gate = (artifact_root / "05_human_boundary" / "provisional_gate_recommendation.json").exists()
-    has_dimension_assessment = (artifact_root / "04_dimension_review" / "dimension_assessment.json").exists()
-    has_fmea_precheck = (artifact_root / "02_fmea_precheck" / "fmea_precheck_report.json").exists()
-    has_rmf_precheck = (artifact_root / "03_rmf_precheck" / "rmf_precheck_report.json").exists()
+    has_five_dimension_review = (artifact_root / "03_five_dimension" / "five_dimension_review.json").exists()
+    has_hf_check = (artifact_root / "02_hf_check" / "hf_check_report.json").exists()
+    has_cross_doc_consistency = (artifact_root / "04_cross_doc_consistency" / "cross_doc_consistency.json").exists()
 
-    # Machine recommendations
     final_recommended_gate = None
     provisional_gate = None
-    human_gate_required = None
-    provisional_only = None
-    if (artifact_root / "06_final" / "final_report.json").exists():
+    if has_review_package:
         try:
-            fr = json.loads((artifact_root / "06_final" / "final_report.json").read_text())
-            final_recommended_gate = fr.get("gate_recommendation", {}).get("recommended_gate")
-            human_gate_required = fr.get("human_gate_required")
+            rp = json.loads((artifact_root / "06_review_package" / "review_package.json").read_text())
+            final_recommended_gate = rp.get("recommended_gate")
         except Exception:
             pass
     if has_provisional_gate:
         try:
             pg = json.loads((artifact_root / "05_human_boundary" / "provisional_gate_recommendation.json").read_text())
             provisional_gate = pg.get("gate")
-            provisional_only = pg.get("provisional_only")
         except Exception:
             pass
 
-    # Human decision
     human_decision_value = None
     human_decision_reviewer = None
     human_decision_simulated = None
@@ -383,7 +341,7 @@ def _build_status_response(thread_id: str, summary: dict, artifact_root: Path) -
         except Exception:
             pass
 
-    return RMFStatusResponse(
+    return CERStatusResponse(
         thread_id=summary["thread_id"],
         run_id=summary.get("run_id"),
         mode=summary.get("mode"),
@@ -391,18 +349,18 @@ def _build_status_response(thread_id: str, summary: dict, artifact_root: Path) -
         executed_steps=summary.get("executed_steps", []),
         artifact_root_virtual=summary.get("artifact_root_virtual"),
         artifact_root_actual=summary.get("artifact_root_actual"),
-        has_final_report=has_final_report,
+        has_review_package=has_review_package,
         has_gate_closure_report=has_gate_closure,
         has_human_decision=has_human_decision,
         has_human_review_queue=has_human_review_queue,
         has_provisional_gate=has_provisional_gate,
-        has_dimension_assessment=has_dimension_assessment,
-        has_fmea_precheck=has_fmea_precheck,
-        has_rmf_precheck=has_rmf_precheck,
+        has_five_dimension_review=has_five_dimension_review,
+        has_hf_check=has_hf_check,
+        has_cross_doc_consistency=has_cross_doc_consistency,
         final_recommended_gate=final_recommended_gate,
         provisional_gate=provisional_gate,
-        human_gate_required=human_gate_required,
-        provisional_only=provisional_only,
+        human_gate_required=True,
+        provisional_only=True,
         human_decision_value=human_decision_value,
         human_decision_reviewer=human_decision_reviewer,
         human_decision_simulated=human_decision_simulated,
@@ -413,15 +371,14 @@ def _build_status_response(thread_id: str, summary: dict, artifact_root: Path) -
 
 
 def _get_run_summary(thread_id: str) -> dict | None:
-    """Read run_summary.json from the latest run in the thread's RMF outputs."""
     from deerflow.config.paths import get_paths
     paths = get_paths()
     outputs_dir = paths.sandbox_outputs_dir(thread_id)
-    rmf_base = outputs_dir / "rmf_review_v1_1"
-    if not rmf_base.exists():
+    cer_base = outputs_dir / "cer_review_v0"
+    if not cer_base.exists():
         return None
     run_dirs = sorted(
-        (d for d in rmf_base.iterdir() if d.is_dir()),
+        (d for d in cer_base.iterdir() if d.is_dir()),
         key=lambda d: d.stat().st_mtime,
         reverse=True,
     )
@@ -451,12 +408,11 @@ def _write_human_decision(thread_id: str, run_summary: dict, decision: HumanDeci
 
 
 def _artifacts_for_run(thread_id: str, summary: dict, artifact_root: Path) -> list[ArtifactSummary]:
-    """Build artifact list for a given run."""
     artifacts: list[ArtifactSummary] = []
     for rel_path, artifact_name, step_id in _ARTIFACT_STEP_MAP:
         full_path = artifact_root / rel_path
         if full_path.exists():
-            virtual_path = f"mnt/user-data/outputs/rmf_review_v1_1/{summary['run_id']}/artifacts/{rel_path}"
+            virtual_path = f"mnt/user-data/outputs/cer_review_v0/{summary['run_id']}/artifacts/{rel_path}"
             download_url = f"/api/threads/{thread_id}/artifacts/{virtual_path}"
             artifacts.append(ArtifactSummary(
                 path=str(full_path),
@@ -467,17 +423,12 @@ def _artifacts_for_run(thread_id: str, summary: dict, artifact_root: Path) -> li
     return artifacts
 
 
-# ---------------------------------------------------------------------------
-# Endpoints
-# ---------------------------------------------------------------------------
-
-
-@router.post("/start", response_model=RMFStartResponse)
-async def rmf_start(body: RMFStartRequest) -> RMFStartResponse:
-    """Trigger an RMF review smoke-run."""
+@router.post("/start", response_model=CERStartResponse)
+async def cer_start(body: CERStartRequest) -> CERStartResponse:
+    """Trigger a CER review smoke-run."""
     existing = _get_run_summary(body.thread_id) if body.thread_id else None
     if existing:
-        return RMFStartResponse(
+        return CERStartResponse(
             thread_id=existing["thread_id"],
             run_id=existing["run_id"],
             mode=existing["mode"],
@@ -489,7 +440,7 @@ async def rmf_start(body: RMFStartRequest) -> RMFStartResponse:
 
     cmd = [
         sys.executable,
-        str(_REPO_ROOT / "scripts" / "rmf_review_runner.py"),
+        str(_REPO_ROOT / "scripts" / "cer_review_runner.py"),
         "--project-profile",
         body.project_profile,
         "--mode",
@@ -502,17 +453,17 @@ async def rmf_start(body: RMFStartRequest) -> RMFStartResponse:
 
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_REPO_ROOT), timeout=1800)
     if result.returncode != 0:
-        logger.error("RMF runner failed: %s", result.stderr)
-        raise HTTPException(status_code=500, detail=f"RMF runner failed: {result.stderr}")
+        logger.error("CER runner failed: %s", result.stderr)
+        raise HTTPException(status_code=500, detail=f"CER runner failed: {result.stderr}")
 
     output = json.loads(result.stdout)
-    return RMFStartResponse(**output)
+    return CERStartResponse(**output)
 
 
 @router.get("/runs", response_model=AllRunsResponse)
-async def rmf_list_threads() -> AllRunsResponse:
-    """List all RMF thread summaries."""
-    threads = _scan_rmf_threads()
+async def cer_list_threads() -> AllRunsResponse:
+    """List all CER thread summaries."""
+    threads = _scan_cer_threads()
     summaries: list[ThreadSummary] = []
     for thread_id in threads:
         s = _get_thread_summary(thread_id)
@@ -523,19 +474,19 @@ async def rmf_list_threads() -> AllRunsResponse:
 
 
 @router.get("/runs/{thread_id}", response_model=ThreadRunsResponse)
-async def rmf_list_runs(thread_id: str) -> ThreadRunsResponse:
+async def cer_list_runs(thread_id: str) -> ThreadRunsResponse:
     """List all runs for a specific thread."""
     runs = _get_runs_for_thread(thread_id)
     return ThreadRunsResponse(thread_id=thread_id, runs=runs)
 
 
 @router.get("/run/{thread_id}/{run_id}", response_model=RichRunResponse)
-async def rmf_run_detail(thread_id: str, run_id: str) -> RichRunResponse:
-    """Get rich detail for a specific run, including step summaries and decision state."""
+async def cer_run_detail(thread_id: str, run_id: str) -> RichRunResponse:
+    """Get rich detail for a specific run."""
     from deerflow.config.paths import get_paths
     paths = get_paths()
     outputs_dir = paths.sandbox_outputs_dir(thread_id)
-    artifact_root = outputs_dir / "rmf_review_v1_1" / run_id / "artifacts"
+    artifact_root = outputs_dir / "cer_review_v0" / run_id / "artifacts"
 
     summary_path = artifact_root / "00_manifest" / "run_summary.json"
     if not summary_path.exists():
@@ -543,74 +494,123 @@ async def rmf_run_detail(thread_id: str, run_id: str) -> RichRunResponse:
 
     summary = json.loads(summary_path.read_text())
 
-    # Run manifest
-    run_manifest = None
-    project_id = None
-    project_name = None
-    primary_review_object = None
-    input_root = None
-    human_gate_required = False
-    manifest_summary = None
+    # Intake summary
+    intake_summary = None
     run_manifest_path = artifact_root / "00_manifest" / "run_manifest.json"
     if run_manifest_path.exists():
-        run_manifest = json.loads(run_manifest_path.read_text())
-        project_id = run_manifest.get("project_id")
-        project_name = run_manifest.get("project_name")
-        primary_review_object = run_manifest.get("primary_review_object")
-        input_root = run_manifest.get("input_root")
-        human_gate_required = run_manifest.get("human_gate_required", False)
-        # Inventory summary
-        inv_path = artifact_root / "00_manifest" / "input_inventory.json"
-        if inv_path.exists():
-            inv = json.loads(inv_path.read_text())
-            manifest_summary = {
-                "document_count": len(inv.get("documents", [])),
-                "documents": inv.get("documents", []),
+        try:
+            rm = json.loads(run_manifest_path.read_text())
+            intake_summary = {
+                "project_id": rm.get("project_id"),
+                "input_doc_summary": rm.get("input_doc_summary", {}),
             }
+        except Exception:
+            pass
 
-    # Step summaries
-    intake_summary = manifest_summary
-    fmea_summary = None
-    rmf_precheck_summary = None
-    dimension_summary = None
+    # HF check summary
+    hf_check_summary = None
+    if (artifact_root / "02_hf_check" / "hf_check_report.json").exists():
+        try:
+            hf = json.loads((artifact_root / "02_hf_check" / "hf_check_report.json").read_text())
+            hf_check_summary = {
+                "total_checks": hf.get("total_checks"),
+                "present_count": hf.get("present_count"),
+                "missing_count": hf.get("missing_count"),
+                "findings": hf.get("findings", []),
+            }
+        except Exception:
+            pass
+
+    # P0.5: Equivalence assessment (HF-005)
+    equivalence_assessment_summary = None
+    if (artifact_root / "02_hf_check" / "equivalence_assessment.json").exists():
+        try:
+            eq = json.loads((artifact_root / "02_hf_check" / "equivalence_assessment.json").read_text())
+            equivalence_assessment_summary = {
+                "assessment_id": eq.get("assessment_id"),
+                "predicate_device": eq.get("predicate_device"),
+                "overall_tier": eq.get("overall_status"),
+                "dimensions_passed_count": eq.get("dimensions_passed_count"),
+                "dimensions_failed_count": eq.get("dimensions_failed_count"),
+                "mandatory_human_review": eq.get("mandatory_human_review"),
+                "top_risks": eq.get("top_risks", []),
+            }
+        except Exception:
+            pass
+
+    # P0.5: Literature quality (HF-004)
+    literature_quality_summary = None
+    if (artifact_root / "02_hf_check" / "literature_quality.json").exists():
+        try:
+            lq = json.loads((artifact_root / "02_hf_check" / "literature_quality.json").read_text())
+            lq_summary = lq.get("literature_quality_summary", {})
+            dist = lq.get("evidence_quality_distribution", {})
+            # Determine dominant tier
+            tier_counts = {k: len(v) for k, v in dist.items() if isinstance(v, list)}
+            dominant_tier = max(tier_counts, key=tier_counts.get) if tier_counts else "unknown"
+            literature_quality_summary = {
+                "literature_search_conducted": lq.get("literature_quality_summary", {}).get("total_evidence_units", 0) > 0,
+                "included_studies_count": lq.get("literature_quality_summary", {}).get("total_evidence_units"),
+                "high_quality_count": lq_summary.get("high_quality_count"),
+                "medium_quality_count": lq_summary.get("medium_quality_count"),
+                "low_quality_count": lq_summary.get("low_quality_count"),
+                "very_low_quality_count": lq_summary.get("very_low_quality_count"),
+                "insufficient_info_count": lq_summary.get("insufficient_info_count"),
+                "dominant_tier": dominant_tier,
+                "requires_human_review": lq_summary.get("requires_human_review"),
+            }
+        except Exception:
+            pass
+
+    # Five dimension summary
+    five_dim_summary = None
+    if (artifact_root / "03_five_dimension" / "five_dimension_review.json").exists():
+        try:
+            fd = json.loads((artifact_root / "03_five_dimension" / "five_dimension_review.json").read_text())
+            five_dim_summary = {
+                "dimensions": {k: {"status": v.get("status"), "label": v.get("label"), "requires_human_review": v.get("requires_human_review")} for k, v in fd.get("dimensions", {}).items()},
+            }
+        except Exception:
+            pass
+
+    # Cross-doc summary
+    cross_doc_summary = None
+    if (artifact_root / "04_cross_doc_consistency" / "cross_doc_consistency.json").exists():
+        try:
+            cd = json.loads((artifact_root / "04_cross_doc_consistency" / "cross_doc_consistency.json").read_text())
+            cross_doc_summary = {
+                "total_checks": cd.get("total_checks"),
+                "conflicts": cd.get("conflicts", []),
+                "pmcf_cer_mapping": cd.get("pmcf_cer_mapping", []),
+            }
+        except Exception:
+            pass
+
+    # Human boundary summary
     human_boundary_summary = None
-
-    if (artifact_root / "02_fmea_precheck" / "fmea_precheck_report.json").exists():
-        try:
-            fmea_summary = json.loads((artifact_root / "02_fmea_precheck" / "fmea_precheck_report.json").read_text())
-        except Exception:
-            pass
-    if (artifact_root / "03_rmf_precheck" / "rmf_precheck_report.json").exists():
-        try:
-            rmf_precheck_summary = json.loads((artifact_root / "03_rmf_precheck" / "rmf_precheck_report.json").read_text())
-        except Exception:
-            pass
-    if (artifact_root / "04_dimension_review" / "dimension_assessment.json").exists():
-        try:
-            dimension_summary = json.loads((artifact_root / "04_dimension_review" / "dimension_assessment.json").read_text())
-        except Exception:
-            pass
     if (artifact_root / "05_human_boundary" / "human_review_queue.json").exists():
         try:
             hq = json.loads((artifact_root / "05_human_boundary" / "human_review_queue.json").read_text())
             human_boundary_summary = {
                 "item_count": len(hq.get("items", [])),
                 "items": hq.get("items", []),
+                "recommended_gate": hq.get("recommended_gate"),
             }
         except Exception:
             pass
 
-    # Machine recommendations
-    final_recommended_gate = None
-    provisional_gate = None
-    provisional_only = None
-    human_gate_required_flag = human_gate_required
-    if (artifact_root / "06_final" / "final_report.json").exists():
+    # Review package summary
+    review_package_summary = None
+    if (artifact_root / "06_review_package" / "review_package.json").exists():
         try:
-            fr = json.loads((artifact_root / "06_final" / "final_report.json").read_text())
-            final_recommended_gate = fr.get("gate_recommendation", {}).get("recommended_gate")
+            rp = json.loads((artifact_root / "06_review_package" / "review_package.json").read_text())
+            review_package_summary = rp.get("summary")
         except Exception:
             pass
+
+    # Provisional gate
+    provisional_gate = None
+    provisional_only = None
     if (artifact_root / "05_human_boundary" / "provisional_gate_recommendation.json").exists():
         try:
             pg = json.loads((artifact_root / "05_human_boundary" / "provisional_gate_recommendation.json").read_text())
@@ -627,15 +627,17 @@ async def rmf_run_detail(thread_id: str, run_id: str) -> RichRunResponse:
         except Exception:
             pass
 
-    # Closure
-    has_closure = (artifact_root / "07_gate_closure" / "gate_closure_report.json").exists()
+    # Gate closure
     gate_closure = None
     next_action_packet = None
-    if has_closure:
+    has_closure = False
+    if (artifact_root / "07_gate_closure" / "gate_closure_report.json").exists():
         try:
             gate_closure = json.loads((artifact_root / "07_gate_closure" / "gate_closure_report.json").read_text())
+            has_closure = True
         except Exception:
             pass
+    if (artifact_root / "07_gate_closure" / "next_action_packet.json").exists():
         try:
             next_action_packet = json.loads((artifact_root / "07_gate_closure" / "next_action_packet.json").read_text())
         except Exception:
@@ -649,63 +651,76 @@ async def rmf_run_detail(thread_id: str, run_id: str) -> RichRunResponse:
         executed_steps=summary.get("executed_steps", []),
         artifact_root_virtual=summary.get("artifact_root_virtual", ""),
         artifact_root_actual=summary.get("artifact_root_actual", ""),
-        project_id=project_id,
-        project_name=project_name,
-        primary_review_object=primary_review_object,
-        input_root=input_root,
-        human_gate_required=human_gate_required,
+        project_id=intake_summary.get("project_id") if intake_summary else None,
+        human_gate_required=True,
         intake_summary=intake_summary,
-        fmea_precheck_summary=fmea_summary,
-        rmf_precheck_summary=rmf_precheck_summary,
-        dimension_summary=dimension_summary,
+        hf_check_summary=hf_check_summary,
+        five_dim_summary=five_dim_summary,
+        cross_doc_summary=cross_doc_summary,
         human_boundary_summary=human_boundary_summary,
-        final_recommended_gate=final_recommended_gate,
+        review_package_summary=review_package_summary,
+        final_recommended_gate=review_package_summary.get("recommended_gate") if review_package_summary else None,
         provisional_gate=provisional_gate,
         provisional_only=provisional_only,
-        human_gate_required_flag=human_gate_required_flag,
+        human_gate_required_flag=True,
         human_decision=human_decision,
         gate_closure=gate_closure,
         next_action_packet=next_action_packet,
         has_closure=has_closure,
         closure_completed=has_closure,
+        equivalence_assessment_summary=equivalence_assessment_summary,
+        literature_quality_summary=literature_quality_summary,
     )
 
 
-@router.get("/status/{thread_id}", response_model=RMFStatusResponse)
-async def rmf_status(thread_id: str) -> RMFStatusResponse:
-    """Get the latest run status for a thread."""
+@router.get("/status/{thread_id}", response_model=CERStatusResponse)
+async def cer_status(thread_id: str) -> CERStatusResponse:
+    """Get latest run status for a thread."""
     summary = _get_run_summary(thread_id)
     if not summary:
-        raise HTTPException(status_code=404, detail=f"No RMF run found for thread_id={thread_id}")
+        raise HTTPException(status_code=404, detail=f"No CER run found for thread_id={thread_id}")
     artifact_root = Path(summary["artifact_root_actual"])
     return _build_status_response(thread_id, summary, artifact_root)
 
 
 @router.post("/human-decision", response_model=HumanDecisionResponse)
-async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionResponse:
-    """Submit a human gate decision and trigger closure (closure-only, no step 1-7 re-run)."""
+async def cer_human_decision(body: HumanDecisionRequest) -> HumanDecisionResponse:
+    """Submit human gate decision and trigger closure-only run.
+
+    This does NOT overwrite any prior human decision - if one exists, it is preserved.
+    """
     summary = _get_run_summary(body.thread_id)
     if not summary:
-        raise HTTPException(status_code=404, detail=f"No RMF run found for thread_id={body.thread_id}")
+        raise HTTPException(status_code=404, detail=f"No CER run found for thread_id={body.thread_id}")
 
     artifact_root_actual = Path(summary["artifact_root_actual"])
-    _write_human_decision(body.thread_id, summary, body)
+    decision_path = artifact_root_actual / "05_human_boundary" / "human_gate_decision.json"
 
-    run_manifest_path = artifact_root_actual / "00_manifest" / "run_manifest.json"
-    if run_manifest_path.exists():
-        run_manifest = json.loads(run_manifest_path.read_text())
-        project_profile = run_manifest.get("project_profile_path")
-        input_root = run_manifest.get("input_root")
+    # If human decision already exists, do NOT overwrite - closure-only only
+    already_decided = decision_path.exists()
+    if already_decided:
+        logger.info("Human decision already recorded for thread_id=%s, skipping write", body.thread_id)
     else:
-        project_profile = None
-        input_root = None
+        _write_human_decision(body.thread_id, summary, body)
+
+    # Get project profile path from run manifest
+    run_manifest_path = artifact_root_actual / "00_manifest" / "run_manifest.json"
+    project_profile = None
+    input_root = None
+    if run_manifest_path.exists():
+        try:
+            run_manifest = json.loads(run_manifest_path.read_text())
+            project_profile = run_manifest.get("project_profile_path")
+            input_root = run_manifest.get("input_root")
+        except Exception:
+            pass
 
     if not project_profile:
         raise HTTPException(status_code=400, detail="Cannot determine project_profile path from run manifest.")
 
     cmd = [
         sys.executable,
-        str(_REPO_ROOT / "scripts" / "rmf_review_runner.py"),
+        str(_REPO_ROOT / "scripts" / "cer_review_runner.py"),
         "--project-profile",
         project_profile,
         "--thread-id",
@@ -723,12 +738,12 @@ async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionRespons
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_REPO_ROOT), timeout=600)
     gate_closure_executed = result.returncode == 0
 
-    gate_closure_report_path = str(artifact_root_actual / "07_gate_closure" / "gate_closure_report.md")
+    gate_closure_report_path = str(artifact_root_actual / "07_gate_closure" / "gate_closure_report.json")
     next_action_packet_path = str(artifact_root_actual / "07_gate_closure" / "next_action_packet.json")
 
     return HumanDecisionResponse(
         success=gate_closure_executed,
-        decision_recorded=True,
+        decision_recorded=not already_decided,
         gate_closure_executed=gate_closure_executed,
         artifact_root_actual=str(artifact_root_actual),
         gate_closure_report_path=gate_closure_report_path,
@@ -736,15 +751,12 @@ async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionRespons
     )
 
 
-@router.post("/rework", response_model=RMFStartResponse)
-async def rmf_rework(body: ReworkRequest) -> RMFStartResponse:
-    """Trigger a new smoke-run for a thread that has rework_required closure.
-
-    This creates a new run in the same thread, allowing the rework loop to proceed.
-    """
+@router.post("/rework", response_model=CERStartResponse)
+async def cer_rework(body: ReworkRequest) -> CERStartResponse:
+    """Trigger a new smoke-run for a thread that has rework_required closure."""
     summary = _get_run_summary(body.thread_id)
     if not summary:
-        raise HTTPException(status_code=404, detail=f"No RMF run found for thread_id={body.thread_id}")
+        raise HTTPException(status_code=404, detail=f"No CER run found for thread_id={body.thread_id}")
 
     artifact_root = Path(summary["artifact_root_actual"])
     run_manifest_path = artifact_root / "00_manifest" / "run_manifest.json"
@@ -758,13 +770,11 @@ async def rmf_rework(body: ReworkRequest) -> RMFStartResponse:
     if not project_profile:
         raise HTTPException(status_code=400, detail="Cannot determine project_profile path from run manifest.")
 
-    # Use a new thread_id derived from the original, to avoid returning cached summary
-    # Add suffix so it registers as a new run
     new_thread_id = f"{body.thread_id}-rework"
 
     cmd = [
         sys.executable,
-        str(_REPO_ROOT / "scripts" / "rmf_review_runner.py"),
+        str(_REPO_ROOT / "scripts" / "cer_review_runner.py"),
         "--project-profile",
         project_profile,
         "--thread-id",
@@ -781,26 +791,18 @@ async def rmf_rework(body: ReworkRequest) -> RMFStartResponse:
         raise HTTPException(status_code=500, detail=f"Rework run failed: {result.stderr}")
 
     output = json.loads(result.stdout)
-    return RMFStartResponse(**output)
+    return CERStartResponse(**output)
 
 
 @router.get("/closure/{thread_id}", response_model=ClosureResponse)
-async def rmf_closure(thread_id: str, run_id: str | None = None) -> ClosureResponse:
-    """Get gate closure result and next action summary for a run (latest if run_id not given)."""
-    from deerflow.config.paths import get_paths
-    if run_id:
-        paths = get_paths()
-        artifact_root = paths.sandbox_outputs_dir(thread_id) / "rmf_review_v1_1" / run_id / "artifacts"
-        summary_path = artifact_root / "00_manifest" / "run_summary.json"
-        if not summary_path.exists():
-            raise HTTPException(status_code=404, detail=f"Run {run_id} not found for thread {thread_id}")
-        summary = json.loads(summary_path.read_text())
-    else:
-        summary = _get_run_summary(thread_id)
-        if not summary:
-            raise HTTPException(status_code=404, detail=f"No RMF run found for thread_id={thread_id}")
-        artifact_root = Path(summary["artifact_root_actual"])
-        run_id = summary["run_id"]
+async def cer_closure(thread_id: str) -> ClosureResponse:
+    """Get gate closure result and next action summary for the latest run."""
+    summary = _get_run_summary(thread_id)
+    if not summary:
+        raise HTTPException(status_code=404, detail=f"No CER run found for thread_id={thread_id}")
+
+    artifact_root = Path(summary["artifact_root_actual"])
+    run_id = summary["run_id"]
 
     has_closure = (artifact_root / "07_gate_closure" / "gate_closure_report.json").exists()
     human_decision = None
@@ -816,16 +818,15 @@ async def rmf_closure(thread_id: str, run_id: str | None = None) -> ClosureRespo
             gate_closure_report = gcr
             final_gate_status = gcr.get("final_decision")
             human_decision = gcr.get("human_decision")
-            nap = gcr.get("next_action_packet")
+            nap = gcr.get("next_action")
             if nap:
-                blocking_count = sum(1 for a in nap.get("actions", []) if a.get("type") == "rework")
                 next_action = NextActionSummary(
-                    packet_type=nap.get("packet_type"),
-                    decision=nap.get("decision"),
+                    packet_type=nap.get("type"),
+                    decision=nap.get("type"),
                     description=nap.get("description"),
-                    blocking_actions_count=blocking_count,
-                    total_actions_count=len(nap.get("actions", [])),
-                    linked_capa_ids=nap.get("linked_capa_ids", []),
+                    blocking_actions_count=1 if nap.get("blocking") else 0,
+                    total_actions_count=1,
+                    linked_capa_ids=[],
                 )
         except Exception:
             pass
@@ -851,26 +852,17 @@ async def rmf_closure(thread_id: str, run_id: str | None = None) -> ClosureRespo
     )
 
 
-@router.get("/artifacts/{thread_id}", response_model=RMFArtifactsResponse)
-async def rmf_artifacts(thread_id: str, run_id: str | None = None) -> RMFArtifactsResponse:
-    """List available artifact paths for a run (latest run if run_id not given)."""
-    from deerflow.config.paths import get_paths
-    if run_id:
-        paths = get_paths()
-        artifact_root = paths.sandbox_outputs_dir(thread_id) / "rmf_review_v1_1" / run_id / "artifacts"
-        summary_path = artifact_root / "00_manifest" / "run_summary.json"
-        if not summary_path.exists():
-            raise HTTPException(status_code=404, detail=f"Run {run_id} not found for thread {thread_id}")
-        summary = json.loads(summary_path.read_text())
-    else:
-        summary = _get_run_summary(thread_id)
-        if not summary:
-            raise HTTPException(status_code=404, detail=f"No RMF run found for thread_id={thread_id}")
-        artifact_root = Path(summary["artifact_root_actual"])
+@router.get("/artifacts/{thread_id}", response_model=CERArtifactsResponse)
+async def cer_artifacts(thread_id: str) -> CERArtifactsResponse:
+    """List available artifact paths and download URLs for the latest run."""
+    summary = _get_run_summary(thread_id)
+    if not summary:
+        raise HTTPException(status_code=404, detail=f"No CER run found for thread_id={thread_id}")
+    artifact_root = Path(summary["artifact_root_actual"])
     artifacts = _artifacts_for_run(thread_id, summary, artifact_root)
-    return RMFArtifactsResponse(
+    return CERArtifactsResponse(
         thread_id=thread_id,
-        run_id=run_id if run_id else summary["run_id"],
+        run_id=summary["run_id"],
         artifact_root_actual=str(artifact_root),
         artifacts=artifacts,
     )

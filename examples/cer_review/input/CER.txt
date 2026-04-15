@@ -1,0 +1,31 @@
+Clinical Evaluation Report
+
+1. Intended Purpose
+The Example Device is intended for use in diagnostic and therapeutic procedures as prescribed by healthcare professionals. The intended purpose includes diagnosis of cardiovascular conditions and treatment of certain diseases.
+
+2. Scope of Clinical Evaluation
+This clinical evaluation covers the safety and performance of the Example Device in its intended use environment.
+
+3. Device Description
+The Example Device consists of a main unit, accessories, and consumables. The device is powered by standard AC power.
+
+4. Equivalence
+An equivalence claim is made to the Predicate Device (Model XYZ). The equivalence is based on similar intended purpose, technology, and materials.
+
+5. Literature Search
+A systematic literature search was conducted using PubMed, Embase, and Cochrane databases. The search strategy included terms for the device type and clinical outcomes.
+
+6. Clinical Data
+Clinical data was collected from post-market surveillance reports and literature studies. The data includes safety and performance outcomes.
+
+7. Benefit-Risk Assessment
+The anticipated clinical benefits of the device outweigh the residual risks when used as intended. The benefit-risk ratio is acceptable based on current clinical evidence.
+
+8. PMCF Plan
+Post-market clinical follow-up activities are planned including registry enrollment and annual safety updates.
+
+9. Conclusion
+Based on the available clinical evidence, the Example Device is considered safe and effective for its intended purpose when used as directed.
+
+10. Contraindication
+Contraindications include use in patients with certain implanted electronic devices and pregnant women.

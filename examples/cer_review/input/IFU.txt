@@ -1,0 +1,26 @@
+Instruction for Use - Example Device
+
+Intended Use:
+The Example Device is indicated for diagnostic and therapeutic procedures as prescribed by qualified healthcare professionals.
+
+Indications for Use:
+- Cardiovascular diagnostics
+- Treatment of specified conditions under specialist supervision
+
+Contraindications:
+- Patients with implanted electronic devices
+- Pregnant women
+- Patients with known sensitivity to device materials
+
+Warnings:
+- Do not use on patients with contraindications
+- Ensure proper training before use
+- Inspect device before each use
+
+Precautions:
+- Follow aseptic techniques
+- Monitor patient during procedure
+- Report adverse events
+
+Storage:
+Store in a cool, dry place away from direct sunlight.
