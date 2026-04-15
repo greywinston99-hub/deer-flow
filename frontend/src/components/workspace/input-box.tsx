@@ -63,21 +63,12 @@ import { textOfMessage } from "@/core/threads/utils";
 import { cn } from "@/lib/utils";
 
 import {
-  ModelSelector,
-  ModelSelectorContent,
-  ModelSelectorInput,
-  ModelSelectorItem,
-  ModelSelectorList,
-  ModelSelectorName,
-  ModelSelectorTrigger,
-} from "../ai-elements/model-selector";
-import { Suggestion, Suggestions } from "../ai-elements/suggestion";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { Suggestion, Suggestions } from "../ai-elements/suggestion";
 
 import { useThread } from "./messages/context";
 import { ModeHoverGuide } from "./mode-hover-guide";
@@ -143,7 +134,6 @@ export function InputBox({
 }) {
   const { t } = useI18n();
   const searchParams = useSearchParams();
-  const [modelDialogOpen, setModelDialogOpen] = useState(false);
   const { models } = useModels();
   const { thread, isMock } = useThread();
   const { textInput } = usePromptInputController();
@@ -188,6 +178,22 @@ export function InputBox({
     return models.find((m) => m.name === context.model_name) ?? models[0];
   }, [context.model_name, models]);
 
+  const contextModelName =
+    typeof context.model_name === "string" ? context.model_name : undefined;
+
+  const selectedModelLabel = useMemo<string>(() => {
+    if (selectedModel?.display_name) {
+      return selectedModel.display_name;
+    }
+    if (selectedModel?.name) {
+      return selectedModel.name;
+    }
+    if (contextModelName === "minimax-m2.7") {
+      return "MiniMax M2.7";
+    }
+    return contextModelName ?? "Select Model";
+  }, [contextModelName, selectedModel]);
+
   const resolvedModelName = selectedModel?.name;
 
   const supportThinking = useMemo(
@@ -212,7 +218,6 @@ export function InputBox({
         mode: getResolvedMode(context.mode, model.supports_thinking ?? false),
         reasoning_effort: context.reasoning_effort,
       });
-      setModelDialogOpen(false);
     },
     [onContextChange, context, models],
   );
@@ -792,30 +797,28 @@ export function InputBox({
             )}
           </PromptInputTools>
           <PromptInputTools>
-            <ModelSelector
-              open={modelDialogOpen}
-              onOpenChange={setModelDialogOpen}
-            >
-              <ModelSelectorTrigger asChild>
-                <PromptInputButton>
-                  <div className="flex min-w-0 flex-col items-start text-left">
-                    <ModelSelectorName className="text-xs font-normal">
-                      {selectedModel?.display_name}
-                    </ModelSelectorName>
-                  </div>
-                </PromptInputButton>
-              </ModelSelectorTrigger>
-              <ModelSelectorContent>
-                <ModelSelectorInput placeholder={t.inputBox.searchModels} />
-                <ModelSelectorList>
+            <PromptInputActionMenu>
+              <PromptInputActionMenuTrigger>
+                <div className="flex min-w-0 flex-col items-start text-left">
+                  <span className="truncate text-xs font-normal">
+                    {selectedModelLabel}
+                  </span>
+                </div>
+              </PromptInputActionMenuTrigger>
+              <PromptInputActionMenuContent className="w-72">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-muted-foreground text-xs">
+                    {t.inputBox.searchModels}
+                  </DropdownMenuLabel>
                   {models.map((m) => (
-                    <ModelSelectorItem
+                    <PromptInputActionMenuItem
                       key={m.name}
-                      value={m.name}
                       onSelect={() => handleModelSelect(m.name)}
                     >
                       <div className="flex min-w-0 flex-1 flex-col">
-                        <ModelSelectorName>{m.display_name}</ModelSelectorName>
+                        <span className="truncate text-sm">
+                          {m.display_name ?? m.name}
+                        </span>
                         <span className="text-muted-foreground truncate text-[10px]">
                           {m.model}
                         </span>
@@ -825,11 +828,11 @@ export function InputBox({
                       ) : (
                         <div className="ml-auto size-4" />
                       )}
-                    </ModelSelectorItem>
+                    </PromptInputActionMenuItem>
                   ))}
-                </ModelSelectorList>
-              </ModelSelectorContent>
-            </ModelSelector>
+                </DropdownMenuGroup>
+              </PromptInputActionMenuContent>
+            </PromptInputActionMenu>
             <PromptInputSubmit
               className="rounded-full"
               disabled={disabled}

@@ -491,6 +491,7 @@ class DeerFlowClient:
                     "supports_reasoning_effort": getattr(model, "supports_reasoning_effort", False),
                 }
                 for model in self._app_config.models
+                if not getattr(model, "hidden", False)
             ]
         }
 

@@ -69,6 +69,7 @@ async def list_models() -> ModelsListResponse:
             supports_reasoning_effort=model.supports_reasoning_effort,
         )
         for model in config.models
+        if not getattr(model, "hidden", False)
     ]
     return ModelsListResponse(models=models)
 

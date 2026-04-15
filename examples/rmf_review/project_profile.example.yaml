@@ -1,0 +1,77 @@
+project_id: seed_project_01_wuxi_pamu_rmf_p0
+project_name: Wuxi Pamu RMF Review Pilot
+
+institution_profile:
+  organization: Example Regulatory Delivery Team
+  assessment_body: BSI
+  profile_version: "v1"
+
+review_scope:
+  mode: single_project_serial_review
+  review_language: en
+  jurisdiction: EU MDR
+  human_gate_required: true
+
+primary_review_object: RMF
+
+device_context:
+  device_name: Pulmonary Ablation System
+  device_family: Electrophysiology Ablation Platform
+  device_class: Class III
+  intended_use: >
+    Catheter-based ablation system for treatment of cardiac arrhythmia under
+    specialist supervision.
+  market_stage: technical_documentation_review
+
+input_package:
+  root_path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母
+  documents:
+    - doc_type: RMF
+      label: Main RMF
+      path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/RMF/Risk_Management_File.pdf
+      required_for_p0: true
+      source_ref:
+        document_id: rmf_main
+        path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/RMF/Risk_Management_File.pdf
+    - doc_type: FMEA
+      label: Design FMEA
+      path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/RMF/Design_FMEA.xlsx
+      required_for_p0: true
+      source_ref:
+        document_id: fmea_design
+        path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/RMF/Design_FMEA.xlsx
+    - doc_type: Hazard_Analysis
+      label: Hazard Analysis
+      path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/RMF/Hazard_Analysis.xlsx
+      required_for_p0: true
+      source_ref:
+        document_id: hazard_analysis
+        path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/RMF/Hazard_Analysis.xlsx
+    - doc_type: IFU
+      label: IFU
+      path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/IFU/IFU.pdf
+      required_for_p0: false
+      source_ref:
+        document_id: ifu_main
+        path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/IFU/IFU.pdf
+    - doc_type: CER
+      label: CER
+      path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/CER/CER.pdf
+      required_for_p0: false
+      source_ref:
+        document_id: cer_main
+        path: /mnt/knowledge/source_projects/seed_project_01_无锡帕母/CER/CER.pdf
+
+artifact_policy:
+  artifact_root: /mnt/output/RMF&CER萃取/rmf_review_v1_1/seed_project_01_wuxi_pamu_rmf_p0
+  persist_intermediate_artifacts: true
+  final_outputs:
+    - final_report.md
+    - final_report.json
+    - capa_action_list.json
+    - backflow_candidates.json
+
+notes:
+  - P0 assumes one project only.
+  - FMEA and Hazard Analysis are explicit review inputs.
+  - Final gate must be decided by a human reviewer.

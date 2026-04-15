@@ -5,7 +5,7 @@ export const DEFAULT_LOCAL_SETTINGS: LocalSettings = {
     enabled: true,
   },
   context: {
-    model_name: undefined,
+    model_name: "minimax-m2.7",
     mode: undefined,
     reasoning_effort: undefined,
   },

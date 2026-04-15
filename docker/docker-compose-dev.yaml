@@ -123,7 +123,7 @@ services:
         UV_IMAGE: ${UV_IMAGE:-ghcr.io/astral-sh/uv:0.7.20}
         UV_INDEX_URL: ${UV_INDEX_URL:-https://pypi.org/simple}
     container_name: deer-flow-gateway
-    command: sh -c "{ cd backend && (uv sync || (echo '[startup] uv sync failed; recreating .venv and retrying once' && uv venv --allow-existing .venv && uv sync)) && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --reload --reload-include='*.yaml .env'; } > /app/logs/gateway.log 2>&1"
+    command: sh -c "{ cd backend && (uv sync || (echo '[startup] uv sync failed; recreating .venv and retrying once' && uv venv --allow-existing .venv && uv sync)) && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001; } > /app/logs/gateway.log 2>&1"
     volumes:
       - ../backend/:/app/backend/
       # Preserve the .venv built during Docker image build — mounting the full backend/
@@ -132,6 +132,10 @@ services:
       - ../config.yaml:/app/config.yaml
       - ../extensions_config.json:/app/extensions_config.json
       - ../skills:/app/skills
+      - /Users/winstonwei/deer-flow2/DP2.0知识库:/mnt/knowledge/DP2.0知识库:rw
+      - "/Users/winstonwei/Nutstore Files/APlus Healthcare Technology/Project Management 项目管理:/mnt/knowledge/Project Management 项目管理:ro"
+      - /Users/winstonwei/Documents/Github/cer-harness-core/runtime_data/source_projects:/mnt/knowledge/source_projects:ro
+      - "/Users/winstonwei/CER-RAG/RMF&CER萃取:/mnt/output/RMF&CER萃取:rw"
       - ../logs:/app/logs
       # Mount uv cache for faster dependency installation
       - ~/.cache/uv:/root/.cache/uv
@@ -189,6 +193,10 @@ services:
       - ../config.yaml:/app/config.yaml
       - ../extensions_config.json:/app/extensions_config.json
       - ../skills:/app/skills
+      - /Users/winstonwei/deer-flow2/DP2.0知识库:/mnt/knowledge/DP2.0知识库:rw
+      - "/Users/winstonwei/Nutstore Files/APlus Healthcare Technology/Project Management 项目管理:/mnt/knowledge/Project Management 项目管理:ro"
+      - /Users/winstonwei/Documents/Github/cer-harness-core/runtime_data/source_projects:/mnt/knowledge/source_projects:ro
+      - "/Users/winstonwei/CER-RAG/RMF&CER萃取:/mnt/output/RMF&CER萃取:rw"
       - ../logs:/app/logs
       # Mount uv cache for faster dependency installation
       - ~/.cache/uv:/root/.cache/uv

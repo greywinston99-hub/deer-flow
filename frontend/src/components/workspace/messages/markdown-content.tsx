@@ -1,6 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import {
+  Children,
+  isValidElement,
+  useMemo,
+  type ComponentPropsWithoutRef,
+} from "react";
 import type { AnchorHTMLAttributes } from "react";
 
 import {
@@ -24,6 +29,54 @@ export type MarkdownContentProps = {
   remarkPlugins?: MessageResponseProps["remarkPlugins"];
   components?: MessageResponseProps["components"];
 };
+
+const BLOCK_LEVEL_TAGS = new Set([
+  "address",
+  "article",
+  "aside",
+  "blockquote",
+  "details",
+  "div",
+  "dl",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "header",
+  "hr",
+  "menu",
+  "nav",
+  "ol",
+  "p",
+  "pre",
+  "section",
+  "table",
+  "ul",
+]);
+
+function paragraphHasBlockContent(children: ComponentPropsWithoutRef<"p">["children"]) {
+  return Children.toArray(children).some((child) => {
+    if (!isValidElement(child)) {
+      return false;
+    }
+
+    if (typeof child.type === "string") {
+      return BLOCK_LEVEL_TAGS.has(child.type);
+    }
+
+    return (
+      child.props?.["data-code-block-container"] === true ||
+      child.props?.["data-streamdown"] === "code-block"
+    );
+  });
+}
 
 /** Renders markdown content. */
 export function MarkdownContent({
@@ -56,6 +109,13 @@ export function MarkdownContent({
             rel={rel ?? (external ? "noopener noreferrer" : undefined)}
           />
         );
+      },
+      p: ({ children, ...props }: ComponentPropsWithoutRef<"p">) => {
+        if (paragraphHasBlockContent(children)) {
+          return <div {...props}>{children}</div>;
+        }
+
+        return <p {...props}>{children}</p>;
       },
       ...componentsFromProps,
     };

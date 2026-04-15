@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/fmea_normalized.schema.json",
+  "title": "FMEA Normalized",
+  "description": "Explicit normalized FMEA / Hazard Analysis structure for RMF review.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document_id",
+    "document_type",
+    "rows"
+  ],
+  "properties": {
+    "document_id": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "FMEA",
+        "Hazard_Analysis",
+        "Combined_FMEA_Hazard_Analysis"
+      ]
+    },
+    "normalization_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/fmeaRow"
+      }
+    }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_span": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "table_id": {
+          "type": "string"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    },
+    "traceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref_id"
+      ],
+      "properties": {
+        "ref_id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/sourceRef"
+        }
+      }
+    },
+    "riskMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "raw_value": {
+          "type": [
+            "string",
+            "number",
+            "integer"
+          ]
+        },
+        "normalized_value": {
+          "type": [
+            "string",
+            "number",
+            "integer"
+          ]
+        },
+        "scale": {
+          "type": "string"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/sourceRef"
+        }
+      }
+    },
+    "controlEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_id",
+        "description"
+      ],
+      "properties": {
+        "control_id": {
+          "type": "string"
+        },
+        "control_type": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "implementation_state": {
+          "type": "string"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/sourceRef"
+        }
+      }
+    },
+    "evidenceEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "description"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/sourceRef"
+        }
+      }
+    },
+    "fmeaRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "risk_id",
+        "hazard",
+        "hazardous_situation",
+        "harm",
+        "failure_mode",
+        "cause",
+        "sequence_of_events",
+        "probability",
+        "severity",
+        "risk_level",
+        "controls",
+        "verification_evidence",
+        "residual_risk",
+        "source_ref"
+      ],
+      "properties": {
+        "risk_id": {
+          "type": "string"
+        },
+        "hazard": {
+          "type": "string"
+        },
+        "hazardous_situation": {
+          "type": "string"
+        },
+        "harm": {
+          "type": "string"
+        },
+        "failure_mode": {
+          "type": "string"
+        },
+        "cause": {
+          "type": "string"
+        },
+        "sequence_of_events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "probability": {
+          "$ref": "#/$defs/riskMetric"
+        },
+        "severity": {
+          "$ref": "#/$defs/riskMetric"
+        },
+        "risk_level": {
+          "$ref": "#/$defs/riskMetric"
+        },
+        "rpn": {
+          "$ref": "#/$defs/riskMetric"
+        },
+        "controls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/controlEntry"
+          }
+        },
+        "acceptance_conclusion": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string"
+            },
+            "rationale": {
+              "type": "string"
+            },
+            "source_ref": {
+              "$ref": "#/$defs/sourceRef"
+            }
+          }
+        },
+        "verification_evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidenceEntry"
+          }
+        },
+        "residual_risk": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "summary"
+          ],
+          "properties": {
+            "summary": {
+              "type": "string"
+            },
+            "probability": {
+              "$ref": "#/$defs/riskMetric"
+            },
+            "severity": {
+              "$ref": "#/$defs/riskMetric"
+            },
+            "risk_level": {
+              "$ref": "#/$defs/riskMetric"
+            },
+            "acceptability": {
+              "type": "string"
+            },
+            "source_ref": {
+              "$ref": "#/$defs/sourceRef"
+            }
+          }
+        },
+        "linked_ifu_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/traceRef"
+          }
+        },
+        "linked_cer_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/traceRef"
+          }
+        },
+        "linked_td_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/traceRef"
+          }
+        },
+        "source_ref": {
+          "$ref": "#/$defs/sourceRef"
+        }
+      }
+    }
+  }
+}

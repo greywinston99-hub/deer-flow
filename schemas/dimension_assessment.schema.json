@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/dimension_assessment.schema.json",
+  "title": "Dimension Assessment",
+  "description": "Six-dimension RMF assessment result with evidence binding and human boundary markers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_subject",
+    "dimensions",
+    "overall_summary"
+  ],
+  "properties": {
+    "review_subject": {
+      "type": "string",
+      "enum": [
+        "RMF"
+      ]
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "COMP",
+        "CORR",
+        "ADEQ",
+        "TRAC",
+        "CONS",
+        "ACPT"
+      ],
+      "properties": {
+        "COMP": {
+          "$ref": "#/$defs/dimensionResult"
+        },
+        "CORR": {
+          "$ref": "#/$defs/dimensionResult"
+        },
+        "ADEQ": {
+          "$ref": "#/$defs/dimensionResult"
+        },
+        "TRAC": {
+          "$ref": "#/$defs/dimensionResult"
+        },
+        "CONS": {
+          "$ref": "#/$defs/dimensionResult"
+        },
+        "ACPT": {
+          "$ref": "#/$defs/dimensionResult"
+        }
+      }
+    },
+    "overall_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "key_findings"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "green",
+            "amber",
+            "red",
+            "human_gate_required"
+          ]
+        },
+        "key_findings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blocking_issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "statement",
+        "classification",
+        "source_refs"
+      ],
+      "properties": {
+        "finding_id": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "string"
+        },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "strength",
+            "gap",
+            "ambiguity",
+            "cross_doc_conflict",
+            "human_judgment_needed"
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    },
+    "dimensionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dimension_name",
+        "status",
+        "summary",
+        "findings"
+      ],
+      "properties": {
+        "dimension_name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "green",
+            "amber",
+            "red",
+            "needs_human_review"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "recommended_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

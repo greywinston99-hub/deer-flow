@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/human_review_queue.schema.json",
+  "title": "Human Review Queue",
+  "description": "Queue of issues that cannot be safely concluded automatically.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "queue_id",
+    "items"
+  ],
+  "properties": {
+    "queue_id": {
+      "type": "string"
+    },
+    "recommended_gate": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "conditional_pass",
+        "rework_required"
+      ]
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/reviewItem"
+      }
+    }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    },
+    "reviewItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "topic",
+        "why_not_auto_decidable",
+        "reviewer_focus",
+        "priority",
+        "evidence_sources"
+      ],
+      "properties": {
+        "item_id": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string",
+          "enum": [
+            "risk_identification_adequacy",
+            "probability_estimation_reasonableness",
+            "severity_grading_appropriateness",
+            "risk_control_adequacy",
+            "residual_risk_acceptability",
+            "overall_benefit_risk",
+            "cross_document_inconsistency_explanation",
+            "unknown_risk_evaluation",
+            "other"
+          ]
+        },
+        "reviewer_focus": {
+          "type": "string"
+        },
+        "why_not_auto_decidable": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "suggested_gate_if_unresolved": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "conditional_pass",
+            "rework_required"
+          ]
+        },
+        "evidence_sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    }
+  }
+}

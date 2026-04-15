@@ -1,0 +1,183 @@
+workflow_name: rmf_review_v1_1
+workflow_version: "1.1"
+workflow_status: p0_skeleton
+mode: single_project_serial_review
+description: >
+  RMF Review Workflow v1.1 P0 skeleton for running one real project review in a
+  single-institution context. BSI is the fixed organization profile in this
+  version. FMEA / Hazard Analysis is an explicit review object and must not be
+  treated as merely implied inside RMF.
+
+scope:
+  project_scope: single_project
+  institution_scope: single_body
+  institution_profile: BSI
+  primary_review_object: RMF
+  cross_validation_inputs:
+    - CER
+    - IFU
+    - TD
+    - PMS_PMCF
+    - FMEA
+    - Hazard_Analysis
+  final_decision_requires_human_gate: true
+
+contracts:
+  project_profile_schema: schemas/project_profile.schema.json
+  fmea_normalized_schema: schemas/fmea_normalized.schema.json
+  dimension_assessment_schema: schemas/dimension_assessment.schema.json
+  human_review_queue_schema: schemas/human_review_queue.schema.json
+
+runtime_defaults:
+  artifact_root: /mnt/user-data/outputs/rmf_review_v1_1/${run_id}/artifacts
+  source_root: /mnt/user-data/uploads
+  enforce_source_binding: true
+  enforce_human_gate: true
+  conclusion_without_source_ref: forbidden
+  final_status_values:
+    - pass
+    - conditional_pass
+    - rework_required
+
+artifact_contract:
+  run_manifest: ${artifact_root}/00_manifest/run_manifest.json
+  input_inventory: ${artifact_root}/00_manifest/input_inventory.json
+  missing_items_report: ${artifact_root}/00_manifest/missing_items_report.md
+  normalized_project_profile: ${artifact_root}/01_parse/project_profile.normalized.json
+  cross_doc_entities: ${artifact_root}/01_parse/cross_doc_entities.json
+  term_map: ${artifact_root}/01_parse/term_map.json
+  fmea_normalized: ${artifact_root}/01_parse/fmea_normalized.json
+  rmf_normalized: ${artifact_root}/01_parse/rmf_normalized.json
+  fmea_precheck_report: ${artifact_root}/02_fmea_precheck/fmea_precheck_report.json
+  rmf_precheck_report: ${artifact_root}/03_rmf_precheck/rmf_precheck_report.json
+  dimension_assessment: ${artifact_root}/04_dimension_review/dimension_assessment.json
+  human_review_queue: ${artifact_root}/05_human_boundary/human_review_queue.json
+  final_markdown_report: ${artifact_root}/06_final/final_report.md
+  final_json_report: ${artifact_root}/06_final/final_report.json
+  capa_action_list: ${artifact_root}/06_final/capa_action_list.json
+  backflow_candidates: ${artifact_root}/06_final/backflow_candidates.json
+
+layering_rules:
+  layer_1:
+    label: rules_based_auto_checks
+    allowed_nodes:
+      - rmf_intake_agent
+      - rmf_parse_normalize_agent
+      - fmea_precheck_agent
+      - rmf_precheck_agent
+  layer_2:
+    label: semi_rule_based_with_human_recheck
+    allowed_nodes:
+      - rmf_dimension_review_agent
+  layer_3:
+    label: human_judgment_required
+    allowed_nodes:
+      - rmf_human_boundary_agent
+      - rmf_report_agent
+
+tool_restrictions:
+  default_policy:
+    allow_read_only_inputs: true
+    allow_write_artifacts_only_under: ${artifact_root}
+    block_final_compliance_verdict_without_human_gate: true
+  placeholders:
+    guardrails_profile: TODO_define_allowlist_or_policy_provider
+    write_scope_guard: TODO_lock_outputs_to_artifact_root
+    network_policy: TODO_disable_external_network_if_not_needed
+
+on_fail:
+  default_action: emit_failure_artifact_and_stop
+  failure_artifact: ${artifact_root}/failure/failure_report.json
+  preserve_partial_artifacts: true
+  escalate_to_human_when:
+    - source_binding_breaks
+    - required_input_missing_for_core_review
+    - schema_validation_fails_after_repair_attempt
+    - agent_attempts_final_acceptability_conclusion
+
+ordered_steps:
+  - step_id: rmf_intake_agent
+    prompt_contract: prompts/rmf_intake_agent.md
+    layer: layer_1
+    outputs:
+      - run_manifest
+      - input_inventory
+      - missing_items_report
+    on_fail: stop_and_emit_failure_artifact
+  - step_id: rmf_parse_normalize_agent
+    prompt_contract: prompts/rmf_parse_normalize_agent.md
+    layer: layer_1
+    depends_on:
+      - rmf_intake_agent
+    outputs:
+      - normalized_project_profile
+      - rmf_normalized
+      - fmea_normalized
+      - cross_doc_entities
+      - term_map
+    on_fail: stop_and_emit_failure_artifact
+  - step_id: fmea_precheck_agent
+    prompt_contract: prompts/fmea_precheck_agent.md
+    layer: layer_1
+    depends_on:
+      - rmf_parse_normalize_agent
+    outputs:
+      - fmea_precheck_report
+    on_fail: stop_and_emit_failure_artifact
+  - step_id: rmf_precheck_agent
+    prompt_contract: prompts/rmf_precheck_agent.md
+    layer: layer_1
+    depends_on:
+      - fmea_precheck_agent
+    outputs:
+      - rmf_precheck_report
+    on_fail: stop_and_emit_failure_artifact
+  - step_id: rmf_dimension_review_agent
+    prompt_contract: prompts/rmf_dimension_review_agent.md
+    layer: layer_2
+    depends_on:
+      - rmf_precheck_agent
+    outputs:
+      - dimension_assessment
+    on_fail: stop_and_emit_failure_artifact
+  - step_id: rmf_human_boundary_agent
+    prompt_contract: prompts/rmf_human_boundary_agent.md
+    layer: layer_3
+    depends_on:
+      - rmf_dimension_review_agent
+    outputs:
+      - human_review_queue
+      - provisional_gate_recommendation
+    on_fail: stop_and_emit_failure_artifact
+  - step_id: rmf_report_agent
+    prompt_contract: prompts/rmf_report_agent.md
+    layer: layer_3
+    depends_on:
+      - rmf_human_boundary_agent
+    outputs:
+      - final_markdown_report
+      - final_json_report
+      - capa_action_list
+      - backflow_candidates
+    on_fail: stop_and_emit_failure_artifact
+
+human_gate:
+  required: true
+  gate_after_step: rmf_human_boundary_agent
+  allowed_decisions:
+    - pass
+    - conditional_pass
+    - rework_required
+  gate_record_artifact: ${artifact_root}/05_human_boundary/human_gate_decision.json
+  decision_rules:
+    pass:
+      meaning: Human reviewer accepts release of the review package with no blocking remediation.
+    conditional_pass:
+      meaning: Human reviewer accepts with tracked conditions, CAPA, or evidence supplementation.
+    rework_required:
+      meaning: Human reviewer rejects closure and requires document or assessment rework before rerun.
+
+notes:
+  - This file is a DeerFlow-compatible workflow skeleton, not a claim that DeerFlow already ships a native RMF workflow runner.
+  - The intent of v1.1 is to make the next step of wiring a real project input bundle straightforward.
+  - FMEA / Hazard Analysis review is explicit and mandatory in this workflow.
