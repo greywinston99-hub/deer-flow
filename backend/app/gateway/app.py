@@ -14,6 +14,7 @@ from app.gateway.routers import (
     mcp,
     memory,
     models,
+    rmf,
     runs,
     skills,
     suggestions,
@@ -157,6 +158,10 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
                 "description": "LangGraph Platform-compatible runs lifecycle (create, stream, cancel)",
             },
             {
+                "name": "rmf",
+                "description": "RMF Review Workflow - trigger review runs, submit human gate decisions, and retrieve artifacts",
+            },
+            {
                 "name": "health",
                 "description": "Health check and system status endpoints",
             },
@@ -180,6 +185,9 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
 
     # Artifacts API is mounted at /api/threads/{thread_id}/artifacts
     app.include_router(artifacts.router)
+
+    # RMF Review Workflow API is mounted at /api/rmf
+    app.include_router(rmf.router)
 
     # Uploads API is mounted at /api/threads/{thread_id}/uploads
     app.include_router(uploads.router)
