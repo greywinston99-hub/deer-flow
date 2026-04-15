@@ -10,7 +10,6 @@ from app.gateway.routers import (
     agents,
     artifacts,
     assistants_compat,
-    cer,
     channels,
     mcp,
     memory,
@@ -163,10 +162,6 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
                 "description": "RMF Review Workflow - trigger review runs, submit human gate decisions, and retrieve artifacts",
             },
             {
-                "name": "cer",
-                "description": "CER Review Workflow - trigger CER review runs, submit human gate decisions, and retrieve artifacts",
-            },
-            {
                 "name": "health",
                 "description": "Health check and system status endpoints",
             },
@@ -193,9 +188,6 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
 
     # RMF Review Workflow API is mounted at /api/rmf
     app.include_router(rmf.router)
-
-    # CER Review Workflow API is mounted at /api/cer
-    app.include_router(cer.router)
 
     # Uploads API is mounted at /api/threads/{thread_id}/uploads
     app.include_router(uploads.router)
