@@ -38,22 +38,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--mode",
-        choices=("dry-run", "smoke-run"),
+        choices=("dry-run", "smoke-run", "closure-only"),
         default="smoke-run",
-        help="dry-run validates and writes the run plan; smoke-run executes the first three nodes.",
+        help="dry-run validates and writes the run plan; smoke-run executes all nodes; closure-only runs only the gate closure step.",
+    )
+    parser.add_argument(
+        "--artifact-root-override",
+        help="Absolute path to existing artifact root (for closure-only mode).",
+    )
+    parser.add_argument(
+        "--run-id-override",
+        help="Run ID to reuse (for closure-only mode).",
     )
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
-    runner = RMFReviewRunner(
-        repo_root=REPO_ROOT,
-        workflow_path=args.workflow,
-        project_profile_path=args.project_profile,
-        input_root=args.input_root,
-        thread_id=args.thread_id,
-    )
+    runner_kwargs: dict[str, object] = {
+        "repo_root": REPO_ROOT,
+        "workflow_path": args.workflow,
+        "project_profile_path": args.project_profile,
+        "input_root": args.input_root,
+        "thread_id": args.thread_id,
+    }
+    if args.artifact_root_override:
+        runner_kwargs["artifact_root_override"] = args.artifact_root_override
+    if args.run_id_override:
+        runner_kwargs["run_id_override"] = args.run_id_override
+    runner = RMFReviewRunner(**runner_kwargs)
     result = runner.run(mode=args.mode)
     print(
         json.dumps(

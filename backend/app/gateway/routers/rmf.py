@@ -41,7 +41,7 @@ class RMFStartRequest(BaseModel):
     project_profile: str = Field(..., description="Absolute path to project_profile.yaml")
     input_root: str | None = Field(None, description="Optional override for input root")
     thread_id: str | None = Field(None, description="Optional thread id (generated if not provided)")
-    mode: str = Field(default="smoke-run", description="Run mode: smoke-run (only)")
+    mode: str = Field(default="smoke-run", description="Run mode: smoke-run | closure-only")
 
 
 class RMFStartResponse(BaseModel):
@@ -260,8 +260,10 @@ async def rmf_status(thread_id: str) -> RMFStatusResponse:
 async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionResponse:
     """Submit a human gate decision and trigger gate closure.
 
-    Writes human_gate_decision.json, then re-runs the RMF runner
-    to produce the gate_closure_report and next_action_packet.
+    Writes human_gate_decision.json to the existing run's artifact directory,
+    then runs only the gate closure step (closure-only mode) without re-executing
+    any of the prior steps (1-7). This preserves the submitted decision's
+    simulated=false and writes closure artifacts to the same directory.
     """
     summary = _get_run_summary(body.thread_id)
     if not summary:
@@ -270,10 +272,9 @@ async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionRespons
             detail=f"No RMF run found for thread_id={body.thread_id}",
         )
 
-    _write_human_decision(body.thread_id, summary, body)
-
-    # Re-run the full runner to execute gate closure step
+    # Write the human decision FIRST to the existing artifact directory
     artifact_root_actual = Path(summary["artifact_root_actual"])
+    _write_human_decision(body.thread_id, summary, body)
 
     # Determine project_profile path from the run_manifest
     run_manifest_path = artifact_root_actual / "00_manifest" / "run_manifest.json"
@@ -291,6 +292,10 @@ async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionRespons
             detail="Cannot determine project_profile path from run manifest. Please re-run with a run that includes the manifest.",
         )
 
+    # Use closure-only mode: executes only _run_gate_closure, no re-execution of steps 1-7.
+    # Pass run_id_override and artifact_root_override so closure artifacts land in the
+    # SAME directory with the SAME run_id as the smoke-run, alongside the human_gate_decision.json
+    # we just wrote there.
     cmd = [
         sys.executable,
         str(_REPO_ROOT / "scripts" / "rmf_review_runner.py"),
@@ -299,7 +304,11 @@ async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionRespons
         "--thread-id",
         body.thread_id,
         "--mode",
-        "smoke-run",
+        "closure-only",
+        "--run-id-override",
+        summary["run_id"],
+        "--artifact-root-override",
+        str(artifact_root_actual),
     ]
 
     if input_root:
@@ -310,7 +319,7 @@ async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionRespons
         capture_output=True,
         text=True,
         cwd=str(_REPO_ROOT),
-        timeout=1800,
+        timeout=600,  # closure-only is fast (no LLM calls)
     )
 
     gate_closure_executed = result.returncode == 0

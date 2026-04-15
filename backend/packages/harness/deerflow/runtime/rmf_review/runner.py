@@ -85,6 +85,8 @@ class RMFReviewRunner:
         project_profile_path: str | Path,
         input_root: str | Path | None = None,
         thread_id: str | None = None,
+        artifact_root_override: str | Path | None = None,
+        run_id_override: str | None = None,
     ) -> None:
         self.repo_root = Path(repo_root).resolve()
         self.workflow_path = Path(workflow_path).resolve()
@@ -98,12 +100,15 @@ class RMFReviewRunner:
         self.workflow = self._load_yaml(self.workflow_path)
         self.project_profile = self._load_yaml(self.project_profile_path)
 
-        self.run_id = self._make_run_id()
+        self.run_id = run_id_override or self._make_run_id()
         self.workflow_name = str(self.workflow.get("workflow_name", "rmf_review_v1_1"))
 
         artifact_root_template = self.workflow["runtime_defaults"]["artifact_root"]
         self.artifact_root_virtual = self._render_template(str(artifact_root_template))
-        self.artifact_root_actual = self.paths.resolve_virtual_path(self.thread_id, self.artifact_root_virtual)
+        if artifact_root_override:
+            self.artifact_root_actual = Path(artifact_root_override).resolve()
+        else:
+            self.artifact_root_actual = self.paths.resolve_virtual_path(self.thread_id, self.artifact_root_virtual)
         self.artifact_root_actual.mkdir(parents=True, exist_ok=True)
 
         self.step_map = {
@@ -119,9 +124,9 @@ class RMFReviewRunner:
 
     def run(self, *, mode: str = "smoke-run") -> RMFRunResult:
         executed_steps: list[str] = []
-        self._write_run_context(mode=mode)
 
         if mode == "dry-run":
+            self._write_run_context(mode=mode)
             self._write_json(
                 self._artifact_path("00_manifest", "dry_run_plan.json"),
                 self._build_dry_run_plan(),
@@ -135,6 +140,25 @@ class RMFReviewRunner:
                 artifact_root_virtual=self.artifact_root_virtual,
                 artifact_root_actual=str(self.artifact_root_actual),
             )
+
+        if mode == "closure-only":
+            # Write context for audit trail (not to overwrite run_summary)
+            self._write_run_context(mode=mode)
+            # Execute only the gate closure step using already-existing artifacts
+            self._run_gate_closure({})
+            executed_steps = ["rmf_gate_closure_agent"]
+            # Do NOT overwrite run_summary.json — preserve the original smoke-run record
+            return RMFRunResult(
+                thread_id=self.thread_id,
+                run_id=self.run_id,
+                mode=mode,
+                workflow_name=self.workflow_name,
+                executed_steps=executed_steps,
+                artifact_root_virtual=self.artifact_root_virtual,
+                artifact_root_actual=str(self.artifact_root_actual),
+            )
+
+        self._write_run_context(mode=mode)
 
         for step in self.workflow.get("ordered_steps", []):
             step_id = step.get("step_id")

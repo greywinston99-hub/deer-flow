@@ -319,3 +319,124 @@ def test_gate_closure_produces_closure_artifacts_and_next_action_packet(tmp_path
     assert isinstance(nap["actions"], list)
     assert len(nap["actions"]) > 0
     assert all("action_id" in a and "type" in a for a in nap["actions"])
+
+
+def test_closure_only_mode_does_not_re_execute_steps_1_through_7(tmp_path, monkeypatch):
+    """Verify closure-only mode does not re-run steps 1-7 and uses existing artifacts."""
+    # Run smoke-run first to produce all artifacts
+    runner1 = _build_runner(tmp_path, monkeypatch)
+    result1 = runner1.run(mode="smoke-run")
+    artifact_root = Path(result1.artifact_root_actual)
+    run_id_1 = result1.run_id
+
+    # Overwrite human_gate_decision.json with a real human decision BEFORE closure-only
+    decision_path = artifact_root / "05_human_boundary" / "human_gate_decision.json"
+    human_decision_record = {
+        "decision": "pass",
+        "reviewer": "test-human-reviewer",
+        "decision_date": "2026-04-15",
+        "rationale": "All items adequately addressed.",
+        "linked_review_items": ["item_001"],
+        "linked_capa_ids": ["capa_001"],
+        "simulated": False,
+    }
+    decision_path.write_text(json.dumps(human_decision_record), encoding="utf-8")
+
+    # Get timestamps of step 1-7 artifacts to verify they are NOT re-written
+    step1_artifact = artifact_root / "01_parse" / "rmf_normalized.json"
+    step1_mtime_before = step1_artifact.stat().st_mtime
+
+    # Run closure-only with run_id_override and artifact_root_override pointing to the SAME directory
+    from deerflow.runtime.rmf_review import RMFReviewRunner
+    import time; time.sleep(0.1)  # ensure mtime would change if file is re-written
+    runner2 = RMFReviewRunner(
+        repo_root=Path("/Users/winstonwei/Documents/Playground/deer-flow"),
+        workflow_path=Path("/Users/winstonwei/Documents/Playground/deer-flow/workflows/rmf_review_v1_1.yaml"),
+        project_profile_path=tmp_path / "project_profile.yaml",
+        input_root=tmp_path / "inputs",
+        thread_id="rmf-smoke-test",
+        run_id_override=run_id_1,
+        artifact_root_override=str(artifact_root),
+    )
+    result2 = runner2.run(mode="closure-only")
+
+    # closure-only must return the same run_id (not create a new one)
+    assert result2.run_id == run_id_1
+    assert result2.executed_steps == ["rmf_gate_closure_agent"]
+
+    # Step 1-7 artifact (rmf_normalized.json) must NOT be modified
+    step1_mtime_after = step1_artifact.stat().st_mtime
+    assert step1_mtime_after == step1_mtime_before, "step 1 artifact was re-written by closure-only"
+
+    # human_gate_decision.json must preserve the real human decision (simulated=false)
+    decision_after = json.loads(decision_path.read_text(encoding="utf-8"))
+    assert decision_after["reviewer"] == "test-human-reviewer"
+    assert decision_after["simulated"] is False
+    assert decision_after["decision"] == "pass"
+
+    # closure artifacts must exist
+    assert (artifact_root / "07_gate_closure" / "gate_closure_report.json").exists()
+    assert (artifact_root / "07_gate_closure" / "next_action_packet.json").exists()
+
+    # gate_closure_report must reflect the real human decision
+    gcr = json.loads((artifact_root / "07_gate_closure" / "gate_closure_report.json").read_text(encoding="utf-8"))
+    assert gcr["human_decision"]["reviewer"] == "test-human-reviewer"
+    assert gcr["human_decision"]["simulated"] is False
+    assert gcr["final_decision"] == "pass"
+
+    # next_action_packet must reflect the real human decision
+    nap = json.loads((artifact_root / "07_gate_closure" / "next_action_packet.json").read_text(encoding="utf-8"))
+    assert nap["decision"] == "pass"
+    assert nap["packet_type"] == "archive"
+
+
+def test_closure_only_mode_uses_existing_artifact_root_not_a_new_directory(tmp_path, monkeypatch):
+    """Verify closure-only writes to the same artifact directory, not a new one."""
+    runner1 = _build_runner(tmp_path, monkeypatch)
+    result1 = runner1.run(mode="smoke-run")
+    artifact_root_1 = result1.artifact_root_actual
+
+    # Write a human decision
+    decision_path = Path(artifact_root_1) / "05_human_boundary" / "human_gate_decision.json"
+    decision_path.write_text(json.dumps({
+        "decision": "conditional_pass",
+        "reviewer": "dr-smith",
+        "decision_date": "2026-04-15",
+        "rationale": "Proceed with conditions.",
+        "linked_review_items": ["item_002"],
+        "linked_capa_ids": ["capa_002"],
+        "simulated": False,
+    }), encoding="utf-8")
+
+    # Run closure-only
+    from deerflow.runtime.rmf_review import RMFReviewRunner
+    runner2 = RMFReviewRunner(
+        repo_root=Path("/Users/winstonwei/Documents/Playground/deer-flow"),
+        workflow_path=Path("/Users/winstonwei/Documents/Playground/deer-flow/workflows/rmf_review_v1_1.yaml"),
+        project_profile_path=tmp_path / "project_profile.yaml",
+        input_root=tmp_path / "inputs",
+        thread_id="rmf-smoke-test",
+        run_id_override=result1.run_id,
+        artifact_root_override=artifact_root_1,
+    )
+    result2 = runner2.run(mode="closure-only")
+
+    # Same run_id, same artifact_root
+    assert result2.run_id == result1.run_id
+    assert result2.artifact_root_actual == artifact_root_1
+
+    # No new run_summary.json was written (preserving original)
+    summary_path = Path(artifact_root_1) / "00_manifest" / "run_summary.json"
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert summary["mode"] == "smoke-run"  # original mode preserved
+    assert summary["executed_steps"] == [
+        "rmf_intake_agent",
+        "rmf_parse_normalize_agent",
+        "fmea_precheck_agent",
+        "rmf_precheck_agent",
+        "rmf_dimension_review_agent",
+        "rmf_human_boundary_agent",
+        "rmf_report_agent",
+        "rmf_gate_closure_agent",
+    ]  # original steps preserved
+
