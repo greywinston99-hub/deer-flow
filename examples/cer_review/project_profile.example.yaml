@@ -1,0 +1,76 @@
+project_id: seed_cer_01_demo
+project_name: CER Review Demo
+
+institution_profile:
+  organization: Example Regulatory Affairs Team
+  assessment_body: BSI
+  profile_version: "v1"
+
+review_scope:
+  mode: single_project_serial_review
+  review_language: en
+  jurisdiction: EU MDR / IVDR
+  human_gate_required: true
+
+primary_review_object: CER
+
+device_context:
+  device_name: Example Device
+  device_family: Class IIa Device
+  device_class: Class IIa
+  intended_use: >
+    Example device for demonstration of CER review workflow.
+  market_stage: technical_documentation_review
+
+input_package:
+  root_path: /Users/winstonwei/Documents/Playground/deer-flow/examples/cer_review/input
+  documents:
+    - doc_type: CER
+      label: Clinical Evaluation Report
+      path: CER.txt
+      required_for_p0: true
+      source_ref:
+        document_id: cer_main
+        path: CER.txt
+    - doc_type: CEP
+      label: Clinical Evaluation Plan
+      path: CEP.txt
+      required_for_p0: false
+      source_ref:
+        document_id: cep_main
+        path: CEP.txt
+    - doc_type: IFU
+      label: Instruction for Use
+      path: IFU.txt
+      required_for_p0: false
+      source_ref:
+        document_id: ifu_main
+        path: IFU.txt
+    - doc_type: RMF
+      label: Risk Management File
+      path: RMF.txt
+      required_for_p0: false
+      source_ref:
+        document_id: rmf_main
+        path: RMF.txt
+    - doc_type: PMCF_Plan
+      label: PMCF Plan
+      path: PMCF_Plan.txt
+      required_for_p0: false
+      source_ref:
+        document_id: pmcf_plan
+        path: PMCF_Plan.txt
+
+artifact_policy:
+  artifact_root: /tmp/cer_review_demo
+  persist_intermediate_artifacts: true
+  final_outputs:
+    - review_package.json
+    - review_package.md
+    - gate_closure_report.json
+    - next_action_packet.json
+
+notes:
+  - This is a demonstration project for the CER review workflow v0.
+  - Uses synthetic text documents for demonstration purposes.
+  - Real implementation would use actual PDF/Word documents.
