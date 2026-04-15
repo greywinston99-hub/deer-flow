@@ -203,6 +203,8 @@ def test_rmf_review_smoke_run_executes_first_five_steps_and_writes_dimension_art
         "fmea_precheck_agent",
         "rmf_precheck_agent",
         "rmf_dimension_review_agent",
+        "rmf_human_boundary_agent",
+        "rmf_report_agent",
     ]
     assert (artifact_root / "04_dimension_review" / "dimension_review_report.md").exists()
     assert set(assessment["dimensions"].keys()) == {"COMP", "CORR", "ADEQ", "TRAC", "CONS", "ACPT"}
@@ -238,3 +240,50 @@ def test_hazard_analysis_missing_is_not_blocking_when_pfmea_exists(tmp_path, mon
     assert run_manifest["hazard_resolution"]["resolution_mode"] == "alias_to_pfmea"
     assert run_manifest["fmea_status"]["hazard_analysis_present"] is True
     assert "Required Missing Count: `0`" in missing_report
+
+
+def test_seventh_node_produces_final_artifacts_and_preserves_human_boundary(tmp_path, monkeypatch):
+    runner = _build_runner(tmp_path, monkeypatch)
+    result = runner.run(mode="smoke-run")
+
+    artifact_root = Path(result.artifact_root_actual)
+
+    # Node 7 artifacts exist
+    assert (artifact_root / "06_final" / "final_report.md").exists()
+    assert (artifact_root / "06_final" / "final_report.json").exists()
+    assert (artifact_root / "06_final" / "capa_action_list.json").exists()
+    assert (artifact_root / "06_final" / "backflow_candidates.json").exists()
+
+    # final_report.json content checks
+    final_json = json.loads((artifact_root / "06_final" / "final_report.json").read_text(encoding="utf-8"))
+    assert final_json["step_id"] == "rmf_report_agent"
+    assert "recommended_gate" in final_json
+    assert final_json["final_gate_status"] == "pending_human_confirmation"
+    assert "MACHINE-GENERATED RECOMMENDATION ONLY" in final_json["gate_caveat"]
+    assert final_json["human_gate_required"] is True
+    assert "executive_summary" in final_json
+    assert "capa_action_list" in final_json
+    assert "backflow_candidates" in final_json
+
+    # capa_action_list is non-empty
+    capa = json.loads((artifact_root / "06_final" / "capa_action_list.json").read_text(encoding="utf-8"))
+    assert isinstance(capa, list)
+    assert len(capa) > 0
+    assert any("source" in item for item in capa)
+
+    # backflow_candidates is non-empty
+    backflow = json.loads((artifact_root / "06_final" / "backflow_candidates.json").read_text(encoding="utf-8"))
+    assert isinstance(backflow, list)
+    assert len(backflow) > 0
+    assert any("pattern_type" in item for item in backflow)
+
+    # human boundary is preserved in final report
+    hrb = json.loads((artifact_root / "05_human_boundary" / "human_review_queue.json").read_text(encoding="utf-8"))
+    assert len(hrb["items"]) > 0
+    assert hrb["recommended_gate"] in ("pass", "conditional_pass", "rework_required")
+
+    # provisional_gate preserves human decision required flag
+    prov_gate = json.loads((artifact_root / "05_human_boundary" / "provisional_gate_recommendation.json").read_text(encoding="utf-8"))
+    assert prov_gate.get("human_decision_required") is True
+    assert prov_gate.get("provisional_only") is True
+    assert "does not constitute" in prov_gate.get("caveat", "")
