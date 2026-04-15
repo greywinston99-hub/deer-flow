@@ -205,6 +205,7 @@ def test_rmf_review_smoke_run_executes_first_five_steps_and_writes_dimension_art
         "rmf_dimension_review_agent",
         "rmf_human_boundary_agent",
         "rmf_report_agent",
+        "rmf_gate_closure_agent",
     ]
     assert (artifact_root / "04_dimension_review" / "dimension_review_report.md").exists()
     assert set(assessment["dimensions"].keys()) == {"COMP", "CORR", "ADEQ", "TRAC", "CONS", "ACPT"}
@@ -287,3 +288,34 @@ def test_seventh_node_produces_final_artifacts_and_preserves_human_boundary(tmp_
     assert prov_gate.get("human_decision_required") is True
     assert prov_gate.get("provisional_only") is True
     assert "does not constitute" in prov_gate.get("caveat", "")
+
+
+def test_gate_closure_produces_closure_artifacts_and_next_action_packet(tmp_path, monkeypatch):
+    runner = _build_runner(tmp_path, monkeypatch)
+    result = runner.run(mode="smoke-run")
+
+    artifact_root = Path(result.artifact_root_actual)
+
+    # Node 8 artifacts exist
+    assert (artifact_root / "07_gate_closure" / "gate_closure_report.md").exists()
+    assert (artifact_root / "07_gate_closure" / "gate_closure_report.json").exists()
+    assert (artifact_root / "07_gate_closure" / "next_action_packet.json").exists()
+
+    # human_gate_decision was auto-written
+    assert (artifact_root / "05_human_boundary" / "human_gate_decision.json").exists()
+
+    # gate_closure_report.json checks
+    closure_json = json.loads((artifact_root / "07_gate_closure" / "gate_closure_report.json").read_text(encoding="utf-8"))
+    assert closure_json["step_id"] == "rmf_gate_closure_agent"
+    assert "human_decision" in closure_json
+    assert closure_json["final_decision"] in ("pass", "conditional_pass", "rework_required")
+    assert closure_json["human_gate_required"] is True
+    assert "next_action_packet" in closure_json
+
+    # next_action_packet checks
+    nap = json.loads((artifact_root / "07_gate_closure" / "next_action_packet.json").read_text(encoding="utf-8"))
+    assert nap["packet_type"] in ("archive", "condition_tracking", "rework")
+    assert nap["decision"] in ("pass", "conditional_pass", "rework_required")
+    assert isinstance(nap["actions"], list)
+    assert len(nap["actions"]) > 0
+    assert all("action_id" in a and "type" in a for a in nap["actions"])

@@ -36,6 +36,7 @@ _SUPPORTED_STEP_IDS = (
     "rmf_dimension_review_agent",
     "rmf_human_boundary_agent",
     "rmf_report_agent",
+    "rmf_gate_closure_agent",
 )
 
 _COLUMN_ALIASES = {
@@ -113,6 +114,7 @@ class RMFReviewRunner:
             "rmf_dimension_review_agent": self._run_rmf_dimension_review,
             "rmf_human_boundary_agent": self._run_human_boundary,
             "rmf_report_agent": self._run_report,
+            "rmf_gate_closure_agent": self._run_gate_closure,
         }
 
     def run(self, *, mode: str = "smoke-run") -> RMFRunResult:
@@ -1007,6 +1009,248 @@ class RMFReviewRunner:
         self._write_json(step_dir / "final_report.json", final_report_json)
         self._write_json(step_dir / "capa_action_list.json", capa_items)
         self._write_json(step_dir / "backflow_candidates.json", backflow_candidates)
+
+    def _run_gate_closure(self, step: dict[str, Any]) -> None:
+        step_dir = self._artifact_dir("07_gate_closure")
+        human_review_queue = self._read_json(self._artifact_path("05_human_boundary", "human_review_queue.json"))
+        provisional_gate = self._read_json(self._artifact_path("05_human_boundary", "provisional_gate_recommendation.json"))
+        final_report = self._read_json(self._artifact_path("06_final", "final_report.json"))
+        capa_items = self._read_json(self._artifact_path("06_final", "capa_action_list.json"))
+        backflow_candidates = self._read_json(self._artifact_path("06_final", "backflow_candidates.json"))
+        run_manifest = self._read_json(self._artifact_path("00_manifest", "run_manifest.json"))
+
+        human_decision_path = self._artifact_path("05_human_boundary", "human_gate_decision.json")
+        if not human_decision_path.exists():
+            self._write_json(human_decision_path, {
+                "decision": provisional_gate.get("gate", "rework_required"),
+                "reviewer": "smoke-run-simulated-reviewer",
+                "decision_date": "2026-04-15",
+                "rationale": "Smoke-run simulated decision based on provisional gate recommendation.",
+                "linked_review_items": [item["item_id"] for item in human_review_queue.get("items", [])],
+                "linked_capa_ids": [c["capa_id"] for c in capa_items],
+                "simulated": True,
+            })
+
+        human_decision = self._read_json(human_decision_path)
+
+        decision = human_decision.get("decision", "rework_required")
+        linked_items = human_decision.get("linked_review_items", [])
+        linked_capas = human_decision.get("linked_capa_ids", [])
+        reviewer = human_decision.get("reviewer", "unknown")
+        rationale = human_decision.get("rationale", "")
+
+        blocking_capas = [c for c in capa_items if c.get("blocking")]
+        high_priority_capas = [c for c in capa_items if c.get("priority") == "high"]
+        pending_review_items = [item for item in human_review_queue.get("items", []) if item.get("item_id") in linked_items]
+
+        next_action_packet = self._build_next_action_packet(
+            decision=decision,
+            human_decision=human_decision,
+            capa_items=capa_items,
+            blocking_capas=blocking_capas,
+            pending_review_items=pending_review_items,
+            backflow_candidates=backflow_candidates,
+            provisional_gate=provisional_gate,
+        )
+
+        gate_closure_json = {
+            "closure_id": f"gcr-{self.run_id}",
+            "step_id": "rmf_gate_closure_agent",
+            "run_id": self.run_id,
+            "thread_id": self.thread_id,
+            "project_id": run_manifest.get("project_id"),
+            "human_gate_required": True,
+            "human_decision": human_decision,
+            "final_decision": decision,
+            "provisional_recommendation": provisional_gate.get("gate"),
+            "decision_matches_provisional": decision == provisional_gate.get("gate"),
+            "review_items_addressed": len(pending_review_items),
+            "capa_items_linked": len(linked_capas),
+            "blocking_capas_resolved": decision in ("pass", "conditional_pass"),
+            "archive_eligible": decision == "pass",
+            "next_action_packet": next_action_packet,
+            "closure_timestamp": self._iso_now(),
+        }
+
+        gate_closure_md = self._render_gate_closure_markdown(
+            decision=decision,
+            reviewer=reviewer,
+            rationale=rationale,
+            linked_items=linked_items,
+            linked_capas=linked_capas,
+            provisional_gate=provisional_gate,
+            blocking_capas=blocking_capas,
+            high_priority_capas=high_priority_capas,
+            next_action_packet=next_action_packet,
+        )
+
+        self._write_json(step_dir / "gate_closure_report.json", gate_closure_json)
+        self._write_text(step_dir / "gate_closure_report.md", gate_closure_md)
+        self._write_json(step_dir / "next_action_packet.json", next_action_packet)
+
+    def _build_next_action_packet(
+        self,
+        *,
+        decision: str,
+        human_decision: dict[str, Any],
+        capa_items: list[dict[str, Any]],
+        blocking_capas: list[dict[str, Any]],
+        pending_review_items: list[dict[str, Any]],
+        backflow_candidates: list[dict[str, Any]],
+        provisional_gate: dict[str, Any],
+    ) -> dict[str, Any]:
+        packet_id = f"nap-{self.run_id}"
+        now = self._iso_now()
+
+        if decision == "pass":
+            return {
+                "packet_id": packet_id,
+                "packet_type": "archive",
+                "generated_at": now,
+                "decision": "pass",
+                "description": "All review items resolved; package archived.",
+                "actions": [
+                    {
+                        "action_id": f"act_{i + 1:03d}",
+                        "type": "archive",
+                        "description": f"Archive review package for project {human_decision.get('project_id', 'unknown')}.",
+                        "responsible": "reviewer",
+                        "due_date": None,
+                        "status": "pending",
+                    }
+                    for i in range(1)
+                ],
+                "conditions": [],
+                "linked_review_items": human_decision.get("linked_review_items", []),
+                "linked_capa_ids": human_decision.get("linked_capa_ids", []),
+            }
+
+        if decision == "conditional_pass":
+            open_capas = [c for c in blocking_capas if c.get("priority") == "high"] or [c for c in capa_items if c.get("priority") == "high"]
+            conditions = [
+                {
+                    "condition_id": f"cond_{i + 1:03d}",
+                    "description": c.get("suggested_action", c.get("description", ""))[:200],
+                    "linked_capa_id": c.get("capa_id"),
+                    "due_date": None,
+                    "status": "open",
+                }
+                for i, c in enumerate(open_capas[:5])
+            ]
+            return {
+                "packet_id": packet_id,
+                "packet_type": "condition_tracking",
+                "generated_at": now,
+                "decision": "conditional_pass",
+                "description": f"{len(conditions)} conditions require tracking before final closure.",
+                "actions": [
+                    {
+                        "action_id": f"act_{i + 1:03d}",
+                        "type": "condition_verification",
+                        "description": f"Verify condition: {cond['description'][:100]}",
+                        "responsible": "reviewer",
+                        "due_date": cond.get("due_date"),
+                        "status": "pending",
+                        "linked_condition_id": cond.get("condition_id"),
+                    }
+                    for i, cond in enumerate(conditions)
+                ],
+                "conditions": conditions,
+                "linked_review_items": human_decision.get("linked_review_items", []),
+                "linked_capa_ids": human_decision.get("linked_capa_ids", []),
+            }
+
+        # rework_required
+        rework_capas = [c for c in blocking_capas if c.get("priority") == "high"] or blocking_capas[:10]
+        return {
+            "packet_id": packet_id,
+            "packet_type": "rework",
+            "generated_at": now,
+            "decision": "rework_required",
+            "description": f"{len(rework_capas)} blocking CAPA items require remediation before re-review.",
+            "actions": [
+                {
+                    "action_id": f"act_{i + 1:03d}",
+                    "type": "rework",
+                    "description": c.get("suggested_action", c.get("description", ""))[:200],
+                    "responsible": "sponsor",
+                    "due_date": None,
+                    "status": "pending",
+                    "linked_capa_id": c.get("capa_id"),
+                }
+                for i, c in enumerate(rework_capas)
+            ],
+            "conditions": [],
+            "linked_review_items": human_decision.get("linked_review_items", []),
+            "linked_capa_ids": human_decision.get("linked_capa_ids", []),
+            "rework_note": "Re-review required after sponsor remediation. Re-run the 7-node machine review pipeline after CAPA completion.",
+        }
+
+    def _render_gate_closure_markdown(
+        self,
+        *,
+        decision: str,
+        reviewer: str,
+        rationale: str,
+        linked_items: list[str],
+        linked_capas: list[str],
+        provisional_gate: dict[str, Any],
+        blocking_capas: list[dict[str, Any]],
+        high_priority_capas: list[dict[str, Any]],
+        next_action_packet: dict[str, Any],
+    ) -> str:
+        decision_badge = {"pass": "✅ PASS", "conditional_pass": "🔶 CONDITIONAL PASS", "rework_required": "❌ REWORK REQUIRED"}.get(decision, decision)
+        lines = [
+            "# RMF Review Gate Closure Report",
+            "",
+            f"## Human Gate Decision",
+            "",
+            f"- **Decision:** **{decision_badge}**",
+            f"- **Reviewer:** {reviewer}",
+            f"- **Decision Date:** {self._iso_now()[:10]}",
+            f"- **Rationale:** {rationale}",
+            "",
+            f"## Closure Status",
+            "",
+            f"- Human Gate Required: `True`",
+            f"- Decision Matches Provisional: `{decision == provisional_gate.get('gate')}`",
+            f"- Provisional Recommendation: `{provisional_gate.get('gate')}`",
+            f"- Linked Review Items: `{len(linked_items)}`",
+            f"- Linked CAPA IDs: `{len(linked_capas)}`",
+            "",
+            f"## Next Action Packet",
+            "",
+            f"- Packet Type: `{next_action_packet.get('packet_type')}`",
+            f"- Packet ID: `{next_action_packet.get('packet_id')}`",
+            f"- Description: {next_action_packet.get('description', '')}",
+            "",
+            f"### Actions ({len(next_action_packet.get('actions', []))})",
+            "",
+        ]
+        for action in next_action_packet.get("actions", []):
+            lines.append(f"- **`{action.get('action_id')}`** [{action.get('type')}] {action.get('description', '')[:120]}")
+        lines.append("")
+
+        if next_action_packet.get("conditions"):
+            lines.append(f"### Conditions ({len(next_action_packet.get('conditions', []))})")
+            for cond in next_action_packet.get("conditions", []):
+                lines.append(f"- **`{cond.get('condition_id')}`** {cond.get('description', '')[:120]}")
+            lines.append("")
+
+        if decision == "rework_required":
+            lines.append("## Rework Notice")
+            lines.append("")
+            lines.append("⚠️  Rework required. Sponsor must remediate all blocking CAPA items before re-running the machine review pipeline.")
+            lines.append("")
+
+        lines.append("---")
+        lines.append(f"*Gate closure report generated by RMFReviewRunner v1.1 — run_id: {self.run_id}*")
+        lines.append("")
+        return "\n".join(lines)
+
+    def _iso_now(self) -> str:
+        from datetime import datetime, timezone
+        return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def _build_executive_summary(
         self,
