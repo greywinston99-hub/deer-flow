@@ -452,11 +452,16 @@ async def start_run_in_project(
             hg_path = outputs_base / "05_human_boundary" / "human_gate_decision.json"
             if hg_path.exists():
                 hg = json.loads(hg_path.read_text())
-                human_dec = hg.get("decision")
+                # Skip simulated decisions (smoke-run auto-generated) — only accept real human decisions
+                if not hg.get("simulated"):
+                    human_dec = hg.get("decision")
             gc_path = outputs_base / "07_gate_closure" / "gate_closure_report.json"
             if gc_path.exists():
                 gc = json.loads(gc_path.read_text())
                 final_gate = gc.get("final_decision")
+            # Only set final_gate if a real human decision was recorded
+            if human_dec is None:
+                final_gate = None
     except Exception:
         pass
 
