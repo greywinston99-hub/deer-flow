@@ -15,6 +15,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -22,6 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ArtifactViewer from "./components/ArtifactViewer";
+import RoundComparison from "./components/RoundComparison";
 import { Textarea } from "@/components/ui/textarea";
 import { getBackendBaseURL } from "@/core/config";
 
@@ -143,6 +151,18 @@ async function updateProjectStatus(projectId: string, status: string, role: stri
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
 }
 
+async function closeProject(projectId: string, role: string): Promise<void> {
+  const r = await fetch(`${getBackendBaseURL()}/api/rmf/projects/${projectId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", "X-RMF-Role": role },
+    body: JSON.stringify({ close: true }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({ detail: r.statusText }));
+    throw new Error(err.detail ?? `HTTP ${r.status}`);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -192,6 +212,48 @@ function gateBadge(gate: string | null | undefined): React.ReactNode {
     gate === "conditional_pass" ? "bg-amber-100 text-amber-800" :
     "bg-gray-100";
   return <Badge className={color}>{gate}</Badge>;
+}
+
+// ---------------------------------------------------------------------------
+// Artifact Card
+// ---------------------------------------------------------------------------
+
+function ArtifactCard({
+  projectId,
+  cycleId,
+  artifactPath,
+  artifactName,
+  artifactDesc,
+}: {
+  projectId: string;
+  cycleId: string | undefined;
+  artifactPath: string;
+  artifactName: string;
+  artifactDesc: string;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="border rounded-lg p-3 text-left hover:bg-muted/50 transition-colors space-y-1"
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">{artifactName}</span>
+          <Badge variant="outline" className="text-xs">Preview</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">{artifactDesc}</p>
+      </button>
+      <ArtifactViewer
+        projectId={projectId}
+        cycleId={cycleId}
+        artifactPath={artifactPath}
+        artifactName={artifactName}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -382,7 +444,7 @@ export default function ProjectDetailPage() {
   const handleCloseProject = async () => {
     if (!confirm("Close this project? It will be marked as closed.")) return;
     try {
-      await updateProjectStatus(projectId, "closed", role);
+      await closeProject(projectId, role);
       toast.success("Project closed");
       load();
     } catch (err) {
@@ -441,9 +503,11 @@ export default function ProjectDetailPage() {
               >
                 {startingRun ? "Starting..." : "Start New Run"}
               </Button>
-              <Button onClick={handleCloseProject} variant="outline">
-                Close Project
-              </Button>
+              {(role === "approver" || role === "admin") && (
+                <Button onClick={handleCloseProject} variant="outline">
+                  Close Project
+                </Button>
+              )}
             </>
           )}
           <Button variant="outline" onClick={() => router.push("/workspace/rmf/projects")}>
@@ -491,6 +555,8 @@ export default function ProjectDetailPage() {
           <TabsTrigger value="audit">Human Decision Audit</TabsTrigger>
           <TabsTrigger value="human-decision">Submit Decision</TabsTrigger>
           <TabsTrigger value="rework-ops">Rework Ops</TabsTrigger>
+          <TabsTrigger value="artifacts">Artifacts</TabsTrigger>
+          <TabsTrigger value="comparison">Comparison</TabsTrigger>
           <TabsTrigger value="export">Export</TabsTrigger>
         </TabsList>
 
@@ -814,6 +880,62 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+</TabsContent>
+
+        {/* Artifacts Tab */}
+        <TabsContent value="artifacts" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Project Artifacts</CardTitle>
+              <CardDescription>View artifacts from the latest completed cycle</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {project.review_cycles.length === 0 ? (
+                <div className="text-sm text-muted-foreground py-6 text-center">No cycles yet — no artifacts available.</div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { step: "06_final", name: "final_report.json", label: "Final Report", desc: "Machine recommendation, risk level, key findings, blocking items" },
+                    { step: "07_gate_closure", name: "gate_closure_report.json", label: "Gate Closure", desc: "Final decision, conditions, sign-off requirements" },
+                    { step: "07_gate_closure", name: "next_action_packet.json", label: "Next Actions", desc: "Actions, owners, due dates, status" },
+                    { step: "05_human_boundary", name: "human_review_queue.json", label: "Review Queue", desc: "High/medium/low priority items for human review" },
+                    { step: "06_final", name: "capa_action_list.json", label: "CAPA List", desc: "Open, in-progress, and closed CAPAs" },
+                    { step: "06_final", name: "backflow_candidates.json", label: "Backflow Candidates", desc: "Items flagged for potential backflow to design" },
+                    { step: "06_final", name: "final_report.md", label: "Final Report (Markdown)", desc: "Human-readable final report summary" },
+                    { step: "04_dimension_review", name: "dimension_review_report.md", label: "Dimension Review", desc: "Dimensional assessment and review notes" },
+                  ].map((a) => (
+                    <ArtifactCard
+                      key={`${a.step}/${a.name}`}
+                      projectId={projectId}
+                      cycleId={undefined}
+                      artifactPath={`${a.step}/${a.name}`}
+                      artifactName={a.label}
+                      artifactDesc={a.desc}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Comparison Tab */}
+        <TabsContent value="comparison" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Round Comparison</CardTitle>
+              <CardDescription>Side-by-side view of all rounds with gate progression and artifact access</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RoundComparison
+                projectId={projectId}
+                cycles={project.review_cycles}
+                latestMachineRecommendation={project.latest_machine_recommendation}
+                latestHumanDecision={project.latest_human_decision}
+                latestGateStatus={project.latest_gate_status}
+              />
             </CardContent>
           </Card>
         </TabsContent>

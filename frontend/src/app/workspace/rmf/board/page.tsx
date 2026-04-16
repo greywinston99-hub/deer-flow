@@ -26,6 +26,12 @@ import { getBackendBaseURL } from "@/core/config";
 // Types
 // ---------------------------------------------------------------------------
 
+interface BlockingReason {
+  reason: string;
+  count: number;
+  project_ids: string[];
+}
+
 interface ProjectBoardItem {
   project_id: string;
   project_name: string;
@@ -51,6 +57,7 @@ interface BoardSummary {
   pending_human_decision_count: number;
   rework_required_count: number;
   passed_count: number;
+  blocking_reasons: BlockingReason[];
 }
 
 interface BoardResponse {
@@ -255,6 +262,33 @@ export default function RMFOpsBoardPage() {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {/* Blocking Reasons */}
+          {board.summary && board.summary.blocking_reasons && board.summary.blocking_reasons.length > 0 && (
+            <Card className="border-orange-300">
+              <CardHeader>
+                <CardTitle className="text-base">Blocking Reasons</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {board.summary.blocking_reasons.map((br) => (
+                    <div key={br.reason} className="flex items-start gap-3 text-sm">
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium text-red-600">{br.reason}</span>
+                        <span className="text-muted-foreground"> — {br.count} project(s)</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground shrink-0">
+                        {br.project_ids.slice(0, 3).map((pid) => (
+                          <span key={pid} className="font-mono mr-1">{pid.slice(-8)}</span>
+                        ))}
+                        {br.project_ids.length > 3 && <span className="text-muted-foreground">+{br.project_ids.length - 3} more</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* By-Status breakdown */}

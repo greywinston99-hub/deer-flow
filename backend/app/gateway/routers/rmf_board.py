@@ -64,6 +64,12 @@ class StatusGroup(BaseModel):
     projects: list[ProjectBoardItem]
 
 
+class BlockingReason(BaseModel):
+    reason: str
+    count: int
+    project_ids: list[str]
+
+
 class BoardSummary(BaseModel):
     total_projects: int
     total_runs: int
@@ -74,6 +80,7 @@ class BoardSummary(BaseModel):
     pending_human_decision_count: int
     rework_required_count: int
     passed_count: int
+    blocking_reasons: list[BlockingReason]
 
 
 class BoardResponse(BaseModel):
@@ -128,6 +135,10 @@ def _build_summary(projects: list) -> BoardSummary:
     pending_human = 0
     rework_required = 0
     passed = 0
+    rework_project_ids: list[str] = []
+    pending_decision_project_ids: list[str] = []
+    conditional_pass_ids: list[str] = []
+
     for p in projects:
         s = p.current_status.value
         by_status[s] = by_status.get(s, 0) + 1
@@ -137,10 +148,33 @@ def _build_summary(projects: list) -> BoardSummary:
             by_human[p.latest_human_decision] = by_human.get(p.latest_human_decision, 0) + 1
         if s == "pending_human_decision":
             pending_human += 1
+            pending_decision_project_ids.append(p.project_id)
         elif s == "rework_required":
             rework_required += 1
+            rework_project_ids.append(p.project_id)
         elif s in ("passed", "conditional_pass", "closed"):
             passed += 1
+
+    blocking_reasons: list[BlockingReason] = []
+    if rework_project_ids:
+        blocking_reasons.append(BlockingReason(
+            reason="Rework in progress",
+            count=len(rework_project_ids),
+            project_ids=rework_project_ids,
+        ))
+    if pending_decision_project_ids:
+        blocking_reasons.append(BlockingReason(
+            reason="Awaiting human decision",
+            count=len(pending_decision_project_ids),
+            project_ids=pending_decision_project_ids,
+        ))
+    if conditional_pass_ids:
+        blocking_reasons.append(BlockingReason(
+            reason="Conditional pass — CAPAs pending",
+            count=len(conditional_pass_ids),
+            project_ids=conditional_pass_ids,
+        ))
+
     return BoardSummary(
         total_projects=len(projects),
         total_runs=total_runs,
@@ -151,6 +185,7 @@ def _build_summary(projects: list) -> BoardSummary:
         pending_human_decision_count=pending_human,
         rework_required_count=rework_required,
         passed_count=passed,
+        blocking_reasons=blocking_reasons,
     )
 
 
@@ -168,16 +203,14 @@ async def get_board(
 
     Available to all roles.
     """
-    # All roles can view the board
     store = _store()
     status_enum = ProjectStatus(status) if status else None
     all_projects = store.list_projects(limit=500)
     filtered = [p for p in all_projects if status_enum is None or p.current_status == status_enum]
     summary = _build_summary(all_projects)
-    items = [_project_to_board_item(p) for p in filtered]
     return BoardResponse(
         summary=summary,
-        projects=items,
+        projects=[_project_to_board_item(p) for p in filtered],
         filter_status=status,
     )
 
@@ -186,54 +219,51 @@ async def get_board(
 async def get_board_by_status(
     x_rmf_role: str | None = Header(None, alias="X-RMF-Role"),
 ) -> list[StatusGroup]:
-    """Get all projects grouped by their current status."""
+    """Get projects grouped by status."""
     store = _store()
     all_projects = store.list_projects(limit=500)
-    groups: dict[str, list[ProjectBoardItem]] = {}
+    by_status: dict[str, list] = {}
     for p in all_projects:
         s = p.current_status.value
-        if s not in groups:
-            groups[s] = []
-        groups[s].append(_project_to_board_item(p))
+        if s not in by_status:
+            by_status[s] = []
+        by_status[s].append(_project_to_board_item(p))
     return [
         StatusGroup(status=s, count=len(items), projects=items)
-        for s, items in sorted(groups.items())
+        for s, items in sorted(by_status.items())
     ]
 
 
 @router.get("/recent", response_model=RecentActivityResponse)
 async def get_recent_activity(
-    limit: int = 10,
     x_rmf_role: str | None = Header(None, alias="X-RMF-Role"),
 ) -> RecentActivityResponse:
     """Get recent activity across all projects."""
     store = _store()
     all_projects = store.list_projects(limit=500)
-    # Sort by updated_at descending
-    sorted_projects = sorted(all_projects, key=lambda p: p.updated_at, reverse=True)[:limit]
-    items: list[RecentActivityItem] = []
-    for p in sorted_projects:
-        # Build activity description
-        latest_cycle = p.latest_cycle()
-        if latest_cycle:
-            if latest_cycle.status == "running":
-                event = "Run started"
-                detail = f"Round {latest_cycle.cycle_number} running"
-            elif latest_cycle.status == "rework_pending":
-                event = "Rework required"
-                detail = f"Round {latest_cycle.cycle_number}: {latest_cycle.human_decision or latest_cycle.machine_recommendation or 'N/A'}"
-            elif latest_cycle.human_decision:
-                event = "Human decision"
-                detail = f"Round {latest_cycle.cycle_number}: {latest_cycle.human_decision}"
-            elif latest_cycle.machine_recommendation:
-                event = "Machine recommendation"
-                detail = f"Round {latest_cycle.cycle_number}: {latest_cycle.machine_recommendation}"
-            else:
-                event = "Cycle completed"
-                detail = f"Round {latest_cycle.cycle_number}"
+
+    def _status_event(p) -> tuple[str, str]:
+        s = p.current_status.value
+        if s == "rework_required":
+            latest = p.review_cycles[-1] if p.review_cycles else None
+            detail = f"Round {len(p.review_cycles) - 1}: {latest.machine_recommendation if latest else '—'}"
+            return ("Rework required", detail)
+        elif s == "pending_human_decision":
+            return ("Pending human decision", f"Machine recommends: {p.latest_machine_recommendation or '—'}")
+        elif s == "running":
+            return ("Run started", f"Thread: {p.latest_thread_id or '—'}")
+        elif s == "conditional_pass":
+            return ("Conditional pass", p.latest_human_decision or "Human decision recorded")
+        elif s == "passed":
+            return ("Passed", "Final gate issued")
+        elif s == "closed":
+            return ("Closed", "Project closed")
         else:
-            event = "Project created"
-            detail = p.project_name
+            return (s.replace("_", " ").title(), f"Status: {s}")
+
+    items: list[RecentActivityItem] = []
+    for p in sorted(all_projects, key=lambda x: x.updated_at, reverse=True)[:20]:
+        event, detail = _status_event(p)
         items.append(RecentActivityItem(
             project_id=p.project_id,
             project_name=p.project_name,
@@ -241,4 +271,5 @@ async def get_recent_activity(
             detail=detail,
             timestamp=p.updated_at,
         ))
+
     return RecentActivityResponse(items=items)
