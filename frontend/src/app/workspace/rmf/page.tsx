@@ -555,6 +555,9 @@ export default function RMFWorkbenchPage() {
                   "Start Run"
                 )}
               </Button>
+              <Button size="sm" variant="outline" className="w-full" onClick={() => window.location.href = "/workspace/rmf/projects"}>
+                View Projects
+              </Button>
             </div>
           </div>
         </div>

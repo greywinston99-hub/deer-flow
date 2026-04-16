@@ -15,6 +15,7 @@ from app.gateway.routers import (
     memory,
     models,
     rmf,
+    rmf_projects,
     runs,
     skills,
     suggestions,
@@ -188,6 +189,9 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
 
     # RMF Review Workflow API is mounted at /api/rmf
     app.include_router(rmf.router)
+
+    # RMF Project Layer API is mounted at /api/rmf/projects
+    app.include_router(rmf_projects.router)
 
     # Uploads API is mounted at /api/threads/{thread_id}/uploads
     app.include_router(uploads.router)

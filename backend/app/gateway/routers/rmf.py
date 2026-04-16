@@ -66,6 +66,7 @@ class RMFStartRequest(BaseModel):
     input_root: str | None = Field(None, description="Optional override for input root")
     thread_id: str | None = Field(None, description="Optional thread id (generated if not provided)")
     mode: str = Field(default="smoke-run", description="Run mode: smoke-run | closure-only")
+    project_id: str | None = Field(None, description="Optional RMF project ID to link this run to")
 
 
 class RMFStartResponse(BaseModel):
@@ -76,6 +77,7 @@ class RMFStartResponse(BaseModel):
     executed_steps: list[str]
     artifact_root_virtual: str
     artifact_root_actual: str
+    project_id: str | None = None  # linked project, if any
 
 
 class HumanDecisionRequest(BaseModel):
@@ -85,6 +87,7 @@ class HumanDecisionRequest(BaseModel):
     rationale: str = Field(default="", description="Decision rationale")
     linked_review_items: list[str] = Field(default_factory=list)
     linked_capa_ids: list[str] = Field(default_factory=list)
+    project_id: str | None = Field(None, description="Optional RMF project ID this decision belongs to")
 
 
 class HumanDecisionResponse(BaseModel):
@@ -99,6 +102,7 @@ class HumanDecisionResponse(BaseModel):
 class ReworkRequest(BaseModel):
     thread_id: str = Field(..., description="Thread id to rework")
     rationale: str = Field(default="", description="Reason for rework")
+    project_id: str | None = Field(None, description="Optional RMF project ID this rework belongs to")
 
 
 class ArtifactSummary(BaseModel):
@@ -248,6 +252,58 @@ class ClosureResponse(BaseModel):
 def _get_rmf_threads_base() -> Path:
     from deerflow.config.paths import get_paths
     return get_paths().base_dir / "threads"
+
+
+def _update_project_from_run(
+    project_id: str,
+    thread_id: str,
+    run_id: str,
+    artifact_root: Path,
+    mode: str,
+) -> None:
+    """Update project store after a run completes (when project_id is provided)."""
+    try:
+        from deerflow.runtime.rmf_review import RMFProjectStore
+        store = RMFProjectStore()
+        project = store.get_project(project_id)
+        if project is None:
+            return
+        # Find the latest open cycle or start a new one
+        cycle = project.latest_cycle()
+        if cycle is None or cycle.status == "completed":
+            cycle = store.start_cycle(project_id, thread_id, mode)
+        if cycle is None:
+            return
+        # Read machine recommendation and final gate
+        machine_rec = None
+        human_dec = None
+        final_gate = None
+        try:
+            fr_path = artifact_root / "06_final" / "final_report.json"
+            if fr_path.exists():
+                fr = json.loads(fr_path.read_text())
+                machine_rec = fr.get("recommended_gate") or fr.get("gate_recommendation", {}).get("recommended_gate")
+            hg_path = artifact_root / "05_human_boundary" / "human_gate_decision.json"
+            if hg_path.exists():
+                hg = json.loads(hg_path.read_text())
+                human_dec = hg.get("decision")
+            gc_path = artifact_root / "07_gate_closure" / "gate_closure_report.json"
+            if gc_path.exists():
+                gc = json.loads(gc_path.read_text())
+                final_gate = gc.get("final_decision")
+        except Exception:
+            pass
+        store.complete_cycle(
+            project_id=project_id,
+            cycle_id=cycle.cycle_id,
+            run_id=run_id,
+            machine_recommendation=machine_rec,
+            human_decision=human_dec,
+            final_gate=final_gate,
+        )
+    except Exception:
+        # Non-fatal: project tracking is best-effort
+        pass
 
 
 def _scan_rmf_threads() -> list[str]:
@@ -485,6 +541,7 @@ async def rmf_start(body: RMFStartRequest) -> RMFStartResponse:
             executed_steps=existing["executed_steps"],
             artifact_root_virtual=existing["artifact_root_virtual"],
             artifact_root_actual=existing["artifact_root_actual"],
+            project_id=body.project_id,
         )
 
     cmd = [
@@ -506,7 +563,18 @@ async def rmf_start(body: RMFStartRequest) -> RMFStartResponse:
         raise HTTPException(status_code=500, detail=f"RMF runner failed: {result.stderr}")
 
     output = json.loads(result.stdout)
-    return RMFStartResponse(**output)
+
+    # Update project store if project_id was provided
+    if body.project_id:
+        _update_project_from_run(
+            project_id=body.project_id,
+            thread_id=output["thread_id"],
+            run_id=output["run_id"],
+            artifact_root=Path(output["artifact_root_actual"]),
+            mode=output["mode"],
+        )
+
+    return RMFStartResponse(**output, project_id=body.project_id)
 
 
 @router.get("/runs", response_model=AllRunsResponse)
@@ -726,6 +794,48 @@ async def rmf_human_decision(body: HumanDecisionRequest) -> HumanDecisionRespons
     gate_closure_report_path = str(artifact_root_actual / "07_gate_closure" / "gate_closure_report.md")
     next_action_packet_path = str(artifact_root_actual / "07_gate_closure" / "next_action_packet.json")
 
+    # Update project store if project_id was provided
+    if body.project_id:
+        try:
+            from deerflow.runtime.rmf_review import RMFProjectStore, HumanDecisionAudit
+            import uuid
+            from datetime import datetime, timezone
+            store = RMFProjectStore()
+            project = store.get_project(body.project_id)
+            if project:
+                cycle = project.latest_cycle()
+                if cycle:
+                    audit = HumanDecisionAudit(
+                        decision_id=f"hda-{uuid.uuid4().hex[:8]}",
+                        reviewer=body.reviewer,
+                        decision=body.decision,
+                        decision_date=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                        rationale=body.rationale,
+                        linked_review_items=body.linked_review_items,
+                        linked_capa_ids=body.linked_capa_ids,
+                        source_thread_id=body.thread_id,
+                        source_run_id=summary.get("run_id", ""),
+                        source_cycle_id=cycle.cycle_id,
+                        project_id=body.project_id,
+                    )
+                    store.add_human_decision(body.project_id, cycle.cycle_id, audit)
+                    # Read final gate
+                    final_gate = None
+                    gc_path = artifact_root_actual / "07_gate_closure" / "gate_closure_report.json"
+                    if gc_path.exists():
+                        gc = json.loads(gc_path.read_text())
+                        final_gate = gc.get("final_decision")
+                    store.complete_cycle(
+                        project_id=body.project_id,
+                        cycle_id=cycle.cycle_id,
+                        run_id=summary.get("run_id", body.thread_id),
+                        machine_recommendation=None,
+                        human_decision=body.decision,
+                        final_gate=final_gate,
+                    )
+        except Exception:
+            pass  # Non-fatal
+
     return HumanDecisionResponse(
         success=gate_closure_executed,
         decision_recorded=True,
@@ -781,7 +891,18 @@ async def rmf_rework(body: ReworkRequest) -> RMFStartResponse:
         raise HTTPException(status_code=500, detail=f"Rework run failed: {result.stderr}")
 
     output = json.loads(result.stdout)
-    return RMFStartResponse(**output)
+
+    # Update project store if project_id was provided
+    if body.project_id:
+        _update_project_from_run(
+            project_id=body.project_id,
+            thread_id=output["thread_id"],
+            run_id=output["run_id"],
+            artifact_root=Path(output["artifact_root_actual"]),
+            mode=output["mode"],
+        )
+
+    return RMFStartResponse(**output, project_id=body.project_id)
 
 
 @router.get("/closure/{thread_id}", response_model=ClosureResponse)
