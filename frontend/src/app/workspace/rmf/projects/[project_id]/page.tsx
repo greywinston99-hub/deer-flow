@@ -104,10 +104,10 @@ async function getProjectDetail(projectId: string): Promise<ProjectDetail> {
   return r.json();
 }
 
-async function startRunInProject(projectId: string): Promise<StartRunResponse> {
+async function startRunInProject(projectId: string, role: string): Promise<StartRunResponse> {
   const r = await fetch(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/runs`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-RMF-Role": role },
     body: JSON.stringify({}),
   });
   if (!r.ok) {
@@ -120,10 +120,11 @@ async function startRunInProject(projectId: string): Promise<StartRunResponse> {
 async function submitHumanDecision(
   projectId: string,
   body: HumanDecisionSubmitRequest,
+  role: string,
 ): Promise<{ success: boolean; decision_recorded: boolean; project_status: string }> {
   const r = await fetch(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/human-decision`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-RMF-Role": role },
     body: JSON.stringify(body),
   });
   if (!r.ok) {
@@ -133,10 +134,10 @@ async function submitHumanDecision(
   return r.json();
 }
 
-async function updateProjectStatus(projectId: string, status: string): Promise<void> {
+async function updateProjectStatus(projectId: string, status: string, role: string): Promise<void> {
   const r = await fetch(`${getBackendBaseURL()}/api/rmf/projects/${projectId}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-RMF-Role": role },
     body: JSON.stringify({ status }),
   });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -240,10 +241,12 @@ function HumanDecisionForm({
   projectId,
   latestThreadId,
   onSubmitted,
+  role,
 }: {
   projectId: string;
   latestThreadId: string | null;
   onSubmitted: () => void;
+  role: string;
 }) {
   const [decision, setDecision] = useState<string>("");
   const [reviewer, setReviewer] = useState("");
@@ -263,7 +266,7 @@ function HumanDecisionForm({
         rationale,
         linked_review_items: linkedItems.split("\n").map((s) => s.trim()).filter(Boolean),
         linked_capa_ids: linkedCapaIds.split("\n").map((s) => s.trim()).filter(Boolean),
-      });
+      }, role);
       toast.success("Human decision submitted");
       onSubmitted();
     } catch (err) {
@@ -345,6 +348,7 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [startingRun, setStartingRun] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [role, setRole] = useState("operator");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -365,7 +369,7 @@ export default function ProjectDetailPage() {
   const handleStartRun = async () => {
     setStartingRun(true);
     try {
-      const result = await startRunInProject(projectId);
+      const result = await startRunInProject(projectId, role);
       toast.success(`Run started: Round ${result.cycle_number}`);
       load();
     } catch (err) {
@@ -378,7 +382,7 @@ export default function ProjectDetailPage() {
   const handleCloseProject = async () => {
     if (!confirm("Close this project? It will be marked as closed.")) return;
     try {
-      await updateProjectStatus(projectId, "closed");
+      await updateProjectStatus(projectId, "closed", role);
       toast.success("Project closed");
       load();
     } catch (err) {
@@ -417,6 +421,17 @@ export default function ProjectDetailPage() {
           <p className="text-sm text-muted-foreground">{project.product_name}</p>
         </div>
         <div className="flex gap-2">
+          <Select value={role} onValueChange={setRole}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="operator">Operator</SelectItem>
+              <SelectItem value="reviewer">Reviewer</SelectItem>
+              <SelectItem value="approver">Approver</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+            </SelectContent>
+          </Select>
           {project.current_status !== "closed" && (
             <>
               <Button
@@ -433,6 +448,9 @@ export default function ProjectDetailPage() {
           )}
           <Button variant="outline" onClick={() => router.push("/workspace/rmf/projects")}>
             ← All Projects
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/workspace/rmf/board")}>
+            Ops Board
           </Button>
         </div>
       </div>
@@ -472,6 +490,8 @@ export default function ProjectDetailPage() {
           <TabsTrigger value="cycles">Cycles / Rounds</TabsTrigger>
           <TabsTrigger value="audit">Human Decision Audit</TabsTrigger>
           <TabsTrigger value="human-decision">Submit Decision</TabsTrigger>
+          <TabsTrigger value="rework-ops">Rework Ops</TabsTrigger>
+          <TabsTrigger value="export">Export</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -600,7 +620,200 @@ export default function ProjectDetailPage() {
                 projectId={projectId}
                 latestThreadId={project.latest_thread_id}
                 onSubmitted={load}
+                role={role}
               />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Rework Ops Tab */}
+        <TabsContent value="rework-ops" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Rework Operations View</CardTitle>
+              <CardDescription>
+                Track where the project stands across all rework rounds — machine vs human vs final gate
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {project.review_cycles.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No cycles yet.</div>
+              ) : (
+                <div className="space-y-3">
+                  {[...project.review_cycles].sort((a, b) => a.cycle_number - b.cycle_number).map((c) => {
+                    const isBlocked = c.status === "rework_pending";
+                    return (
+                      <div key={c.cycle_id} className="border rounded-lg p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-base">Round {c.cycle_number}</span>
+                            <Badge variant="outline">{c.cycle_id}</Badge>
+                            {isBlocked && (
+                              <Badge className="bg-red-500 text-white">BLOCKED — Rework Required</Badge>
+                            )}
+                            {!isBlocked && c.status === "completed" && (
+                              <Badge className="bg-green-500 text-white">COMPLETED</Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {c.completed_at ? `Completed ${formatDate(c.completed_at)}` : `Started ${formatDate(c.started_at)}`}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          {/* Machine Recommendation */}
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Machine Recommendation</div>
+                            <div className="flex items-center gap-1">
+                              {c.machine_recommendation ? gateBadge(c.machine_recommendation) : <span className="text-muted-foreground text-xs">—</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground">AI system output</div>
+                          </div>
+                          {/* Human Decision */}
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Human Decision</div>
+                            <div className="flex items-center gap-1">
+                              {c.human_decision ? gateBadge(c.human_decision) : <span className="text-muted-foreground text-xs">—</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Reviewer approval</div>
+                          </div>
+                          {/* Final Gate */}
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Final Gate</div>
+                            <div className="flex items-center gap-1">
+                              {c.final_gate ? gateBadge(c.final_gate) : <span className="text-muted-foreground text-xs">—</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Provisional closure</div>
+                          </div>
+                        </div>
+                        {/* Rework items summary */}
+                        {isBlocked && c.human_decision === "rework_required" && (
+                          <div className="bg-red-50 border border-red-200 rounded p-2 text-xs text-red-700">
+                            ⚠️ This round requires rework before the project can proceed to final gate.
+                          </div>
+                        )}
+                        {c.status === "completed" && c.human_decision && (
+                          <div className="bg-green-50 border border-green-200 rounded p-2 text-xs text-green-700">
+                            ✓ Round {c.cycle_number} closed with <strong>{c.human_decision}</strong>. Human reviewer approved the outcome.
+                          </div>
+                        )}
+                        <div className="text-xs text-muted-foreground">
+                          Thread: <code className="text-xs">{c.thread_id}</code> | Run: <code className="text-xs">{c.run_id ?? "—"}</code>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Current bottleneck summary */}
+          {project.current_status === "rework_required" && (
+            <Card className="border-red-300">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 text-red-700 font-medium">
+                  <span>⚠️</span>
+                  <span>Project is blocked on rework. No final gate can be issued until rework is completed.</span>
+                </div>
+                <div className="mt-1 text-xs text-red-600">
+                  Latest rework round: Round {project.review_cycles.length - 1} — machine recommends {project.latest_machine_recommendation ?? "—"}.
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {project.current_status === "pending_human_decision" && (
+            <Card className="border-orange-300">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 text-orange-700 font-medium">
+                  <span>⏳</span>
+                  <span>Awaiting human decision. Machine has made its recommendation.</span>
+                </div>
+                <div className="mt-1 text-xs text-orange-600">
+                  Machine recommends: {project.latest_machine_recommendation ?? "—"}.
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {project.current_status === "conditional_pass" && (
+            <Card className="border-amber-300">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 text-amber-700 font-medium">
+                  <span>🔒</span>
+                  <span>Conditional pass — CAPAs or conditions must be fulfilled before final close.</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {project.current_status === "passed" && (
+            <Card className="border-green-300">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 text-green-700 font-medium">
+                  <span>✅</span>
+                  <span>Project passed. Ready to be closed.</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Export Tab */}
+        <TabsContent value="export" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Governance Export</CardTitle>
+              <CardDescription>Download project records for audit, compliance, and reporting</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm">Project Summary</h4>
+                  <p className="text-xs text-muted-foreground">Overview of project, cycles, status, and statistics</p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/export/summary?format=json`, "_blank")}>
+                      JSON
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/export/summary?format=markdown`, "_blank")}>
+                      Markdown
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm">Decision History</h4>
+                  <p className="text-xs text-muted-foreground">All human decisions with rationale and linked items</p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/export/decisions?format=json`, "_blank")}>
+                      JSON
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/export/decisions?format=markdown`, "_blank")}>
+                      Markdown
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm">Gate History</h4>
+                  <p className="text-xs text-muted-foreground">Gate progression across all rework rounds</p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/export/gate-history?format=json`, "_blank")}>
+                      JSON
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/export/gate-history?format=markdown`, "_blank")}>
+                      Markdown
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm">Artifact Index</h4>
+                  <p className="text-xs text-muted-foreground">All artifacts produced across all cycles</p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/export/artifacts?format=json`, "_blank")}>
+                      JSON
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${getBackendBaseURL()}/api/rmf/projects/${projectId}/export/artifacts?format=markdown`, "_blank")}>
+                      Markdown
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

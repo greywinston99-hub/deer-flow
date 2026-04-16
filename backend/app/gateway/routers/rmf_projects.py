@@ -21,7 +21,7 @@ import sys
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from deerflow.runtime.rmf_review import (
@@ -44,6 +44,50 @@ _REPO_ROOT = Path(__file__).resolve().parents[4]
 
 def _store() -> RMFProjectStore:
     return RMFProjectStore()
+
+
+# ---------------------------------------------------------------------------
+# Role permission helpers
+# ---------------------------------------------------------------------------
+
+# Role definitions
+ROLE_ADMIN = "admin"
+ROLE_APPROVER = "approver"
+ROLE_REVIEWER = "reviewer"
+ROLE_OPERATOR = "operator"
+
+# Permission matrix: action -> allowed roles
+_PERMISSIONS: dict[str, set[str]] = {
+    "create_project": {ROLE_ADMIN, ROLE_OPERATOR},
+    "delete_project": {ROLE_ADMIN},
+    "close_project": {ROLE_ADMIN, ROLE_APPROVER},
+    "submit_decision": {ROLE_ADMIN, ROLE_APPROVER, ROLE_REVIEWER, ROLE_OPERATOR},
+    "start_run": {ROLE_ADMIN, ROLE_OPERATOR},
+    "view_all_projects": {ROLE_ADMIN},
+    "view_project": {ROLE_ADMIN, ROLE_APPROVER, ROLE_REVIEWER, ROLE_OPERATOR},
+    "update_project": {ROLE_ADMIN, ROLE_APPROVER},
+}
+
+
+def _check_role(role: str | None, action: str) -> str:
+    """Validate role has permission for action. Returns role if valid. Raises HTTPException otherwise."""
+    if role is None:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Missing X-RMF-Role header for action: {action}",
+        )
+    allowed = _PERMISSIONS.get(action, set())
+    if role not in allowed:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Role '{role}' is not authorized for '{action}'. Allowed: {', '.join(sorted(allowed)) or 'none'}",
+        )
+    return role
+
+
+def _role_info(role: str | None) -> dict[str, str]:
+    """Return role info for audit trail."""
+    return {"role": role or "unknown", "user": role or "anonymous"}
 
 
 # ---------------------------------------------------------------------------
@@ -279,8 +323,12 @@ def _run_closure_only(
 
 
 @router.post("", response_model=ProjectResponse)
-async def create_project(body: CreateProjectRequest) -> ProjectResponse:
-    """Create a new RMF review project."""
+async def create_project(
+    body: CreateProjectRequest,
+    x_rmf_role: str | None = Header(None, alias="X-RMF-Role"),
+) -> ProjectResponse:
+    """Create a new RMF review project. Requires admin or operator role."""
+    _check_role(x_rmf_role, "create_project")
     store = _store()
     project = store.create_project(
         project_name=body.project_name,
@@ -317,8 +365,16 @@ async def get_project(project_id: str) -> ProjectDetailResponse:
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)
-async def update_project(project_id: str, body: UpdateProjectRequest) -> ProjectResponse:
-    """Update project status or close it."""
+async def update_project(
+    project_id: str,
+    body: UpdateProjectRequest,
+    x_rmf_role: str | None = Header(None, alias="X-RMF-Role"),
+) -> ProjectResponse:
+    """Update project status or close it. Close requires admin or approver role."""
+    if body.close:
+        _check_role(x_rmf_role, "close_project")
+    else:
+        _check_role(x_rmf_role, "update_project")
     store = _store()
     project = store.get_project(project_id)
     if project is None:
@@ -333,8 +389,12 @@ async def update_project(project_id: str, body: UpdateProjectRequest) -> Project
 
 
 @router.delete("/{project_id}")
-async def delete_project(project_id: str) -> dict:
-    """Delete a project (soft delete - just removes from index)."""
+async def delete_project(
+    project_id: str,
+    x_rmf_role: str | None = Header(None, alias="X-RMF-Role"),
+) -> dict:
+    """Delete a project. Requires admin role."""
+    _check_role(x_rmf_role, "delete_project")
     store = _store()
     existed = store.delete_project(project_id)
     if not existed:
@@ -343,12 +403,12 @@ async def delete_project(project_id: str) -> dict:
 
 
 @router.post("/{project_id}/runs", response_model=StartRunResponse)
-async def start_run_in_project(project_id: str) -> StartRunResponse:
-    """Start a new smoke-run in the context of a project.
-
-    This creates a new thread_id and starts a fresh cycle.
-    If the project's latest cycle is in rework_required state, starts round N+1.
-    """
+async def start_run_in_project(
+    project_id: str,
+    x_rmf_role: str | None = Header(None, alias="X-RMF-Role"),
+) -> StartRunResponse:
+    """Start a new smoke-run in the context of a project. Requires admin or operator role."""
+    _check_role(x_rmf_role, "start_run")
     store = _store()
     project = store.get_project(project_id)
     if project is None:
