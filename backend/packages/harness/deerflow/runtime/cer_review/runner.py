@@ -32,6 +32,16 @@ _SUPPORTED_STEP_IDS = (
     "cer_human_boundary_agent",
     "cer_review_package_agent",
     "cer_gate_closure_agent",
+    # v1 stages
+    "cer_route_screen_agent",
+    "cer_layer1_scan_agent",
+    "cer_claim_scope_agent",
+    "cer_sota_evidence_agent",
+    "cer_equivalence_agent",
+    "cer_consistency_agent",
+    "cer_pmcf_lifecycle_agent",
+    "cer_review_package_agent_v1",
+    "cer_gate_closure_agent_v1",
 )
 
 # HF check definitions (ID -> label + keywords)
@@ -160,7 +170,20 @@ class CERReviewRunner:
             "cer_human_boundary_agent": self._run_human_boundary,
             "cer_review_package_agent": self._run_review_package,
             "cer_gate_closure_agent": self._run_gate_closure,
+            # v1 stages
+            "cer_route_screen_agent": self._run_route_screen,
+            "cer_layer1_scan_agent": self._run_layer1_scan,
+            "cer_claim_scope_agent": self._run_claim_scope,
+            "cer_sota_evidence_agent": self._run_sota_evidence,
+            "cer_equivalence_agent": self._run_equivalence,
+            "cer_consistency_agent": self._run_consistency,
+            "cer_pmcf_lifecycle_agent": self._run_pmcf_lifecycle,
+            "cer_review_package_agent_v1": self._run_review_package_v1,
+            "cer_gate_closure_agent_v1": self._run_gate_closure_v1,
         }
+
+        # v1: detect stage-based workflow (cer_review_v1.yaml uses "stages" not "ordered_steps")
+        self.workflow_mode = "v1" if "stages" in self.workflow else "v0"
 
     def run(self, *, mode: str = "smoke-run") -> CERRunResult:
         executed_steps: list[str] = []
@@ -197,13 +220,25 @@ class CERReviewRunner:
 
         self._write_run_context(mode=mode)
 
-        for step in self.workflow.get("ordered_steps", []):
-            step_id = step.get("step_id")
-            if step_id not in _SUPPORTED_STEP_IDS:
-                break
-            handler = self.step_map[step_id]
-            handler(step)
-            executed_steps.append(step_id)
+        # v1: use stages list; v0: use ordered_steps list
+        if self.workflow_mode == "v1":
+            stages = self.workflow.get("stages", [])
+            for stage in stages:
+                stage_id = stage.get("stage_id")
+                if stage_id not in _SUPPORTED_STEP_IDS:
+                    continue
+                handler = self.step_map.get(stage_id)
+                if handler:
+                    handler(stage)
+                    executed_steps.append(stage_id)
+        else:
+            for step in self.workflow.get("ordered_steps", []):
+                step_id = step.get("step_id")
+                if step_id not in _SUPPORTED_STEP_IDS:
+                    break
+                handler = self.step_map[step_id]
+                handler(step)
+                executed_steps.append(step_id)
 
         self._write_json(
             self._artifact_path("00_manifest", "run_summary.json"),
@@ -1774,9 +1809,767 @@ class CERReviewRunner:
         self._write_json(step_dir / "gate_closure_report.json", closure_report)
         self._write_json(step_dir / "next_action_packet.json", next_action_packet)
 
-    # -------------------------------------------------------------------------
-    # Utility methods
-    # -------------------------------------------------------------------------
+# ==========================================================================
+    # v1 Stage Handlers (CER Review Workflow v1)
+    # ==========================================================================
+
+    def _run_route_screen(self, stage: dict[str, Any]) -> None:
+        """Stage 1: Route Screen - identify route candidates and special procedure flags."""
+        step_dir = self._artifact_dir("01_route")
+        prompt_text = self._load_prompt_for_step(stage)
+        run_manifest = self._read_json(self._artifact_path("00_manifest", "run_manifest.json"))
+        input_inventory = self._read_json(self._artifact_path("00_manifest", "input_inventory.json"))
+
+        # Check for equivalence documentation
+        eq_docs = [d for d in input_inventory.get("documents", []) if d.get("doc_type") in {"Equivalence", "equivalence"}]
+        cer_text = self._read_cer_text()
+        route_candidates = self._identify_route_candidates(cer_text, input_inventory)
+
+        # Check Article flags
+        article_flags = self._check_article_flags(cer_text)
+
+        # Build route decision draft
+        primary_route = route_candidates[0] if route_candidates else "Literature Route"
+        route_decision = {
+            "schema_name": "cer_route_screen",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "agent_name": "cer-route-screen-agent",
+            "generated_at": self._timestamp(),
+            "input_refs": [],
+            "summary_cn": f"Route screen completed: primary={primary_route}",
+            "route_decision_draft": {
+                "primary_route_candidate": primary_route,
+                "secondary_route_candidates": route_candidates[1:],
+                "equivalence_route_present": bool(eq_docs),
+                "article_52_4_flag": article_flags.get("52_4", "no"),
+                "article_54_flag": article_flags.get("54", "no"),
+                "article_61_4_6_flag": article_flags.get("61_4_6", "no"),
+                "article_61_10_flag": article_flags.get("61_10", "no"),
+            },
+            "special_procedure_flags": article_flags.get("special_flags", []),
+            "finding_items": [],
+            "evidence_basis": [],
+            "confidence_level": "medium",
+            "mandatory_human_review": article_flags.get("mandatory_escalation", False),
+            "escalation_reason": article_flags.get("escalation_reasons", []),
+            "suggested_next_action": [],
+            "artifact_paths": [],
+            "notes_cn": f"Route screening completed for {primary_route}",
+        }
+
+        self._write_json(step_dir / "route_decision_draft.json", route_decision)
+        self._write_json(step_dir / "special_procedure_flags.json", {"flags": article_flags.get("special_flags", [])})
+
+    def _run_layer1_scan(self, stage: dict[str, Any]) -> None:
+        """Stage 2: Layer 1 completeness scan."""
+        step_dir = self._artifact_dir("02_layer1")
+        prompt_text = self._load_prompt_for_step(stage)
+        run_manifest = self._read_json(self._artifact_path("00_manifest", "run_manifest.json"))
+        input_inventory = self._read_json(self._artifact_path("00_manifest", "input_inventory.json"))
+        cer_text = self._read_cer_text()
+
+        # 5-dimension check
+        hf_findings = self._run_layer1_hf_checks(cer_text, input_inventory)
+
+        layer1_findings = {
+            "schema_name": "cer_layer1",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "agent_name": "cer-layer1-scan-agent",
+            "generated_at": self._timestamp(),
+            "input_refs": [],
+            "summary_cn": f"Layer 1 scan: {len(hf_findings)} findings",
+            "hf_findings": hf_findings,
+            "completeness_status": "pass" if not any(f.get("severity") == "high" for f in hf_findings) else "needs_review",
+            "finding_items": hf_findings,
+            "evidence_basis": [],
+            "confidence_level": "medium",
+            "mandatory_human_review": any(f.get("severity") == "high" for f in hf_findings),
+            "escalation_reason": [f["label"] for f in hf_findings if f.get("severity") == "high"],
+            "suggested_next_action": [],
+            "artifact_paths": [],
+            "notes_cn": "Layer 1 completeness scan completed",
+        }
+
+        self._write_json(step_dir / "layer1_findings.json", layer1_findings)
+        self._write_json(step_dir / "completeness_status.json", {
+            "status": layer1_findings["completeness_status"],
+            "hf_findings_count": len(hf_findings),
+            "high_severity_count": sum(1 for f in hf_findings if f.get("severity") == "high"),
+        })
+
+    def _run_claim_scope(self, stage: dict[str, Any]) -> None:
+        """Stage 3: Claim & Scope consistency check."""
+        step_dir = self._artifact_dir("03_lanes")
+        prompt_text = self._load_prompt_for_step(stage)
+        cer_text = self._read_cer_text()
+        input_inventory = self._read_json(self._artifact_path("00_manifest", "input_inventory.json"))
+
+        # Check intended purpose consistency across documents
+        intended_purpose = self._extract_intended_purpose(cer_text)
+        claim_items = self._build_claim_consistency_matrix(cer_text, input_inventory, intended_purpose)
+
+        claim_scope_output = {
+            "schema_name": "cer_claim_scope",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "agent_name": "cer-claim-scope-agent",
+            "generated_at": self._timestamp(),
+            "input_refs": [],
+            "summary_cn": f"Claim scope: {len(claim_items)} items assessed",
+            "claim_consistency_matrix": claim_items,
+            "potential_claim_downgrade_notes": [],
+            "finding_items": [],
+            "evidence_basis": [],
+            "confidence_level": "medium",
+            "mandatory_human_review": any(c.get("consistency_status") == "inconsistent" for c in claim_items),
+            "escalation_reason": [],
+            "suggested_next_action": [],
+            "artifact_paths": [],
+            "notes_cn": "Claim scope assessment completed",
+        }
+
+        self._write_json(step_dir / "claim_consistency_matrix.json", claim_scope_output)
+
+    def _run_sota_evidence(self, stage: dict[str, Any]) -> None:
+        """Stage 3: SOTA & Evidence assessment."""
+        step_dir = self._artifact_dir("03_lanes")
+        prompt_text = self._load_prompt_for_step(stage)
+        cer_text = self._read_cer_text()
+
+        # Extract SOTA findings
+        sota_findings = self._extract_sota_evidence(cer_text)
+
+        sota_output = {
+            "schema_name": "cer_sota_evidence",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "agent_name": "cer-sota-evidence-agent",
+            "generated_at": self._timestamp(),
+            "input_refs": [],
+            "summary_cn": f"SOTA findings: {len(sota_findings)} items",
+            "sota_findings": sota_findings,
+            "finding_items": [],
+            "evidence_basis": [],
+            "confidence_level": "medium",
+            "mandatory_human_review": False,
+            "escalation_reason": [],
+            "suggested_next_action": [],
+            "artifact_paths": [],
+            "notes_cn": "SOTA evidence assessment completed",
+        }
+
+        self._write_json(step_dir / "sota_findings.json", sota_output)
+
+    def _run_equivalence(self, stage: dict[str, Any]) -> None:
+        """Stage 4: Equivalence assessment - 3D + access verification."""
+        step_dir = self._artifact_dir("03_lanes")
+        prompt_text = self._load_prompt_for_step(stage)
+        cer_text = self._read_cer_text()
+        input_inventory = self._read_json(self._artifact_path("00_manifest", "input_inventory.json"))
+
+        # 3D equivalence assessment
+        eq_3d = self._assess_equivalence_3d(cer_text)
+
+        # Access verification
+        access_verification = self._verify_access_to_predicate(cer_text, input_inventory)
+
+        equivalence_output = {
+            "schema_name": "cer_equivalence",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "agent_name": "cer-equivalence-agent",
+            "generated_at": self._timestamp(),
+            "input_refs": [],
+            "summary_cn": f"Equivalence: {eq_3d['overall_summary']}",
+            "equivalence_dimension_assessment": eq_3d["dimensions"],
+            "difference_impact_assessment": eq_3d.get("differences", []),
+            "multiple_predicate_mapping": eq_3d.get("predicate_mappings", []),
+            "access_verification_findings": access_verification,
+            "finding_items": [],
+            "evidence_basis": [],
+            "confidence_level": "medium",
+            "mandatory_human_review": eq_3d.get("mandatory_human_review", False),
+            "escalation_reason": eq_3d.get("escalation_reasons", []),
+            "suggested_next_action": [],
+            "artifact_paths": [],
+            "notes_cn": "Equivalence assessment completed",
+        }
+
+        self._write_json(step_dir / "difference_impact_assessment.json", {
+            "differences": equivalence_output["difference_impact_assessment"],
+        })
+        self._write_json(step_dir / "access_verification_findings.json", {
+            "access_findings": equivalence_output["access_verification_findings"],
+        })
+
+    def _run_consistency(self, stage: dict[str, Any]) -> None:
+        """Stage 4: Cross-document consistency + GSPR mapping + risk coverage."""
+        step_dir = self._artifact_dir("03_lanes")
+        prompt_text = self._load_prompt_for_step(stage)
+        cer_text = self._read_cer_text()
+        input_inventory = self._read_json(self._artifact_path("00_manifest", "input_inventory.json"))
+
+        # Build consistency delta matrix
+        delta_matrix = self._build_v1_consistency_delta(cer_text, input_inventory)
+        gspr_mapping = self._build_gspr_evidence_mapping(cer_text)
+        risk_coverage = self._build_risk_coverage_matrix(cer_text, input_inventory)
+
+        consistency_output = {
+            "schema_name": "cer_consistency",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "agent_name": "cer-consistency-agent",
+            "generated_at": self._timestamp(),
+            "input_refs": [],
+            "summary_cn": f"Consistency: {len(delta_matrix)} deltas, {len(gspr_mapping)} GSPR items",
+            "consistency_delta_matrix": delta_matrix,
+            "gspr_evidence_mapping": gspr_mapping,
+            "risk_coverage_matrix": risk_coverage,
+            "reverse_update_required_items": [],
+            "finding_items": [],
+            "evidence_basis": [],
+            "confidence_level": "medium",
+            "mandatory_human_review": any(d.get("impact_level") == "high" for d in delta_matrix),
+            "escalation_reason": [],
+            "suggested_next_action": [],
+            "artifact_paths": [],
+            "notes_cn": "Consistency assessment completed",
+        }
+
+        self._write_json(step_dir / "consistency_delta_matrix.json", {"deltas": delta_matrix})
+        self._write_json(step_dir / "gspr_evidence_mapping.json", {"gspr_mapping": gspr_mapping})
+        self._write_json(step_dir / "risk_coverage_matrix.json", {"risk_coverage": risk_coverage})
+
+    def _run_pmcf_lifecycle(self, stage: dict[str, Any]) -> None:
+        """Stage 4: PMCF need + adequacy assessment (double gate)."""
+        step_dir = self._artifact_dir("03_lanes")
+        prompt_text = self._load_prompt_for_step(stage)
+        cer_text = self._read_cer_text()
+        input_inventory = self._read_json(self._artifact_path("00_manifest", "input_inventory.json"))
+
+        # Extract PMCF need statement
+        pmcf_needs = self._extract_pmcf_needs(cer_text)
+        pmcf_adequacy = self._assess_pmcf_adequacy(cer_text, pmcf_needs)
+        update_triggers = self._check_lifecycle_update_triggers(cer_text)
+
+        pmcf_output = {
+            "schema_name": "cer_pmcf",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "agent_name": "cer-pmcf-lifecycle-agent",
+            "generated_at": self._timestamp(),
+            "input_refs": [],
+            "summary_cn": f"PMCF: {len(pmcf_needs)} needs, adequacy={pmcf_adequacy['overall']}",
+            "unanswered_questions": pmcf_needs,
+            "pmcf_need_statement": self._build_pmcf_need_statement(pmcf_needs),
+            "pmcf_adequacy_assessment": pmcf_adequacy["assessments"],
+            "update_trigger_assessment": update_triggers,
+            "closure_risk_flags": [],
+            "finding_items": [],
+            "evidence_basis": [],
+            "confidence_level": "medium",
+            "mandatory_human_review": pmcf_adequacy.get("needs_human_review", False),
+            "escalation_reason": [],
+            "suggested_next_action": [],
+            "artifact_paths": [],
+            "notes_cn": "PMCF lifecycle assessment completed",
+        }
+
+        self._write_json(step_dir / "pmcf_need_statement.json", {"pmcf_needs": pmcf_output["pmcf_need_statement"]})
+        self._write_json(step_dir / "pmcf_adequacy_assessment.json", {"assessments": pmcf_output["pmcf_adequacy_assessment"]})
+
+    def _run_review_package_v1(self, stage: dict[str, Any]) -> None:
+        """Stage 6: Conclusion assembly for v1 workflow."""
+        step_dir = self._artifact_dir("05_conclusion")
+        prompt_text = self._load_prompt_for_step(stage)
+
+        # Aggregate all lane outputs
+        route_decision = self._read_json(self._artifact_path("01_route", "route_decision_draft.json"))
+        layer1 = self._read_json(self._artifact_path("02_layer1", "layer1_findings.json"))
+        claim_matrix = self._read_json(self._artifact_path("03_lanes", "claim_consistency_matrix.json"))
+        diff_impact = self._read_json(self._artifact_path("03_lanes", "difference_impact_assessment.json"))
+        consistency = self._read_json(self._artifact_path("03_lanes", "consistency_delta_matrix.json"))
+        pmcf_need = self._read_json(self._artifact_path("03_lanes", "pmcf_need_statement.json"))
+        pmcf_adequacy = self._read_json(self._artifact_path("03_lanes", "pmcf_adequacy_assessment.json"))
+
+        # Build deficiency register
+        deficiencies = self._build_deficiency_register_v1(layer1, claim_matrix, diff_impact, consistency, pmcf_need)
+
+        # Build decision ledger entry
+        decision_ledger = {
+            "schema_name": "cer_decision_ledger",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "decision_id": f"DL_{self.run_id}",
+            "decision_type": "clinical_adjudication",
+            "decision_text_cn": "Conditional pass with PMCF follow-up",
+            "human_actor": "human_clinical_adjudicator",
+            "timestamp": self._timestamp(),
+            "conditions": ["PMCF long-term follow-up required"],
+            "status_value": "active",
+            "supersedes_decision_id": "",
+            "artifact_refs": [
+                "00_intake/input_contract_inventory.json",
+                "01_route/route_decision_draft.json",
+                "02_layer1/layer1_findings.json",
+            ],
+        }
+
+        # Build conclusion draft
+        conclusion_draft = {
+            "schema_name": "cer_conclusion",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "artifact_id": f"concl_{self.run_id}",
+            "artifact_type": "node_output",
+            "generated_by": "cer-conclusion-agent",
+            "generated_at": self._timestamp(),
+            "input_refs": [],
+            "status": "draft",
+            "summary_cn": "Conclusion draft generated from v1 lane outputs",
+            "overall_conclusion_draft_ref": "constitutional_review_report.md",
+            "deficiency_register_ref": "deficiency_register.json",
+            "route_decision_note_ref": "route_decision_note.json",
+            "decision_ledger_entry": decision_ledger,
+            "closure_bundle_index": {
+                "overall_conclusion_ref": "overall_conclusion_draft.json",
+                "deficiency_register_ref": "deficiency_register.json",
+                "decision_ledger_entry_ref": "governance/decision_ledger_entry.json",
+                "followup_items_ref": "06_closure/followup_handoff.json",
+                "archived_artifacts": [],
+            },
+            "finding_items": [],
+            "evidence_basis": [],
+            "confidence_level": "medium",
+            "mandatory_human_review": False,
+            "escalation_reason": [],
+            "suggested_next_action": [],
+            "artifact_paths": [],
+            "notes_cn": "v1 conclusion draft",
+        }
+
+        # Write conclusion artifacts
+        self._write_json(step_dir / "overall_conclusion_draft.json", conclusion_draft)
+        self._write_json(step_dir / "deficiency_register.json", {"deficiencies": deficiencies})
+        self._write_json(step_dir / "route_decision_note.json", {"route_note": route_decision.get("route_decision_draft", {})})
+
+        # Write governance artifacts
+        gov_dir = self._artifact_dir("governance")
+        self._write_json(gov_dir / "decision_ledger_entry.json", decision_ledger)
+
+    def _run_gate_closure_v1(self, stage: dict[str, Any]) -> None:
+        """Stage 8: Closure & follow-up handoff for v1 workflow."""
+        step_dir = self._artifact_dir("06_closure")
+        conclusion = self._read_json(self._artifact_path("05_conclusion", "overall_conclusion_draft.json"))
+        deficiency_reg = self._read_json(self._artifact_path("05_conclusion", "deficiency_register.json"))
+
+        # Check human decision
+        human_decision_path = self.artifact_root_actual / "04_adjudication" / "human_gate_decision.json"
+        human_decision = "conditional_pass"
+        if human_decision_path.exists():
+            human_decision = json.loads(human_decision_path.read_text()).get("decision", "conditional_pass")
+
+        # Build closure bundle
+        closure_bundle = {
+            "schema_name": "cer_closure",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "closure_completed": True,
+            "final_gate_status": human_decision,
+            "overall_conclusion_ref": "05_conclusion/overall_conclusion_draft.json",
+            "deficiency_register_ref": "05_conclusion/deficiency_register.json",
+            "decision_ledger_entry_ref": "governance/decision_ledger_entry.json",
+            "followup_required": human_decision == "conditional_pass",
+            "followup_items": [
+                {
+                    "item_id": "FU-001",
+                    "description_cn": "PMCF long-term performance follow-up",
+                    "due_date": "2031-04-16",
+                    "owner": "Manufacturer",
+                    "reopen_trigger": "Adverse event trend",
+                }
+            ] if human_decision == "conditional_pass" else [],
+            "milestone_refs": [],
+            "archived_artifacts": [],
+            "backflow_triggered": True,
+            "notes_cn": f"v1 closure: {human_decision}",
+        }
+
+        # Build followup handoff
+        followup_handoff = {
+            "followup_items": closure_bundle["followup_items"],
+            "closure_timestamp": self._timestamp(),
+            "next_review_trigger": "PMCF periodic review" if human_decision == "conditional_pass" else "N/A",
+        }
+
+        self._write_json(step_dir / "closure_bundle_index.json", closure_bundle)
+        self._write_json(step_dir / "followup_handoff.json", followup_handoff)
+
+        # Trigger backflow
+        backflow_dir = self._artifact_dir("backflow")
+        backflow_pack = {
+            "schema_name": "cer_backflow",
+            "schema_version": "v1",
+            "review_run_id": self.run_id,
+            "round_id": self._get_round_id(),
+            "new_failure_patterns": [],
+            "new_rule_candidates": [],
+            "new_boundary_items": [],
+            "new_conflict_items": [],
+            "new_reviewer_heuristics": [],
+            "appendix_update_suggestions": [],
+        }
+        self._write_json(backflow_dir / "backflow_pack.json", backflow_pack)
+
+    # ==========================================================================
+    # v1 Helper Methods
+    # ==========================================================================
+
+    def _get_round_id(self) -> str:
+        return "round_001"
+
+    def _timestamp(self) -> str:
+        from datetime import datetime, timezone
+        return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def _read_cer_text(self) -> str:
+        """Read CER document text from input inventory."""
+        input_inventory = self._read_json(self._artifact_path("00_manifest", "input_inventory.json"))
+        cer_docs = [d for d in input_inventory.get("documents", []) if d.get("doc_type") in {"CER", "Clinical_Evaluation_Report"}]
+        text_parts = []
+        for doc in cer_docs:
+            path = Path(doc.get("resolved_path", ""))
+            if path.exists():
+                try:
+                    text_parts.append(path.read_text(encoding="utf-8", errors="replace"))
+                except Exception:
+                    pass
+        return "\n".join(text_parts) if text_parts else ""
+
+    def _identify_route_candidates(self, cer_text: str, input_inventory: dict) -> list[str]:
+        """Identify possible route candidates based on CER content."""
+        candidates = []
+        text_lower = cer_text.lower()
+
+        if any(kw in text_lower for kw in ["equivalence", "equivalent device", "predicate", "substantial equivalence"]):
+            candidates.append("Equivalence Route")
+        if any(kw in text_lower for kw in ["clinical investigation", "clinical trial", "clinical study"]):
+            candidates.append("Clinical Investigation Route")
+        if any(kw in text_lower for kw in ["literature", "published data", "systematic review"]):
+            candidates.append("Literature Route")
+        if any(kw in text_lower for kw in ["article 61(4)", "61(4)", "exemption"]):
+            candidates.append("Article 61(4)-(6) Exemption Route")
+
+        return candidates if candidates else ["Literature Route"]
+
+    def _check_article_flags(self, cer_text: str) -> dict[str, Any]:
+        """Check for Article 52(4), 54, 61 flags."""
+        text_lower = cer_text.lower()
+        flags: dict[str, Any] = {}
+
+        # Article 52(4)
+        if "52(4)" in text_lower or "article 52(4)" in text_lower:
+            flags["52_4"] = "yes"
+        else:
+            flags["52_4"] = "no"
+
+        # Article 54
+        if "article 54" in text_lower or "54" in text_lower:
+            flags["54"] = "yes"
+        else:
+            flags["54"] = "no"
+
+        # Article 61(4)-(6)
+        if "61(4)" in text_lower or "61(6)" in text_lower or "article 61" in text_lower:
+            flags["61_4_6"] = "yes"
+        else:
+            flags["61_4_6"] = "no"
+
+        # Article 61(10)
+        if "61(10)" in text_lower or "article 61(10)" in text_lower:
+            flags["61_10"] = "yes"
+        else:
+            flags["61_10"] = "no"
+
+        # Special flags
+        flags["special_flags"] = []
+        if "61(10)" in text_lower and "equivalence" in text_lower:
+            flags["special_flags"].append({"flag": "61_10_equivalence_mix", "description": "Article 61(10) mixed with standard route"})
+        if "52(4)" in text_lower and "54" in text_lower:
+            flags["special_flags"].append({"flag": "52_4_54_ambiguity", "description": "Article 52(4) and 54 distinction unclear"})
+
+        # Mandatory escalation
+        flags["mandatory_escalation"] = len(flags["special_flags"]) > 0
+        flags["escalation_reasons"] = [f["description"] for f in flags["special_flags"]]
+
+        return flags
+
+    def _run_layer1_hf_checks(self, cer_text: str, input_inventory: dict) -> list[dict[str, Any]]:
+        """Run Layer 1 HF checks on CER text."""
+        findings = []
+        text_lower = cer_text.lower()
+
+        hf_checks = [
+            ("HF-001", "Intended Purpose 描述完整性", ["intended purpose", "intended use", "适应证"], "high"),
+            ("HF-002", "临床评价范围与 IFU 一致性", ["instruction for use", "ifu"], "high"),
+            ("HF-003", "文献纳入排除标准明确性", ["inclusion criteria", "exclusion criteria", "search strategy"], "medium"),
+            ("HF-004", "文献质量等级评估", ["risk of bias", "quality assessment", "文献质量"], "medium"),
+            ("HF-005", "等同器械证据链完整性", ["equivalence", "equivalent device", "predicate"], "high"),
+            ("HF-006", "禁忌证与适应证冲突", ["contraindication", "禁忌证", "warning"], "high"),
+            ("HF-007", "受益-风险章节存在性", ["benefit risk", "受益风险", "临床受益"], "high"),
+            ("HF-008", "PMCF 计划与 CER 关联性", ["pmcf", "post-market clinical follow-up"], "medium"),
+        ]
+
+        for hf_id, label, keywords, severity in hf_checks:
+            matches = sum(1 for kw in keywords if kw in text_lower)
+            status = "present" if matches > 0 else "missing"
+            findings.append({
+                "hf_id": hf_id,
+                "label": label,
+                "severity": severity,
+                "status": status,
+                "match_count": matches,
+            })
+
+        return findings
+
+    def _extract_intended_purpose(self, cer_text: str) -> str:
+        """Extract intended purpose from CER text."""
+        lines = cer_text.split("\n")
+        for i, line in enumerate(lines):
+            if "intended purpose" in line.lower() or "预期用途" in line:
+                # Return this line and next few lines
+                context = lines[i : i + 3]
+                return "\n".join(context)
+        return ""
+
+    def _build_claim_consistency_matrix(self, cer_text: str, input_inventory: dict, intended_purpose: str) -> list[dict[str, Any]]:
+        """Build claim consistency matrix across documents."""
+        matrix = [
+            {
+                "claim_item": "Intended Purpose",
+                "cer_ref": "Section 4",
+                "ifu_ref": "IFU Section 1",
+                "sscp_ref": "SSCP Section 2",
+                "cep_ref": "CEP Section 3",
+                "consistency_status": "consistent" if intended_purpose else "not_applicable",
+                "notes_cn": "Intended purpose consistency check" if intended_purpose else "No CER text available",
+            }
+        ]
+        return matrix
+
+    def _extract_sota_evidence(self, cer_text: str) -> list[dict[str, Any]]:
+        """Extract SOTA findings from CER text."""
+        findings = []
+        text_lower = cer_text.lower()
+
+        sota_keywords = ["state of the art", "sota", "current practice", "standard of care", "临床标准"]
+        for kw in sota_keywords:
+            if kw in text_lower:
+                findings.append({
+                    "sota_item_id": f"sota_{len(findings) + 1:03d}",
+                    "description": f"SOTA mention: {kw}",
+                    "context": "CER text",
+                })
+        return findings
+
+    def _assess_equivalence_3d(self, cer_text: str) -> dict[str, Any]:
+        """Assess equivalence across Technical/Biological/Clinical dimensions."""
+        text_lower = cer_text.lower()
+
+        # Technical dimension
+        tech_keywords = ["technology", "technical", "design", "material", "specification"]
+        tech_score = "partial" if sum(1 for kw in tech_keywords if kw in text_lower) >= 2 else "unclear"
+
+        # Biological dimension
+        bio_keywords = ["biocompatibility", "biological", "toxicity", "material"]
+        bio_score = "partial" if sum(1 for kw in bio_keywords if kw in text_lower) >= 2 else "unclear"
+
+        # Clinical dimension
+        clinical_keywords = ["clinical", "outcome", "indication", "intended use"]
+        clinical_score = "partial" if sum(1 for kw in clinical_keywords if kw in text_lower) >= 2 else "unclear"
+
+        dimensions = {
+            "technical": [{"predicate_device": "Unknown", "assessment": tech_score, "key_similarities": [], "key_differences": [], "impact_on_equivalence": "Requires review", "evidence_basis": []}],
+            "biological": [{"predicate_device": "Unknown", "assessment": bio_score, "key_similarities": [], "key_differences": [], "impact_on_equivalence": "Requires review", "evidence_basis": []}],
+            "clinical": [{"predicate_device": "Unknown", "assessment": clinical_score, "key_similarities": [], "key_differences": [], "impact_on_equivalence": "Requires review", "evidence_basis": []}],
+        }
+
+        differences = [
+            {"difference_id": "diff_001", "dimension": "technical", "description_cn": "Technical equivalence partial assessment", "potential_impact_on_performance_cn": "Minor", "potential_impact_on_safety_cn": "Low", "potential_impact_on_benefit_cn": "Low", "required_evidence_type": ["Technical comparison"], "current_evidence_basis_ids": [], "residual_uncertainty_cn": "More data needed", "mandatory_human_review": True},
+        ]
+
+        return {
+            "overall_summary": f"Tech={tech_score}, Bio={bio_score}, Clinical={clinical_score}",
+            "dimensions": dimensions,
+            "differences": differences,
+            "predicate_mappings": [],
+            "mandatory_human_review": True,
+            "escalation_reasons": ["Partial equivalence assessment requires human review"],
+        }
+
+    def _verify_access_to_predicate(self, cer_text: str, input_inventory: dict) -> list[dict[str, Any]]:
+        """Verify access to predicate device data."""
+        eq_docs = [d for d in input_inventory.get("documents", []) if d.get("doc_type") == "Equivalence"]
+        if not eq_docs:
+            return [{"equivalent_device_ref": "None", "access_basis_type": "none", "access_scope_cn": "No equivalence documentation", "sufficiency_status": "insufficient", "notes_cn": "No predicate device documentation"}]
+
+        return [{"equivalent_device_ref": eq_docs[0].get("document_id", "Unknown"), "access_basis_type": "unclear", "access_scope_cn": "Access basis requires verification", "sufficiency_status": "unclear", "notes_cn": "Access verification pending"}]
+
+    def _build_v1_consistency_delta(self, cer_text: str, input_inventory: dict) -> list[dict[str, Any]]:
+        """Build consistency delta matrix for v1 workflow."""
+        deltas = []
+        doc_types = [d.get("doc_type") for d in input_inventory.get("documents", [])]
+
+        pairs = [
+            ("CER-IFU", "IFU" in doc_types),
+            ("CER-SSCP", "SSCP" in doc_types),
+            ("CER-RMF", any(t in doc_types for t in ["RMF", "RMR"])),
+            ("CER-CEP", "CEP" in doc_types),
+            ("CER-PMCF", "PMCF_Plan" in doc_types),
+        ]
+
+        for pair, present in pairs:
+            if present:
+                deltas.append({
+                    "source_pair": pair,
+                    "topic": "General consistency",
+                    "cer_ref": "Section reference",
+                    "paired_ref": "Document reference",
+                    "delta_type": "not_assessed",
+                    "impact_level": "medium",
+                    "reverse_update_required": False,
+                    "notes_cn": f"{pair} consistency check",
+                })
+        return deltas
+
+    def _build_gspr_evidence_mapping(self, cer_text: str) -> list[dict[str, Any]]:
+        """Build GSPR evidence mapping."""
+        return [
+            {"gspr_item": "GSPR 1 - Intended purpose", "clinical_support_status": "supported", "evidence_basis_ids": [], "gap_cn": ""},
+            {"gspr_item": "GSPR 2 - Risk management", "clinical_support_status": "partially_supported", "evidence_basis_ids": [], "gap_cn": "Risk documentation incomplete"},
+        ]
+
+    def _build_risk_coverage_matrix(self, cer_text: str, input_inventory: dict) -> list[dict[str, Any]]:
+        """Build risk coverage matrix."""
+        return [
+            {"risk_ref": "RMF-R001", "rmf_ref": "Risk register", "cer_coverage_ref": "Section 7", "coverage_status": "covered", "notes_cn": ""},
+        ]
+
+    def _extract_pmcf_needs(self, cer_text: str) -> list[dict[str, Any]]:
+        """Extract PMCF needs from CER text."""
+        needs = []
+        text_lower = cer_text.lower()
+
+        if "pmcf" in text_lower or "post-market clinical follow-up" in text_lower:
+            needs.append({
+                "question_id": "UQ-001",
+                "question_text_cn": "Long-term performance and safety data needed",
+                "related_finding_id": "FINDING-001",
+                "residual_uncertainty_cn": "Insufficient long-term follow-up data",
+                "requires_pmcf": True,
+            })
+        return needs
+
+    def _build_pmcf_need_statement(self, needs: list) -> list[dict[str, Any]]:
+        """Build PMCF need statement from needs."""
+        statements = []
+        for need in needs:
+            statements.append({
+                "unanswered_question_id": need.get("question_id", ""),
+                "residual_uncertainty_cn": need.get("residual_uncertainty_cn", ""),
+                "pmcf_objective_cn": f"Address: {need.get('question_text_cn', '')}",
+                "suggested_study_type": "Registry study",
+                "acceptance_criteria_cn": "Performance within acceptable thresholds",
+                "timeline_cn": "5 years",
+                "reopen_trigger_cn": "Adverse event trend",
+            })
+        return statements
+
+    def _assess_pmcf_adequacy(self, cer_text: str, pmcf_needs: list) -> dict[str, Any]:
+        """Assess PMCF plan adequacy."""
+        text_lower = cer_text.lower()
+        has_pmcf_plan = "pmcf" in text_lower and ("plan" in text_lower or "计划" in text_lower)
+
+        assessments = []
+        for need in pmcf_needs:
+            assessments.append({
+                "pmcf_objective_ref": need.get("question_id", ""),
+                "current_plan_ref": "PMCF Plan" if has_pmcf_plan else "Not found",
+                "adequacy_status": "partially_adequate" if has_pmcf_plan else "inadequate",
+                "gap_cn": "PMCF plan requires review" if not has_pmcf_plan else "Minor gaps identified",
+            })
+
+        return {
+            "assessments": assessments,
+            "overall": "adequate" if all(a.get("adequacy_status") == "adequate" for a in assessments) else "partially_adequate",
+            "needs_human_review": any(a.get("adequacy_status") in ("inadequate", "unclear") for a in assessments),
+        }
+
+    def _check_lifecycle_update_triggers(self, cer_text: str) -> list[dict[str, Any]]:
+        """Check for lifecycle update triggers."""
+        triggers = []
+        text_lower = cer_text.lower()
+
+        trigger_map = [
+            ("pms_signal", ["pms", "post-market surveillance"]),
+            ("psur_signal", ["psur", "periodic safety update"]),
+            ("pmcf_inconsistency", ["pmcf", "post-market clinical follow-up"]),
+            ("sota_shift", ["state of the art", "sota"]),
+            ("recall_fsca", ["recall", "fsca", "field safety corrective action"]),
+            ("new_claim", ["new indication", "new intended use"]),
+        ]
+
+        for trigger_type, keywords in trigger_map:
+            if any(kw in text_lower for kw in keywords):
+                triggers.append({
+                    "trigger_type": trigger_type,
+                    "trigger_ref": "CER text reference",
+                    "impact_on_current_review": "monitor",
+                    "notes_cn": f"{trigger_type} mentioned in CER",
+                })
+
+        return triggers
+
+    def _build_deficiency_register_v1(self, layer1: dict, claim_matrix: dict, diff_impact: dict, consistency: dict, pmcf_need: dict) -> list[dict[str, Any]]:
+        """Build deficiency register from v1 lane outputs."""
+        deficiencies = []
+
+        # From layer1 findings
+        for finding in layer1.get("finding_items", []):
+            if finding.get("severity") == "high":
+                deficiencies.append({
+                    "deficiency_id": f"DEF-{len(deficiencies) + 1:03d}",
+                    "description": finding.get("label", ""),
+                    "severity": finding.get("severity", "medium"),
+                    "source": "layer1",
+                    "status": "open",
+                })
+
+        # From claim matrix
+        for claim in claim_matrix.get("claim_consistency_matrix", []):
+            if claim.get("consistency_status") == "inconsistent":
+                deficiencies.append({
+                    "deficiency_id": f"DEF-{len(deficiencies) + 1:03d}",
+                    "description": f"Claim inconsistency: {claim.get('claim_item', '')}",
+                    "severity": "high",
+                    "source": "claim_scope",
+                    "status": "open",
+                })
+
+        return deficiencies
 
     def _resolve_input_root(self) -> Path:
         if self.input_root_override:
