@@ -436,7 +436,7 @@ export default function IntakeStatusPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Pipeline Progress</CardTitle>
-              <CardDescription>15-state intake pipeline</CardDescription>
+              <CardDescription>11-stage intake workflow · 15 backend states</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-2">

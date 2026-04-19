@@ -34,6 +34,14 @@ from deerflow.runtime.cer_review.auth import (
 from deerflow.runtime.cer_review.auth.rbac_context import (
     get_cer_auth_with_gate_role,
 )
+from deerflow.runtime.cer_review.knowledge_candidate_state import (
+    AssetType,
+    CandidateState,
+    KnowledgeCandidate,
+)
+from deerflow.runtime.cer_review.knowledge_review_gate import (
+    KnowledgeReviewGate,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/cer-review", tags=["cer-intake"])
@@ -368,6 +376,79 @@ def _unique_filename(dst_dir: Path, filename: str) -> Path:
         if not new_dst.exists():
             return new_dst
         counter += 1
+
+
+def _create_correction_candidate(
+    project_id: str,
+    intake_session_id: str,
+    decision_data: dict,
+    decision_file: Path,
+    reviewer_id: str,
+) -> None:
+    """P2.2: Create knowledge candidate from NEEDS_CORRECTION human gate decision.
+
+    Creates a CaseLesson or WorkflowImprovement knowledge candidate with
+    needs_human_review state. The candidate is saved via KnowledgeReviewGate
+    and requires explicit human approval before publication.
+
+    Args:
+        project_id: CER project identifier
+        intake_session_id: Intake session ID
+        decision_data: Full decision data dict
+        decision_file: Path to human_intake_gate_decision.json
+        reviewer_id: User ID of the reviewer who submitted the decision
+    """
+    import datetime
+
+    notes = decision_data.get("notes", "") or ""
+
+    # Determine asset type based on notes content heuristics
+    notes_lower = notes.lower()
+    if any(kw in notes_lower for kw in ["workflow", "process", "procedure", "step"]):
+        asset_type = AssetType.WORKFLOW_IMPROVEMENT
+    elif any(kw in notes_lower for kw in ["failure", "mistake", "error", "wrong", "incorrect", "defect"]):
+        asset_type = AssetType.FAILURE_PATTERN
+    else:
+        asset_type = AssetType.CASE_LESSON
+
+    # Build source chain
+    source_chain = [
+        project_id,
+        intake_session_id,
+        str(decision_file.relative_to(_CER_ARTIFACTS_ROOT / project_id)),
+    ]
+
+    # Build payload from decision data
+    payload = {
+        "verdict": decision_data.get("verdict"),
+        "notes": notes,
+        "submitted_by": decision_data.get("submitted_by"),
+        "submitted_at": decision_data.get("submitted_at"),
+        "intake_session_id": intake_session_id,
+        "backflow_source": "human_intake_gate_decision",
+    }
+
+    # Create candidate in needs_human_review state (NOT approved)
+    candidate = KnowledgeCandidate(
+        asset_type=asset_type,
+        source_artifact=str(decision_file),
+        source_chain=source_chain,
+        payload=payload,
+        confidence=0.95,  # High confidence — direct from human reviewer
+        project_id=project_id,
+        state=CandidateState.NEEDS_HUMAN_REVIEW,
+    )
+
+    # Save via KnowledgeReviewGate
+    gate = KnowledgeReviewGate(project_id)
+    existing = gate.get_all_candidates()
+    existing.append(candidate)
+    gate.save_candidates(existing)
+
+    logger.info(
+        f"CER intake: correction backflow created candidate {candidate.candidate_id} "
+        f"({asset_type.value}) for project {project_id}"
+    )
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -848,6 +929,20 @@ async def submit_human_gate_decision(
     logger.info(
         f"CER intake: human gate decision submitted for {project_id}: {body.decision} -> state: {new_state}"
     )
+
+    # P2.2: Correction backflow — create knowledge candidate when NEEDS_CORRECTION
+    if body.decision == "NEEDS_CORRECTION" and body.notes:
+        try:
+            _create_correction_candidate(
+                project_id=project_id,
+                intake_session_id=state_data.get("intake_session_id", ""),
+                decision_data=decision_data,
+                decision_file=decision_file,
+                reviewer_id=auth.user_id,
+            )
+        except Exception as e:
+            # Don't fail the human gate decision if backflow fails
+            logger.error(f"CER intake: correction backflow failed for {project_id}: {e}")
 
     return HumanGateDecisionResponse(
         project_id=project_id,
