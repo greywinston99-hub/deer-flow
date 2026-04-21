@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://deer-flow.example.com/schemas/rmf_findings_register.schema.json",
+  "title": "RMF Findings Register Schema",
+  "description": "Aggregated findings register for RMF review run",
+  "type": "object",
+  "required": ["rmf_run_id", "project_id", "findings_register", "summary"],
+  "properties": {
+    "rmf_run_id": {
+      "type": "string",
+      "description": "Unique identifier for this RMF review run"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Project identifier"
+    },
+    "review_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "findings_register": {
+      "type": "array",
+      "description": "All findings from all dimension agents",
+      "items": {
+        "$ref": "rmf_agent_output.schema.json#/definitions/finding"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_findings", "by_dimension", "by_severity"],
+      "properties": {
+        "total_findings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_dimension": {
+          "type": "object",
+          "properties": {
+            "COMP": {"type": "integer"},
+            "CORR": {"type": "integer"},
+            "ADEQ": {"type": "integer"},
+            "TRAC": {"type": "integer"},
+            "CONS": {"type": "integer"},
+            "ACPT": {"type": "integer"},
+            "PMS": {"type": "integer"},
+            "L1": {"type": "integer"},
+            "QA": {"type": "integer"}
+          }
+        },
+        "by_severity": {
+          "type": "object",
+          "properties": {
+            "critical": {"type": "integer"},
+            "major": {"type": "integer"},
+            "minor": {"type": "integer"},
+            "observation": {"type": "integer"}
+          }
+        },
+        "by_finding_type": {
+          "type": "object",
+          "additionalProperties": {"type": "integer"}
+        }
+      }
+    },
+    "high_risk_items": {
+      "type": "array",
+      "description": "Critical findings requiring Layer 3 human decision",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_id": {"type": "string"},
+          "dimension": {"type": "string"},
+          "description": {"type": "string"},
+          "requires_human_layer3_decision": {"type": "boolean"}
+        }
+      }
+    },
+    "human_gate_packet_reference": {
+      "type": "string",
+      "description": "Path to human gate packet artifact"
+    },
+    "human_gate_decision": {
+      "type": "object",
+      "description": "Human gate Layer 3 decisions",
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": ["approved", "conditional_approval", "rejected", "deferred"]
+        },
+        "layer3_decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "area": {"type": "string"},
+              "decision": {"type": "string"},
+              "rationale": {"type": "string"}
+            }
+          }
+        },
+        "reviewer": {"type": "string"},
+        "decision_timestamp": {"type": "string", "format": "date-time"}
+      }
+    },
+    "_meta": {
+      "$ref": "rmf_agent_output.schema.json#/definitions/meta_trace"
+    }
+  }
+}

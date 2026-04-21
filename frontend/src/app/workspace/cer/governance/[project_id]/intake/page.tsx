@@ -261,22 +261,22 @@ export default function IntakeStatusPage() {
         <div className="p-2 space-y-1 flex-1 overflow-y-auto">
           <div className="text-[10px] font-medium text-muted-foreground mb-1 px-1">INTAKE PAGES</div>
           <Button variant="ghost" size="sm" className="w-full justify-start text-xs h-7 bg-primary/10" asChild>
-            <Link href={`./`}>
+            <Link href={`/workspace/cer/governance/${projectId}/intake/`}>
               Intake Status
             </Link>
           </Button>
           <Button variant="ghost" size="sm" className="w-full justify-start text-xs h-7" asChild>
-            <Link href={`./classification`}>
+            <Link href={`/workspace/cer/governance/${projectId}/intake/classification`}>
               Classification Review
             </Link>
           </Button>
           <Button variant="ghost" size="sm" className="w-full justify-start text-xs h-7" asChild>
-            <Link href={`./human-gate`}>
+            <Link href={`/workspace/cer/governance/${projectId}/intake/human-gate`}>
               Human Gate
             </Link>
           </Button>
           <Button variant="ghost" size="sm" className="w-full justify-start text-xs h-7" asChild>
-            <Link href={`./locked-pack`}>
+            <Link href={`/workspace/cer/governance/${projectId}/intake/locked-pack`}>
               Locked Pack
             </Link>
           </Button>

@@ -1,6 +1,6 @@
 # DeerFlow - Unified Development Environment
 
-.PHONY: help config config-upgrade check install dev dev-pro dev-daemon dev-daemon-pro start start-pro start-daemon start-daemon-pro stop up up-pro down clean docker-init docker-start docker-start-pro docker-stop docker-logs docker-logs-frontend docker-logs-gateway
+.PHONY: help config config-upgrade check install preflight dev dev-pro dev-daemon dev-daemon-pro start start-pro start-daemon start-daemon-pro pilot pilot-daemon stop up up-pro down clean docker-init docker-start docker-start-pro docker-stop docker-logs docker-logs-frontend docker-logs-gateway
 
 BASH ?= bash
 
@@ -18,6 +18,7 @@ help:
 	@echo "  make config-upgrade  - Merge new fields from config.example.yaml into config.yaml"
 	@echo "  make check           - Check if all required tools are installed"
 	@echo "  make install         - Install all dependencies (frontend + backend)"
+	@echo "  make preflight       - Inspect local DeerFlow runtime ownership, ports, and health"
 	@echo "  make setup-sandbox   - Pre-pull sandbox container image (recommended)"
 	@echo "  make dev             - Start all services in development mode (with hot-reloading)"
 	@echo "  make dev-pro         - Start in dev + Gateway mode (experimental, no LangGraph server)"
@@ -27,6 +28,8 @@ help:
 	@echo "  make start-pro       - Start in prod + Gateway mode (experimental)"
 	@echo "  make start-daemon    - Start prod services in background (daemon mode)"
 	@echo "  make start-daemon-pro - Start prod daemon + Gateway mode (experimental)"
+	@echo "  make pilot          - Alias for start (stable single-instance business run)"
+	@echo "  make pilot-daemon   - Alias for start-daemon"
 	@echo "  make stop            - Stop all running services"
 	@echo "  make clean           - Clean up processes and temporary files"
 	@echo ""
@@ -69,6 +72,9 @@ install:
 	@echo "If you plan to use Docker/Container-based sandbox, you can pre-pull the image:"
 	@echo "  make setup-sandbox"
 	@echo ""
+
+preflight:
+	@./scripts/dev-runtime.sh preflight
 
 # Pre-pull sandbox Docker image (optional but recommended)
 setup-sandbox:
@@ -178,6 +184,10 @@ endif
 # Stop all services
 stop:
 	@./scripts/serve.sh --stop
+
+pilot: start
+
+pilot-daemon: start-daemon
 
 # Clean up
 clean: stop

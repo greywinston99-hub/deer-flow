@@ -31,8 +31,8 @@ interface RunDetailResponse {
   ledger_summary: { entries: LedgerEntry[]; total: number };
   ledger_total: number;
   state_log_summary: StateTransitionEntry[];
-  bundle_lineage_summary: unknown[];
-  findings_summary: unknown[];
+  bundle_lineage_summary: BundleLineageEntry[];
+  findings_summary: FindingEntry[];
   followups_open: number;
   model: string | null;
   execution_mode: string | null;
@@ -93,6 +93,35 @@ interface BackflowEntry {
 interface BackflowResponse {
   project_id: string;
   backflows: BackflowEntry[];
+}
+
+interface BundleLineageEntry {
+  bundle_id?: string;
+  id?: string;
+  source_bundle?: string;
+  derived_bundle?: string;
+  artifact_path?: string;
+  hash?: string;
+  checksum?: string;
+  relation_type?: string;
+  created_at?: string;
+  [key: string]: unknown;
+}
+
+interface FindingEntry {
+  finding_id?: string;
+  id?: string;
+  category?: string;
+  title?: string;
+  description?: string;
+  source_limitation_ref?: string;
+  severity?: string;
+  actionable?: boolean;
+  action?: string;
+  human_decision_required?: boolean;
+  preliminary_judgment?: string;
+  status?: string;
+  [key: string]: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -309,6 +338,12 @@ export default function RunDetailPage() {
               Rework Compare
             </Link>
           </Button>
+          <div className="text-[10px] font-medium text-muted-foreground mb-1 px-1 mt-3">INTEGRATION</div>
+          <Button variant="ghost" size="sm" className="w-full justify-start text-xs h-7" asChild>
+            <Link href={`/workspace/cer/governance/${encodeURIComponent(projectId)}/integration`}>
+              RMF × CER Integration
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -400,6 +435,7 @@ export default function RunDetailPage() {
             <Tabs defaultValue="overview">
               <TabsList className="mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="findings">Findings</TabsTrigger>
                 <TabsTrigger value="ledger">Decision Ledger</TabsTrigger>
                 <TabsTrigger value="state-log">State Transitions</TabsTrigger>
                 <TabsTrigger value="followups">
@@ -485,7 +521,142 @@ export default function RunDetailPage() {
                       </CardContent>
                     </Card>
                   )}
+
+                  {/* Bundle Lineage Summary */}
+                  {runDetail.bundle_lineage_summary && runDetail.bundle_lineage_summary.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm">Bundle Lineage</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {runDetail.bundle_lineage_summary.map((lineage, i) => (
+                            <div key={i} className="p-2 border rounded text-xs space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono font-semibold text-primary">
+                                  {lineage.bundle_id || lineage.id || `bundle-${i}`}
+                                </span>
+                                {lineage.relation_type && (
+                                  <Badge variant="outline" className="text-[10px]">{lineage.relation_type}</Badge>
+                                )}
+                              </div>
+                              {lineage.source_bundle && (
+                                <div className="text-muted-foreground">
+                                  Source: <span className="font-mono">{lineage.source_bundle}</span>
+                                </div>
+                              )}
+                              {lineage.derived_bundle && (
+                                <div className="text-muted-foreground">
+                                  Derived: <span className="font-mono">{lineage.derived_bundle}</span>
+                                </div>
+                              )}
+                              {lineage.artifact_path && (
+                                <div className="text-muted-foreground text-[10px]">
+                                  Path: {lineage.artifact_path}
+                                </div>
+                              )}
+                              {lineage.hash && (
+                                <div className="text-muted-foreground text-[10px] font-mono">
+                                  Hash: {lineage.hash}
+                                </div>
+                              )}
+                              {lineage.created_at && (
+                                <div className="text-muted-foreground text-[10px]">
+                                  Created: {new Date(lineage.created_at).toLocaleString()}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {(!runDetail.bundle_lineage_summary || runDetail.bundle_lineage_summary.length === 0) && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm">Bundle Lineage</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-xs text-muted-foreground">No bundle lineage data available for this run.</p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
+              </TabsContent>
+
+              {/* Findings Tab */}
+              <TabsContent value="findings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Findings Detail</CardTitle>
+                    <CardDescription>Full findings from all review lanes</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {!runDetail.findings_summary || runDetail.findings_summary.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No findings available for this run.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {runDetail.findings_summary.map((finding, i) => {
+                          const severity = finding.severity || null;
+                          return (
+                            <div key={i} className="p-3 border rounded text-xs space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono font-bold text-primary">
+                                  {finding.finding_id || finding.id || `finding-${i}`}
+                                </span>
+                                <div className="flex gap-1">
+                                  {severity && (
+                                    <Badge
+                                      className={
+                                        severity === "HIGH"
+                                          ? "bg-red-100 text-red-800"
+                                          : severity === "MEDIUM"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-blue-100 text-blue-800"
+                                      }
+                                    >
+                                      {severity}
+                                    </Badge>
+                                  )}
+                                  {finding.category && (
+                                    <Badge variant="outline" className="text-[10px]">{finding.category}</Badge>
+                                  )}
+                                  {finding.actionable && <Badge variant="outline" className="text-[10px]">actionable</Badge>}
+                                  {finding.human_decision_required && (
+                                    <Badge variant="destructive" className="text-[10px]">human review</Badge>
+                                  )}
+                                </div>
+                              </div>
+                              {finding.title && (
+                                <div className="font-medium">{finding.title}</div>
+                              )}
+                              {finding.description && (
+                                <div className="text-muted-foreground">{finding.description}</div>
+                              )}
+                              {finding.source_limitation_ref && (
+                                <div className="text-muted-foreground text-[10px]">
+                                  Limitation refs: {finding.source_limitation_ref}
+                                </div>
+                              )}
+                              {finding.action && (
+                                <div className="text-blue-600 text-[10px]">Action: {finding.action}</div>
+                              )}
+                              {finding.preliminary_judgment && (
+                                <div className="text-yellow-600 text-[10px]">
+                                  Preliminary: {finding.preliminary_judgment}
+                                </div>
+                              )}
+                              {finding.status && (
+                                <div className="text-muted-foreground text-[10px]">Status: {finding.status}</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* Decision Ledger */}

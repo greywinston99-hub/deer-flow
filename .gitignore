@@ -57,3 +57,24 @@ config.yaml.bak
 .playwright-mcp
 .gstack/
 .worktrees
+
+# Runtime artifacts
+artifacts/
+backend/artifacts/
+frontend/artifacts/
+
+# Frontend build outputs
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+.pnpm-store/
+
+# Python
+.pytest_cache/
+*.pyc
+*.pyo
+__pycache__/
+
+# Logs
+*.log
+*.tmp

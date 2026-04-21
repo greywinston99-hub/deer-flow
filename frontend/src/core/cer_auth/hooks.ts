@@ -14,7 +14,7 @@ import {
 } from "./api";
 
 export interface CERAuthState {
-  user: CERAuthUser | null;
+  user: CERAuthUser;
   loading: boolean;
   canSubmitDecision: boolean;
   devMode: boolean;
@@ -25,18 +25,29 @@ export interface CERAuthState {
 
 const GATE_DECISION_ROLES = new Set(["SENIOR_REVIEWER", "ADMIN"]);
 
+// Default user used during SSR and as fallback to prevent hydration mismatch.
+// During SSR, window is undefined so we use the default.
+// On client hydration, this matches the server render.
+// After hydration, useEffect may update to the real authenticated user.
+const _DEFAULT_USER: CERAuthUser = {
+  user_id: "dev-user",
+  name: "Developer",
+  role: "REVIEWER",
+};
+
 // Read initial auth state synchronously from localStorage.
-// This runs before the first render, so the first render already has the correct user.
-function _readInitialAuth(): { user: CERAuthUser | null; loading: boolean } {
+// This runs before the first render so the first render already has the correct user.
+// Returns a non-null default to prevent SSR/client hydration mismatch.
+function _readInitialAuth(): { user: CERAuthUser; loading: boolean } {
   if (typeof window !== "undefined") {
     const devUser = getDevCERUser();
     if (devUser) return { user: devUser, loading: false };
   }
-  return { user: null, loading: true };
+  return { user: _DEFAULT_USER, loading: false };
 }
 
 export function useCERAuth(): CERAuthState {
-  const [{ user, loading }, setAuth] = useState<{ user: CERAuthUser | null; loading: boolean }>(
+  const [{ user, loading }, setAuth] = useState<{ user: CERAuthUser; loading: boolean }>(
     _readInitialAuth,
   );
 
@@ -50,11 +61,13 @@ export function useCERAuth(): CERAuthState {
 
   // Fetch from API once on mount if no dev user was found.
   useEffect(() => {
-    if (user !== null) return; // already have dev user — no API call needed
-    void fetchCERAuthUser().then((u) => {
-      setAuth({ user: u, loading: false });
-    });
-  }, [user]);
+    if (!isDevCEREnabled()) {
+      // Only fetch real auth when dev mode is OFF
+      void fetchCERAuthUser().then((u) => {
+        setAuth({ user: u ?? _DEFAULT_USER, loading: false });
+      });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setDevRole = useCallback((role: DevRole) => {
     const option = DEV_ROLE_OPTIONS.find((o) => o.value === role);
@@ -68,13 +81,13 @@ export function useCERAuth(): CERAuthState {
 
   const disableDevMode = useCallback(() => {
     clearDevCERUser();
-    setAuth({ user: null, loading: true });
+    setAuth({ user: _DEFAULT_USER, loading: false });
     void fetchCERAuthUser().then((u) => {
-      setAuth({ user: u, loading: false });
+      setAuth({ user: u ?? _DEFAULT_USER, loading: false });
     });
   }, []);
 
-  const canSubmitDecision = user ? GATE_DECISION_ROLES.has(user.role) : false;
+  const canSubmitDecision = GATE_DECISION_ROLES.has(user.role);
 
   return { user, loading, canSubmitDecision, devMode, devRole, setDevRole, disableDevMode };
 }

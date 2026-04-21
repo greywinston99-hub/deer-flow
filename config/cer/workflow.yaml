@@ -1,0 +1,214 @@
+# CER Review Workflow v1 Configuration
+# Complies with CER-0 Business Constitution v0.4 and CER_REVIEW_WORKFLOW_V1
+
+workflow_name: cer_review_v1
+workflow_version: "1.0"
+workflow_status: p1_baseline
+mode: single_project_serial_review
+
+description: >
+  CER Review Workflow v1 baseline implementation.
+  Implements full 10-stage CER review with human gates, specialized lanes,
+  PMCF lifecycle, rework isolation, decision ledger, and backflow.
+
+scope:
+  project_scope: single_project
+  institution_scope: single_body
+  primary_review_object: CER
+  cross_validation_inputs:
+    - CER
+    - CEP
+    - IFU
+    - RMF_RMR
+    - PMCF_Plan
+    - Tech_Docs
+    - Literature
+    - PMS_PSUR
+    - Equivalence
+    - SSCP
+  final_decision_requires_human_gate: true
+
+# 10 Stages (from CER_REVIEW_WORKFLOW_V1)
+stages:
+  - stage_id: stage_0_intake_protocol_freeze
+    label: Intake & Protocol Freeze
+    description: Receive six-package input contract, validate completeness, freeze protocol
+    human_gate: true
+    gate_name: Protocol Freeze Gate
+    allowed_nodes:
+      - cer_intake_agent
+    output_artifact: input_contract_inventory.json
+
+  - stage_id: stage_1_scope_route_special_check
+    label: Route & Special Procedure Check
+    description: Determine review route and special procedure applicability
+    human_gate: true
+    gate_name: Route Gate
+    allowed_nodes:
+      - cer_route_screen_agent
+    output_artifact: route_decision_draft.json
+
+  - stage_id: stage_2_layer1_completeness_scan
+    label: Layer 1 Completeness Scan
+    description: Machine-driven completeness scan of required sections and documents
+    human_gate: false
+    allowed_nodes:
+      - cer_layer1_scan_agent
+    output_artifact: layer1_findings.json
+
+  - stage_id: stage_3_layer2_plausibility_review
+    label: Layer 2 Plausibility Review
+    description: Semi-rule-based plausibility review with human recheck
+    human_gate: false
+    allowed_nodes:
+      - cer_claim_scope_agent
+      - cer_sota_evidence_agent
+    output_artifact: layer2_findings.json
+
+  - stage_id: stage_4_specialized_review_lanes
+    label: Specialized Review Lanes
+    description: Multi-lane parallel review for equivalence, consistency, PMCF
+    human_gate: false
+    allowed_nodes:
+      - cer_equivalence_agent
+      - cer_consistency_agent
+      - cer_pmcf_lifecycle_agent
+    output_artifact: specialized_lanes_findings.json
+
+  - stage_id: stage_5_human_adjudication
+    label: Human Adjudication
+    description: Human clinical adjudicator reviews bundle and makes disposition
+    human_gate: true
+    gate_name: Adjudication Gate
+    allowed_nodes: []
+    bundle_artifact: clinical_adjudication_bundle.json
+    allowed_decisions:
+      - pass
+      - conditional_pass
+      - return_for_remediation
+
+  - stage_id: stage_6_conclusion_assembly
+    label: Conclusion Assembly
+    description: Assemble overall conclusion draft and deficiency register
+    human_gate: false
+    allowed_nodes:
+      - cer_conclusion_agent
+    output_artifact: overall_conclusion_draft.json
+
+  - stage_id: stage_7_rework_loop
+    label: Rework Loop
+    description: Handle rework_required disposition with round isolation
+    human_gate: false
+    allowed_nodes:
+      - cer_intake_agent
+      - cer_route_screen_agent
+      - cer_layer1_scan_agent
+      - cer_claim_scope_agent
+      - cer_sota_evidence_agent
+      - cer_equivalence_agent
+      - cer_consistency_agent
+      - cer_pmcf_lifecycle_agent
+      - cer_conclusion_agent
+    output_artifact: rework_comparison_report.json
+
+  - stage_id: stage_8_closure_followup_handoff
+    label: Closure & Follow-up Handoff
+    description: Confirm closure conditions and generate follow-up handoff
+    human_gate: true
+    gate_name: Closure Gate
+    allowed_nodes: []
+    output_artifact: closure_bundle_index.json
+    followup_required_outputs:
+      - followup_handoff.json
+      - milestone_refs.json
+
+  - stage_id: stage_9_backflow
+    label: Backflow
+    description: Generate backflow pack with knowledge candidates
+    human_gate: false
+    allowed_nodes: []
+    output_artifact: backflow_pack.json
+
+# Specialized Lanes (must maintain separation)
+specialized_lanes:
+  - lane_id: lane_claim_scope
+    name: Claim & Scope Review
+    agent: cer_claim_scope_agent
+    output: claim_consistency_matrix.json
+
+  - lane_id: lane_sota_evidence
+    name: SOTA & Evidence Review
+    agent: cer_sota_evidence_agent
+    output: sota_findings.json
+
+  - lane_id: lane_equivalence
+    name: Equivalence Review
+    agent: cer_equivalence_agent
+    output: difference_impact_assessment.json
+    mandatory_checks:
+      - access_to_data_verification
+      - three_dimensional_assessment
+      - multiple_predicates_boundary
+
+  - lane_id: lane_consistency
+    name: Consistency & GSPR Review
+    agent: cer_consistency_agent
+    output: consistency_delta_matrix.json
+
+  - lane_id: lane_pmcf
+    name: PMCF & Lifecycle Review
+    agent: cer_pmcf_lifecycle_agent
+    output: pmcf_need_statement.json
+
+# Mandatory Human Gates
+human_gates:
+  - gate_id: gate_0_protocol_freeze
+    name: Protocol Freeze Gate
+    stage: stage_0_intake_protocol_freeze
+    position: after_intake
+    allowed_decisions:
+      - proceed
+      - return_for_completion
+    blocking: true
+
+  - gate_id: gate_1_route
+    name: Route Gate
+    stage: stage_1_scope_route_special_check
+    position: after_route_screen
+    allowed_decisions:
+      - confirm_route
+      - modify_route
+      - return_for_scope_clarification
+    blocking: true
+
+  - gate_id: gate_2_adjudication
+    name: Adjudication Gate
+    stage: stage_5_human_adjudication
+    position: after_lanes_complete
+    allowed_decisions:
+      - pass
+      - conditional_pass
+      - return_for_remediation
+    blocking: true
+
+  - gate_id: gate_3_closure
+    name: Closure Gate
+    stage: stage_8_closure_followup_handoff
+    position: after_conclusion
+    allowed_decisions:
+      - close
+      - followup_required
+    blocking: true
+
+# Artifact Root
+artifact_root: /mnt/user-data/outputs/cer_review_v1/${run_id}/artifacts
+source_root: /mnt/user-data/uploads
+enforce_source_binding: true
+enforce_human_gate: true
+conclusion_without_source_ref: forbidden
+
+# Final Status Values
+final_status_values:
+  - pass
+  - conditional_pass
+  - return_for_remediation

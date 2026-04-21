@@ -1,0 +1,57 @@
+project_id: CER-D2-FAST-GATE-A-BLOCK
+project_name: CER D2 Fast Gate A Block Test
+
+institution_profile:
+  organization: Test Organization
+  assessment_body: Test Body
+  profile_version: "v1"
+
+review_scope:
+  mode: formal_review
+  review_language: en
+  jurisdiction: EU MDR / IVDR
+  human_gate_required: true
+
+primary_review_object: CER
+
+device_context:
+  device_name: Test Device
+  device_family: Test Class IIa Device
+  device_class: Class IIa
+  intended_use: Test device for CER D2 fast verification.
+  market_stage: technical_documentation_review
+  implantable_status: false
+  intended_purpose_confirmed: true
+  indication_scope_confirmed: true
+  document_inventory_confirmed: true
+
+project_protocol:
+  project_id: CER-D2-FAST-GATE-A-BLOCK
+  cer_run_id: cer-d2-fast-gate-a-block-001
+  product_name: Test Device
+  device_class: Class IIa
+  implantable_status: false
+  intended_purpose_confirmed: true
+  indication_scope_confirmed: true
+  document_inventory_confirmed: true
+  assessment_type: formal_cer_review
+  formal_review_requested: true
+  gate_a_status: draft
+  gate_a_decision_by: null
+  gate_a_decision_at: null
+  gate_a_notes: D2 fast verification - gate_a_status=draft should block formal_review
+
+input_package:
+  root_path: /Users/winstonwei/Documents/Playground/deer-flow/examples/cer_review/input
+  documents:
+    - doc_type: CER
+      label: Clinical Evaluation Report
+      path: CER.txt
+      required_for_p0: true
+      source_ref:
+        document_id: cer_main
+        path: CER.txt
+
+artifact_policy:
+  artifact_root: /tmp/cer_d2_fast_gate_a_block
+  persist_intermediate_artifacts: true

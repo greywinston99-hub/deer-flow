@@ -70,7 +70,19 @@ def _resolve_artifact_path(
 
     from deerflow.config.paths import get_paths
     paths = get_paths()
-    artifact_dir = paths.sandbox_outputs_dir(target_cycle.thread_id) / "rmf_review_v1_1" / target_cycle.run_id / "artifacts"
+    outputs_dir = paths.sandbox_outputs_dir(target_cycle.thread_id)
+    # Workflow-agnostic: find the run directory by scanning for matching run_id
+    artifact_dir = None
+    if outputs_dir.exists():
+        for workflow_dir in outputs_dir.iterdir():
+            if not workflow_dir.is_dir():
+                continue
+            run_dir = workflow_dir / target_cycle.run_id
+            if run_dir.is_dir() and (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                artifact_dir = run_dir / "artifacts"
+                break
+    if artifact_dir is None:
+        raise HTTPException(status_code=404, detail=f"Run {target_cycle.run_id} not found for thread {target_cycle.thread_id}")
     full_path = artifact_dir / path
 
     if not full_path.exists():

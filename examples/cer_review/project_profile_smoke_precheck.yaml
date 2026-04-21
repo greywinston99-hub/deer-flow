@@ -1,0 +1,88 @@
+project_id: CER-D2A-DEERFLOW-SMOKE
+project_name: CER D2A DeerFlow Smoke Test
+
+institution_profile:
+  organization: Test Organization
+  assessment_body: Test Body
+  profile_version: "v1"
+
+review_scope:
+  mode: smoke_precheck
+  review_language: en
+  jurisdiction: EU MDR / IVDR
+  human_gate_required: true
+
+primary_review_object: CER
+
+device_context:
+  device_name: Test Device
+  device_family: Test Class IIa Device
+  device_class: Class IIa
+  intended_use: Test device for CER review workflow smoke test.
+  market_stage: technical_documentation_review
+  implantable_status: false
+  intended_purpose_confirmed: true
+  indication_scope_confirmed: true
+  document_inventory_confirmed: true
+
+project_protocol:
+  project_id: CER-D2A-DEERFLOW-SMOKE
+  cer_run_id: cer-d2a-deerflow-smoke-001
+  product_name: Test Device
+  device_class: Class IIa
+  implantable_status: false
+  intended_purpose_confirmed: true
+  indication_scope_confirmed: true
+  document_inventory_confirmed: true
+  assessment_type: smoke_precheck
+  formal_review_requested: false
+  gate_a_status: draft
+  gate_a_decision_by: null
+  gate_a_decision_at: null
+  gate_a_notes: Smoke test - non-production
+
+input_package:
+  root_path: /Users/winstonwei/Documents/Playground/deer-flow/examples/cer_review/input
+  documents:
+    - doc_type: CER
+      label: Clinical Evaluation Report
+      path: CER.txt
+      required_for_p0: true
+      source_ref:
+        document_id: cer_main
+        path: CER.txt
+    - doc_type: CEP
+      label: Clinical Evaluation Plan
+      path: CEP.txt
+      required_for_p0: false
+      source_ref:
+        document_id: cep_main
+        path: CEP.txt
+    - doc_type: IFU
+      label: Instruction for Use
+      path: IFU.txt
+      required_for_p0: false
+      source_ref:
+        document_id: ifu_main
+        path: IFU.txt
+    - doc_type: RMF
+      label: Risk Management File
+      path: RMF.txt
+      required_for_p0: false
+      source_ref:
+        document_id: rmf_main
+        path: RMF.txt
+    - doc_type: PMCF_Plan
+      label: PMCF Plan
+      path: PMCF_Plan.txt
+      required_for_p0: false
+      source_ref:
+        document_id: pmcf_plan
+        path: PMCF_Plan.txt
+
+artifact_policy:
+  artifact_root: /tmp/cer_review_smoke_precheck
+  persist_intermediate_artifacts: true
+  final_outputs:
+    - run_manifest.json
+    - task_ledger.json

@@ -524,17 +524,26 @@ async def submit_human_decision(
     # Use specified thread_id or latest
     thread_id = body.thread_id or project.latest_thread_id or cycle.thread_id
 
-    # Write human decision to the run artifact
+    # Write human decision to the run artifact (workflow-agnostic)
     try:
         from deerflow.config.paths import get_paths
         paths = get_paths()
         outputs_dir = paths.sandbox_outputs_dir(thread_id)
-        artifact_root = outputs_dir / "rmf_review_v1_1"
-        # Find the latest run dir
-        run_dirs = sorted((d for d in artifact_root.iterdir() if d.is_dir()), key=lambda d: d.stat().st_mtime, reverse=True)
-        if not run_dirs:
+        if not outputs_dir.exists():
+            raise HTTPException(status_code=400, detail=f"No outputs found for thread {thread_id}")
+        # Find latest run across all workflows
+        all_runs: list[Path] = []
+        for workflow_dir in outputs_dir.iterdir():
+            if not workflow_dir.is_dir():
+                continue
+            for run_dir in workflow_dir.iterdir():
+                if not run_dir.is_dir():
+                    continue
+                if (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                    all_runs.append(run_dir)
+        if not all_runs:
             raise HTTPException(status_code=400, detail=f"No runs found for thread {thread_id}")
-        run_dir = run_dirs[0]
+        run_dir = sorted(all_runs, key=lambda d: d.stat().st_mtime, reverse=True)[0]
         decision_path = run_dir / "artifacts" / "05_human_boundary" / "human_gate_decision.json"
         decision_path.parent.mkdir(parents=True, exist_ok=True)
         from datetime import datetime, timezone

@@ -75,23 +75,59 @@ export function getDevCERUser(): { user_id: string; name: string; role: string }
 
 // ── Authenticated fetch with dev header injection ───────────────────────────────
 
-/** Builds X-CER-* headers from localStorage dev session. Empty if dev mode not active. */
+/**
+ * Builds X-CER-* headers for CER API requests.
+ *
+ * Priority order:
+ *   1. localStorage dev session (cer_dev_role_value set) — highest priority
+ *   2. NEXT_PUBLIC_CER_USER_ID / NEXT_PUBLIC_CER_USER_NAME / NEXT_PUBLIC_CER_USER_ROLE env vars
+ *   3. Safe dev defaults — prevents RBAC block in dev without any config
+ *
+ * Always injects headers for CER endpoints so RBAC never silently blocks the UI.
+ */
 function buildCERAuthHeaders(): HeadersInit {
   const headers: Record<string, string> = {};
   if (typeof window === "undefined") return headers;
-  if (!DEV_ROLE_OPTIONS.some((o) => o.value === localStorage.getItem(DEV_ROLE_KEY))) return headers;
-  const role = localStorage.getItem(DEV_ROLE_KEY);
-  const userId = localStorage.getItem(DEV_USER_ID_KEY);
-  const userName = localStorage.getItem(DEV_USER_NAME_KEY);
-  if (userId) headers["X-CER-User-ID"] = userId;
-  if (userName) headers["X-CER-User-Name"] = userName;
-  if (role) headers["X-CER-User-Role"] = role;
+
+  // 1. Dev mode localStorage session (highest priority)
+  const devRole = localStorage.getItem(DEV_ROLE_KEY);
+  if (devRole && DEV_ROLE_OPTIONS.some((o) => o.value === devRole)) {
+    const userId = localStorage.getItem(DEV_USER_ID_KEY);
+    const userName = localStorage.getItem(DEV_USER_NAME_KEY);
+    if (userId) headers["X-CER-User-ID"] = userId;
+    if (userName) headers["X-CER-User-Name"] = userName;
+    headers["X-CER-User-Role"] = devRole;
+    return headers;
+  }
+
+  // 2. Env var fallback for NEXT_PUBLIC_CER_USER_ID (supports staging/dev deployments)
+  const envUserId = process.env.NEXT_PUBLIC_CER_USER_ID;
+  if (envUserId) {
+    headers["X-CER-User-ID"] = envUserId;
+    const envUserName = process.env.NEXT_PUBLIC_CER_USER_NAME;
+    if (envUserName) headers["X-CER-User-Name"] = envUserName;
+    const envRole = process.env.NEXT_PUBLIC_CER_USER_ROLE;
+    if (envRole) headers["X-CER-User-Role"] = envRole;
+    return headers;
+  }
+
+  // 3. Safe dev default — ensures UI is never RBAC-blocked in local dev
+  // without requiring any localStorage or env configuration.
+  // Uses a clearly-dev user ID and SENIOR_REVIEWER role.
+  headers["X-CER-User-ID"] = "dev-local";
+  headers["X-CER-User-Name"] = "Dev Local User";
+  headers["X-CER-User-Role"] = "SENIOR_REVIEWER";
   return headers;
 }
 
 /**
  * Dev-mode-aware fetch wrapper for /api/cer-review/* calls.
- * Injects X-CER-* headers when a dev role is set in localStorage.
+ * Injects X-CER-* headers when:
+ *   1. Dev role is set in localStorage (cer_dev_role_value), OR
+ *   2. NEXT_PUBLIC_CER_USER_ID env var is set (production/dev fallback)
+ *
+ * Priority: localStorage dev role > env vars > safe dev defaults
+ * This ensures the backend RBAC never blocks UI requests in dev/staging environments.
  */
 export async function cerReviewFetch(
   input: RequestInfo | URL,

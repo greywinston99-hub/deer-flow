@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Rework Comparison Schema",
+  "description": "Schema for rework comparison report",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_rework"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "prior_round_id": {"type": "string"},
+    "resolved_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_id": {"type": "string"},
+          "prior_status": {"type": "string"},
+          "resolution_description_cn": {"type": "string"},
+          "evidence_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "still_open_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_id": {"type": "string"},
+          "status": {"type": "string"},
+          "reason_open_cn": {"type": "string"}
+        }
+      }
+    },
+    "new_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_id": {"type": "string"},
+          "category": {"type": "string"},
+          "description_cn": {"type": "string"},
+          "triggered_by_rework": {"type": "boolean"}
+        }
+      }
+    },
+    "changed_route_risk": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "changed_pmcf_risk": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "changed_consistency_r

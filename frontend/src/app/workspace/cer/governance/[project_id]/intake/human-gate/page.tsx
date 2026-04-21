@@ -132,7 +132,7 @@ export default function HumanGatePage() {
 
   const isGatePending = status?.current_state === "human_gate_pending";
   const canSubmit = isGatePending && selectedDecision && !submitting;
-  const canAct = user?.role === "SENIOR_REVIEWER" || user?.role === "ADMIN";
+  const canAct = user.role === "SENIOR_REVIEWER" || user.role === "ADMIN";
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -255,7 +255,7 @@ export default function HumanGatePage() {
                   <div>
                     <div className="font-medium text-blue-800">Read-Only View</div>
                     <div className="text-sm text-blue-600">
-                      You are viewing as {user?.role || "Guest"}. Only SENIOR_REVIEWER or ADMIN can
+                      You are viewing as {user.role}. Only SENIOR_REVIEWER or ADMIN can
                       submit decisions.
                     </div>
                   </div>

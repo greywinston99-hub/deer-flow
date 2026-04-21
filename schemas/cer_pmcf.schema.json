@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER PMCF Schema",
+  "description": "Schema for cer-pmcf-lifecycle-agent output",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id", "agent_name"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_pmcf"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "artifact_id": {"type": "string"},
+    "artifact_type": {"type": "string", "const": "node_output"},
+    "generated_by": {"type": "string", "const": "cer-pmcf-lifecycle-agent"},
+    "generated_at": {"type": "string"},
+    "input_refs": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["draft", "final", "superseded", "archived"]},
+    "summary_cn": {"type": "string"},
+    "unanswered_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question_id": {"type": "string"},
+          "question_text_cn": {"type": "string"},
+          "related_finding_id": {"type": "string"},
+          "residual_uncertainty_cn": {"type": "string"},
+          "requires_pmcf": {"type": "boolean"}
+        }
+      }
+    },
+    "pmcf_need_statement": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "unanswered_question_id": {"type": "string"},
+          "residual_uncertainty_cn": {"type": "string"},
+          "pmcf_objective_cn": {"type": "string"},
+          "suggested_study_type": {"type": "string"},
+          "acceptance_criteria_cn": {"type": "string"},
+          "timeline_cn": {"type": "string"},
+          "reopen_trigger_cn": {"type": "string"}
+        }
+      }
+    },
+    "pmcf_adequacy_assessment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pmcf_objective_ref": {"type": "string"},
+          "current_plan_ref": {"type": "string"},
+          "adequacy_status": {"type": "string", "enum": ["adequate", "partially_adequate", "inadequate", "unclear"]},
+          "gap_cn": {"type": "string"}
+        }
+      }
+    },
+    "update_trigger_assessment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "trigger_type": {"type": "string", "enum": ["pms_signal", "psur_signal", "pmcf_inconsistency", "sota_shift", "recall_fsca", "new_claim"]},
+          "trigger_ref": {"type": "string"},
+          "impact_on_current_review": {"type": "string", "enum": ["none", "monitor", "reopen", "mandatory_layer3"]},
+          "notes_cn": {"type": "string"}
+        }
+      }
+    },
+    "closure_risk_flags": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "finding_items": {"type": "array"},
+    "evidence_basis": {"type": "array"},
+    "confidence_level": {"type": "string", "enum": ["low", "medium", "high"]},
+    "mandatory_human_review": {"type": "boolean"},
+    "escalation_reason": {"type": "array", "items": {"type": "string"}},
+    "suggested_next_action": {"type": "array", "items": {"type": "string"}},
+    "artifact_paths": {"type": "array", "items": {"type": "string"}},
+    "notes_cn": {"type": "string"}
+  }
+}

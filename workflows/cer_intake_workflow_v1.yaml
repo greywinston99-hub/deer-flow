@@ -1,0 +1,98 @@
+# CER Raw Project Intake Workflow v1 Configuration
+# Implements: 15-state intake pipeline
+# Mode: raw_project_intake
+# Human gate: mandatory at human_gate_pending state
+
+workflow_name: cer_intake_workflow_v1
+workflow_version: "1.0"
+workflow_status: p1_implementation_baseline
+mode: raw_project_intake
+
+# Runner requires "stages" key for v1 mode detection
+stages:
+  - stage_id: file_inventory
+    agent: intake_file_inventory
+    prompt_contract: prompts/cer/intake/file_inventory_agent.md
+    parallel_with: [dedupe, parse]
+
+  - stage_id: dedupe
+    agent: intake_dedupe
+    prompt_contract: prompts/cer/intake/dedupe_agent.md
+
+  - stage_id: parse
+    agent: intake_document_parsing
+    prompt_contract: prompts/cer/intake/document_parsing_agent.md
+
+  - stage_id: pdf_check
+    agent: intake_pdf_readability
+    prompt_contract: prompts/cer/intake/pdf_readability_agent.md
+
+  - stage_id: type_detection
+    agent: intake_document_type_detection
+    prompt_contract: prompts/cer/intake/document_type_detection_agent.md
+
+  - stage_id: classification
+    agent: intake_evidence_classification
+    prompt_contract: prompts/cer/intake/evidence_classification_agent.md
+
+  - stage_id: completeness
+    agent: intake_evidence_completeness
+    prompt_contract: prompts/cer/intake/evidence_completeness_agent.md
+
+  - stage_id: citations
+    agent: intake_citation_locator
+    prompt_contract: prompts/cer/intake/citation_locator_agent.md
+
+  - stage_id: human_gate_packet
+    agent: intake_human_gate_packet_writer
+    prompt_contract: prompts/cer/intake/human_gate_packet_writer.md
+
+  - stage_id: qa
+    agent: intake_qa
+    prompt_contract: prompts/cer/intake/intake_qa_agent.md
+
+description: >
+  CER Raw Project Intake Workflow v1.
+  15-state pipeline: raw_uploaded → inventory_created → [dedupe_completed, parse_completed] →
+  type_detection_done → classification_completed → completeness_evaluated → citations_traced →
+  human_gate_pending → [human_gate_approved | human_gate_rejected] →
+  [evidence_pack_locked → ready_for_cer_review | blocked].
+  Human gate is mandatory — no auto-proceed past human_gate_pending.
+
+runtime_defaults:
+  artifact_root: /mnt/user-data/outputs/cer_intake_v1/${run_id}/artifacts
+  source_root: /mnt/user-data/uploads
+  enforce_source_binding: true
+  enforce_human_gate: true
+
+governance:
+  decision_ledger_append_only: true
+  intake_session_isolation: true
+  human_gate_mandatory: true
+  evidence_pack_immutable_after_lock: true
+
+intake_states:
+  initial: raw_uploaded
+  terminal: [ready_for_cer_review, blocked, human_gate_rejected]
+  human_gate: human_gate_pending
+  skippable: [pdf_check, citations]
+
+evidence_packs:
+  EP-001:
+    name: Product Definition Pack
+    required_types: [CER, IFU, CEP, device_description, intended_purpose]
+  EP-002:
+    name: SOTA Pack
+    required_types: [literature_search, clinical_evidence, published_study]
+  EP-003:
+    name: Equivalence Pack
+    required_types: [equivalence_doc, predicate_comparison, access_evidence]
+  EP-004:
+    name: Clinical Evidence Pack
+    required_types: [clinical_investigation, CEP, PMCF_data]
+  EP-005:
+    name: Risk & Consistency Pack
+    required_types: [RMF, risk_management, SSCP, GSPR_mapping]
+
+confidence_threshold: 0.8
+low_confidence_blocking: true

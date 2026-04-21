@@ -1,0 +1,361 @@
+# CER Review Workflow v1 - Output Schema Contract
+# Implements CER_ADJUDICATION_AND_BUNDLE_SCHEMA_V1.md
+# 9 Bundle Types: Gate 0/1/2/3 Bundles, 5×RB Contribution, Decision Ledger, Rework Comparison, Follow-up, Backflow
+# Frozen Baseline: CER_ADJUDICATION_AND_BUNDLE_SCHEMA_V1.md
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Bundle Type Registry
+# ─────────────────────────────────────────────────────────────────────────────
+bundle_types:
+  - bundle_type: GATE_0_BUNDLE
+    bundle_id_prefix: B-G0
+    states: [S00, S01]
+    produced_by: cer_intake_agent
+    consumed_by: human_gate_0
+    schema_ref: schemas/cer_gate_0.schema.json
+
+  - bundle_type: GATE_1_BUNDLE
+    bundle_id_prefix: B-G1
+    states: [S07, S08]
+    produced_by: system (bundle assembler)
+    consumed_by: human_gate_1
+    schema_ref: schemas/cer_gate_1.schema.json
+
+  - bundle_type: GATE_2_BUNDLE
+    bundle_id_prefix: B-G2
+    states: [S07, S09]
+    produced_by: system (bundle assembler)
+    consumed_by: human_gate_2
+    schema_ref: schemas/cer_gate_2.schema.json
+
+  - bundle_type: GATE_3_BUNDLE
+    bundle_id_prefix: B-G3
+    states: [S10, S11]
+    produced_by: system (BRR assembler)
+    consumed_by: human_gate_3
+    schema_ref: schemas/cer_gate_3.schema.json
+    risk_benefit_constraint: RISK_BENEFIT composite bundle ONLY; no machine terminal decision
+
+  - bundle_type: RISK_BENEFIT_CONTRIBUTION
+    bundle_id_prefix: B-RB
+    count: 5 (one per agent)
+    states: [S03, S04, S05, S06]
+    produced_by: [AG-003, AG-004, AG-005, AG-006, AG-007]
+    consumed_by: system (S10 BRR assembler)
+    schema_ref: schemas/cer_rb_contribution.schema.json
+    partial_note: Partial contribution only — not terminal RISK_BENEFIT decision
+
+  - bundle_type: DECISION_LEDGER_ENTRY
+    bundle_id_prefix: B-DL
+    states: [every transition]
+    produced_by: system
+    consumed_by: persistent
+    schema_ref: schemas/cer_decision_ledger.schema.json
+    append_only: true
+
+  - bundle_type: REWORK_COMPARISON_BUNDLE
+    bundle_id_prefix: B-RW
+    states: [S18]
+    produced_by: system
+    consumed_by: gate_reentry
+    schema_ref: schemas/cer_rework_comparison.schema.json
+
+  - bundle_type: FOLLOWUP_HANDOFF_BUNDLE
+    bundle_id_prefix: B-FU
+    states: [S15]
+    produced_by: system
+    consumed_by: external_systems
+    schema_ref: schemas/cer_followup.schema.json
+
+  - bundle_type: BACKFLOW_PACK
+    bundle_id_prefix: B-BF
+    states: [S16]
+    produced_by: system
+    consumed_by: S00 (next round)
+    schema_ref: schemas/cer_backflow.schema.json
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Artifact Path Contract (Aligned with 20-state model)
+# ─────────────────────────────────────────────────────────────────────────────
+artifact_paths:
+
+  # S00 → S01: Gate 0 Bundle
+  gate_0_bundle:
+    filename: gate_0_bundle.json
+    path: artifacts/00_intake/gate_0_bundle.json
+    schema_ref: schemas/cer_gate_0.schema.json
+    states: [S00, S01]
+    required: true
+    human_review: true
+
+  # S02: Route Decision
+  route_decision:
+    filename: route_decision_draft.json
+    path: artifacts/01_route/route_decision_draft.json
+    schema_ref: schemas/cer_route_screen.schema.json
+    required: true
+
+  # S02: Special Procedure Flags
+  special_procedure_flags:
+    filename: special_procedure_flags.json
+    path: artifacts/01_route/special_procedure_flags.json
+    schema_ref: schemas/cer_route_screen.schema.json
+    required: true
+
+  # S03: Lane 2A (Claim)
+  lane_2a_claim:
+    filename: claim_consistency_matrix.json
+    path: artifacts/03_lanes/claim_consistency_matrix.json
+    schema_ref: schemas/cer_claim_scope.schema.json
+    required: true
+    states: [S03]
+
+  # S03: Lane 2A RB Contribution
+  lane_2a_rb:
+    filename: risk_benefit_contribution_ag003.json
+    path: artifacts/03_lanes/risk_benefit_contribution_ag003.json
+    schema_ref: schemas/cer_rb_contribution.schema.json
+    required: true
+    states: [S03]
+    agent: AG-003
+    contribution: O5-Q3
+
+  # S04: Lane 2B (Evidence/SOTA)
+  lane_2b_evidence:
+    filename: evidence_qualified_report.json
+    path: artifacts/03_lanes/evidence_qualified_report.json
+    schema_ref: schemas/cer_sota_evidence.schema.json
+    required: true
+    states: [S04]
+
+  # S04: Lane 2B RB Contribution
+  lane_2b_rb:
+    filename: risk_benefit_contribution_ag004.json
+    path: artifacts/03_lanes/risk_benefit_contribution_ag004.json
+    schema_ref: schemas/cer_rb_contribution.schema.json
+    required: true
+    states: [S04]
+    agent: AG-004
+    contribution: O5-Q3
+
+  # S05: Lane 2C (Equivalence)
+  lane_2c_equivalence:
+    filename: equivalence_3d_assessment.json
+    path: artifacts/03_lanes/equivalence_3d_assessment.json
+    schema_ref: schemas/cer_equivalence.schema.json
+    required: true
+    states: [S05]
+
+  # S05: Lane 2C RB Contribution
+  lane_2c_rb:
+    filename: risk_benefit_contribution_ag005.json
+    path: artifacts/03_lanes/risk_benefit_contribution_ag005.json
+    schema_ref: schemas/cer_rb_contribution.schema.json
+    required: true
+    states: [S05]
+    agent: AG-005
+    contribution: O5-Q3
+
+  # S06: Lane 2D (Consistency/PMCF)
+  lane_2d_consistency:
+    filename: cross_doc_consistency_report.json
+    path: artifacts/03_lanes/cross_doc_consistency_report.json
+    schema_ref: schemas/cer_consistency.schema.json
+    required: true
+    states: [S06]
+    agent: AG-006
+
+  lane_2d_pmcf:
+    filename: pmcf_need_statement.json
+    path: artifacts/03_lanes/pmcf_need_statement.json
+    schema_ref: schemas/cer_pmcf.schema.json
+    required: true
+    states: [S06]
+    agent: AG-007
+
+  # S06: Lane 2D RB Contributions (AG-006 + AG-007)
+  lane_2d_rb_ag006:
+    filename: risk_benefit_contribution_ag006.json
+    path: artifacts/03_lanes/risk_benefit_contribution_ag006.json
+    schema_ref: schemas/cer_rb_contribution.schema.json
+    required: true
+    states: [S06]
+    agent: AG-006
+    contribution: O5-Q1, O5-Q4, O5-Q5
+
+  lane_2d_rb_ag007:
+    filename: risk_benefit_contribution_ag007.json
+    path: artifacts/03_lanes/risk_benefit_contribution_ag007.json
+    schema_ref: schemas/cer_rb_contribution.schema.json
+    required: true
+    states: [S06]
+    agent: AG-007
+    contribution: O5-Q3
+
+  # S07: Lane Bundle Convergence
+  lane_bundle:
+    filename: lane_bundle_complete.json
+    path: artifacts/03_lanes/lane_bundle_complete.json
+    schema_ref: schemas/cer_lane_bundle.schema.json
+    required: true
+    states: [S07]
+    convergence_trigger: last_lane_complete
+
+  # S08: Gate 1 Bundle
+  gate_1_bundle:
+    filename: gate_1_bundle.json
+    path: artifacts/04_adjudication/gate_1_bundle.json
+    schema_ref: schemas/cer_gate_1.schema.json
+    required: true
+    human_review: true
+    states: [S08]
+
+  gate_1_decision:
+    filename: gate_1_decision.json
+    path: artifacts/04_adjudication/gate_1_decision.json
+    schema_ref: schemas/cer_human_decision.schema.json
+    required: true
+    human_review: true
+    states: [S08]
+
+  # S09: Gate 2 Bundle
+  gate_2_bundle:
+    filename: gate_2_bundle.json
+    path: artifacts/04_adjudication/gate_2_bundle.json
+    schema_ref: schemas/cer_gate_2.schema.json
+    required: true
+    human_review: true
+    states: [S09]
+    risk_benefit_exclusion: RISK_BENEFIT not in Gate 2 bundle
+
+  gate_2_decision:
+    filename: gate_2_decision.json
+    path: artifacts/04_adjudication/gate_2_decision.json
+    schema_ref: schemas/cer_human_decision.schema.json
+    required: true
+    human_review: true
+    states: [S09]
+
+  # S10: BRR Assembly Bundle
+  brr_assembly:
+    filename: risk_benefit_composite_assembly.json
+    path: artifacts/04_adjudication/risk_benefit_composite_assembly.json
+    schema_ref: schemas/cer_gate_3.schema.json
+    required: true
+    states: [S10]
+    risk_benefit_note: Composite RISK_BENEFIT bundle from 5 agent contributions
+    machine_terminal_prohibition: No machine terminal RISK_BENEFIT decision
+
+  # S11: Gate 3 Bundle (RISK_BENEFIT ONLY)
+  gate_3_bundle:
+    filename: gate_3_bundle.json
+    path: artifacts/04_adjudication/gate_3_bundle.json
+    schema_ref: schemas/cer_gate_3.schema.json
+    required: true
+    human_review: true
+    states: [S11]
+    scope: RISK_BENEFIT composite ONLY
+    machine_terminal_prohibition: BRR_ACCEPTABLE/UNACCEPTABLE/MISALIGNED — HUMAN ONLY
+
+  gate_3_decision:
+    filename: gate_3_decision.json
+    path: artifacts/04_adjudication/gate_3_decision.json
+    schema_ref: schemas/cer_human_decision.schema.json
+    required: true
+    human_review: true
+    states: [S11]
+    allowed_decisions: [BRR_ACCEPTABLE, BRR_UNACCEPTABLE, BRR_MISALIGNED]
+
+  # S12: Review Package
+  review_package:
+    filename: review_package.json
+    path: artifacts/05_conclusion/review_package.json
+    schema_ref: schemas/cer_review_package.schema.json
+    required: true
+    states: [S12]
+
+  review_package_md:
+    filename: review_package.md
+    path: artifacts/05_conclusion/review_package.md
+    required: true
+    states: [S12]
+
+  # S12: Decision Ledger Entry
+  decision_ledger_entry:
+    filename: decision_ledger_entry.json
+    path: artifacts/governance/decision_ledger_entry.json
+    schema_ref: schemas/cer_decision_ledger.schema.json
+    required: true
+    append_only: true
+    states: [S12]
+
+  # S13: Closure
+  closure_bundle:
+    filename: closure_bundle_index.json
+    path: artifacts/06_closure/closure_bundle_index.json
+    schema_ref: schemas/cer_closure.schema.json
+    required: true
+    states: [S13]
+
+  # S14: Closed
+  closed_indicator:
+    filename: closed.json
+    path: artifacts/06_closure/closed.json
+    required: true
+    states: [S14]
+
+  # S15: Follow-up Handoff
+  followup_handoff:
+    filename: followup_handoff.json
+    path: artifacts/06_closure/followup_handoff.json
+    schema_ref: schemas/cer_followup.schema.json
+    required: false  # Only if follow-up required
+    states: [S15]
+
+  # S16: Backflow Pack
+  backflow_pack:
+    filename: backflow_pack.json
+    path: artifacts/backflow/backflow_pack.json
+    schema_ref: schemas/cer_backflow.schema.json
+    required: true
+    states: [S16]
+
+  # S17/S18: Rework
+  rework_comparison:
+    filename: rework_comparison_report.json
+    path: artifacts/07_rework/rework_comparison_report.json
+    schema_ref: schemas/cer_rework_comparison.schema.json
+    required: true  # Only for rework rounds
+    states: [S18]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Naming Conventions
+# ─────────────────────────────────────────────────────────────────────────────
+naming_conventions:
+  json: snake_case.json
+  markdown: snake_case.md
+  bundle_id: B-{prefix}-{round_id}-{timestamp}
+  version_field: bundle_version
+  round_id_field: round_id
+  append_only_note: All bundles are immutable once written; corrections create new bundles
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RISK_BENEFIT Bundle Constraint (ABSOLUTE)
+# From: CER_ADJUDICATION_AND_BUNDLE_SCHEMA_V1.md Section 5, 6
+# ─────────────────────────────────────────────────────────────────────────────
+risk_benefit_bundle_constraint:
+  composite_object: RISK_BENEFIT
+  is_single_agent_bundle: false
+  contribution_count: 5
+  permitted_bundle_types:
+    - RISK_BENEFIT_CONTRIBUTION  # 5 partial contributions from lane states
+    - GATE_3_BUNDLE            # Composite assembly at S10 → consumed at S11
+  forbidden_bundle_types:
+    - RISK_BENEFIT cannot appear in GATE_2_BUNDLE
+    - RISK_BENEFIT cannot appear in GATE_1_BUNDLE
+    - RISK_BENEFIT cannot appear in GATE_0_BUNDLE
+  machine_terminal_fields_forbidden:
+    - BRR_ACCEPTABLE
+    - BRR_UNACCEPTABLE
+    - BRR_MISALIGNED
+  terminal_decision_location: S11_GATE_3_PENDING only

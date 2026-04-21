@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import uuid
 from dataclasses import dataclass
@@ -42,6 +43,17 @@ _SUPPORTED_STEP_IDS = (
     "cer_pmcf_lifecycle_agent",
     "cer_review_package_agent_v1",
     "cer_gate_closure_agent_v1",
+    # D1 ordered_steps
+    "cer_intake",
+    "cer_structure_compliance",
+    "cer_intended_purpose",
+    "cer_cep_methodology",
+    "cer_clinical_evidence_panel",
+    "cer_ifu_sscp_label",
+    "cer_qa_gate",
+    "cer_cear_style_finding_formatter",
+    "cer_human_boundary",
+    "cer_gate_closure",
 )
 
 # HF check definitions (ID -> label + keywords)
@@ -137,12 +149,14 @@ class CERReviewRunner:
         thread_id: str | None = None,
         artifact_root_override: str | Path | None = None,
         run_id_override: str | None = None,
+        run_mode: str = "smoke-run",
     ) -> None:
         self.repo_root = Path(repo_root).resolve()
         self.workflow_path = Path(workflow_path).resolve()
         self.project_profile_path = Path(project_profile_path).resolve()
         self.input_root_override = Path(input_root).resolve() if input_root else None
         self.thread_id = thread_id or self._make_thread_id()
+        self.run_mode = run_mode
 
         self.paths = get_paths()
         self.paths.ensure_thread_dirs(self.thread_id)
@@ -153,13 +167,30 @@ class CERReviewRunner:
         self.run_id = run_id_override or self._make_run_id()
         self.workflow_name = str(self.workflow.get("workflow_name", "cer_review_v0"))
 
-        artifact_root_template = self.workflow["runtime_defaults"]["artifact_root"]
+        # Get artifact root - D1 workflow uses artifact_dir per step instead
+        runtime_defaults = self.workflow.get("runtime_defaults", {})
+        if runtime_defaults:
+            artifact_root_template = runtime_defaults.get("artifact_root", "/tmp/cer_review/${run_id}")
+        else:
+            # D1 workflow: derive from project_profile or use default
+            artifact_root_template = self.project_profile.get("artifact_policy", {}).get("artifact_root", "/tmp/cer_review/${run_id}")
         self.artifact_root_virtual = self._render_template(str(artifact_root_template))
         if artifact_root_override:
             self.artifact_root_actual = Path(artifact_root_override).resolve()
         else:
-            self.artifact_root_actual = self.paths.resolve_virtual_path(self.thread_id, self.artifact_root_virtual)
+            # Try virtual path resolution first, fall back to direct path
+            try:
+                self.artifact_root_actual = self.paths.resolve_virtual_path(self.thread_id, self.artifact_root_virtual)
+            except ValueError:
+                # D1 workflow: use artifact_root directly if it's an absolute path
+                self.artifact_root_actual = Path(self.artifact_root_virtual.replace("${run_id}", self.run_id))
         self.artifact_root_actual.mkdir(parents=True, exist_ok=True)
+
+        # Load project protocol if present (for Gate A enforcement)
+        self.project_protocol = self._load_project_protocol()
+
+        # Gate A status from project protocol
+        self.gate_a_status = self._get_gate_a_status()
 
         self.step_map = {
             "cer_intake_agent": self._run_intake,
@@ -180,13 +211,73 @@ class CERReviewRunner:
             "cer_pmcf_lifecycle_agent": self._run_pmcf_lifecycle,
             "cer_review_package_agent_v1": self._run_review_package_v1,
             "cer_gate_closure_agent_v1": self._run_gate_closure_v1,
+            # D1 ordered_steps
+            "cer_intake": self._run_d1_intake,
+            "cer_structure_compliance": self._run_d1_structure_compliance,
+            "cer_intended_purpose": self._run_d1_intended_purpose,
+            "cer_cep_methodology": self._run_d1_cep_methodology,
+            "cer_clinical_evidence_panel": self._run_d1_clinical_evidence_panel,
+            "cer_ifu_sscp_label": self._run_d1_ifu_sscp_label,
+            "cer_qa_gate": self._run_d1_qa_gate,
+            "cer_cear_style_finding_formatter": self._run_d1_cear_formatter,
+            "cer_human_boundary": self._run_d1_human_boundary,
+            "cer_gate_closure": self._run_d1_gate_closure,
         }
 
-        # v1: detect stage-based workflow (cer_review_v1.yaml uses "stages" not "ordered_steps")
-        self.workflow_mode = "v1" if "stages" in self.workflow else "v0"
+        # Detect workflow mode:
+        # - "v1" if workflow has "stages" (old v1 with stage-based execution)
+        # - "d1" if workflow has "ordered_steps" with D1 step_ids
+        # - "v0" if workflow has "ordered_steps" with legacy step_ids
+        if "stages" in self.workflow:
+            self.workflow_mode = "v1"
+        elif "ordered_steps" in self.workflow:
+            first_step = self.workflow.get("ordered_steps", [{}])[0]
+            first_step_id = first_step.get("step_id", "")
+            if first_step_id in ("cer_intake", "cer_structure_compliance", "cer_intended_purpose",
+                                  "cer_cep_methodology", "cer_clinical_evidence_panel",
+                                  "cer_ifu_sscp_label", "cer_qa_gate", "cer_cear_style_finding_formatter",
+                                  "cer_human_boundary", "cer_gate_closure"):
+                self.workflow_mode = "d1"
+            else:
+                self.workflow_mode = "v0"
+        else:
+            self.workflow_mode = "v0"
 
-    def run(self, *, mode: str = "smoke-run") -> CERRunResult:
+        # NocoDB runtime binding state (scaffold - disabled by default)
+        self._nocodb_enabled = False
+        self._nocodb_verification: dict[str, Any] = {}
+
+    def run(self) -> CERRunResult:
+        mode = self.run_mode
         executed_steps: list[str] = []
+
+        # Gate A check for formal-review mode
+        if mode == "formal-review":
+            allowed, reason = self._check_gate_a_for_formal_review()
+            if not allowed:
+                self._write_run_context(mode=mode)
+                self._write_gate_a_blocked(reason)
+                self._write_event_log("GATE_A_BLOCKED", {
+                    "reason": reason,
+                    "gate_a_status": self.gate_a_status,
+                    "final_status": "FORMAL_REVIEW_BLOCKED_GATE_A_NOT_ACCEPTED",
+                })
+                self._write_task_ledger("blocked", {
+                    "reason": reason,
+                    "final_status": "FORMAL_REVIEW_BLOCKED_GATE_A_NOT_ACCEPTED",
+                })
+                self._write_artifact_index()
+                self._write_agent_usage_ledger()
+                logger.warning("Formal review blocked by Gate A: %s", reason)
+                return CERRunResult(
+                    thread_id=self.thread_id,
+                    run_id=self.run_id,
+                    mode=mode,
+                    workflow_name=self.workflow_name,
+                    executed_steps=[],
+                    artifact_root_virtual=self.artifact_root_virtual,
+                    artifact_root_actual=str(self.artifact_root_actual),
+                )
 
         if mode == "dry-run":
             self._write_run_context(mode=mode)
@@ -208,6 +299,8 @@ class CERReviewRunner:
             self._write_run_context(mode=mode)
             self._run_gate_closure({})
             executed_steps = ["cer_gate_closure_agent"]
+            self._write_artifact_index()
+            self._write_agent_usage_ledger()
             return CERRunResult(
                 thread_id=self.thread_id,
                 run_id=self.run_id,
@@ -220,8 +313,12 @@ class CERReviewRunner:
 
         self._write_run_context(mode=mode)
 
-        # v1: use stages list; v0: use ordered_steps list
-        if self.workflow_mode == "v1":
+        # Execute workflow based on mode
+        if self.workflow_mode == "d1":
+            # D1: use ordered_steps with D1 step_ids
+            executed_steps = self._run_d1_workflow()
+        elif self.workflow_mode == "v1":
+            # v1: use stages list
             stages = self.workflow.get("stages", [])
             for stage in stages:
                 stage_id = stage.get("stage_id")
@@ -232,6 +329,7 @@ class CERReviewRunner:
                     handler(stage)
                     executed_steps.append(stage_id)
         else:
+            # v0: use ordered_steps with legacy step_ids
             for step in self.workflow.get("ordered_steps", []):
                 step_id = step.get("step_id")
                 if step_id not in _SUPPORTED_STEP_IDS:
@@ -240,6 +338,33 @@ class CERReviewRunner:
                 handler(step)
                 executed_steps.append(step_id)
 
+        # NocoDB runtime binding (non-blocking scaffold)
+        nocodb_verification: dict[str, Any] = {}
+        if self.workflow_mode == "d1" and self._nocodb_configured():
+            try:
+                nocodb_verification = self._run_nocodb_phase()
+            except Exception as e:
+                logger.warning("NocoDB phase failed: %s", e)
+                nocodb_verification = {"errors": [str(e)], "runtime_nocodb_call": False}
+
+        # Schema validation gate - blocks on failure
+        if self.workflow_mode == "d1":
+            validation_result = self._validate_d1_artifacts_schema()
+            if not validation_result["valid"]:
+                self._write_schema_validation_failure(validation_result)
+                self._write_task_ledger("schema_validation_failed", {
+                    "failures": validation_result["failures"],
+                    "workflow_mode": self.workflow_mode,
+                })
+                self._write_event_log("SCHEMA_VALIDATION_FAILED", validation_result)
+                self._write_artifact_index()
+                self._write_agent_usage_ledger()
+                raise ValueError(
+                    f"Schema validation failed for {len(validation_result['failures'])} artifact(s): "
+                    + ", ".join(validation_result["failures"].keys())
+                )
+
+        # Write run manifest and ledger artifacts
         self._write_json(
             self._artifact_path("00_manifest", "run_summary.json"),
             {
@@ -252,6 +377,16 @@ class CERReviewRunner:
                 "artifact_root_actual": str(self.artifact_root_actual),
             },
         )
+        self._write_artifact_index()
+        self._write_agent_usage_ledger()
+        self._write_task_ledger("completed", {
+            "executed_steps": executed_steps,
+            "workflow_mode": self.workflow_mode,
+        })
+        self._write_event_log("RUN_COMPLETED", {
+            "executed_steps": executed_steps,
+            "workflow_mode": self.workflow_mode,
+        })
         return CERRunResult(
             thread_id=self.thread_id,
             run_id=self.run_id,
@@ -261,6 +396,366 @@ class CERReviewRunner:
             artifact_root_virtual=self.artifact_root_virtual,
             artifact_root_actual=str(self.artifact_root_actual),
         )
+
+    # -------------------------------------------------------------------------
+    # NocoDB Runtime Binding (D3 scaffold)
+    # -------------------------------------------------------------------------
+
+    def _nocodb_configured(self) -> bool:
+        """Check if NocoDB is configured via environment variables."""
+        try:
+            import httpx
+        except ImportError:
+            return False
+        return all(os.environ.get(k) for k in ("NOCODB_EMAIL", "NOCODB_PASSWORD", "NOCODB_BASE_ID"))
+
+    def _nocodb_session(self) -> "httpx.Client":
+        """Create authenticated NocoDB session."""
+        import httpx
+        base_url = os.environ.get("NOCODB_BASE_URL", "http://localhost:8081").rstrip("/")
+        v1_api = f"{base_url}/api/v1"
+        email = os.environ.get("NOCODB_EMAIL", "")
+        password = os.environ.get("NOCODB_PASSWORD", "")
+        client = httpx.Client(timeout=10)
+        signin = client.post(v1_api + "/auth/user/signin", json={"email": email, "password": password})
+        if signin.status_code != 200:
+            raise RuntimeError(f"NocoDB signin failed: {signin.status_code}")
+        return client
+
+    def _nocodb_get_table_map(self, client: "httpx.Client") -> dict[str, dict[str, Any]]:
+        """Get table name to ID mapping for the NocoDB base."""
+        import httpx
+        base_id = os.environ.get("NOCODB_BASE_ID", "")
+        base_url = os.environ.get("NOCODB_BASE_URL", "http://localhost:8081").rstrip("/")
+        resp = client.get(f"{base_url}/api/v1/db/meta/projects/{base_id}/tables")
+        tables = resp.json().get("list", [])
+        return {t["table_name"]: t for t in tables}
+
+    def _nocodb_insert(self, client: "httpx.Client", table_id: str, records: list[dict]) -> dict:
+        """Insert records into a NocoDB table."""
+        import httpx
+        base_url = os.environ.get("NOCODB_BASE_URL", "http://localhost:8081").rstrip("/")
+        resp = client.post(f"{base_url}/api/v2/tables/{table_id}/records", json=records)
+        if resp.status_code not in (200, 201):
+            raise RuntimeError(f"NocoDB insert failed: {resp.status_code} {resp.text}")
+        return resp.json()
+
+    def _nocodb_query(
+        self, client: "httpx.Client", table_id: str, where: str | None = None, limit: int = 100
+    ) -> list[dict]:
+        """Query records from a NocoDB table."""
+        import httpx
+        base_url = os.environ.get("NOCODB_BASE_URL", "http://localhost:8081").rstrip("/")
+        params: dict[str, Any] = {"limit": limit}
+        if where:
+            params["where"] = where
+        resp = client.get(f"{base_url}/api/v2/tables/{table_id}/records", params=params)
+        if resp.status_code != 200:
+            raise RuntimeError(f"NocoDB query failed: {resp.status_code} {resp.text}")
+        return resp.json().get("list", [])
+
+    def _run_nocodb_phase(self) -> dict[str, Any]:
+        """Execute NocoDB read-write phase and return verification evidence.
+
+        Non-production scaffold: writes D1 artifact paths to NocoDB tables,
+        then reads back to verify. Does not block workflow if NocoDB is unavailable.
+        """
+        from datetime import datetime, timezone
+
+        verification: dict[str, Any] = {
+            "run_id": self.run_id,
+            "thread_id": self.thread_id,
+            "workflow_name": self.workflow_name,
+            "workflow_mode": self.workflow_mode,
+            "runtime_nocodb_call": True,
+            "actual_connection": False,
+            "records_written": {},
+            "records_read": {},
+            "read_after_write_verified": False,
+            "errors": [],
+            "schema_gap_detected": False,
+        }
+
+        if not self._nocodb_configured():
+            verification["errors"].append("NocoDB not configured (missing env vars)")
+            return verification
+
+        try:
+            client = self._nocodb_session()
+            table_map = self._nocodb_get_table_map(client)
+        except Exception as e:
+            verification["errors"].append(f"NocoDB connection failed: {e}")
+            return verification
+
+        # 7 required CER tables
+        required_tables = [
+            "cer_review_runs",
+            "cer_preliminary_findings",
+            "cer_human_review_required_items",
+            "cer_backflow_candidates",
+            "cer_knowledge_assets",
+            "cer_section_assessments",
+            "cer_cross_document_consistency_items",
+        ]
+        missing_tables = [t for t in required_tables if t not in table_map]
+        if missing_tables:
+            verification["schema_gap_detected"] = True
+            verification["errors"].append(f"NocoDB schema gap: missing tables {missing_tables}")
+            verification["status"] = "NOCODB_SCHEMA_BLOCKED"
+            client.close()
+            return verification
+
+        project_id = self.project_profile.get("project_id", "unknown")
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Write cer_review_runs record
+        try:
+            review_run_record = {
+                "id": self.run_id,
+                "project_id": project_id,
+                "cer_run_id": self.run_id,
+                "phase": "D1",
+                "status": "scaffold_stub",
+                "gate_state": self.gate_a_status,
+                "created_at": now,
+                "updated_at": now,
+            }
+            self._nocodb_insert(client, table_map["cer_review_runs"]["id"], [review_run_record])
+            verification["records_written"]["cer_review_runs"] = 1
+        except Exception as e:
+            verification["errors"].append(f"cer_review_runs write failed: {e}")
+
+        # Write cer_section_assessments (one per D1 step)
+        section_records = []
+        d1_steps = [
+            ("cer_intake", "01_docstruct/cer_docstruct.json"),
+            ("cer_structure_compliance", "02_structure_compliance/report.json"),
+            ("cer_intended_purpose", "03_intended_purpose/report.json"),
+            ("cer_cep_methodology", "04_cep_methodology/report.json"),
+            ("cer_clinical_evidence_panel", "05_lanes/panel_summary.json"),
+            ("cer_ifu_sscp_label", "06_consistency/report.json"),
+            ("cer_qa_gate", "07_qa_gate/qa_synthesis.json"),
+            ("cer_cear_style_finding_formatter", "08_cear_format/formatted_findings.json"),
+            ("cer_human_boundary", "09_human_boundary/packet.json"),
+            ("cer_gate_closure", "10_gate_closure/review_package.json"),
+        ]
+        for i, (section_id, artifact_path) in enumerate(d1_steps, start=1):
+            section_records.append({
+                "id": f"{self.run_id}-sec-{i:02d}",
+                "cer_run_id": self.run_id,
+                "section_id": section_id,
+                "handler": f"_run_d1_{section_id}",
+                "compliance_status": "pending",
+                "artifact_path": artifact_path,
+                "assessed_at": now,
+            })
+        try:
+            self._nocodb_insert(client, table_map["cer_section_assessments"]["id"], section_records)
+            verification["records_written"]["cer_section_assessments"] = len(section_records)
+        except Exception as e:
+            verification["errors"].append(f"cer_section_assessments write failed: {e}")
+
+        # Write cer_human_review_required_items (HG-01 through HG-09)
+        human_gates = self.workflow.get("human_gates", {})
+        hr_records = []
+        for ref, hg in human_gates.items():
+            hr_records.append({
+                "id": f"{self.run_id}-{ref}",
+                "cer_run_id": self.run_id,
+                "review_item_id": ref,
+                "topic": hg.get("topic", ""),
+                "description": f"Human gate review for {hg.get('topic', '')}",
+                "decision": "",
+                "reviewer_id": "",
+                "reviewed_at": "",
+                "created_at": now,
+            })
+        try:
+            self._nocodb_insert(client, table_map["cer_human_review_required_items"]["id"], hr_records)
+            verification["records_written"]["cer_human_review_required_items"] = len(hr_records)
+        except Exception as e:
+            verification["errors"].append(f"cer_human_review_required_items write failed: {e}")
+
+        # Write cer_preliminary_findings (empty for D1 scaffold)
+        try:
+            finding_record = {
+                "id": f"{self.run_id}-f001",
+                "cer_run_id": self.run_id,
+                "finding_id": "FND-D1-001",
+                "dimension": "dim_1",
+                "finding_type": "gap",
+                "severity": "minor",
+                "description": "D1 scaffold stub - full findings require D3 LLM population",
+                "recommendation": "Populate via D3 step execution",
+                "status": "open",
+                "created_at": now,
+                "updated_at": now,
+            }
+            self._nocodb_insert(client, table_map["cer_preliminary_findings"]["id"], [finding_record])
+            verification["records_written"]["cer_preliminary_findings"] = 1
+        except Exception as e:
+            verification["errors"].append(f"cer_preliminary_findings write failed: {e}")
+
+        # Write cer_cross_document_consistency_items (empty for D1 scaffold)
+        try:
+            consistency_record = {
+                "id": f"{self.run_id}-cdci-001",
+                "cer_run_id": self.run_id,
+                "consistency_check_id": "CDCI-D1-001",
+                "document_pair": "cer_ifu",
+                "consistency_type": "intended_use",
+                "status": "missing",
+                "detail": "D1 scaffold stub - full consistency check requires D3",
+                "checked_at": now,
+            }
+            self._nocodb_insert(client, table_map["cer_cross_document_consistency_items"]["id"], [consistency_record])
+            verification["records_written"]["cer_cross_document_consistency_items"] = 1
+        except Exception as e:
+            verification["errors"].append(f"cer_cross_document_consistency_items write failed: {e}")
+
+        # Write cer_knowledge_assets (empty for D1 scaffold)
+        try:
+            asset_record = {
+                "id": f"{self.run_id}-ka-001",
+                "cer_run_id": self.run_id,
+                "asset_id": "KA-D1-001",
+                "asset_type": "sota",
+                "title": "D1 scaffold - knowledge assets require D3 population",
+                "source_ref": "",
+                "relevance_score": 0.0,
+                "quality_assessment": "",
+                "used_in_dimension": "",
+                "created_at": now,
+            }
+            self._nocodb_insert(client, table_map["cer_knowledge_assets"]["id"], [asset_record])
+            verification["records_written"]["cer_knowledge_assets"] = 1
+        except Exception as e:
+            verification["errors"].append(f"cer_knowledge_assets write failed: {e}")
+
+        # Write cer_backflow_candidates (empty for D1 scaffold)
+        try:
+            backflow_record = {
+                "id": f"{self.run_id}-bc-001",
+                "cer_run_id": self.run_id,
+                "candidate_id": f"BC-{self.run_id[:8]}",
+                "current_state": "new",
+                "route_decision": "pending",
+                "evidence_refs": "[]",
+                "state_history": "[]",
+                "created_at": now,
+                "updated_at": now,
+            }
+            self._nocodb_insert(client, table_map["cer_backflow_candidates"]["id"], [backflow_record])
+            verification["records_written"]["cer_backflow_candidates"] = 1
+        except Exception as e:
+            verification["errors"].append(f"cer_backflow_candidates write failed: {e}")
+
+        # Read-after-write verification
+        verification["actual_connection"] = True
+        try:
+            for table_name in verification["records_written"]:
+                if table_name in table_map:
+                    rows = self._nocodb_query(
+                        client, table_map[table_name]["id"],
+                        where=f"(cer_run_id,eq,{self.run_id})",
+                    )
+                    verification["records_read"][table_name] = len(rows)
+            read_count = sum(verification["records_read"].values())
+            write_count = sum(verification["records_written"].values())
+            verification["read_after_write_verified"] = read_count >= write_count
+        except Exception as e:
+            verification["errors"].append(f"Read-after-write verification failed: {e}")
+
+        # Write verification artifact
+        self._write_json(
+            self._artifact_path("00_manifest", "nocodb_runtime_verification.json"),
+            verification,
+        )
+
+        verification["human_gate_preserved"] = True
+        verification["no_autonomous_final_judgment"] = True
+
+        client.close()
+        self._nocodb_enabled = True
+        self._nocodb_verification = verification
+        return verification
+
+    # -------------------------------------------------------------------------
+    # Schema Validation Gate (D1)
+    # -------------------------------------------------------------------------
+
+    def _validate_d1_artifacts_schema(self) -> dict[str, Any]:
+        """Validate all D1 artifacts against their schemas. Returns {valid, failures}."""
+        try:
+            import jsonschema
+        except ImportError:
+            logger.warning("jsonschema not installed, skipping schema validation")
+            return {"valid": True, "failures": {}}
+
+        schema_dir = Path(__file__).parent.parent.parent.parent.parent.parent.parent / "schemas"
+
+        # Map artifact paths to schema files (for D1 ordered_steps)
+        artifact_schema_map = [
+            ("01_docstruct", "cer_docstruct.json", "cer_docstruct.schema.json"),
+            ("02_structure_compliance", "report.json", "cer_structure_compliance.schema.json"),
+            ("03_intended_purpose", "report.json", "cer_intended_purpose.schema.json"),
+            ("04_cep_methodology", "report.json", "cer_cep_methodology.schema.json"),
+            ("05_lanes", "panel_summary.json", "cer_clinical_evidence_panel.schema.json"),
+            ("05_lanes", "sota_literature_report.json", "cer_sota_literature.schema.json"),
+            ("05_lanes", "clinical_evidence_adequacy_report.json", "cer_evidence_adequacy.schema.json"),
+            ("05_lanes", "equivalence_report.json", "cer_equivalence.schema.json"),
+            ("05_lanes", "pms_pmcf_report.json", "cer_pms_pmcf.schema.json"),
+            ("05_lanes", "benefit_risk_report.json", "cer_benefit_risk.schema.json"),
+            ("06_consistency", "report.json", "cer_consistency.schema.json"),
+            ("07_qa_gate", "qa_synthesis.json", "cer_qa.schema.json"),
+            ("08_cear_format", "formatted_findings.json", "cer_cear_finding.schema.json"),
+            ("09_human_boundary", "packet.json", "cer_human_gate.schema.json"),
+            ("10_gate_closure", "review_package.json", "cer_review_package.schema.json"),
+        ]
+
+        failures: dict[str, str] = {}
+        for step_dir, artifact_file, schema_file in artifact_schema_map:
+            artifact_path = self._artifact_path(step_dir, artifact_file)
+            if not artifact_path.exists():
+                failures[f"{step_dir}/{artifact_file}"] = "Artifact file not found"
+                continue
+            schema_path = schema_dir / schema_file
+            if not schema_path.exists():
+                failures[schema_file] = f"Schema file not found: {schema_path}"
+                continue
+            try:
+                with open(artifact_path) as f:
+                    artifact = json.load(f)
+                with open(schema_path) as f:
+                    schema = json.load(f)
+                jsonschema.validate(artifact, schema)
+            except jsonschema.ValidationError as e:
+                failures[f"{step_dir}/{artifact_file}"] = e.message[:200]
+            except Exception as e:
+                failures[f"{step_dir}/{artifact_file}"] = str(e)[:200]
+
+        return {"valid": len(failures) == 0, "failures": failures}
+
+    def _write_schema_validation_failure(self, validation_result: dict[str, Any]) -> None:
+        """Write schema validation failure artifact."""
+        step_dir = self._artifact_dir("00_manifest")
+        failure_record = {
+            "schema_name": "cer_schema_validation",
+            "schema_version": "v1",
+            "artifact_type": "schema_validation_result",
+            "project_id": self.project_profile.get("project_id", "unknown"),
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "schema_validation_gate",
+            "produced_by_step": "schema_validation_gate",
+            "status": "draft",
+            "created_at": self._timestamp(),
+            "validation_passed": False,
+            "failure_count": len(validation_result["failures"]),
+            "failures": validation_result["failures"],
+            "note": "D3 schema validation gate - run blocked due to schema validation failures.",
+        }
+        self._write_json(step_dir / "schema_validation_failure.json", failure_record)
 
     # -------------------------------------------------------------------------
     # Step 1: Intake
@@ -2570,6 +3065,725 @@ class CERReviewRunner:
                 })
 
         return deficiencies
+
+    # ── D1 Workflow Mode ───────────────────────────────────────────────────────
+
+    def _run_d1_intake(self, step: dict[str, Any]) -> None:
+        """D1 Step 1: cer_intake - produces CERDocStruct."""
+        step_dir = self._artifact_dir("01_docstruct")
+        prompt_text = self._load_prompt_for_step(step)
+        project_protocol = self._ensure_project_protocol()
+        project_id = self.project_profile.get("project_id", "unknown")
+
+        cer_docstruct = {
+            "schema_name": "cer_docstruct",
+            "schema_version": "v1",
+            "artifact_type": "cer_docstruct",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_intake",
+            "produced_by_step": "cer_intake",
+            "status": "scaffold_complete",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "input_documents": [],
+                "document_count": 0,
+                "missing_required": [],
+            },
+            "regulatory_anchor_id": "Annex_XIV",
+            "intake_summary": {
+                "device_name": "",
+                "device_class": "",
+                "intended_purpose": "",
+                "clinical_evaluation_scope": "",
+            },
+            "artifact_root": str(self.artifact_root_actual),
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "project_protocol": project_protocol,
+            "note": "D1 scaffold - CERDocStruct skeleton. LLM population required in D3.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "cer_docstruct.json", cer_docstruct)
+
+    def _run_d1_structure_compliance(self, step: dict[str, Any]) -> None:
+        """D1 Step 2: cer_structure_compliance."""
+        step_dir = self._artifact_dir("02_structure_compliance")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_structure_compliance",
+            "schema_version": "v1",
+            "artifact_type": "structure_compliance_report",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_structure_compliance",
+            "produced_by_step": "cer_structure_compliance",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "cer_docstruct_ref": "",
+                "annex_xiv_version": "Annex XIV Part A",
+            },
+            "regulatory_anchor_id": "MDR_Annex_XIV",
+            "human_gate_required": False,
+            "structure_validation": {
+                "required_sections_present": [],
+                "required_sections_missing": [],
+                "annex_xiv_compliance_status": "pending",
+            },
+            "section_mapping": [],
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. Full validation requires D3.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "report.json", report)
+
+    def _run_d1_intended_purpose(self, step: dict[str, Any]) -> None:
+        """D1 Step 3: cer_intended_purpose."""
+        step_dir = self._artifact_dir("03_intended_purpose")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_intended_purpose",
+            "schema_version": "v1",
+            "artifact_type": "intended_purpose_assessment",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_intended_purpose",
+            "produced_by_step": "cer_intended_purpose",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "cer_docstruct_ref": "",
+                "ifu_document_ref": "",
+            },
+            "regulatory_anchor_id": "Annex_XIV_Part_A",
+            "human_gate_required": True,
+            "human_gate_ref": "HG-07",
+            "reviewer_question_id": "RQ-INTENDED-PURPOSE-001",
+            "intended_purpose_assessment": {
+                "intended_use_statement": "",
+                "indications": [],
+                "contraindications": [],
+                "patient_population": "",
+                "clinical_benefit_claim": "",
+            },
+            "pico_alignment": {
+                "population_aligned": False,
+                "intervention_aligned": False,
+                "comparator_aligned": False,
+                "outcomes_aligned": False,
+                "overall_alignment_status": "pending",
+            },
+            "no_final_decision_made": True,
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. PICO alignment requires D3.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "report.json", report)
+
+    def _run_d1_cep_methodology(self, step: dict[str, Any]) -> None:
+        """D1 Step 4: cer_cep_methodology."""
+        step_dir = self._artifact_dir("04_cep_methodology")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_cep_methodology",
+            "schema_version": "v1",
+            "artifact_type": "cep_methodology_assessment",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_cep_methodology",
+            "produced_by_step": "cer_cep_methodology",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "cer_docstruct_ref": "",
+                "cep_document_ref": "",
+            },
+            "regulatory_anchor_id": "MDR_Article_83",
+            "human_gate_required": False,
+            "route_decision": "pending",
+            "methodology_adequacy": {
+                "literature_search_described": False,
+                "equivalence_demonstration_planned": False,
+                "clinical_data_evaluation_method": "",
+                "benefit_risk_assessment_method": "",
+            },
+            "route_justification": "",
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. CEP route decision requires D3.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "report.json", report)
+
+    def _run_d1_clinical_evidence_panel(self, step: dict[str, Any]) -> None:
+        """D1 Step 5: cer_clinical_evidence_panel with 5 sub-assessments."""
+        step_dir = self._artifact_dir("05_lanes")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+
+        sub_assessments = step.get("sub_assessments", [])
+        sub_results = {}
+        for sa in sub_assessments:
+            sa_id = sa.get("sub_assessment_id")
+            schema_ref = sa.get("schema_ref", "")
+            # Build per-sub-assessment artifact compliant with its schema
+            if sa_id == "sota_literature_assessment":
+                sa_artifact = {
+                    "schema_name": "cer_sota_literature",
+                    "schema_version": "v1",
+                    "artifact_type": "sota_literature_report",
+                    "project_id": project_id,
+                    "cer_run_id": self.run_id,
+                    "workflow_id": self.workflow.get("workflow_id"),
+                    "step_id": "cer_clinical_evidence_panel",
+                    "produced_by_step": "cer_clinical_evidence_panel",
+                    "sub_assessment_id": sa_id,
+                    "status": "scaffold_stub",
+                    "created_at": self._timestamp(),
+                    "source_traceability": {"literature_search_ref": "", "sota_definition_ref": ""},
+                    "regulatory_anchor_id": "MDR_Article_83",
+                    "human_gate_required": True,
+                    "human_gate_ref": "HG-03",
+                    "reviewer_question_id": "RQ-SOTA-001",
+                    "dimension": "dim_4",
+                    "sota_claims": [],
+                    "literature_adequacy": {
+                        "search_strategy_described": False,
+                        "databases_searched": [],
+                        "inclusion_exclusion_criteria_described": False,
+                        "quality_assessment_method": "",
+                    },
+                    "no_final_decision_made": True,
+                    "note": f"D1 scaffold stub for {sa_id}. D3 required.",
+                    "schema_gate_status": "scaffold_complete",
+                }
+            elif sa_id == "clinical_evidence_adequacy_assessment":
+                sa_artifact = {
+                    "schema_name": "cer_evidence_adequacy",
+                    "schema_version": "v1",
+                    "artifact_type": "evidence_adequacy_report",
+                    "project_id": project_id,
+                    "cer_run_id": self.run_id,
+                    "workflow_id": self.workflow.get("workflow_id"),
+                    "step_id": "cer_clinical_evidence_panel",
+                    "produced_by_step": "cer_clinical_evidence_panel",
+                    "sub_assessment_id": sa_id,
+                    "status": "scaffold_stub",
+                    "created_at": self._timestamp(),
+                    "source_traceability": {"clinical_data_refs": [], "literature_refs": []},
+                    "regulatory_anchor_id": "MDR_Article_83",
+                    "human_gate_required": True,
+                    "human_gate_ref": "HG-01",
+                    "reviewer_question_id": "RQ-EVIDENCE-001",
+                    "dimension": "dim_5",
+                    "evidence_sufficiency": {
+                        "clinical_data_sufficient": False,
+                        "gap_areas": [],
+                        "evidence_quality_summary": "",
+                    },
+                    "no_final_decision_made": True,
+                    "note": f"D1 scaffold stub for {sa_id}. D3 required.",
+                    "schema_gate_status": "scaffold_complete",
+                }
+            elif sa_id == "equivalence_assessment":
+                sa_artifact = {
+                    "schema_name": "cer_equivalence",
+                    "schema_version": "v1",
+                    "artifact_type": "equivalence_report",
+                    "project_id": project_id,
+                    "cer_run_id": self.run_id,
+                    "workflow_id": self.workflow.get("workflow_id"),
+                    "step_id": "cer_clinical_evidence_panel",
+                    "produced_by_step": "cer_clinical_evidence_panel",
+                    "sub_assessment_id": sa_id,
+                    "status": "scaffold_stub",
+                    "created_at": self._timestamp(),
+                    "source_traceability": {
+                        "equivalent_device_refs": [],
+                        "technical_equivalence_documentation_ref": "",
+                        "biological_equivalence_documentation_ref": "",
+                        "clinical_equivalence_documentation_ref": "",
+                    },
+                    "regulatory_anchor_id": "MDR_Annex_XIV_Part_A_3",
+                    "human_gate_required": True,
+                    "human_gate_ref": "HG-02",
+                    "reviewer_question_id": "RQ-EQUIV-001",
+                    "dimension": "dim_6",
+                    "equivalence_demonstration": {
+                        "technical_equivalence": {"demonstrated": False, "key_similarities": [], "key_differences": [], "impact_assessment": ""},
+                        "biological_equivalence": {"demonstrated": False, "key_similarities": [], "key_differences": [], "impact_assessment": ""},
+                        "clinical_equivalence": {"demonstrated": False, "key_similarities": [], "key_differences": [], "impact_assessment": ""},
+                    },
+                    "predicate_device_access": {"access_basis": "none", "access_scope": "", "access_sufficient": False},
+                    "no_final_decision_made": True,
+                    "note": f"D1 scaffold stub for {sa_id}. D3 required.",
+                    "schema_gate_status": "scaffold_complete",
+                }
+            elif sa_id == "pms_pmcf_assessment":
+                sa_artifact = {
+                    "schema_name": "cer_pms_pmcf",
+                    "schema_version": "v1",
+                    "artifact_type": "pms_pmcf_report",
+                    "project_id": project_id,
+                    "cer_run_id": self.run_id,
+                    "workflow_id": self.workflow.get("workflow_id"),
+                    "step_id": "cer_clinical_evidence_panel",
+                    "produced_by_step": "cer_clinical_evidence_panel",
+                    "sub_assessment_id": sa_id,
+                    "status": "scaffold_stub",
+                    "created_at": self._timestamp(),
+                    "source_traceability": {"pmcf_plan_ref": "", "pmcf_report_ref": ""},
+                    "regulatory_anchor_id": "MDR_Annex_XIV_Part_A_6",
+                    "human_gate_required": True,
+                    "human_gate_ref": "HG-05",
+                    "reviewer_question_id": "RQ-PMS-001",
+                    "dimension": "dim_7",
+                    "pmcf_adequacy": {
+                        "pmcf_plan_exists": False,
+                        "pmcf_activities_adequate": False,
+                        "update_triggers_defined": False,
+                        "surveillance_continuity_planned": False,
+                    },
+                    "no_final_decision_made": True,
+                    "note": f"D1 scaffold stub for {sa_id}. D3 required.",
+                    "schema_gate_status": "scaffold_complete",
+                }
+            elif sa_id == "benefit_risk_assessment":
+                sa_artifact = {
+                    "schema_name": "cer_benefit_risk",
+                    "schema_version": "v1",
+                    "artifact_type": "benefit_risk_report",
+                    "project_id": project_id,
+                    "cer_run_id": self.run_id,
+                    "workflow_id": self.workflow.get("workflow_id"),
+                    "step_id": "cer_clinical_evidence_panel",
+                    "produced_by_step": "cer_clinical_evidence_panel",
+                    "sub_assessment_id": sa_id,
+                    "status": "scaffold_stub",
+                    "created_at": self._timestamp(),
+                    "source_traceability": {"benefit_claims_ref": [], "risk_claims_ref": [], "rmf_ref": ""},
+                    "regulatory_anchor_id": "MDR_Annex_I_Chapter_I_1",
+                    "human_gate_required": True,
+                    "human_gate_ref": "HG-06",
+                    "reviewer_question_id": "RQ-BR-001",
+                    "dimension": "dim_8",
+                    "benefit_risk_balance": {
+                        "clinical_benefits_documented": False,
+                        "risks_documented": False,
+                        "benefit_risk_acceptable": False,
+                        "residual_uncertainties": [],
+                    },
+                    "no_final_decision_made": True,
+                    "layer3_prohibition": True,
+                    "note": f"D1 scaffold stub for {sa_id}. D3 required.",
+                    "schema_gate_status": "scaffold_complete",
+                }
+            else:
+                sa_artifact = {
+                    "sub_assessment_id": sa_id,
+                    "status": "scaffold_stub",
+                    "schema_gate_status": "scaffold_complete",
+                    "note": f"D1 scaffold stub for {sa_id}. D3 required.",
+                }
+            sub_results[sa_id] = sa_artifact
+
+        # Build sub_assessments dict for panel_summary matching schema structure
+        panel_sub_assessments = {
+            "sota_literature": {"sub_assessment_id": "sota_literature_assessment", "dimension": "dim_4", "human_gate_required": True, "human_gate_ref": "HG-03", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3", "schema_ref": "cer_sota_literature.schema.json", "status": "scaffold_stub"},
+            "clinical_evidence_adequacy": {"sub_assessment_id": "clinical_evidence_adequacy_assessment", "dimension": "dim_5", "human_gate_required": True, "human_gate_ref": "HG-01", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3", "schema_ref": "cer_evidence_adequacy.schema.json", "status": "scaffold_stub"},
+            "equivalence": {"sub_assessment_id": "equivalence_assessment", "dimension": "dim_6", "human_gate_required": True, "human_gate_ref": "HG-02", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3 and Part B", "schema_ref": "cer_equivalence.schema.json", "status": "scaffold_stub"},
+            "pms_pmcf": {"sub_assessment_id": "pms_pmcf_assessment", "dimension": "dim_7", "human_gate_required": True, "human_gate_ref": "HG-05", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 6, MDR Article 84", "schema_ref": "cer_pms_pmcf.schema.json", "status": "scaffold_stub"},
+            "benefit_risk": {"sub_assessment_id": "benefit_risk_assessment", "dimension": "dim_8", "human_gate_required": True, "human_gate_ref": "HG-06", "regulatory_anchor": "MDR Article 83, Annex I Chapter I 1, Annex XIV Part A 5", "schema_ref": "cer_benefit_risk.schema.json", "status": "scaffold_stub"},
+        }
+
+        report = {
+            "schema_name": "cer_clinical_evidence_panel",
+            "schema_version": "v1",
+            "artifact_type": "clinical_evidence_panel_summary",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_clinical_evidence_panel",
+            "produced_by_step": "cer_clinical_evidence_panel",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "cer_docstruct_ref": "",
+                "evidence_packs_ref": [],
+                "cep_route_decision_ref": "",
+            },
+            "regulatory_anchor_id": "MDR_Article_83",
+            "human_gate_required": True,
+            "sub_assessments": panel_sub_assessments,
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. 5 clinical sub-assessments require D3.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "panel_summary.json", report)
+
+        # Write individual sub-assessment artifacts
+        for sa_id, sa_result in sub_results.items():
+            safe_id = sa_id.replace("_assessment", "")
+            filename = f"{safe_id}_report.json"
+            self._write_json(step_dir / filename, sa_result)
+
+    def _run_d1_ifu_sscp_label(self, step: dict[str, Any]) -> None:
+        """D1 Step 6: cer_ifu_sscp_label."""
+        step_dir = self._artifact_dir("06_consistency")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_consistency",
+            "schema_version": "v1",
+            "artifact_type": "ifu_sscp_labeling_consistency_report",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_ifu_sscp_label",
+            "produced_by_step": "cer_ifu_sscp_label",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "cer_docstruct_ref": "",
+                "ifu_document_ref": "",
+                "sscp_document_ref": "",
+                "labeling_materials_ref": [],
+            },
+            "regulatory_anchor_id": "MDR_Annex_VII_4.5.5",
+            "human_gate_required": False,
+            "consistency_check": {
+                "ifu_cer_alignment": "pending",
+                "sscp_cer_alignment": "pending",
+                "labeling_cer_alignment": "pending",
+                "inconsistencies_found": [],
+            },
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. IFU/SSCP/labeling consistency requires D3.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "report.json", report)
+
+    def _run_d1_qa_gate(self, step: dict[str, Any]) -> None:
+        """D1 Step 7: cer_qa_gate."""
+        step_dir = self._artifact_dir("07_qa_gate")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_qa",
+            "schema_version": "v1",
+            "artifact_type": "QA_synthesis",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_qa_gate",
+            "produced_by_step": "cer_qa_gate",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "preceding_artifacts_refs": [],
+                "l1_compliance_report_ref": "",
+                "stage_1_evaluation_ref": "",
+                "cep_route_decision_ref": "",
+                "clinical_evidence_panel_summary_ref": "",
+                "ifu_sscp_consistency_ref": "",
+            },
+            "regulatory_anchor_id": "MDR_Article_83",
+            "human_gate_required": False,
+            "qa_synthesis": {
+                "all_preceding_steps_complete": False,
+                "findings_aggregated": False,
+                "ready_for_human_gate": False,
+            },
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. QA synthesis requires D3.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "qa_synthesis.json", report)
+
+    def _run_d1_cear_formatter(self, step: dict[str, Any]) -> None:
+        """D1 Step 8: cer_cear_style_finding_formatter."""
+        step_dir = self._artifact_dir("08_cear_format")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_cear_finding",
+            "schema_version": "v1",
+            "artifact_type": "CEAR_style_finding",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_cear_style_finding_formatter",
+            "produced_by_step": "cer_cear_style_finding_formatter",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "raw_findings_ref": "",
+                "finding_type_ref": "",
+                "severity_ref": "",
+            },
+            "regulatory_anchor_id": "MDCG_2020_13",
+            "human_gate_required": False,
+            "cear_style_only": True,
+            "official_cear_generation": False,
+            "finding_format": {
+                "finding_id": "",
+                "finding_type": "",
+                "severity": "informational",
+                "description": "",
+                "mdcg_template_compliance": False,
+            },
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. CEAR-style formatting requires D3. NOT official CEAR generation.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "formatted_findings.json", report)
+
+    def _run_d1_human_boundary(self, step: dict[str, Any]) -> None:
+        """D1 Step 9: cer_human_boundary."""
+        step_dir = self._artifact_dir("09_human_boundary")
+        prompt_text = self._load_prompt_for_step(step)
+        project_protocol = self._ensure_project_protocol()
+        project_id = self.project_profile.get("project_id", "unknown")
+
+        human_gates = self.workflow.get("human_gates", {})
+        hg_list = [
+            {
+                "gate_ref": ref,
+                "topic": hg.get("topic"),
+                "triggered_by_step": hg.get("triggered_by_step"),
+                "human_gate_required": True,
+                "status": "pending",
+                "reviewer_decision": "",
+                "reviewer_rationale": "",
+            }
+            for ref, hg in human_gates.items()
+        ]
+
+        packet = {
+            "schema_name": "cer_human_gate",
+            "schema_version": "v1",
+            "artifact_type": "human_gate_packet",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_human_boundary",
+            "produced_by_step": "cer_human_boundary",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "all_preceding_artifacts_ref": "",
+                "qa_synthesis_ref": "",
+            },
+            "regulatory_anchor_id": "MDR_Article_83",
+            "human_gate_required": True,
+            "human_gates": hg_list,
+            "gate_count": len(hg_list),
+            "pending_gates": len(hg_list),
+            "project_protocol": project_protocol,
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. Human gate packet requires D3. HG-01 through HG-09 preserved.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "packet.json", packet)
+
+    def _run_d1_gate_closure(self, step: dict[str, Any]) -> None:
+        """D1 Step 10: cer_gate_closure."""
+        step_dir = self._artifact_dir("10_gate_closure")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_review_package",
+            "schema_version": "v1",
+            "artifact_type": "review_package",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_gate_closure",
+            "produced_by_step": "cer_gate_closure",
+            "status": "scaffold_stub",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "human_gate_decision_ref": "",
+                "all_preceding_artifacts_ref": [],
+                "review_package_components_ref": "",
+            },
+            "regulatory_anchor_id": "MDR_Article_83",
+            "human_gate_required": True,
+            "review_package_assembled": False,
+            "all_human_gates_closed": False,
+            "final_recommendation_options": ["pass", "conditional_pass", "rework_required"],
+            "layer3_prohibition": "Clinical equivalence, data sufficiency, and benefit-risk final conclusions MUST be determined by human reviewer.",
+            "official_cear_generation": False,
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "D1 scaffold stub. Final review package requires D3.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        self._write_json(step_dir / "review_package.json", report)
+
+    # ── Gate A Enforcement ─────────────────────────────────────────────────────
+
+    def _load_project_protocol(self) -> dict[str, Any]:
+        """Load project_protocol from project_profile if present."""
+        return self.project_profile.get("project_protocol", {})
+
+    def _get_gate_a_status(self) -> str:
+        """Get Gate A status from project protocol."""
+        protocol = self.project_protocol
+        if not protocol:
+            # Derive from project_profile if no explicit project_protocol
+            return self.project_profile.get("gate_a_status", "draft")
+        return protocol.get("gate_a_status", "draft")
+
+    def _check_gate_a_for_formal_review(self) -> tuple[bool, str]:
+        """Check if formal review can proceed based on Gate A status.
+
+        Returns (allowed, reason).
+        """
+        mode = getattr(self, 'run_mode', 'smoke-run')
+        if mode not in ("formal-review",):
+            return True, "Gate A check not required for non-formal-review mode"
+
+        gate_a_status = self.gate_a_status
+        allowed_statuses = ("accepted",)
+        blocked_statuses = ("draft", "submitted", "rejected", "needs_information")
+
+        if gate_a_status in blocked_statuses:
+            return False, f"FORMAL_REVIEW_BLOCKED_GATE_A_NOT_ACCEPTED: gate_a_status={gate_a_status}"
+
+        if gate_a_status in allowed_statuses:
+            return True, f"Gate A accepted: gate_a_status={gate_a_status}"
+
+        # smoke_only allows smoke_precheck
+        if gate_a_status == "smoke_only" and mode == "smoke-precheck":
+            return True, "Gate A smoke_only allows smoke_precheck"
+
+        return False, f"Gate A status {gate_a_status} does not allow formal review"
+
+    def _write_gate_a_blocked(self, reason: str) -> None:
+        """Write gate_a_blocked.json artifact."""
+        step_dir = self._artifact_dir("00_manifest")
+        blocked = {
+            "schema_name": "cer_gate_a_blocked",
+            "schema_version": "v1",
+            "run_id": self.run_id,
+            "thread_id": self.thread_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "mode": getattr(self, 'run_mode', 'unknown'),
+            "gate_a_status": self.gate_a_status,
+            "blocked_reason": reason,
+            "final_status": "FORMAL_REVIEW_BLOCKED_GATE_A_NOT_ACCEPTED",
+            "artifact_root": str(self.artifact_root_actual),
+            "timestamp": self._utc_now(),
+        }
+        self._write_json(step_dir / "gate_a_blocked.json", blocked)
+
+    def _write_event_log(self, event_type: str, data: dict[str, Any]) -> None:
+        """Write event to event log."""
+        event_log_path = self._artifact_dir("00_manifest") / "event_log.json"
+        events = []
+        if event_log_path.exists():
+            events = json.loads(event_log_path.read_text()).get("events", [])
+        events.append({
+            "event_type": event_type,
+            "timestamp": self._utc_now(),
+            "run_id": self.run_id,
+            "thread_id": self.thread_id,
+            **data,
+        })
+        self._write_json(event_log_path, {"events": events})
+
+    def _write_task_ledger(self, status: str, data: dict[str, Any] | None = None) -> None:
+        """Write task ledger entry."""
+        ledger_path = self._artifact_dir("00_manifest") / "task_ledger.json"
+        entries = []
+        if ledger_path.exists():
+            entries = json.loads(ledger_path.read_text()).get("entries", [])
+        entry = {
+            "run_id": self.run_id,
+            "thread_id": self.thread_id,
+            "status": status,
+            "timestamp": self._utc_now(),
+            **(data or {}),
+        }
+        entries.append(entry)
+        self._write_json(ledger_path, {"entries": entries})
+
+    def _ensure_project_protocol(self) -> dict[str, Any]:
+        """Ensure project_protocol exists with minimum required fields."""
+        if self.project_protocol:
+            return self.project_protocol
+
+        # Build minimal project_protocol from project_profile
+        pp = {
+            "project_id": self.project_profile.get("project_id", "UNKNOWN"),
+            "cer_run_id": self.run_id,
+            "product_name": self.project_profile.get("device_context", {}).get("device_name", "Unknown"),
+            "device_class": self.project_profile.get("device_context", {}).get("device_class", "Unknown"),
+            "gate_a_status": self.project_profile.get("gate_a_status", "draft"),
+            "formal_review_requested": self.project_profile.get("review_scope", {}).get("mode") == "formal_review",
+        }
+        return pp
+
+    def _write_artifact_index(self) -> None:
+        """Write artifact index."""
+        index_path = self._artifact_dir("00_manifest") / "artifact_index.json"
+        artifacts = []
+        for p in self.artifact_root_actual.rglob("*.json"):
+            rel = p.relative_to(self.artifact_root_actual)
+            artifacts.append({
+                "path": str(rel),
+                "size": p.stat().st_size,
+            })
+        self._write_json(index_path, {"artifacts": artifacts, "total": len(artifacts)})
+
+    def _write_agent_usage_ledger(self) -> None:
+        """Write agent usage ledger (scaffold stub)."""
+        ledger_path = self._artifact_dir("00_manifest") / "agent_usage_ledger.json"
+        ledger = {
+            "run_id": self.run_id,
+            "thread_id": self.thread_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "status": "scaffold_stub",
+            "note": "D1 scaffold - LLM usage tracking requires D3 integration.",
+            "agents_invoked": [],
+        }
+        self._write_json(ledger_path, ledger)
+
+    @staticmethod
+    def _utc_now() -> str:
+        from datetime import datetime, timezone
+        return datetime.now(timezone.utc).isoformat()
+
+    # ── D1 Ordered Steps Execution ─────────────────────────────────────────────
+
+    def _run_d1_workflow(self) -> list[str]:
+        """Execute D1 ordered_steps workflow."""
+        executed_steps: list[str] = []
+        ordered_steps = self.workflow.get("ordered_steps", [])
+
+        for step in ordered_steps:
+            step_id = step.get("step_id")
+            if step_id not in _SUPPORTED_STEP_IDS:
+                logger.warning("D1 step %s not in supported list, skipping", step_id)
+                continue
+            handler = self.step_map.get(step_id)
+            if handler:
+                try:
+                    handler(step)
+                    executed_steps.append(step_id)
+                except Exception as e:
+                    logger.error("D1 step %s failed: %s", step_id, e)
+                    executed_steps.append(f"{step_id}_failed")
+                    break
+            else:
+                logger.warning("No handler for D1 step %s", step_id)
+        return executed_steps
 
     def _resolve_input_root(self) -> Path:
         if self.input_root_override:

@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Intake Schema",
+  "description": "Schema for cer-intake-agent output",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id", "agent_name"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_intake"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "artifact_id": {"type": "string"},
+    "artifact_type": {"type": "string", "const": "node_output"},
+    "generated_by": {"type": "string", "const": "cer-intake-agent"},
+    "generated_at": {"type": "string"},
+    "input_refs": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["draft", "final", "superseded", "archived"]},
+    "summary_cn": {"type": "string"},
+    "input_contract_inventory": {
+      "type": "object",
+      "properties": {
+        "project_protocol_pack": {"type": "array"},
+        "device_scope_product_definition_pack": {"type": "array"},
+        "sota_clinical_question_pack": {"type": "array"},
+        "clinical_evidence_pack": {"type": "array"},
+        "risk_gspr_consistency_pack": {"type": "array"},
+        "governance_pack": {"type": "array"}
+      }
+    },
+    "missing_items_register": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_id": {"type": "string"},
+          "item_name": {"type": "string"},
+          "pack_category": {"type": "string"},
+          "missing_level": {"type": "string", "enum": ["missing", "not_provided", "not_located", "not_applicable"]},
+          "notes_cn": {"type": "string"}
+        }
+      }
+    },
+    "protocol_freeze_readiness": {"type": "string", "enum": ["ready", "partially_ready", "not_ready"]},
+    "finding_items": {"type": "array"},
+    "evidence_basis": {"type": "array"},
+    "confidence_level": {"type": "string", "enum": ["low", "medium", "high"]},
+    "mandatory_human_review": {"type": "boolean"},
+    "escalation_reason": {"type": "array", "items": {"type": "string"}},
+    "suggested_next_action": {"type": "array", "items": {"type": "string"}},
+    "artifact_paths": {"type": "array", "items": {"type": "string"}},
+    "notes_cn": {"type": "string"}
+  }
+}

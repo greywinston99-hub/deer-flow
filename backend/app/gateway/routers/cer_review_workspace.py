@@ -886,12 +886,15 @@ async def get_gate3_bundle(project_id: str, run_id: str) -> Gate3BundleResponse:
     artifacts_root = project_root / round_id / "artifacts"
 
     contributions = []
+    # Agent-to-artifact mapping for G3 BRR contributions.
+    # Updated 2026-04-21: previously looked for risk_benefit_contribution_report.json (MISSING).
+    # Correct filenames discovered from round_002/03_lanes/ artifact agent_name fields.
     contribution_artifacts = [
-        ("AG-003", "cer_claim_scope_agent", "O5-Q3", "risk_benefit_contribution_report.json"),
-        ("AG-004", "cer_sota_evidence_agent", "O5-Q3", "risk_benefit_contribution_report.json"),
-        ("AG-005", "cer_equivalence_agent", "O5-Q3", "risk_benefit_contribution_report.json"),
-        ("AG-006", "cer_consistency_agent", "O5-Q1/Q4/Q5", "risk_benefit_contribution_reports.json"),
-        ("AG-007", "cer_pmcf_lifecycle_agent", "O5-Q3", "pmcf_adequacy_assessment.json"),
+        ("AG-003", "cer_claim_scope_agent",      "O5-Q3",         "claim_consistency_matrix.json"),
+        ("AG-004", "cer_sota_evidence_agent",      "O5-Q3",         "sota_findings.json"),
+        ("AG-005", "cer_equivalence_agent",       "O5-Q3",         "difference_impact_assessment.json"),
+        ("AG-006", "cer_consistency_agent",       "O5-Q1/Q4/Q5",   "consistency_delta_matrix.json"),
+        ("AG-007", "cer_pmcf_lifecycle_agent",    "O5-Q3",         "pmcf_adequacy_assessment.json"),
     ]
 
     # Always include all 5 agents in the response — mark missing ones explicitly.

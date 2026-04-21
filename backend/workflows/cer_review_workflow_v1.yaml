@@ -1,0 +1,425 @@
+# CER Review Workflow v1 — Canonical Prompt Stub Mapping
+# Phase: CER_D1_SCAFFOLDING_PHASE_1
+# Status: SKELETON — NOT production code
+#
+# This workflow maps 10 canonical prompt stubs to a 10-step ordered execution.
+# It is a SKELETON implementation per D1 Phase 1 scaffolding requirements.
+# NOT production code.
+#
+# Design basis: 10-step CER runtime with 14-node workflow definition
+# and 5 clinical sub-assessments.
+#
+# Prohibited terms: cer_cerar_generator_agent, official_cear_report,
+# 14-node full execution, 14-node parallel execution
+
+workflow_id: cer_review_workflow_v1
+workflow_version: v1
+schema_version: "1.0"
+status: skeleton_stub
+mode: cer_review
+
+# 10 ordered steps mapping to canonical prompt stubs
+ordered_steps:
+
+  # ── Step 1 ──────────────────────────────────────────────────────────────
+  - step_id: cer_intake
+    step_number: 1
+    handler_name: _run_docstruct
+    prompt_contract: prompts/cer/canonical/cer_intake_agent.md
+    input_contract:
+      required_inputs:
+        - CER_document
+        - IFU_document
+        - RMF_reference
+        - project_profile
+      optional_inputs:
+        - SSCP_document
+        - labeling_materials
+    output_contract:
+      output_type: CERDocStruct
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/01_docstruct/cer_docstruct.json
+      schema_ref: cer_docstruct.schema.json
+    artifact_dir: "01_docstruct"
+    schema_ref: cer_docstruct.schema.json
+    blocking_on_failure: true
+    human_gate_policy: none
+    description: >
+      Intake agent — extracts structured CER information into CERDocStruct.
+      Produces the unified input object consumed by all subsequent steps.
+
+  # ── Step 2 ──────────────────────────────────────────────────────────────
+  - step_id: cer_structure_compliance
+    step_number: 2
+    handler_name: _run_structure_compliance
+    prompt_contract: prompts/cer/canonical/cer_structure_compliance_agent.md
+    input_contract:
+      required_inputs:
+        - CERDocStruct
+      optional_inputs: []
+    output_contract:
+      output_type: structure_compliance_report
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/02_structure_compliance/report.json
+      schema_ref: cer_structure_compliance.schema.json
+    artifact_dir: "02_structure_compliance"
+    schema_ref: cer_structure_compliance.schema.json
+    blocking_on_failure: true
+    human_gate_policy: none
+    description: >
+      Validates CER structure against Annex XIV requirements.
+      Checks for completeness and compliance of section mapping.
+
+  # ── Step 3 ──────────────────────────────────────────────────────────────
+  - step_id: cer_intended_purpose
+    step_number: 3
+    handler_name: _run_intended_purpose
+    prompt_contract: prompts/cer/canonical/cer_intended_purpose_agent.md
+    input_contract:
+      required_inputs:
+        - CERDocStruct
+      optional_inputs: []
+    output_contract:
+      output_type: intended_purpose_assessment
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/03_intended_purpose/report.json
+      schema_ref: cer_intended_purpose.schema.json
+    artifact_dir: "03_intended_purpose"
+    schema_ref: cer_intended_purpose.schema.json
+    blocking_on_failure: true
+    human_gate_policy: none
+    description: >
+      Assesses intended purpose extraction and PICO alignment.
+      Maps to D0A Review Dimension: SCOPE (dim_1).
+
+  # ── Step 4 ──────────────────────────────────────────────────────────────
+  - step_id: cer_cep_methodology
+    step_number: 4
+    handler_name: _run_cep_methodology
+    prompt_contract: prompts/cer/canonical/cer_cep_methodology_agent.md
+    input_contract:
+      required_inputs:
+        - CERDocStruct
+        - CEP_route_decision
+      optional_inputs: []
+    output_contract:
+      output_type: cep_methodology_assessment
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/04_cep_methodology/report.json
+      schema_ref: cer_cep_methodology.schema.json
+    artifact_dir: "04_cep_methodology"
+    schema_ref: cer_cep_methodology.schema.json
+    blocking_on_failure: true
+    human_gate_policy: none
+    description: >
+      Evaluates CEP (Clinical Evaluation Plan) methodology.
+      Determines route decision: Literature Route, CEP Route, or Hybrid.
+      Regulatory anchor: MDR Article 83, Annex XIV Part A.
+
+  # ── Step 5 ──────────────────────────────────────────────────────────────
+  - step_id: cer_clinical_evidence_panel
+    step_number: 5
+    handler_name: _run_cep
+    prompt_contract: prompts/cer/canonical/cer_clinical_evidence_panel_agent.md
+    input_contract:
+      required_inputs:
+        - CERDocStruct
+        - evidence_packs
+        - CEP_route_decision
+      optional_inputs: []
+    output_contract:
+      output_type: clinical_evidence_panel_summary
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/05_lanes/panel_summary.json
+      schema_ref: cer_clinical_evidence_panel.schema.json
+    artifact_dir: "05_lanes"
+    schema_ref: cer_clinical_evidence_panel.schema.json
+    blocking_on_failure: true
+    human_gate_policy: conditional
+    description: >
+      Executes 5 parallel sub-assessments covering SOTA, evidence adequacy,
+      equivalence, PMS/PMCF, and benefit-risk.
+      Maps to D0A Review Dimensions: SOTA (dim_4), EVIDENCE (dim_5),
+      EQUIVALENCE (dim_6), PMS_PMCF (dim_7), BENEFIT_RISK (dim_8).
+      Regulatory anchor: MDR Article 83, Annex XIV.
+
+    # 5 clinical sub-assessments within Step 5
+    sub_assessments:
+
+      - sub_assessment_id: sota_literature_assessment
+        dimension: dim_4
+        output_artifact: artifacts/cer/{project_id}/cer_review/{cer_run_id}/05_lanes/sota_literature_report.json
+        human_gate_required: true
+        human_gate_ref: HG-03
+        regulatory_anchor: MDR Article 83, Annex XIV Part A 3
+        schema_ref: cer_sota_literature.schema.json
+
+      - sub_assessment_id: clinical_evidence_adequacy_assessment
+        dimension: dim_5
+        output_artifact: artifacts/cer/{project_id}/cer_review/{cer_run_id}/05_lanes/evidence_adequacy_report.json
+        human_gate_required: true
+        human_gate_ref: HG-01
+        regulatory_anchor: MDR Article 83, Annex XIV Part A 3
+        schema_ref: cer_evidence_adequacy.schema.json
+
+      - sub_assessment_id: equivalence_assessment
+        dimension: dim_6
+        output_artifact: artifacts/cer/{project_id}/cer_review/{cer_run_id}/05_lanes/equivalence_report.json
+        human_gate_required: true
+        human_gate_ref: HG-02
+        regulatory_anchor: MDR Article 83, Annex XIV Part A 3 and Part B
+        schema_ref: cer_equivalence.schema.json
+
+      - sub_assessment_id: pms_pmcf_assessment
+        dimension: dim_7
+        output_artifact: artifacts/cer/{project_id}/cer_review/{cer_run_id}/05_lanes/pms_pmcf_report.json
+        human_gate_required: true
+        human_gate_ref: HG-05
+        regulatory_anchor: MDR Article 83, Annex XIV Part A 6, MDR Article 84
+        schema_ref: cer_pms_pmcf.schema.json
+
+      - sub_assessment_id: benefit_risk_assessment
+        dimension: dim_8
+        output_artifact: artifacts/cer/{project_id}/cer_review/{cer_run_id}/05_lanes/benefit_risk_report.json
+        human_gate_required: true
+        human_gate_ref: HG-06
+        regulatory_anchor: MDR Article 83, Annex I Chapter I 1, Annex XIV Part A 5
+        schema_ref: cer_benefit_risk.schema.json
+
+  # ── Step 6 ──────────────────────────────────────────────────────────────
+  - step_id: cer_ifu_sscp_label
+    step_number: 6
+    handler_name: _run_consistency
+    prompt_contract: prompts/cer/canonical/cer_ifu_sscp_label_agent.md
+    input_contract:
+      required_inputs:
+        - CERDocStruct
+        - IFU_document
+        - SSCP_document
+        - labeling_materials
+      optional_inputs: []
+    output_contract:
+      output_type: ifu_sscp_labeling_consistency_report
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/06_consistency/report.json
+      schema_ref: cer_consistency.schema.json
+    artifact_dir: "06_consistency"
+    schema_ref: cer_consistency.schema.json
+    blocking_on_failure: true
+    human_gate_policy: none
+    description: >
+      Checks consistency across CER, IFU, SSCP, and labeling.
+      Maps to D0A Review Dimension: CONSISTENCY (dim_9).
+      Regulatory anchor: MDR Annex I, Annex VII 4.5.5.
+
+  # ── Step 7 ──────────────────────────────────────────────────────────────
+  - step_id: cer_qa_gate
+    step_number: 7
+    handler_name: _run_qa_gate
+    prompt_contract: prompts/cer/canonical/cer_qa_gate_agent.md
+    input_contract:
+      required_inputs:
+        - all_preceding_artifacts
+        - L1_compliance_report
+        - stage_1_evaluation
+        - CEP_route_decision
+        - clinical_evidence_panel_summary
+        - IFU_SSCP_consistency_report
+      optional_inputs: []
+    output_contract:
+      output_type: QA_synthesis
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/07_qa_gate/qa_synthesis.json
+      schema_ref: cer_qa.schema.json
+    artifact_dir: "07_qa_gate"
+    schema_ref: cer_qa.schema.json
+    blocking_on_failure: true
+    human_gate_policy: none
+    description: >
+      Synthesizes all preceding findings and determines if CER is ready
+      for human gate. Maps to D0A Review Dimension: QA synthesis.
+      Regulatory anchor: MDR Article 83.
+
+  # ── Step 8 ──────────────────────────────────────────────────────────────
+  - step_id: cer_cear_style_finding_formatter
+    step_number: 8
+    handler_name: _run_cear_formatter
+    prompt_contract: prompts/cer/canonical/cer_cear_style_finding_formatter_agent.md
+    input_contract:
+      required_inputs:
+        - raw_findings
+        - finding_type
+        - severity
+      optional_inputs: []
+    output_contract:
+      output_type: CEAR_style_finding
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/08_cear_format/formatted_findings.json
+      schema_ref: cer_cear_finding.schema.json
+    artifact_dir: "08_cear_format"
+    schema_ref: cer_cear_finding.schema.json
+    blocking_on_failure: false
+    human_gate_policy: none
+    description: >
+      Formats findings in standardized CEAR-style (Clinical Evaluation
+      Assessment Report) output. NOT for official CEAR generation
+      (that requires D5/D6). This is for internal formatting only.
+      CEAR-style formatting per MDCG 2020-13.
+
+  # ── Step 9 ──────────────────────────────────────────────────────────────
+  - step_id: cer_human_boundary
+    step_number: 9
+    handler_name: _run_human_boundary
+    prompt_contract: prompts/cer/canonical/cer_human_boundary_agent.md
+    input_contract:
+      required_inputs:
+        - all_preceding_artifacts
+        - QA_synthesis
+        - human_gate_packet
+      optional_inputs: []
+    output_contract:
+      output_type: human_gate_packet
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/09_human_boundary/packet.json
+      schema_ref: cer_human_gate.schema.json
+    artifact_dir: "09_human_boundary"
+    schema_ref: cer_human_gate.schema.json
+    blocking_on_failure: true
+    human_gate_policy: required
+    description: >
+      Prepares human gate packet with all findings and reviewer questions.
+      HG-01 through HG-09. Human gate for dims 1, 3-9.
+      Maps to D0A Review Dimension: CONCLUSION (dim_11).
+      Regulatory anchor: MDR Article 83, MDCG 2020-13.
+
+  # ── Step 10 ──────────────────────────────────────────────────────────────
+  - step_id: cer_gate_closure
+    step_number: 10
+    handler_name: _run_gate_closure
+    prompt_contract: prompts/cer/canonical/cer_gate_closure_agent.md
+    input_contract:
+      required_inputs:
+        - human_gate_decision
+        - all_preceding_artifacts
+        - review_package_components
+      optional_inputs: []
+    output_contract:
+      output_type: review_package
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/10_gate_closure/review_package.json
+      schema_ref: cer_review_package.schema.json
+    artifact_dir: "10_gate_closure"
+    schema_ref: cer_review_package.schema.json
+    blocking_on_failure: true
+    human_gate_policy: required
+    description: >
+      Assembles final review package after human gate decision.
+      Maps to D0A Review Dimension: CONCLUSION (dim_11).
+      Regulatory anchor: MDR Article 83, Annex XIV.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Human Gate Registry (HG-01 through HG-09)
+# ─────────────────────────────────────────────────────────────────────────────
+human_gates:
+  HG-01:
+    topic: Clinical evidence sufficiency
+    triggered_by_step: 5
+    sub_assessment_ref: clinical_evidence_adequacy_assessment
+  HG-02:
+    topic: Equivalence acceptability
+    triggered_by_step: 5
+    sub_assessment_ref: equivalence_assessment
+  HG-03:
+    topic: SOTA adequacy
+    triggered_by_step: 5
+    sub_assessment_ref: sota_literature_assessment
+  HG-04:
+    topic: Literature quality weighting
+    triggered_by_step: 5
+    sub_assessment_ref: sota_literature_assessment
+  HG-05:
+    topic: PMS/PMCF necessity and adequacy
+    triggered_by_step: 5
+    sub_assessment_ref: pms_pmcf_assessment
+  HG-06:
+    topic: Benefit-risk acceptability
+    triggered_by_step: 5
+    sub_assessment_ref: benefit_risk_assessment
+  HG-07:
+    topic: Clinical claim adequacy
+    triggered_by_step: 3
+    sub_assessment_ref: intended_purpose_assessment
+  HG-08:
+    topic: Overall CER acceptability
+    triggered_by_step: 9
+    sub_assessment_ref: human_gate_packet
+  HG-09:
+    topic: IFU/SSCP/labeling consistency
+    triggered_by_step: 6
+    sub_assessment_ref: ifu_sscp_label_consistency
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Schema References
+# ─────────────────────────────────────────────────────────────────────────────
+schema_refs:
+  cer_docstruct:
+    file: cer_docstruct.schema.json
+    status: scaffold_complete
+  cer_structure_compliance:
+    file: cer_structure_compliance.schema.json
+    status: schema_created
+  cer_intended_purpose:
+    file: cer_intended_purpose.schema.json
+    status: schema_created
+  cer_cep_methodology:
+    file: cer_cep_methodology.schema.json
+    status: schema_created
+  cer_clinical_evidence_panel:
+    file: cer_clinical_evidence_panel.schema.json
+    status: scaffold_complete
+  cer_consistency:
+    file: cer_consistency.schema.json
+    status: schema_created
+  cer_qa:
+    file: cer_qa.schema.json
+    status: schema_created
+  cer_cear_finding:
+    file: cer_cear_finding.schema.json
+    status: schema_created
+  cer_human_gate:
+    file: cer_human_gate.schema.json
+    status: schema_created
+  cer_review_package:
+    file: cer_review_package.schema.json
+    status: schema_created
+  cer_sota_literature:
+    file: cer_sota_literature.schema.json
+    status: schema_created
+  cer_evidence_adequacy:
+    file: cer_evidence_adequacy.schema.json
+    status: schema_created
+  cer_equivalence:
+    file: cer_equivalence.schema.json
+    status: schema_created
+  cer_pms_pmcf:
+    file: cer_pms_pmcf.schema.json
+    status: schema_created
+  cer_benefit_risk:
+    file: cer_benefit_risk.schema.json
+    status: schema_created
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Design Notes
+# ─────────────────────────────────────────────────────────────────────────────
+design_notes:
+  - workflow_id: cer_review_workflow_v1
+  - step_count: 10
+  - human_gate_count: 9
+  - sub_assessment_count: 5 (within Step 5)
+  - design_basis: >
+      10-step CER runtime with 14-node workflow definition
+      and 5 clinical sub-assessments.
+  - regulatory_anchors:
+      - MDR Article 83
+      - MDR Article 84
+      - MDR Annex I
+      - MDR Annex VII 4.5.5
+      - MDR Annex XIV
+      - MDCG 2020-13
+  - prohibited_terms_compliance:
+      - cer_cerar_generator_agent: NOT USED
+      - official_cear_report: NOT USED
+      - 14-node full execution: NOT USED
+      - 14-node parallel execution: NOT USED
+  - status: SKELETON — NOT production code
+  - next_phase: D2_RUNTIME_WIRING (after acceptance)

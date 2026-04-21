@@ -160,7 +160,7 @@ export default function KnowledgePage() {
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
 
-  const isReviewer = user?.role === "SENIOR_REVIEWER" || user?.role === "ADMIN";
+  const isReviewer = user.role === "SENIOR_REVIEWER" || user.role === "ADMIN";
 
   const loadData = useCallback(async () => {
     if (!projectId) return;
@@ -394,7 +394,7 @@ export default function KnowledgePage() {
                 {!isReviewer && (
                   <p className="text-xs text-muted-foreground border-t pt-2">
                     Only SENIOR_REVIEWER or ADMIN can submit review decisions.
-                    Your current role: {user?.role || "unknown"}
+                    Your current role: {user.role}
                   </p>
                 )}
               </div>

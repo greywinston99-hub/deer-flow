@@ -1,0 +1,627 @@
+# CER State Machine Configuration v1
+# Implements CER_STATE_MACHINE_BLUEPRINT_V1.md — 20 states
+# Frozen Baseline: CER_STATE_MACHINE_BLUEPRINT_V1.md
+# Hard constraints: RISK_BENEFIT gate-3-only; no machine terminal BRR decision
+
+states:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S00–S02: Intake & Protocol Freeze (Stage 0 + Gate 0)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S00
+    state_name: INTAKE_RECEIVED
+    workflow_stage: stage_0_intake
+    description: Documents submitted. Intake Agent assembling five Evidence Packs (EP-001–EP-005). INTENDED_PURPOSE partial validation (O1-Q1, O1-Q2) underway.
+    state_type: AUTO
+    lane: none
+    produced_by: cer_intake_agent
+    allowed_transitions:
+      - S01  # Gate 0 triggered
+      - S02  # No Gate 0, proceed to route
+    forbidden_transitions:
+      - S03
+      - S04
+      - S05
+      - S06
+      - S09
+      - S11
+
+  - state_id: S01
+    state_name: PROTOCOL_FROZEN
+    workflow_stage: gate_0
+    description: Gate 0 active. INTENDED_PURPOSE O1-Q4 MISMATCH flagged or deliberate protocol freeze. Human confirms or revises intended purpose.
+    state_type: HUMAN_GATE
+    gate: GATE_0
+    gate_owner_role: human_protocol_owner
+    lane: none
+    produced_by: human_protocol_owner
+    gate_bundle_ref: B-G0-001
+    allowed_transitions:
+      - S02  # CONFIRM: proceed
+      - S00  # REVISE: return for IP revision
+      - S19  # ESCALATE: archive
+    forbidden_transitions:
+      - S03
+      - S04
+      - S05
+      - S06
+      - S09
+      - S11
+    human_decisions:
+      - CONFIRM: Proceed with current INTENDED_PURPOSE definition
+      - REVISE: Request IP revision before proceeding
+      - ESCALATE: Flag for additional review before proceeding
+
+  - state_id: S02
+    state_name: ROUTE_CONFIRMED
+    workflow_stage: stage_1_route
+    description: Stage 1 complete. Route declared (Literature/Equivalence/Mixed). Special procedure flags set. INTENDED_PURPOSE O1-Q3, O1-Q4 evaluated.
+    state_type: AUTO
+    lane: none
+    produced_by: cer_route_screen_agent
+    allowed_transitions:
+      - S03  # Lane 2A starts
+      - S04  # Lane 2B starts
+      - S05  # Lane 2C starts
+      - S06  # Lane 2D starts
+    parallel_entry_note: Lanes 2A/2B/2C/2D start simultaneously on S02 exit
+    forbidden_transitions:
+      - S00
+      - S01
+      - S09
+      - S11
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S03–S06: Parallel Lane Execution (Stage 2)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S03
+    state_name: LANE_2A_RUNNING
+    workflow_stage: stage_2_lane_2a
+    description: Lane 2A (Claim / Intended Purpose) running. Claim Scope Agent evaluates CLAIM object. Produces claim_consistency_matrix.json.
+    state_type: AUTO
+    lane: lane_2a_claim
+    lane_agent: cer_claim_scope_agent
+    primary_object: CLAIM
+    secondary_object: INTENDED_PURPOSE
+    produced_by: cer_claim_scope_agent
+    lane_output_artifacts:
+      - claim_consistency_matrix.json
+      - risk_benefit_contribution_report.json  # O5-Q3 partial contribution
+    risk_benefit_contribution:
+      questions_answered: [O5-Q3]
+      contribution_type: benefit_magnitude_characterization
+      layer: 1
+      composite_bundle_ref: B-RB-AG003
+    allowed_transitions:
+      - S07  # Lane 2A complete
+    forbidden_transitions:
+      - S00
+      - S01
+      - S09  # CLAIM flagged → Gate 2; RISK_BENEFIT never to Gate 2
+      - S11  # RISK_BENEFIT gate-3-only
+
+  - state_id: S04
+    state_name: LANE_2B_RUNNING
+    workflow_stage: stage_2_lane_2b
+    description: Lane 2B (Evidence / SOTA) running. SOTA Evidence Agent evaluates EVIDENCE_BLOCK object. Produces evidence_qualified_report.json.
+    state_type: AUTO
+    lane: lane_2b_evidence
+    lane_agent: cer_sota_evidence_agent
+    primary_object: EVIDENCE_BLOCK
+    produced_by: cer_sota_evidence_agent
+    lane_output_artifacts:
+      - evidence_qualified_report.json
+      - risk_benefit_contribution_report.json  # O5-Q3 partial contribution
+    risk_benefit_contribution:
+      questions_answered: [O5-Q3]
+      contribution_type: clinical_benefit_support
+      layer: 1
+      composite_bundle_ref: B-RB-AG004
+    allowed_transitions:
+      - S07  # Lane 2B complete
+    forbidden_transitions:
+      - S00
+      - S01
+      - S09
+      - S11
+
+  - state_id: S05
+    state_name: LANE_2C_RUNNING
+    workflow_stage: stage_2_lane_2c
+    description: Lane 2C (Equivalence) running. Equivalence Agent evaluates EQUIVALENCE_UNIT object. Produces equivalence_3d_assessment.json.
+    state_type: AUTO
+    lane: lane_2c_equivalence
+    lane_agent: cer_equivalence_agent
+    primary_object: EQUIVALENCE_UNIT
+    produced_by: cer_equivalence_agent
+    lane_output_artifacts:
+      - equivalence_3d_assessment.json
+      - risk_benefit_contribution_report.json  # O5-Q3 partial contribution
+    risk_benefit_contribution:
+      questions_answered: [O5-Q3]
+      contribution_type: equivalence_based_benefit
+      layer: 1
+      composite_bundle_ref: B-RB-AG005
+    conditional_note: If Route Screen determined Literature Route (no equivalence), Lane 2C may be abbreviated. EQUIVALENCE_UNIT receives "equivalence route not used" contribution.
+    allowed_transitions:
+      - S07  # Lane 2C complete
+    forbidden_transitions:
+      - S00
+      - S01
+      - S09  # EQUIVALENCE_UNIT → Gate 1, not Gate 2
+      - S11
+
+  - state_id: S06
+    state_name: LANE_2D_RUNNING
+    workflow_stage: stage_2_lane_2d
+    description: Lane 2D (Consistency / Cross-Doc + PMCF) running. Consistency Agent evaluates CROSS_DOC_LINK. PMCF Lifecycle Agent evaluates PMCF_HANDOFF.
+    state_type: AUTO
+    lane: lane_2d_consistency_pmcf
+    lane_agents:
+      - cer_consistency_agent
+      - cer_pmcf_lifecycle_agent
+    primary_objects:
+      - CROSS_DOC_LINK
+      - PMCF_HANDOFF
+    produced_by: cer_consistency_agent, cer_pmcf_lifecycle_agent
+    lane_output_artifacts:
+      - cross_doc_consistency_report.json  # AG-006 → CROSS_DOC_LINK
+      - pmcf_need_statement.json          # AG-007 → PMCF_HANDOFF
+      - risk_benefit_contribution_reports.json  # 2 contributions: AG-006 (O5-Q1/Q4/Q5), AG-007 (O5-Q3)
+    risk_benefit_contribution:
+      - agent: cer_consistency_agent
+        questions_answered: [O5-Q1, O5-Q4, O5-Q5]
+        contribution_type: risk_controls_and_alignment
+        layer: 1  # O5-Q1, O5-Q4; O5-Q5 is Layer 3 human
+        composite_bundle_ref: B-RB-AG006
+      - agent: cer_pmcf_lifecycle_agent
+        questions_answered: [O5-Q3]
+        contribution_type: post_market_benefit_data
+        layer: 1
+        composite_bundle_ref: B-RB-AG007
+    risk_benefit_routing_constraint: >
+      RISK_BENEFIT contributions from AG-006 and AG-007 are partial data only.
+      O5-Q5 (CER/RMF alignment) requires human judgment at Gate 3.
+      No machine agent may issue terminal RISK_BENEFIT decision.
+    allowed_transitions:
+      - S07  # Lane 2D complete
+    forbidden_transitions:
+      - S00
+      - S01
+      - S09  # PMCF flagged → Gate 2; RISK_BENEFIT never to Gate 2
+      - S11  # RISK_BENEFIT gate-3-only
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S07: Lane Bundle Convergence (Stage 2 → Gate 1/2)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S07
+    state_name: LANE_BUNDLE_COMPLETE
+    workflow_stage: stage_2_convergence
+    description: All 4 lanes have completed. Lane Bundle assembled. Gate trigger evaluation.
+    state_type: AUTO
+    lane: convergence
+    produced_by: system
+    lane_bundle_artifacts:
+      - claim_consistency_matrix.json: cer_claim_scope_agent
+      - evidence_qualified_report.json: cer_sota_evidence_agent
+      - equivalence_3d_assessment.json: cer_equivalence_agent
+      - cross_doc_consistency_report.json: cer_consistency_agent
+      - pmcf_need_statement.json: cer_pmcf_lifecycle_agent
+      - route_decision_draft.json: cer_route_screen_agent
+      - intended_purpose_validation.json: cer_intake_agent
+      - risk_benefit_contribution_reports.json: [AG003, AG004, AG005, AG006, AG007]
+    convergence_trigger: last_lane_complete
+    last_lane: S06  # Lane 2D is last to complete
+    gate_trigger_evaluation:
+      - EQUIVALENCE_UNIT flagged (O4-Q4, O4-Q5) → route to S08 (Gate 1)
+      - CLAIM/EVIDENCE_BLOCK/PMCF_HANDOFF flagged → route to S09 (Gate 2)
+      - No flags → route to S10 (BRR Assembly)
+    allowed_transitions:
+      - S08  # EQUIVALENCE_UNIT flagged → Gate 1
+      - S09  # Flagged items → Gate 2
+      - S10  # No gates required → BRR Assembly
+    forbidden_transitions:
+      - S00
+      - S01
+      - S11  # RISK_BENEFIT must go through S10 → S11, never directly
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S08: Gate 1 — Route Adjudication
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S08
+    state_name: GATE_1_PENDING
+    workflow_stage: gate_1
+    description: Gate 1 active. EQUIVALENCE_UNIT flagged items (O4-Q4 NOT_SUPPORTED, O4-Q5 ACCESS_UNVERIFIED) require human route adjudication.
+    state_type: HUMAN_GATE
+    gate: GATE_1
+    gate_owner_role: human_route_adjudicator
+    lane: none
+    produced_by: human_route_adjudicator
+    gate_bundle_ref: B-G1-001
+    bundle_inputs:
+      - route_decision_draft.json
+      - equivalence_3d_assessment.json
+      - special_procedure_flags.json
+    human_decisions:
+      - APPROVE_EQUIVALENCE_ROUTE: Equivalence route confirmed; proceed
+      - REJECT_EQUIVALENCE_ROUTE: Equivalence route rejected; switch to Literature
+      - REQUIRE_LITERATURE_ROUTE: Equivalence insufficient; require Literature evidence
+      - CONDITIONAL_EQUIVALENCE: Equivalence with conditions; proceed with caveats
+    allowed_transitions:
+      - S09  # APPROVE/CONDITIONAL → Gate 2
+      - S02  # REQUIRE_LITERATURE → re-run Lane 2C
+      - S18  # REJECT → rework
+    forbidden_transitions:
+      - S11  # RISK_BENEFIT gate-3-only, not Gate 1
+    machine_terminal_decision_forbidden:
+      - EQUIVALENCE_UNIT  # O4-Q4 Layer 3, O4-Q5 Layer 2 — human only
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S09: Gate 2 — Clinical Adjudication
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S09
+    state_name: GATE_2_PENDING
+    workflow_stage: gate_2
+    description: Gate 2 active. Flagged items from CLAIM (O2-Q2, O2-Q4), EVIDENCE_BLOCK (O3-Q2), PMCF_HANDOFF (O6-Q2, O6-Q4) require human clinical adjudication.
+    state_type: HUMAN_GATE
+    gate: GATE_2
+    gate_owner_role: human_clinical_adjudicator
+    lane: none
+    produced_by: human_clinical_adjudicator
+    gate_bundle_ref: B-G2-001
+    bundle_inputs:
+      - claim_consistency_matrix.json  # O2-Q2, O2-Q4 flags
+      - evidence_qualified_report.json  # O3-Q2 flags
+      - pmcf_need_statement.json      # O6-Q2, O6-Q4 flags
+      - gate_1_decision.json           # route confirmation
+    risk_benefit_exclusion: >
+      RISK_BENEFIT is explicitly EXCLUDED from Gate 2 bundle.
+      RISK_BENEFIT is a composite object that must not be routed to Gate 2.
+      Gate 2 is for CLAIM, EVIDENCE_BLOCK, PMCF_HANDOFF flagged items only.
+      RISK_BENEFIT routes to Gate 3 ONLY (S10 → S11).
+    human_decisions_per_item:
+      - CONFIRM_FLAG: Flag is valid; record human confirmation
+      - OVERRIDE: Human overrides flag; proceed
+      - REQUEST_REWORK: Evidence insufficient; return to lane
+    allowed_transitions:
+      - S10  # All items resolved → BRR Assembly
+      - S17  # REQUEST_REWORK → rework
+    forbidden_transitions:
+      - S11  # RISK_BENEFIT gate-3-only; cannot go directly from Gate 2 to Gate 3
+    machine_terminal_decision_forbidden:
+      - RISK_BENEFIT  # ABSOLUTE — no machine RISK_BENEFIT decision at Gate 2
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S10: BRR Assembly (Stage 4)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S10
+    state_name: BRR_ASSEMBLY_RUNNING
+    workflow_stage: stage_4_brr_assembly
+    description: Stage 4 active. RISK_BENEFIT contribution reports from 5 agents assembled into composite RISK_BENEFIT_COMPOSITE_BUNDLE. No machine decision issued here.
+    state_type: AUTO
+    lane: none
+    produced_by: system
+    brr_assembly_inputs:
+      - risk_benefit_contribution_report.json (AG-003): O5-Q3
+      - risk_benefit_contribution_report.json (AG-004): O5-Q3
+      - risk_benefit_contribution_report.json (AG-005): O5-Q3
+      - risk_benefit_contribution_report.json (AG-006): O5-Q1, O5-Q4, O5-Q5
+      - risk_benefit_contribution_report.json (AG-007): O5-Q3
+    brr_assembly_output:
+      bundle_id: B-G3-001
+      bundle_type: GATE_3_BUNDLE
+      object: RISK_BENEFIT
+      composite: true
+      contributions_count: 5
+      assembly_note: "No machine agent may issue terminal RISK_BENEFIT decision."
+    layer_3_items_preserved:
+      - O5-Q2: Residual risk acceptability — human only (Layer 3)
+      - O5-Q5: CER/RMF alignment — human only (Layer 3)
+    allowed_transitions:
+      - S11  # BRR composite bundle ready → Gate 3
+    forbidden_transitions:
+      - S09  # Cannot route back to Gate 2
+    machine_terminal_decision_forbidden:
+      - RISK_BENEFIT  # ABSOLUTE — assembly only, no terminal decision
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S11: Gate 3 — Benefit-Risk Closure
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S11
+    state_name: GATE_3_PENDING
+    workflow_stage: gate_3
+    description: Gate 3 active. RISK_BENEFIT composite bundle ready for Human Clinical Adjudication. Only state where RISK_BENEFIT terminal decision can be issued.
+    state_type: HUMAN_GATE
+    gate: GATE_3
+    gate_owner_role: human_clinical_adjudicator
+    lane: none
+    produced_by: human_clinical_adjudication
+    gate_bundle_ref: B-G3-001
+    bundle_inputs:
+      - risk_benefit_composite_assembly.json  # 5-agent contributions
+      - cross_doc_consistency_report.json      # O5-Q5 partial
+      - pmcf_need_statement.json              # O5-Q3 partial
+      - gate_2_decision.json                  # adjudication results
+    primary_decision_owner: Human Clinical Adjudication ONLY
+    composite_object: RISK_BENEFIT
+    no_machine_terminal_decision: true
+    human_decisions:
+      - BRR_ACCEPTABLE: Benefit-risk ratio is acceptable; proceed to closure
+      - BRR_UNACCEPTABLE: Benefit-risk ratio is not acceptable; rework
+      - BRR_MISALIGNED: CER/RMF alignment not resolved; rework
+    allowed_transitions:
+      - S12  # BRR_ACCEPTABLE → Review Package
+      - S17  # BRR_UNACCEPTABLE/MISALIGNED → rework
+    forbidden_transitions:
+      - S09  # Cannot reverse from Gate 3 to Gate 2
+      - S00  # Cannot restart from Gate 3
+    machine_terminal_decision_forbidden:
+      - RISK_BENEFIT  # ABSOLUTE — only human may issue BRR_ACCEPTABLE/UNACCEPTABLE/MISALIGNED
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S12: Review Package Assembly (Stage 5)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S12
+    state_name: REVIEW_PACKAGE_READY
+    workflow_stage: stage_5_conclusion
+    description: Stage 5 conclusion assembly. Review Package Agent (AG-008) assembles all object decisions, human gate decisions, overall verdict.
+    state_type: AUTO
+    lane: none
+    produced_by: cer_review_package_agent
+    review_package_artifacts:
+      - review_package.json
+      - review_package.md
+      - decision_ledger_entry.json
+    allowed_transitions:
+      - S13  # Review package complete → Closure
+    forbidden_transitions:
+      - S00  # Cannot restart from conclusion
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S13: Closure Evaluation (Stage 6)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S13
+    state_name: CLOSURE_PENDING
+    workflow_stage: stage_6_closure
+    description: Stage 6 closure evaluation. Determines closure type (FULL_PASS / CONDITIONAL_PASS / PROVISIONAL_CLOSURE / FAIL). Evaluates follow-up and backflow triggers.
+    state_type: AUTO
+    lane: none
+    produced_by: system
+    closure_type_evaluation:
+      FULL_PASS:
+        condition: All objects → terminal OK; all gates confirmed; no flags
+        transition: S14
+      CONDITIONAL_PASS:
+        condition: All critical objects → OK; gates confirmed; non-critical flags exist
+        transition: S15
+      PROVISIONAL_CLOSURE:
+        condition: Gates not yet confirmed (human pending)
+        transition: S15
+      FAIL:
+        condition: Critical object → FAIL decision; gate unresolved
+        transition: S17
+    backflow_evaluation:
+      triggered_conditions:
+        - NEW_EQUIVALENCE_EVIDENCE
+        - NEW_LITERATURE
+        - NEW_CLINICAL_DATA
+        - NEW_RISK_CONTROLS
+        - NEW_PMCF_TRIGGERS
+      transition: S16
+    allowed_transitions:
+      - S14  # FULL_PASS
+      - S15  # CONDITIONAL_PASS / PROVISIONAL_CLOSURE
+      - S16  # Backflow triggered
+      - S17  # FAIL / Rework triggered
+    forbidden_transitions:
+      - S00
+      - S09  # Cannot route to Gate 2 from Closure
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S14: Closed (Terminal Success)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S14
+    state_name: CLOSED
+    workflow_stage: terminal
+    description: Terminal success state. All gates resolved, review package complete, no follow-up actions pending.
+    state_type: TERMINAL_SUCCESS
+    lane: none
+    produced_by: system
+    closure_artifacts:
+      - closure_bundle_index.json
+    allowed_transitions: []
+    forbidden_transitions:
+      - all  # Terminal state — no further transitions
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S15: Follow-up Handoff (Non-terminal)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S15
+    state_name: FOLLOWUP_HANDOFF
+    workflow_stage: stage_6_followup
+    description: Non-terminal. Follow-up actions assigned (PMCF follow-up, conditional pass follow-up, rework follow-up). Owner notified.
+    state_type: FOLLOWUP
+    lane: none
+    produced_by: system
+    followup_bundle_ref: B-FU-001
+    followup_types:
+      - PMCF_UNRESOLVED_UNCERTAINTY: PMCF_HANDOFF → PMCF_INADEQUATE/NOT_ASSESSED
+      - CONDITIONAL_PASS_FOLLOWUP: CONDITIONAL_PASS closure
+      - REWORK_FOLLOWUP: Rework triggered post-closure
+    handoff_outputs:
+      - followup_handoff.json
+      - milestone_refs.json
+    allowed_transitions:
+      - S14  # Follow-up actions assigned → Closed
+    forbidden_transitions:
+      - S00  # Cannot restart from follow-up
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S16: Backflow Pending (Non-terminal)
+  # ─ ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S16
+    state_name: BACKFLOW_PENDING
+    workflow_stage: stage_6_backflow
+    description: Non-terminal. Knowledge backflow triggered. Backflow pack created for next round intake.
+    state_type: BACKFLOW
+    lane: none
+    produced_by: system
+    backflow_pack_ref: B-BF-001
+    backflow_note: >
+      Backflow is NOT rework. Backflow updates evidence packs for future rounds.
+      It does not invalidate current round decisions.
+      Creates new round at S00 (INTAKE_RECEIVED).
+    backflow_types:
+      - NEW_EQUIVALENCE_EVIDENCE: EQUIVALENCE_UNIT evaluation
+      - NEW_LITERATURE: SOTA evaluation
+      - NEW_CLINICAL_DATA: EVIDENCE_BLOCK evaluation
+      - NEW_RISK_CONTROLS: RISK_BENEFIT evaluation
+      - NEW_PMCF_TRIGGERS: PMCF_HANDOFF evaluation
+    allowed_transitions:
+      - S00  # New round triggered → Back to Intake
+    forbidden_transitions:
+      - S14  # Cannot close while backflow is pending
+      - S00_of_same_round  # Must create new round
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S17: Rework Required (Non-terminal)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S17
+    state_name: REWORK_REQUIRED
+    workflow_stage: rework
+    description: Non-terminal. Rework triggered by human gate decision. Rework scope determined.
+    state_type: REWORK
+    lane: none
+    produced_by: system
+    rework_trigger_sources:
+      - S08: Gate 1 REJECT_EQUIVALENCE_ROUTE
+      - S09: Gate 2 REQUEST_REWORK
+      - S11: Gate 3 BRR_UNACCEPTABLE/MISALIGNED
+      - S01: Gate 0 REVISE
+    rework_scope_rules:
+      minimal_scope: Rework routes only to lane owning the failed object
+      cross_object: If rework affects another object's evidence, both must rework
+      full_rework: Only triggered by Gate 0 REVISE (INTENDED_PURPOSE revision)
+      risk_benefit_rework: RISK_BENEFIT rework always re-evaluates all 5 contributions
+    rework_comparison_bundle_ref: B-RW-001
+    allowed_transitions:
+      - S18  # Rework scope confirmed → Rework in Progress
+    forbidden_transitions:
+      - S14  # Cannot close during rework
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S18: Rework in Progress (Non-terminal)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S18
+    state_name: REWORK_IN_PROGRESS
+    workflow_stage: rework_execution
+    description: Non-terminal. Rework round (Round N+1) is executing. Affected lane re-runs in new round. Original round preserved as S19.
+    state_type: REWORK
+    lane: per_scope
+    produced_by: system
+    round_id_note: round_id increments on rework (Round N → Round N+1)
+    original_round_handling: >
+      Original round (Round N) is archived as S19.
+      Original round decisions are preserved read-only.
+      Rework round inherits non-affected lane outputs from Round N.
+    lane_reentry_map:
+      CLAIM_failure: S03  # Lane 2A re-enters
+      EVIDENCE_BLOCK_failure: S04  # Lane 2B re-enters
+      EQUIVALENCE_UNIT_failure: S05  # Lane 2C re-enters
+      PMCF_HANDOFF_failure: S06  # Lane 2D re-enters
+      RISK_BENEFIT_rework: S10  # Stage 4 re-runs (all 5 contributors)
+      INTENDED_PURPOSE_rework: S00  # Full rework — all stages
+    allowed_transitions:
+      - S07  # Rework lane completes → convergence
+      - S08  # Rework reaches Gate 1
+      - S09  # Rework reaches Gate 2
+      - S11  # Rework reaches Gate 3
+      - S19  # Original round archived
+    forbidden_transitions:
+      - S00_of_original_round  # Cannot restart original round
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # S19: Archived (Terminal Preservation)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - state_id: S19
+    state_name: ARCHIVED
+    workflow_stage: terminal
+    description: Terminal preservation state. Original round (Round N) preserved read-only after rework triggers Round N+1.
+    state_type: TERMINAL_PRESERVATION
+    lane: none
+    produced_by: system
+    archive_note: >
+      Original round is preserved as reference.
+      No modifications allowed to archived round.
+      Decision ledger entries from archived round are immutable.
+    allowed_transitions: []
+    forbidden_transitions:
+      - all  # Terminal state — no further transitions
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Global State Machine Constraints
+# ─────────────────────────────────────────────────────────────────────────────
+global_constraints:
+  risk_benefit_gate_routing:
+    rule: RISK_BENEFIT routes to Gate 3 ONLY
+    implementation: >
+      S03/S04/S05/S06 produce RISK_BENEFIT contribution reports (partial data only).
+      S10 assembles contributions into RISK_BENEFIT_COMPOSITE_BUNDLE.
+      S11 is the ONLY state where RISK_BENEFIT terminal decision is issued.
+      S09 (Gate 2) explicitly excludes RISK_BENEFIT.
+    forbidden_routes:
+      - RISK_BENEFIT → S08 (Gate 1)
+      - RISK_BENEFIT → S09 (Gate 2)
+      - RISK_BENEFIT → S12 (Review Package without Gate 3)
+    machine_terminal_prohibition:
+      - RISK_BENEFIT: No machine agent may issue BRR_ACCEPTABLE/BRR_UNACCEPTABLE/BRR_MISALIGNED
+
+  gate_separation:
+    rule: Gate 2 and Gate 3 are separate and non-merging
+    implementation: >
+      S09 (Gate 2): CLAIM, EVIDENCE_BLOCK, PMCF_HANDOFF — individual objects
+      S11 (Gate 3): RISK_BENEFIT composite — human clinical adjudication only
+    forbidden_merge: S09 + S11 cannot be combined into single gate
+
+  rework_isolation:
+    rule: Rework preserves original round as reference
+    implementation: >
+      S17/S18: Rework creates Round N+1; Round N archived as S19.
+      round_id increments on every rework trigger.
+      No modification to Round N decisions allowed.
+    forbidden_actions:
+      - Rework modifying original round state
+      - Rework without incrementing round_id
+      - Full rework for partial lane failure
+
+  decision_ledger_append_only:
+    rule: Decision ledger entries are append-only
+    implementation: >
+      Every state transition appends a ledger entry.
+      No entry is modified or deleted.
+      Corrections create new entries.
+    forbidden_actions:
+      - Modifying existing ledger entry
+      - Deleting ledger entry
+      - Overwriting ledger entry
+
+  lane_parallelism:
+    rule: Lanes 2A/2B/2C/2D run in parallel
+    implementation: >
+      S03/S04/S05/S06 run concurrently.
+      S07 convergence triggered by last lane completion.
+      No lane waits for another lane.
+    forbidden_actions:
+      - Serializing lane execution
+      - Lane waiting for another lane output
+
+  consistency_agent_scope:
+    rule: Consistency Agent only owns CROSS_DOC_LINK
+    implementation: >
+      AG-006 (Consistency Agent) primary ownership: CROSS_DOC_LINK only.
+      AG-006 contributes to RISK_BENEFIT (O5-Q1, O5-Q4, O5-Q5 partial).
+      AG-006 does NOT own RISK_BENEFIT as primary.
+    risk_benefit_ownership:
+      composite_owner: Human Clinical Adjudication (Gate 3)
+      contributing_agents: [AG-003, AG-004, AG-005, AG-006, AG-007]
+      contribution_count: 5

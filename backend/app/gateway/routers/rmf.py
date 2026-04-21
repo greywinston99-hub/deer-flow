@@ -307,7 +307,7 @@ def _update_project_from_run(
 
 
 def _scan_rmf_threads() -> list[str]:
-    """Return all thread_ids that have RMF runs."""
+    """Return all thread_ids that have RMF runs (workflow-agnostic)."""
     base = _get_rmf_threads_base()
     if not base.exists():
         return []
@@ -315,40 +315,52 @@ def _scan_rmf_threads() -> list[str]:
     for d in base.iterdir():
         if not d.is_dir():
             continue
-        rmf_path = d / "user-data" / "outputs" / "rmf_review_v1_1"
-        if rmf_path.exists():
-            threads.append(d.name)
+        outputs_path = d / "user-data" / "outputs"
+        if not outputs_path.exists():
+            continue
+        # Scan any subdirectory that contains a run_summary.json
+        for workflow_dir in outputs_path.iterdir():
+            if not workflow_dir.is_dir():
+                continue
+            for run_dir in workflow_dir.iterdir():
+                if not run_dir.is_dir():
+                    continue
+                if (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                    threads.append(d.name)
+                    break
     return threads
 
 
 def _get_runs_for_thread(thread_id: str) -> list[RunSummaryItem]:
-    """Return all runs for a thread, sorted newest first."""
+    """Return all runs for a thread, sorted newest first (workflow-agnostic)."""
     from deerflow.config.paths import get_paths
     paths = get_paths()
     outputs_dir = paths.sandbox_outputs_dir(thread_id)
-    rmf_base = outputs_dir / "rmf_review_v1_1"
-    if not rmf_base.exists():
+    if not outputs_dir.exists():
         return []
 
     runs: list[RunSummaryItem] = []
-    for run_dir in rmf_base.iterdir():
-        if not run_dir.is_dir():
+    for workflow_dir in outputs_dir.iterdir():
+        if not workflow_dir.is_dir():
             continue
-        summary_path = run_dir / "artifacts" / "00_manifest" / "run_summary.json"
-        if not summary_path.exists():
-            continue
-        try:
-            summary = json.loads(summary_path.read_text())
-            runs.append(RunSummaryItem(
-                run_id=summary["run_id"],
-                mode=summary.get("mode", "unknown"),
-                workflow_name=summary.get("workflow_name", "unknown"),
-                executed_steps=summary.get("executed_steps", []),
-                artifact_root_actual=summary.get("artifact_root_actual", str(run_dir)),
-                updated_at=run_dir.stat().st_mtime,
-            ))
-        except Exception:
-            continue
+        for run_dir in workflow_dir.iterdir():
+            if not run_dir.is_dir():
+                continue
+            summary_path = run_dir / "artifacts" / "00_manifest" / "run_summary.json"
+            if not summary_path.exists():
+                continue
+            try:
+                summary = json.loads(summary_path.read_text())
+                runs.append(RunSummaryItem(
+                    run_id=summary["run_id"],
+                    mode=summary.get("mode", "unknown"),
+                    workflow_name=summary.get("workflow_name", "unknown"),
+                    executed_steps=summary.get("executed_steps", []),
+                    artifact_root_actual=summary.get("artifact_root_actual", str(run_dir / "artifacts")),
+                    updated_at=run_dir.stat().st_mtime,
+                ))
+            except Exception:
+                continue
     runs.sort(key=lambda r: r.updated_at, reverse=True)
     return runs
 
@@ -469,24 +481,28 @@ def _build_status_response(thread_id: str, summary: dict, artifact_root: Path) -
 
 
 def _get_run_summary(thread_id: str) -> dict | None:
-    """Read run_summary.json from the latest run in the thread's RMF outputs."""
+    """Read run_summary.json from the latest run in the thread's RMF outputs (workflow-agnostic)."""
     from deerflow.config.paths import get_paths
     paths = get_paths()
     outputs_dir = paths.sandbox_outputs_dir(thread_id)
-    rmf_base = outputs_dir / "rmf_review_v1_1"
-    if not rmf_base.exists():
+    if not outputs_dir.exists():
         return None
-    run_dirs = sorted(
-        (d for d in rmf_base.iterdir() if d.is_dir()),
-        key=lambda d: d.stat().st_mtime,
-        reverse=True,
-    )
-    if not run_dirs:
+    # Find all run directories across all workflow subdirectories
+    all_runs: list[tuple[Path, Path]] = []
+    for workflow_dir in outputs_dir.iterdir():
+        if not workflow_dir.is_dir():
+            continue
+        for run_dir in workflow_dir.iterdir():
+            if not run_dir.is_dir():
+                continue
+            summary_path = run_dir / "artifacts" / "00_manifest" / "run_summary.json"
+            if summary_path.exists():
+                all_runs.append((run_dir, summary_path))
+    if not all_runs:
         return None
-    summary_path = run_dirs[0] / "artifacts" / "00_manifest" / "run_summary.json"
-    if not summary_path.exists():
-        return None
-    return json.loads(summary_path.read_text())
+    # Sort by mtime, newest first
+    all_runs.sort(key=lambda x: x[0].stat().st_mtime, reverse=True)
+    return json.loads(all_runs[0][1].read_text())
 
 
 def _write_human_decision(thread_id: str, run_summary: dict, decision: HumanDecisionRequest) -> None:
@@ -507,13 +523,26 @@ def _write_human_decision(thread_id: str, run_summary: dict, decision: HumanDeci
 
 
 def _artifacts_for_run(thread_id: str, summary: dict, artifact_root: Path) -> list[ArtifactSummary]:
-    """Build artifact list for a given run."""
+    """Build artifact list for a given run (workflow-agnostic)."""
+    from deerflow.config.paths import get_paths
+    paths = get_paths()
+    outputs_dir = paths.sandbox_outputs_dir(thread_id)
+    # Derive virtual path from artifact_root_actual by stripping thread base
+    outputs_str = str(outputs_dir)
+    artifact_str = str(artifact_root)
+    if artifact_str.startswith(outputs_str):
+        # e.g. /.../threads/{tid}/user-data/outputs/{workflow}/{run}/artifacts
+        relative = artifact_str[len(outputs_str):].lstrip("/")
+        # e.g. {workflow}/{run}/artifacts
+    else:
+        relative = artifact_str.rsplit("/user-data/", 1)[-1].lstrip("/")
+        # e.g. outputs/{workflow}/{run}/artifacts
+    virtual_path = f"mnt/{relative}"
     artifacts: list[ArtifactSummary] = []
     for rel_path, artifact_name, step_id in _ARTIFACT_STEP_MAP:
         full_path = artifact_root / rel_path
         if full_path.exists():
-            virtual_path = f"mnt/user-data/outputs/rmf_review_v1_1/{summary['run_id']}/artifacts/{rel_path}"
-            download_url = f"/api/threads/{thread_id}/artifacts/{virtual_path}"
+            download_url = f"/api/threads/{thread_id}/artifacts/{virtual_path}/{rel_path}"
             artifacts.append(ArtifactSummary(
                 path=str(full_path),
                 artifact_name=artifact_name,
@@ -603,13 +632,22 @@ async def rmf_run_detail(thread_id: str, run_id: str) -> RichRunResponse:
     from deerflow.config.paths import get_paths
     paths = get_paths()
     outputs_dir = paths.sandbox_outputs_dir(thread_id)
-    artifact_root = outputs_dir / "rmf_review_v1_1" / run_id / "artifacts"
 
-    summary_path = artifact_root / "00_manifest" / "run_summary.json"
-    if not summary_path.exists():
+    # Workflow-agnostic: find the run directory by scanning for matching run_id
+    artifact_root = None
+    if outputs_dir.exists():
+        for workflow_dir in outputs_dir.iterdir():
+            if not workflow_dir.is_dir():
+                continue
+            run_dir = workflow_dir / run_id
+            if run_dir.is_dir() and (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                artifact_root = run_dir / "artifacts"
+                break
+
+    if artifact_root is None or not (artifact_root / "00_manifest" / "run_summary.json").exists():
         raise HTTPException(status_code=404, detail=f"Run {run_id} not found for thread {thread_id}")
 
-    summary = json.loads(summary_path.read_text())
+    summary = json.loads((artifact_root / "00_manifest" / "run_summary.json").read_text())
 
     # Run manifest
     run_manifest = None
@@ -911,11 +949,19 @@ async def rmf_closure(thread_id: str, run_id: str | None = None) -> ClosureRespo
     from deerflow.config.paths import get_paths
     if run_id:
         paths = get_paths()
-        artifact_root = paths.sandbox_outputs_dir(thread_id) / "rmf_review_v1_1" / run_id / "artifacts"
-        summary_path = artifact_root / "00_manifest" / "run_summary.json"
-        if not summary_path.exists():
+        outputs_dir = paths.sandbox_outputs_dir(thread_id)
+        artifact_root = None
+        if outputs_dir.exists():
+            for workflow_dir in outputs_dir.iterdir():
+                if not workflow_dir.is_dir():
+                    continue
+                run_dir = workflow_dir / run_id
+                if run_dir.is_dir() and (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                    artifact_root = run_dir / "artifacts"
+                    break
+        if artifact_root is None or not (artifact_root / "00_manifest" / "run_summary.json").exists():
             raise HTTPException(status_code=404, detail=f"Run {run_id} not found for thread {thread_id}")
-        summary = json.loads(summary_path.read_text())
+        summary = json.loads((artifact_root / "00_manifest" / "run_summary.json").read_text())
     else:
         summary = _get_run_summary(thread_id)
         if not summary:
@@ -978,11 +1024,19 @@ async def rmf_artifacts(thread_id: str, run_id: str | None = None) -> RMFArtifac
     from deerflow.config.paths import get_paths
     if run_id:
         paths = get_paths()
-        artifact_root = paths.sandbox_outputs_dir(thread_id) / "rmf_review_v1_1" / run_id / "artifacts"
-        summary_path = artifact_root / "00_manifest" / "run_summary.json"
-        if not summary_path.exists():
+        outputs_dir = paths.sandbox_outputs_dir(thread_id)
+        artifact_root = None
+        if outputs_dir.exists():
+            for workflow_dir in outputs_dir.iterdir():
+                if not workflow_dir.is_dir():
+                    continue
+                run_dir = workflow_dir / run_id
+                if run_dir.is_dir() and (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                    artifact_root = run_dir / "artifacts"
+                    break
+        if artifact_root is None or not (artifact_root / "00_manifest" / "run_summary.json").exists():
             raise HTTPException(status_code=404, detail=f"Run {run_id} not found for thread {thread_id}")
-        summary = json.loads(summary_path.read_text())
+        summary = json.loads((artifact_root / "00_manifest" / "run_summary.json").read_text())
     else:
         summary = _get_run_summary(thread_id)
         if not summary:

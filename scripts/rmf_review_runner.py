@@ -17,10 +17,10 @@ from deerflow.runtime.rmf_review import RMFReviewRunner  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the minimal RMF Review Workflow v1.1 glue.")
+    parser = argparse.ArgumentParser(description="Run the RMF Review Workflow v1 glue.")
     parser.add_argument(
         "--workflow",
-        default=str(REPO_ROOT / "workflows" / "rmf_review_v1_1.yaml"),
+        default=str(REPO_ROOT / "backend" / "workflows" / "rmf_review_workflow_v1.yaml"),
         help="Path to the workflow yaml.",
     )
     parser.add_argument(

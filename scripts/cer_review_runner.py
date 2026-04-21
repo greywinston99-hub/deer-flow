@@ -17,11 +17,11 @@ from deerflow.runtime.cer_review import CERReviewRunner  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the minimal CER Review Workflow v0 glue.")
+    parser = argparse.ArgumentParser(description="Run the CER Review Workflow v0/v1/D1.")
     parser.add_argument(
         "--workflow",
-        default=str(REPO_ROOT / "workflows" / "cer_review_v0.yaml"),
-        help="Path to the workflow yaml.",
+        default=str(REPO_ROOT / "backend" / "workflows" / "cer_review_workflow_v1.yaml"),
+        help="Path to the workflow yaml (default: backend/workflows/cer_review_workflow_v1.yaml).",
     )
     parser.add_argument(
         "--project-profile",
@@ -38,9 +38,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--mode",
-        choices=("dry-run", "smoke-run", "closure-only"),
+        choices=("dry-run", "smoke-run", "smoke-precheck", "formal-review", "closure-only"),
         default="smoke-run",
-        help="dry-run validates and writes the run plan; smoke-run executes all nodes; closure-only runs only the gate closure step.",
+        help="dry-run validates and writes the run plan; smoke-run executes all nodes; smoke-precheck runs D1 scaffold verification; formal-review enforces Gate A; closure-only runs only the gate closure step.",
     )
     parser.add_argument(
         "--artifact-root-override",
@@ -61,13 +61,14 @@ def main() -> int:
         "project_profile_path": args.project_profile,
         "input_root": args.input_root,
         "thread_id": args.thread_id,
+        "run_mode": args.mode,
     }
     if args.artifact_root_override:
         runner_kwargs["artifact_root_override"] = args.artifact_root_override
     if args.run_id_override:
         runner_kwargs["run_id_override"] = args.run_id_override
     runner = CERReviewRunner(**runner_kwargs)
-    result = runner.run(mode=args.mode)
+    result = runner.run()
     print(
         json.dumps(
             {

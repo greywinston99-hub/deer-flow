@@ -7,6 +7,7 @@
 #   - gateway: Backend Gateway API (port 8001)
 #   - langgraph: LangGraph server (port 2024)
 #   - provisioner (optional): Sandbox provisioner (creates Pods in host Kubernetes)
+#   - nocodb: NocoDB UI + API server (port 8081) — machine knowledge asset store
 #
 # Prerequisites:
 #   - Kubernetes cluster + kubeconfig are only required when using provisioner mode.
@@ -231,11 +232,37 @@ services:
       - deer-flow-dev
     restart: unless-stopped
 
+  # ── NocoDB ─────────────────────────────────────────────────────────────
+  # NocoDB UI + API for machine knowledge asset store.
+  # Uses PostgreSQL at host.docker.internal:5432 (deer_flow database).
+  # Access: http://localhost:8082 (8081 is used by cer-harness-nocodb)
+  nocodb:
+    image: nocodb/nocodb:latest
+    container_name: deer-flow-nocodb
+    ports:
+      - "8082:8080"
+    environment:
+      NC_DB: "pg://host.docker.internal:5432?u=cer_admin&p=change_me_now&d=deer_flow"
+      NC_AUTH_TYPE: disabled
+      NC_DISABLE_TELEMETRY: "1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deer-flow-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   # Persist .venv across container restarts so dependencies installed during
   # image build are not shadowed by the host backend/ directory mount.
   gateway-venv:
   langgraph-venv:
+  # NocoDB SQLite persistence
+  nocodb-data:
 
 networks:
   deer-flow-dev:

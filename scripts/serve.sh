@@ -16,6 +16,7 @@
 #   --skip-install  Skip dependency installation (faster restart)
 #   --stop      Stop all running services and exit
 #   --restart   Stop all services, then start with the given mode flags
+#   --preflight Print runtime ownership, port, and health diagnostics
 #
 # Examples:
 #   ./scripts/serve.sh --dev                 # Standard dev (4 processes)
@@ -58,40 +59,34 @@ for arg in "$@"; do
         --skip-install) SKIP_INSTALL=true ;;
         --stop)    ACTION="stop" ;;
         --restart) ACTION="restart" ;;
+        --preflight) ACTION="preflight" ;;
         *)
             echo "Unknown argument: $arg"
-            echo "Usage: $0 [--dev|--prod] [--gateway] [--daemon] [--skip-install] [--stop|--restart]"
+            echo "Usage: $0 [--dev|--prod] [--gateway] [--daemon] [--skip-install] [--stop|--restart|--preflight]"
             exit 1
             ;;
     esac
 done
 
-# ── Stop helper ──────────────────────────────────────────────────────────────
-
-stop_all() {
-    echo "Stopping all services..."
-    pkill -f "langgraph dev" 2>/dev/null || true
-    pkill -f "uvicorn app.gateway.app:app" 2>/dev/null || true
-    pkill -f "next dev" 2>/dev/null || true
-    pkill -f "next start" 2>/dev/null || true
-    pkill -f "next-server" 2>/dev/null || true
-    nginx -c "$REPO_ROOT/docker/nginx/nginx.local.conf" -p "$REPO_ROOT" -s quit 2>/dev/null || true
-    sleep 1
-    pkill -9 nginx 2>/dev/null || true
-    ./scripts/cleanup-containers.sh deer-flow-sandbox 2>/dev/null || true
-    echo "✓ All services stopped"
-}
-
 # ── Action routing ───────────────────────────────────────────────────────────
 
 if [ "$ACTION" = "stop" ]; then
-    stop_all
+    ./scripts/dev-runtime.sh stop
+    exit 0
+fi
+
+if [ "$ACTION" = "preflight" ]; then
+    if $GATEWAY_MODE; then
+        ./scripts/dev-runtime.sh preflight --gateway
+    else
+        ./scripts/dev-runtime.sh preflight
+    fi
     exit 0
 fi
 
 ALREADY_STOPPED=false
 if [ "$ACTION" = "restart" ]; then
-    stop_all
+    ./scripts/dev-runtime.sh stop
     sleep 1
     ALREADY_STOPPED=true
 fi
@@ -143,8 +138,11 @@ fi
 # ── Stop existing services (skip if restart already did it) ──────────────────
 
 if ! $ALREADY_STOPPED; then
-    stop_all
-    sleep 1
+    if $GATEWAY_MODE; then
+        ./scripts/dev-runtime.sh preflight --gateway --startup-guard
+    else
+        ./scripts/dev-runtime.sh preflight --startup-guard
+    fi
 fi
 
 # ── Config check ─────────────────────────────────────────────────────────────
@@ -221,7 +219,7 @@ echo ""
 cleanup() {
     trap - INT TERM
     echo ""
-    stop_all
+    ./scripts/dev-runtime.sh stop
     exit 0
 }
 
@@ -294,7 +292,8 @@ echo "=========================================="
 echo "  ✓ DeerFlow is running!  [$MODE_LABEL]"
 echo "=========================================="
 echo ""
-echo "  🌐 http://localhost:2026"
+echo "  Business:    http://localhost:2026/workspace/cer"
+echo "  Development: http://localhost:3000/workspace/cer"
 echo ""
 if $GATEWAY_MODE; then
     echo "  Routing: Frontend → Nginx → Gateway (embedded runtime)"

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from pathlib import Path
 from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import Response
 
@@ -34,20 +35,41 @@ def _format_markdown(text: str) -> str:
 
 
 def _read_artifact(thread_id: str, run_id: str | None, rel_path: str) -> dict | None:
-    """Try to read a JSON artifact. Returns None if not found."""
+    """Try to read a JSON artifact. Returns None if not found. Workflow-agnostic."""
     try:
         from deerflow.config.paths import get_paths
         paths = get_paths()
+        outputs_dir = paths.sandbox_outputs_dir(thread_id)
+        if not outputs_dir.exists():
+            return None
         if run_id:
-            base = paths.sandbox_outputs_dir(thread_id) / "rmf_review_v1_1" / run_id / "artifacts"
-        else:
-            base = paths.sandbox_outputs_dir(thread_id) / "rmf_review_v1_1"
-            # Find latest run dir
-            run_dirs = sorted((d for d in base.iterdir() if d.is_dir()), key=lambda d: d.stat().st_mtime, reverse=True)
-            if not run_dirs:
+            # Find the run directory by scanning for matching run_id
+            artifact_base = None
+            for workflow_dir in outputs_dir.iterdir():
+                if not workflow_dir.is_dir():
+                    continue
+                run_dir = workflow_dir / run_id
+                if run_dir.is_dir() and (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                    artifact_base = run_dir / "artifacts"
+                    break
+            if artifact_base is None:
                 return None
-            base = run_dirs[0] / "artifacts"
-        full_path = base / rel_path
+        else:
+            # Find latest run across all workflows
+            all_runs: list[tuple[Path, Path]] = []
+            for workflow_dir in outputs_dir.iterdir():
+                if not workflow_dir.is_dir():
+                    continue
+                for run_dir in workflow_dir.iterdir():
+                    if not run_dir.is_dir():
+                        continue
+                    if (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                        all_runs.append((run_dir, run_dir / "artifacts"))
+            if not all_runs:
+                return None
+            all_runs.sort(key=lambda x: x[0].stat().st_mtime, reverse=True)
+            artifact_base = all_runs[0][1]
+        full_path = artifact_base / rel_path
         if full_path.exists():
             return json.loads(full_path.read_text())
     except Exception:
@@ -302,7 +324,19 @@ def _build_artifact_index_export(project, store: RMFProjectStore) -> dict:
 
         from deerflow.config.paths import get_paths
         paths = get_paths()
-        base = paths.sandbox_outputs_dir(thread_id) / "rmf_review_v1_1" / run_id / "artifacts"
+        outputs_dir = paths.sandbox_outputs_dir(thread_id)
+        # Workflow-agnostic: find the run directory by scanning for matching run_id
+        base = None
+        if outputs_dir.exists():
+            for workflow_dir in outputs_dir.iterdir():
+                if not workflow_dir.is_dir():
+                    continue
+                run_dir = workflow_dir / run_id
+                if run_dir.is_dir() and (run_dir / "artifacts" / "00_manifest" / "run_summary.json").exists():
+                    base = run_dir / "artifacts"
+                    break
+        if base is None:
+            continue  # Skip this cycle if run not found
 
         for step_dir, artifact_name in step_artifacts:
             full_path = base / step_dir / artifact_name

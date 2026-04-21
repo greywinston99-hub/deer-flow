@@ -1,0 +1,389 @@
+# CER Review Workflow v1 Configuration — Aligned with Frozen Baselines
+# Frozen Baseline: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md
+# Implements: 6 high-level stages → 20 states
+# Mode: single_project_serial_review
+# Hard constraints: RISK_BENEFIT gate-3-only; no machine terminal BRR decision
+
+workflow_name: cer_review_v1
+workflow_version: "1.0"
+workflow_status: p1_implementation_baseline
+mode: single_project_serial_review
+
+# Runner requires "stages" key for v1 mode detection (checked at runner.py line 186)
+stages:
+  - stage_id: cer_route_screen_agent
+    prompt_contract: prompts/cer/route_screen_agent.md
+  - stage_id: cer_layer1_scan_agent
+    prompt_contract: prompts/cer/layer1_scan_agent.md
+  - stage_id: cer_claim_scope_agent
+    prompt_contract: prompts/cer/claim_scope_agent.md
+  - stage_id: cer_sota_evidence_agent
+    prompt_contract: prompts/cer/sota_evidence_agent.md
+  - stage_id: cer_equivalence_agent
+    prompt_contract: prompts/cer/equivalence_agent.md
+  - stage_id: cer_consistency_agent
+    prompt_contract: prompts/cer/consistency_agent.md
+  - stage_id: cer_pmcf_lifecycle_agent
+    prompt_contract: prompts/cer/pmcf_lifecycle_agent.md
+  - stage_id: cer_review_package_agent_v1
+    prompt_contract: prompts/cer/review_package_agent.md
+  - stage_id: cer_gate_closure_agent_v1
+    prompt_contract: prompts/cer/gate_closure_agent.md
+
+description: >
+  CER Review Workflow v1 aligned with frozen baselines.
+  6-stage architecture: Intake → Route → Parallel Lanes → Adjudication → BRR Assembly → Closure.
+  Implements 7-agent system (FIX_01 applied), 20-state machine, 9 bundle types.
+  RISK_BENEFIT routes to Gate 3 ONLY (composite adjudication-owned).
+  Decision ledger append-only, rework round-isolated, backflow mandatory.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Structural Mapping: 6 High-Level Stages ↔ 20 States
+# From: CER_STATE_MACHINE_BLUEPRINT_V1.md
+# ─────────────────────────────────────────────────────────────────────────────
+structural_mapping:
+  high_level_stages:
+    stage_0_intake:
+      label: "Intake & Scope Definition"
+      states: [S00_INTAKE_RECEIVED, S01_PROTOCOL_FROZEN]
+      human_gate: GATE_0
+      primary_agent: cer_intake_agent
+      evidence_packs: [EP-001, EP-002, EP-003, EP-004, EP-005]
+
+    stage_1_route:
+      label: "Route & Special Procedure Screening"
+      states: [S02_ROUTE_CONFIRMED]
+      human_gate: GATE_1 (if equivalence flagged)
+      primary_agent: cer_route_screen_agent
+      evidence_packs: [EP-001, EP-005]
+
+    stage_2_parallel_lanes:
+      label: "Parallel Lane Execution (4 lanes)"
+      states: [S03_LANE_2A, S04_LANE_2B, S05_LANE_2C, S06_LANE_2D, S07_LANE_BUNDLE_COMPLETE]
+      human_gate: none (auto lanes)
+      lane_agents:
+        - lane_2a_claim: cer_claim_scope_agent
+        - lane_2b_evidence: cer_sota_evidence_agent
+        - lane_2c_equivalence: cer_equivalence_agent
+        - lane_2d_consistency_pmcf: [cer_consistency_agent, cer_pmcf_lifecycle_agent]
+
+    stage_3_adjudication:
+      label: "Human Adjudication (Gate 1 + Gate 2)"
+      states: [S08_GATE_1_PENDING, S09_GATE_2_PENDING]
+      human_gate: [GATE_1, GATE_2]
+      primary_agents: [human_route_adjudicator, human_clinical_adjudicator]
+      gate_1_scope: EQUIVALENCE_UNIT route adjudication
+      gate_2_scope: CLAIM, EVIDENCE_BLOCK, PMCF_HANDOFF flagged items
+      risk_benefit_note: RISK_BENEFIT excluded from Gate 2
+
+    stage_4_brr_assembly:
+      label: "Benefit-Risk Assembly (for Gate 3)"
+      states: [S10_BRR_ASSEMBLY_RUNNING]
+      human_gate: none (assembly only)
+      system_producer: brr_assembler
+      risk_benefit_note: >
+        RISK_BENEFIT contribution reports from 5 agents assembled.
+        No machine terminal RISK_BENEFIT decision issued here.
+      contributions_required:
+        - AG-003: O5-Q3
+        - AG-004: O5-Q3
+        - AG-005: O5-Q3
+        - AG-006: O5-Q1, O5-Q4, O5-Q5
+        - AG-007: O5-Q3
+      output: risk_benefit_composite_assembly.json
+
+    stage_5_gate3_conclusion:
+      label: "Gate 3 + Conclusion Assembly"
+      states: [S11_GATE_3_PENDING, S12_REVIEW_PACKAGE_READY]
+      human_gate: GATE_3
+      primary_agent: human_clinical_adjudication
+      risk_benefit_decision: BRR_ACCEPTABLE / BRR_UNACCEPTABLE / BRR_MISALIGNED (human only)
+      lane_agent: cer_review_package_agent
+
+    stage_6_closure:
+      label: "Closure / Follow-up / Backflow"
+      states: [S13_CLOSURE_PENDING, S14_CLOSED, S15_FOLLOWUP_HANDOFF, S16_BACKFLOW_PENDING]
+      human_gate: GATE_3 (closure gate)
+      closure_types:
+        - FULL_PASS: All OK, no flags
+        - CONDITIONAL_PASS: OK with non-critical flags
+        - PROVISIONAL_CLOSURE: Gates pending
+        - FAIL: Critical failure
+      followup_types:
+        - PMCF_UNRESOLVED_UNCERTAINTY
+        - CONDITIONAL_PASS_FOLLOWUP
+        - REWORK_FOLLOWUP
+      backflow_types:
+        - NEW_EQUIVALENCE_EVIDENCE
+        - NEW_LITERATURE
+        - NEW_CLINICAL_DATA
+        - NEW_RISK_CONTROLS
+        - NEW_PMCF_TRIGGERS
+
+scope:
+  project_scope: single_project
+  institution_scope: single_body
+  primary_review_object: CER
+  cross_validation_inputs:
+    - CER
+    - CEP
+    - IFU
+    - RMF_RMR
+    - PMCF_Plan
+    - Tech_Docs
+    - Literature
+    - PMS_PSUR
+    - Equivalence
+    - SSCP
+  final_decision_requires_human_gate: true
+  risk_benefit_gate_constraint: RISK_BENEFIT routes to Gate 3 ONLY
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Evidence Pack Architecture
+# From: CER_REVIEW_LOGIC_MODEL_V1_1.md Section 2
+# ─────────────────────────────────────────────────────────────────────────────
+evidence_packs:
+  EP-001:
+    name: Product Definition Pack
+    source_documents: [IFU, CER Section 4]
+    consumed_by: [AG-001, AG-002, AG-003]
+    review_objects: [INTENDED_PURPOSE, CLAIM, RISK_BENEFIT (contribution)]
+
+  EP-002:
+    name: SOTA Pack
+    source_documents: [Literature Search Results]
+    consumed_by: [AG-003, AG-004]
+    review_objects: [CLAIM, EVIDENCE_BLOCK, RISK_BENEFIT (contribution)]
+
+  EP-003:
+    name: Equivalence Pack
+    source_documents: [Equivalence Documentation]
+    consumed_by: [AG-003, AG-005]
+    review_objects: [CLAIM, EQUIVALENCE_UNIT, RISK_BENEFIT (contribution)]
+
+  EP-004:
+    name: Clinical Evidence Pack
+    source_documents: [CEP, Clinical Investigations, PMCF Data]
+    consumed_by: [AG-003, AG-004]
+    review_objects: [CLAIM, EVIDENCE_BLOCK, RISK_BENEFIT (contribution)]
+
+  EP-005:
+    name: Risk & Consistency Pack
+    source_documents: [RMF, CER Sections 5/8/9, PMCF_Plan, Cross-Reference Inventory]
+    consumed_by: [AG-002, AG-006, AG-007]
+    review_objects: [INTENDED_PURPOSE, RISK_BENEFIT (contribution), PMCF_HANDOFF, CROSS_DOC_LINK]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7 Review Objects
+# From: CER_REVIEW_LOGIC_MODEL_V1_1.md Section 1.2
+# ─────────────────────────────────────────────────────────────────────────────
+review_objects:
+  - object_id: OBJ-001
+    name: INTENDED_PURPOSE
+    primary_agent: AG-001
+    layer: [1, 2]
+    gate: GATE_0 (if MISMATCH)
+
+  - object_id: OBJ-002
+    name: CLAIM
+    primary_agent: AG-003
+    layer: [1, 2, 3]
+    gate: GATE_2 (if flagged)
+
+  - object_id: OBJ-003
+    name: EVIDENCE_BLOCK
+    primary_agent: AG-004
+    layer: [1, 2]
+    gate: GATE_2 (if flagged)
+
+  - object_id: OBJ-004
+    name: EQUIVALENCE_UNIT
+    primary_agent: AG-005
+    layer: [1, 2, 3]
+    gate: GATE_1
+
+  - object_id: OBJ-005
+    name: RISK_BENEFIT
+    primary_agent: NONE (composite adjudication-owned)
+    layer: [1, 3]
+    gate: GATE_3 (HUMAN ONLY — no machine terminal decision)
+    contributing_agents: [AG-003, AG-004, AG-005, AG-006, AG-007]
+
+  - object_id: OBJ-006
+    name: PMCF_HANDOFF
+    primary_agent: AG-007
+    layer: [1, 2]
+    gate: GATE_2 (if flagged)
+
+  - object_id: OBJ-007
+    name: CROSS_DOC_LINK
+    primary_agent: AG-006
+    layer: [1]
+    gate: none (all Layer 1, auto)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4-Lane Parallel Execution Architecture
+# From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 3
+# ─────────────────────────────────────────────────────────────────────────────
+specialized_lanes:
+  lane_2a_claim:
+    name: Claim / Intended Purpose Lane
+    agent: cer_claim_scope_agent
+    primary_object: CLAIM
+    evidence_packs: [EP-001, EP-002, EP-003, EP-004]
+    output: claim_consistency_matrix.json
+    risk_benefit_output: risk_benefit_contribution_report.json
+    routes_to_gate: GATE_2 (if O2-Q2 or O2-Q4 flagged)
+    parallel_with: [lane_2b_evidence, lane_2c_equivalence, lane_2d_consistency_pmcf]
+
+  lane_2b_evidence:
+    name: Evidence / SOTA Lane
+    agent: cer_sota_evidence_agent
+    primary_object: EVIDENCE_BLOCK
+    evidence_packs: [EP-002, EP-004]
+    output: evidence_qualified_report.json
+    risk_benefit_output: risk_benefit_contribution_report.json
+    routes_to_gate: GATE_2 (if O3-Q2 flagged)
+    parallel_with: [lane_2a_claim, lane_2c_equivalence, lane_2d_consistency_pmcf]
+
+  lane_2c_equivalence:
+    name: Equivalence Lane
+    agent: cer_equivalence_agent
+    primary_object: EQUIVALENCE_UNIT
+    evidence_packs: [EP-003]
+    output: equivalence_3d_assessment.json
+    risk_benefit_output: risk_benefit_contribution_report.json
+    routes_to_gate: GATE_1 (if O4-Q4 or O4-Q5 flagged)
+    parallel_with: [lane_2a_claim, lane_2b_evidence, lane_2d_consistency_pmcf]
+    conditional: May be abbreviated if Literature Route declared
+
+  lane_2d_consistency_pmcf:
+    name: Consistency / Cross-Doc + PMCF Lane
+    agents: [cer_consistency_agent, cer_pmcf_lifecycle_agent]
+    primary_objects: [CROSS_DOC_LINK, PMCF_HANDOFF]
+    evidence_packs: [EP-005]
+    outputs:
+      - cross_doc_consistency_report.json  # AG-006 → CROSS_DOC_LINK
+      - pmcf_need_statement.json          # AG-007 → PMCF_HANDOFF
+    risk_benefit_outputs:
+      - cer_consistency_agent: risk_benefit_contribution_report.json (O5-Q1/Q4/Q5)
+      - cer_pmcf_lifecycle_agent: risk_benefit_contribution_report.json (O5-Q3)
+    routes_to_gate: GATE_2 (if O6-Q2 or O6-Q4 flagged)
+    parallel_with: [lane_2a_claim, lane_2b_evidence, lane_2c_equivalence]
+
+lane_parallelism:
+  execution_mode: concurrent
+  convergence_state: S07_LANE_BUNDLE_COMPLETE
+  convergence_trigger: last_lane_complete
+  no_cross_lane_blocking: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Human Gates Architecture
+# From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 4
+# RISK_BENEFIT constraint enforced: Gate 3 ONLY for RISK_BENEFIT
+# ─────────────────────────────────────────────────────────────────────────────
+human_gates:
+  gate_0_protocol_freeze:
+    name: Protocol Freeze Gate
+    stage: stage_0_intake
+    state: S01_PROTOCOL_FROZEN
+    position: after_intake
+    owner_role: human_protocol_owner
+    trigger: O1-Q4 MISMATCH or deliberate freeze
+    allowed_decisions: [CONFIRM, REVISE, ESCALATE]
+    blocking: true
+    bundle_ref: B-G0-001
+    scope: INTENDED_PURPOSE definition
+
+  gate_1_route:
+    name: Route Adjudication Gate
+    stage: stage_3_adjudication
+    state: S08_GATE_1_PENDING
+    position: after_lanes_complete (EQUIVALENCE_UNIT flagged)
+    owner_role: human_route_adjudicator
+    trigger: EQUIVALENCE_UNIT O4-Q4 or O4-Q5 flagged
+    allowed_decisions: [APPROVE_EQUIVALENCE_ROUTE, REJECT_EQUIVALENCE_ROUTE, REQUIRE_LITERATURE_ROUTE, CONDITIONAL_EQUIVALENCE]
+    blocking: true
+    bundle_ref: B-G1-001
+    scope: EQUIVALENCE_UNIT route adjudication
+
+  gate_2_adjudication:
+    name: Clinical Adjudication Gate
+    stage: stage_3_adjudication
+    state: S09_GATE_2_PENDING
+    position: after_lanes_complete (flagged items)
+    owner_role: human_clinical_adjudicator
+    trigger: CLAIM/EVIDENCE_BLOCK/PMCF_HANDOFF flagged items
+    allowed_decisions_per_item: [CONFIRM_FLAG, OVERRIDE, REQUEST_REWORK]
+    blocking: true
+    bundle_ref: B-G2-001
+    scope: CLAIM, EVIDENCE_BLOCK, PMCF_HANDOFF — NOT RISK_BENEFIT
+    risk_benefit_exclusion: RISK_BENEFIT explicitly excluded from Gate 2 bundle
+
+  gate_3_benefit_risk_closure:
+    name: Benefit-Risk Closure Gate
+    stage: stage_5_gate3_conclusion
+    state: S11_GATE_3_PENDING
+    position: after_BRR_assembly
+    owner_role: human_clinical_adjudication
+    trigger: RISK_BENEFIT composite bundle ready
+    allowed_decisions: [BRR_ACCEPTABLE, BRR_UNACCEPTABLE, BRR_MISALIGNED]
+    blocking: true
+    bundle_ref: B-G3-001
+    scope: RISK_BENEFIT composite ONLY
+    machine_terminal_prohibition: >
+      No machine agent may issue terminal RISK_BENEFIT decision.
+      BRR_ACCEPTABLE/UNACCEPTABLE/MISALIGNED are human-only decisions.
+    composite_note: RISK_BENEFIT is composite — 5 agents contribute; human synthesizes
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RISK_BENEFIT Routing Constraint (ABSOLUTE — Gate 3 ONLY)
+# From: CER_AGENT_SYSTEM_BLUEPRINT_FIX_NOTE.md
+# ─────────────────────────────────────────────────────────────────────────────
+risk_benefit_routing:
+  absolute_constraint: RISK_BENEFIT routes to Gate 3 ONLY
+  permitted_route: S10_BRR_ASSEMBLY_RUNNING → S11_GATE_3_PENDING
+  forbidden_routes:
+    - RISK_BENEFIT → S08_GATE_1_PENDING (Gate 1)
+    - RISK_BENEFIT → S09_GATE_2_PENDING (Gate 2)
+    - RISK_BENEFIT → S12_REVIEW_PACKAGE (without Gate 3)
+    - RISK_BENEFIT → S07_LANE_BUNDLE_COMPLETE (direct)
+  machine_terminal_prohibition:
+    - BRR_ACCEPTABLE: HUMAN ONLY
+    - BRR_UNACCEPTABLE: HUMAN ONLY
+    - BRR_MISALIGNED: HUMAN ONLY
+  contributing_agents_count: 5
+  composite_assembly_location: stage_4_brr_assembly (S10)
+  human_decision_location: gate_3 (S11)
+
+runtime_defaults:
+  artifact_root: /mnt/user-data/outputs/cer_review_v1/${run_id}/artifacts
+  source_root: /mnt/user-data/uploads
+  enforce_source_binding: true
+  enforce_human_gate: true
+  conclusion_without_source_ref: forbidden
+  final_status_values:
+    - pass
+    - conditional_pass
+    - return_for_remediation
+    - rework_required
+
+governance:
+  decision_ledger_append_only: true
+  rework_isolation: round_based
+  pmcf_double_gate: true
+  backflow_mandatory: true
+  lane_parallelism: true
+  evidence_pack_driven: true
+  object_driven: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Notes
+# ─────────────────────────────────────────────────────────────────────────────
+notes:
+  - Workflow aligns with CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md 6-stage architecture
+  - RISK_BENEFIT gate-3-only constraint is ABSOLUTE — enforced in state machine
+  - 7 agents with FIX_01 corrections (AG-006 does not own RISK_BENEFIT)
+  - 20-state model implemented (see config/cer/states.yaml for full state definitions)
+  - 9 bundle types defined (see config/cer/output_schema.yaml for schemas)
+  - Append-only decision ledger, round-isolated rework, mandatory backflow

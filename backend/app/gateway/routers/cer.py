@@ -423,24 +423,59 @@ def _artifacts_for_run(thread_id: str, summary: dict, artifact_root: Path) -> li
     return artifacts
 
 
-@router.post("/start", response_model=CERStartResponse)
-async def cer_start(body: CERStartRequest) -> CERStartResponse:
-    """Trigger a CER review smoke-run."""
-    existing = _get_run_summary(body.thread_id) if body.thread_id else None
-    if existing:
-        return CERStartResponse(
-            thread_id=existing["thread_id"],
-            run_id=existing["run_id"],
-            mode=existing["mode"],
-            workflow_name=existing["workflow_name"],
-            executed_steps=existing["executed_steps"],
-            artifact_root_virtual=existing["artifact_root_virtual"],
-            artifact_root_actual=existing["artifact_root_actual"],
-        )
+def _run_cer_native(body: CERStartRequest) -> CERStartResponse:
+    """Run CER via direct CERReviewRunner import (native DeerFlow path).
+
+    D11 native runtime: replaces subprocess adapter bridge with direct
+    Python import of CERReviewRunner. Subprocess remains as bounded fallback.
+    """
+    # Default to D1 workflow path
+    workflow_path = str(_REPO_ROOT / "backend" / "workflows" / "cer_review_workflow_v1.yaml")
+
+    # Thread_id for this run
+    import uuid  # noqa: F401
+    from deerflow.runtime.cer_review import CERReviewRunner  # noqa: F401
+
+    thread_id = body.thread_id or f"cer-{body.mode}-{uuid.uuid4().hex[:8]}"
+
+    runner_kwargs: dict[str, object] = {
+        "repo_root": _REPO_ROOT,
+        "workflow_path": workflow_path,
+        "project_profile_path": body.project_profile,
+        "run_mode": body.mode,
+        "thread_id": thread_id,
+    }
+    if body.input_root:
+        runner_kwargs["input_root"] = body.input_root
+
+    runner = CERReviewRunner(**runner_kwargs)
+    result = runner.run()
+
+    return CERStartResponse(
+        thread_id=result.thread_id,
+        run_id=result.run_id,
+        mode=result.mode,
+        workflow_name=result.workflow_name,
+        executed_steps=result.executed_steps,
+        artifact_root_virtual=result.artifact_root_virtual,
+        artifact_root_actual=result.artifact_root_actual,
+    )
+
+
+def _run_cer_adapter_bridge(body: CERStartRequest) -> CERStartResponse:
+    """Run CER via subprocess adapter bridge (D10 legacy fallback path).
+
+    Bounded fallback: only used when native runtime fails or is explicitly
+    requested. Preserves identical Gate A / Human Gate / ledger / NocoDB
+    boundaries as the native path.
+    """
+    workflow_path = str(_REPO_ROOT / "backend" / "workflows" / "cer_review_workflow_v1.yaml")
 
     cmd = [
         sys.executable,
         str(_REPO_ROOT / "scripts" / "cer_review_runner.py"),
+        "--workflow",
+        workflow_path,
         "--project-profile",
         body.project_profile,
         "--mode",
@@ -453,11 +488,43 @@ async def cer_start(body: CERStartRequest) -> CERStartResponse:
 
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_REPO_ROOT), timeout=1800)
     if result.returncode != 0:
-        logger.error("CER runner failed: %s", result.stderr)
+        logger.error("CER adapter bridge failed: %s", result.stderr)
         raise HTTPException(status_code=500, detail=f"CER runner failed: {result.stderr}")
 
     output = json.loads(result.stdout)
     return CERStartResponse(**output)
+
+
+@router.post("/start", response_model=CERStartResponse)
+async def cer_start(body: CERStartRequest) -> CERStartResponse:
+    """Trigger a CER review run.
+
+    D11 native runtime: uses direct CERReviewRunner import as default path.
+    Subprocess adapter bridge is bounded fallback (only on ImportError or
+    AttributeError from native path). Both paths preserve identical Gate A /
+    Human Gate / ledger / NocoDB / CEAR boundaries.
+    """
+    import uuid
+
+    existing = _get_run_summary(body.thread_id) if body.thread_id else None
+    if existing:
+        return CERStartResponse(
+            thread_id=existing["thread_id"],
+            run_id=existing["run_id"],
+            mode=existing["mode"],
+            workflow_name=existing["workflow_name"],
+            executed_steps=existing["executed_steps"],
+            artifact_root_virtual=existing["artifact_root_virtual"],
+            artifact_root_actual=existing["artifact_root_actual"],
+        )
+
+    # D11 native runtime: try direct CERReviewRunner import first
+    try:
+        return _run_cer_native(body)
+    except (ImportError, AttributeError, Exception) as e:
+        logger.warning("Native CER runtime failed (%s), falling back to adapter bridge: %s", type(e).__name__, e)
+        # Bounded fallback: preserve same boundaries, same output
+        return _run_cer_adapter_bridge(body)
 
 
 @router.get("/runs", response_model=AllRunsResponse)

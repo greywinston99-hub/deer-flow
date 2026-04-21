@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER CEP Methodology Schema",
+  "description": "Schema for CEP (Clinical Evaluation Plan) methodology assessment",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "artifact_type", "project_id", "cer_run_id", "workflow_id", "step_id", "status", "created_at"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_cep_methodology"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "artifact_type": {"type": "string", "const": "cep_methodology_assessment"},
+    "project_id": {"type": "string"},
+    "cer_run_id": {"type": "string"},
+    "workflow_id": {"type": "string", "const": "cer_review_workflow_v1"},
+    "step_id": {"type": "string", "const": "cer_cep_methodology"},
+    "produced_by_step": {"type": "string", "const": "cer_cep_methodology"},
+    "status": {"type": "string", "enum": ["scaffold_complete", "scaffold_stub", "draft", "validated"]},
+    "created_at": {"type": "string"},
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "cer_docstruct_ref": {"type": "string"},
+        "cep_document_ref": {"type": "string"}
+      }
+    },
+    "regulatory_anchor_id": {"type": "string", "enum": ["MDR_Article_83", "Annex_XIV_Part_A", null]},
+    "human_gate_required": {"type": "boolean", "const": false},
+    "route_decision": {
+      "type": "string",
+      "enum": ["literature_route", "cep_route", "hybrid_route", "pending"]
+    },
+    "methodology_adequacy": {
+      "type": "object",
+      "properties": {
+        "literature_search_described": {"type": "boolean"},
+        "equivalence_demonstration_planned": {"type": "boolean"},
+        "clinical_data_evaluation_method": {"type": "string"},
+        "benefit_risk_assessment_method": {"type": "string"}
+      }
+    },
+    "route_justification": {"type": "string"},
+    "note": {"type": "string"},
+    "schema_gate_status": {"type": "string", "enum": ["scaffold_complete", "validated"]}
+  }
+}
