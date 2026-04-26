@@ -1,0 +1,10 @@
+=== RMF Human Gate Verification ===
+
+1. HOLD_FOR_HUMAN_DECISION when no human_gate_decision.json:
+208:        Used when a stage halts (HOLD_FOR_HUMAN_DECISION, schema-invalid loop,
+1231:                status="HOLD_FOR_HUMAN_DECISION" if self._human_gate_pending else "completed",
+1319:            status="HOLD_FOR_HUMAN_DECISION" if self._human_gate_pending else "completed",
+
+2. No simulated reviewer fabrication:
+       0
+(count should be 0)

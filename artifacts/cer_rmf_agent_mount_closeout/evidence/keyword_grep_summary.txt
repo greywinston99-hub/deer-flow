@@ -1,0 +1,24 @@
+=== CER runner .lower() count ===
+      79
+
+=== RMF runner .lower() count ===
+      17
+
+=== RMF .lower() detail ===
+1830:        severity_findings = [f for f in corr_findings if "severity" in f.get("detail", "").lower() or "scoring" in f.get("detail", "").lower() or f.get("finding_type") == "method_scoring_uncertain"]
+1845:        control_findings = [f for f in adeq_findings if "control" in f.get("detail", "").lower() or f.get("finding_type") in ("control_evidence_weak", "adequacy_not_demonstrated")]
+1860:        residual_findings = [f for f in acpt_findings if "residual" in f.get("detail", "").lower() or f.get("finding_type") in ("human_decision_required", "acceptability_not_auto_releasable")]
+1884:        cross_doc_findings = [f for f in cons_findings if "term" in f.get("detail", "").lower() or f.get("finding_type") in ("term_alignment_weak", "cross_doc_correctness_weak", "ifu_missing")]
+3016:            if path.suffix.lower() == ".docx":
+3068:        suffix = path.suffix.lower()
+3165:        suffix = path.suffix.lower()
+3387:            headers = [RMFReviewRunner._clean_cell(value).lower() for value in row if RMFReviewRunner._clean_cell(value)]
+3406:            normalized = header.lower()
+3435:        return re.sub(r"[^a-z0-9]+", " ", key.lower()).strip()
+3538:        lowered_keywords = [keyword.lower() for keyword in keywords]
+3541:            lowered_text = text.lower()
+3559:        all_text = "\n".join(entry.get("text", "") for entry in text_lines).lower()
+3566:            if project_term.lower() in all_text:
+3576:        if not any(term.lower() in all_text for term in canonical_terms):
+3680:        haystack = " ".join(str(item.get(field, "")) for field in ("label", "declared_path", "resolved_path")).lower()
+3685:        haystack = " ".join(str(item.get(field, "")) for field in ("label", "declared_path", "resolved_path")).lower()
