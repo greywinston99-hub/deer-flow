@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/cer_hf_check.schema.json",
+  "title": "CER HF Check Report",
+  "description": "High-frequency check results for CER review including 8 standard checks plus equivalence and literature quality assessments.",
+  "type": "object",
+  "required": ["step_id", "hf_results", "total_checks", "findings"],
+  "properties": {
+    "step_id": { "type": "string" },
+    "prompt_contract_path": { "type": "string" },
+    "prompt_contract_loaded": { "type": "boolean" },
+    "hf_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["hf_id", "label", "severity", "status"],
+        "properties": {
+          "hf_id": { "type": "string" },
+          "label": { "type": "string" },
+          "severity": { "type": "string", "enum": ["high", "medium", "low"] },
+          "status": { "type": "string", "enum": ["present", "missing", "inconsistent"] },
+          "match_count": { "type": "integer" },
+          "matches": { "type": "array", "items": { "type": "object" } },
+          "finding_detail": { "type": "string" },
+          "requires_human_review": { "type": "boolean" }
+        }
+      }
+    },
+    "total_checks": { "type": "integer" },
+    "present_count": { "type": "integer" },
+    "missing_count": { "type": "integer" },
+    "inconsistent_count": { "type": "integer" },
+    "requires_human_review_count": { "type": "integer" },
+    "findings": { "type": "array", "items": { "type": "object" } },
+    "structural_status": { "type": "string", "enum": ["pass", "issues_detected"] },
+    "equivalence_assessment": { "$ref": "cer_equivalence_assessment.schema.json" },
+    "literature_quality": { "$ref": "cer_literature_quality.schema.json" }
+  }
+}

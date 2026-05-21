@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Backflow Schema",
+  "description": "Schema for backflow pack",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_backflow"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "new_failure_patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pattern_id": {"type": "string"},
+          "description_cn": {"type": "string"},
+          "frequency": {"type": "integer"},
+          "severity": {"type": "string"}
+        }
+      }
+    },
+    "new_rule_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule_id": {"type": "string"},
+          "description_cn": {"type": "string"},
+          "applicability": {"type": "string"}
+        }
+      }
+    },
+    "new_boundary_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_id": {"type": "string"},
+          "description_cn": {"type": "string"},
+          "boundary_type": {"type": "string"}
+        }
+      }
+    },
+    "new_conflict_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "conflict_id": {"type": "string"},
+          "documents_involved": {"type": "array", "items": {"type": "string"}},
+          "description_cn": {"type": "string"}
+        }
+      }
+    },
+    "new_reviewer_heuristics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "heuristic_id": {"type": "string"},
+          "description_cn": {"type": "string"},
+          "context": {"type": "string"}
+        }
+      }
+    },
+    "appendix_update_suggestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "appendix_ref": {"type": "string"},
+          "suggestion_cn": {"type": "string"},
+          "priority": {"type": "string", "enum": ["high", "medium", "low"]}
+        }
+      }
+    }
+  }
+}

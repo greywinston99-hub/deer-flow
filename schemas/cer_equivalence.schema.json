@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Equivalence Schema",
+  "description": "Schema for equivalence assessment",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "artifact_type", "project_id", "cer_run_id", "workflow_id", "step_id", "status", "created_at"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_equivalence"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "artifact_type": {"type": "string", "const": "equivalence_report"},
+    "project_id": {"type": "string"},
+    "cer_run_id": {"type": "string"},
+    "workflow_id": {"type": "string", "const": "cer_review_workflow_v1"},
+    "step_id": {"type": "string", "const": "cer_clinical_evidence_panel"},
+    "produced_by_step": {"type": "string", "const": "cer_clinical_evidence_panel"},
+    "sub_assessment_id": {"type": "string", "const": "equivalence_assessment"},
+    "status": {"type": "string", "enum": ["scaffold_complete", "scaffold_stub", "draft", "validated"]},
+    "created_at": {"type": "string"},
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "equivalent_device_refs": {"type": "array", "items": {"type": "string"}},
+        "technical_equivalence_documentation_ref": {"type": "string"},
+        "biological_equivalence_documentation_ref": {"type": "string"},
+        "clinical_equivalence_documentation_ref": {"type": "string"}
+      }
+    },
+    "regulatory_anchor_id": {"type": "string", "enum": ["MDR_Annex_XIV_Part_A_3", "MDR_Annex_XIV_Part_B", null]},
+    "human_gate_required": {"type": "boolean", "const": true},
+    "requires_human_review": {"type": "boolean", "const": true},
+    "human_gate_ref": {"type": "string", "const": "HG-02"},
+    "human_gate_topic": {"type": "string", "const": "Equivalence acceptability"},
+    "reviewer_question_id": {"type": "string", "const": "RQ-EQUIV-001"},
+    "dimension": {"type": "string", "const": "dim_6"},
+    "equivalence_demonstration": {
+      "type": "object",
+      "properties": {
+        "technical_equivalence": {
+          "type": "object",
+          "properties": {
+            "demonstrated": {"type": "boolean"},
+            "key_similarities": {"type": "array", "items": {"type": "string"}},
+            "key_differences": {"type": "array", "items": {"type": "string"}},
+            "impact_assessment": {"type": "string"}
+          }
+        },
+        "biological_equivalence": {
+          "type": "object",
+          "properties": {
+            "demonstrated": {"type": "boolean"},
+            "key_similarities": {"type": "array", "items": {"type": "string"}},
+            "key_differences": {"type": "array", "items": {"type": "string"}},
+            "impact_assessment": {"type": "string"}
+          }
+        },
+        "clinical_equivalence": {
+          "type": "object",
+          "properties": {
+            "demonstrated": {"type": "boolean"},
+            "key_similarities": {"type": "array", "items": {"type": "string"}},
+            "key_differences": {"type": "array", "items": {"type": "string"}},
+            "impact_assessment": {"type": "string"}
+          }
+        }
+      }
+    },
+    "predicate_device_access": {
+      "type": "object",
+      "properties": {
+        "access_basis": {"type": "string", "enum": ["own_device", "contract", "group_authority", "none"]},
+        "access_scope": {"type": "string"},
+        "access_sufficient": {"type": "boolean"}
+      }
+    },
+    "no_final_decision_made": {"type": "boolean", "const": true},
+    "note": {"type": "string"},
+    "schema_gate_status": {"type": "string", "enum": ["scaffold_complete", "validated"]}
+  }
+}

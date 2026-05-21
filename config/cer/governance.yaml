@@ -1,0 +1,388 @@
+# CER Review Workflow v1 - Governance Contract
+# Implements CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 7 and CER_STATE_MACHINE_BLUEPRINT_V1.md
+# Append-only ledger, rework isolation, closure rules, backflow, RISK_BENEFIT gate-3-only
+# Frozen Baseline: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md, CER_STATE_MACHINE_BLUEPRINT_V1.md
+
+governance:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Decision Ledger (Append-Only)
+  # From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 6.4 + CER_STATE_MACHINE_BLUEPRINT_V1.md
+  # ─────────────────────────────────────────────────────────────────────────────
+  decision_ledger:
+    enabled: true
+    append_only: true
+    immutable: true
+    filename: decision_ledger.json
+    path: artifacts/governance/decision_ledger.json
+    entry_schema:
+      - bundle_id
+      - review_run_id
+      - round_id
+      - decision_id
+      - from_state
+      - to_state
+      - transition_trigger
+      - actor_type  # system | human
+      - actor_identity  # agent_id | human_role
+      - gate_id  # if human gate
+      - decision_value  # actual decision
+      - rationale
+      - basis  # evidence_pack | human_judgment | system_rule
+      - reversibility  # always false
+      - timestamp
+    ledger_entry_triggers:
+      - S00 → S01: GATE_0_TRIGGERED
+      - S01 → S02: GATE_0_RESOLVED
+      - S02 → S03/S04/S05/S06: LANE_EXECUTION_STARTED
+      - S03/S04/S05/S06 → S07: LANE_COMPLETED
+      - S07 → S08: GATE_1_TRIGGERED
+      - S07 → S09: GATE_2_TRIGGERED
+      - S07 → S10: NO_GATE_REQUIRED
+      - S08 → S09: GATE_1_RESOLVED
+      - S08 → S02: GATE_1_REQUIRE_LITERATURE
+      - S09 → S10: GATE_2_RESOLVED
+      - S09 → S17: GATE_2_REWORK_TRIGGERED
+      - S10 → S11: BRR_ASSEMBLY_COMPLETE
+      - S11 → S12: GATE_3_RESOLVED
+      - S11 → S17: GATE_3_REWORK_TRIGGERED
+      - S12 → S13: REVIEW_PACKAGE_COMPLETE
+      - S13 → S14: CLOSURE_FULL_PASS
+      - S13 → S15: FOLLOWUP_ASSIGNED
+      - S13 → S16: BACKFLOW_TRIGGERED
+      - S13 → S17: FAIL_TRIGGERED
+      - S17 → S18: REWORK_SCOPE_CONFIRMED
+      - S18 → S19: ROUND_ARCHIVED
+      - S18 → S07: REWORK_LANE_COMPLETE
+      - S16 → S00: NEW_ROUND_INTAKE
+    rules:
+      - no_overwrite: Rework round must create new entry, never overwrite prior
+      - supersedes_reference: supersedes_decision_id links to prior without destruction
+      - mandatory_human: All final dispositions must come from human gate authority
+      - no_delete: No ledger entry may be deleted
+      - no_modify: No ledger entry may be modified after append
+    forbidden:
+      - Modifying existing ledger entry
+      - Deleting ledger entry
+      - Reusing round_id for new round
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Rework Loop (Round-Isolated)
+  # From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 6 + CER_STATE_MACHINE_BLUEPRINT_V1.md Section 6
+  # ─────────────────────────────────────────────────────────────────────────────
+  rework_loop:
+    enabled: true
+    isolation: round_based
+    round_id_increment: true
+    original_preservation: archived_readonly
+    rules:
+      - rework_must_not_overwrite_prior: New round must be separate artifact set
+      - prior_decision_reference: Must link to prior decision ledger entry
+      - trigger_reassessment: Changed items must re-enter affected lanes
+      - mandatory_adjudication: After rework, must re-enter human adjudication
+      - mandatory_closure: After rework pass, must re-enter closure gate
+      - minimal_scope: Rework routes only to lane owning the failed object
+      - cross_object_dependency: If rework affects another object's evidence, both rework
+      - full_rework_only_for_ip: Full rework only when INTENDED_PURPOSE revision (Gate 0)
+    rework_scope_map:
+      CLAIM_failure:
+        rework_entry_state: S03
+        lanes_re-running: [lane_2a_claim]
+        lanes_inherited: [lane_2b_evidence, lane_2c_equivalence, lane_2d_consistency_pmcf]
+      EVIDENCE_BLOCK_failure:
+        rework_entry_state: S04
+        lanes_re-running: [lane_2b_evidence]
+        lanes_inherited: [lane_2a_claim, lane_2c_equivalence, lane_2d_consistency_pmcf]
+      EQUIVALENCE_UNIT_failure:
+        rework_entry_state: S05
+        lanes_re-running: [lane_2c_equivalence]
+        lanes_inherited: [lane_2a_claim, lane_2b_evidence, lane_2d_consistency_pmcf]
+      PMCF_HANDOFF_failure:
+        rework_entry_state: S06
+        lanes_re-running: [lane_2d_consistency_pmcf]
+        lanes_inherited: [lane_2a_claim, lane_2b_evidence, lane_2c_equivalence]
+      CROSS_DOC_LINK_failure:
+        rework_entry_state: S06
+        lanes_re-running: [lane_2d_consistency_pmcf]
+        lanes_inherited: [lane_2a_claim, lane_2b_evidence, lane_2c_equivalence]
+      RISK_BENEFIT_rework:
+        rework_entry_state: S10
+        lanes_re-running: [stage_4_brr_assembly]  # All 5 contributors re-evaluate
+        lanes_inherited: none  # Full re-assembly
+      INTENDED_PURPOSE_rework:
+        rework_entry_state: S00
+        lanes_re-running: all  # Full rework
+        lanes_inherited: none
+    comparison_artifacts:
+      - resolved_findings
+      - still_open_findings
+      - new_findings
+      - changed_route_risk
+      - changed_pmcf_risk
+      - changed_consistency_risk
+    forbidden:
+      - Rework modifying original round state
+      - Rework without incrementing round_id
+      - Full rework for single lane failure
+      - Backflow modifying current round (backflow creates new round, not rework)
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Closure Rules
+  # From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 7.1 + CER_STATE_MACHINE_BLUEPRINT_V1.md Section 7.1
+  # ─────────────────────────────────────────────────────────────────────────────
+  closure:
+    closure_gate: true
+    human_gate_required: true
+    closure_types:
+      FULL_PASS:
+        condition: All objects → terminal OK; all gates confirmed; no flags
+        states: [S14_CLOSED]
+        transition: S13 → S14
+      CONDITIONAL_PASS:
+        condition: All critical objects → OK; gates confirmed; non-critical flags exist
+        states: [S15_FOLLOWUP_HANDOFF]
+        transition: S13 → S15 → S14
+      PROVISIONAL_CLOSURE:
+        condition: Gates not yet confirmed (human pending)
+        states: [S15_FOLLOWUP_HANDOFF]
+        transition: S13 → S15 → [await human] → S14
+      FAIL:
+        condition: Critical object → FAIL decision; gate unresolved
+        states: [S17_REWORK_REQUIRED]
+        transition: S13 → S17
+    minimum_requirements:
+      - mandatory_findings_closed: true
+      - pmcf_need_generated: true  # if uncertainty exists
+      - pmcf_adequacy_assessed: true  # if PMCF required
+      - decision_ledger_written: true
+      - artifacts_archived: true
+      - consistency_risk_gspr_archived: true
+      - unresolved_items_in_milestone: true
+    followup_handling:
+      required_if:
+        - conditional_pass_disposition
+        - unresolved_uncertainty_exists
+        - pmcf_needed
+      output: followup_handoff.json
+      must_include:
+        - followup_items
+        - milestone_refs
+        - reopen_triggers
+        - owner_assignments
+        - deadlines
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PMCF Lifecycle (Double Gate Rule)
+  # From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 7.2
+  # ─────────────────────────────────────────────────────────────────────────────
+  pmcf_lifecycle:
+    double_gate_rule: true
+    need_statement_required: true  # if unresolved uncertainty
+    adequacy_assessment_required: true  # if PMCF plan exists
+    gates: [GATE_2 (sufficiency), GATE_3 (adequacy)]
+    handoff_fields:
+      - unanswered_question_id
+      - pmcf_objective
+      - study_type
+      - acceptance_criteria
+      - timeline
+      - reopen_trigger
+    pmcf_bundles:
+      - pmcf_need_statement.json  # S06
+      - pmcf_adequacy_assessment.json  # S06
+      - pmcf_uncertainty_handoff.json  # S15 (follow-up)
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Backflow (Knowledge Capture for Next Round)
+  # From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 7.3 + CER_STATE_MACHINE_BLUEPRINT_V1.md Section 7.3
+  # ─────────────────────────────────────────────────────────────────────────────
+  backflow:
+    mandatory: true
+    trigger_states: [S16_BACKFLOW_PENDING]
+    output: backflow_pack.json
+    next_round_entry: S00_INTAKE_RECEIVED
+    backflow_types:
+      - NEW_EQUIVALENCE_EVIDENCE:
+          trigger: EQUIVALENCE_UNIT evaluation
+          target_pack: EP-003
+          next_action: UPDATE_EP_003
+      - NEW_LITERATURE:
+          trigger: SOTA evaluation
+          target_pack: EP-002
+          next_action: UPDATE_EP_002
+      - NEW_CLINICAL_DATA:
+          trigger: EVIDENCE_BLOCK evaluation
+          target_pack: EP-004
+          next_action: UPDATE_EP_004
+      - NEW_RISK_CONTROLS:
+          trigger: RISK_BENEFIT evaluation
+          target_pack: EP-005
+          next_action: UPDATE_EP_005
+      - NEW_PMCF_TRIGGERS:
+          trigger: PMCF_HANDOFF evaluation
+          target_pack: PMCF_Plan
+          next_action: UPDATE_PMCF_PLAN
+    must_include:
+      - new_failure_patterns
+      - new_rule_candidates
+      - new_boundary_items
+      - new_conflict_items
+      - new_reviewer_heuristics
+      - appendix_update_suggestions
+    forbidden:
+      - Backflow updating current round's evidence packs
+      - Backflow creating rework instead of new round
+      - Backflow modifying closed round decisions
+    note: Backflow is NOT rework. Backflow captures new knowledge for future rounds.
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Human Gate Requirements
+  # From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 4 + CER_STATE_MACHINE_BLUEPRINT_V1.md Section 2
+  # RISK_BENEFIT constraint: Gate 3 ONLY for RISK_BENEFIT terminal decision
+  # ─────────────────────────────────────────────────────────────────────────────
+  human_gates:
+    gate_0_protocol_freeze:
+      state: S01_PROTOCOL_FROZEN
+      owner_role: human_protocol_owner
+      bundle_inputs:
+        - gate_0_bundle.json
+        - intended_purpose_validation.json
+      allowed_decisions:
+        - CONFIRM: Proceed with current INTENDED_PURPOSE definition
+        - REVISE: Request IP revision before proceeding
+        - ESCALATE: Flag for additional review before proceeding
+      blocking: true
+      scope: INTENDED_PURPOSE definition only
+
+    gate_1_route:
+      state: S08_GATE_1_PENDING
+      owner_role: human_route_adjudicator
+      bundle_inputs:
+        - gate_1_bundle.json
+        - route_decision_draft.json
+        - equivalence_3d_assessment.json
+        - special_procedure_flags.json
+      allowed_decisions:
+        - APPROVE_EQUIVALENCE_ROUTE: Equivalence route confirmed; proceed
+        - REJECT_EQUIVALENCE_ROUTE: Equivalence route rejected; switch to Literature
+        - REQUIRE_LITERATURE_ROUTE: Equivalence insufficient; require Literature evidence
+        - CONDITIONAL_EQUIVALENCE: Equivalence with conditions; proceed with caveats
+      blocking: true
+      scope: EQUIVALENCE_UNIT route adjudication only
+
+    gate_2_adjudication:
+      state: S09_GATE_2_PENDING
+      owner_role: human_clinical_adjudicator
+      bundle_inputs:
+        - gate_2_bundle.json
+        - claim_consistency_matrix.json
+        - evidence_qualified_report.json
+        - pmcf_need_statement.json
+        - gate_1_decision.json
+      per_item_decisions:
+        - CONFIRM_FLAG: Flag is valid; record human confirmation
+        - OVERRIDE: Human overrides flag; proceed
+        - REQUEST_REWORK: Evidence insufficient; return to lane
+      blocking: true
+      scope: CLAIM, EVIDENCE_BLOCK, PMCF_HANDOFF — NOT RISK_BENEFIT
+      risk_benefit_exclusion: RISK_BENEFIT explicitly excluded from Gate 2
+
+    gate_3_benefit_risk_closure:
+      state: S11_GATE_3_PENDING
+      owner_role: human_clinical_adjudication
+      bundle_inputs:
+        - gate_3_bundle.json
+        - risk_benefit_composite_assembly.json
+        - cross_doc_consistency_report.json
+        - pmcf_need_statement.json
+        - gate_2_decision.json
+      allowed_decisions:
+        - BRR_ACCEPTABLE: Benefit-risk ratio is acceptable; proceed to closure
+        - BRR_UNACCEPTABLE: Benefit-risk ratio is not acceptable; rework
+        - BRR_MISALIGNED: CER/RMF alignment not resolved; rework
+      blocking: true
+      scope: RISK_BENEFIT composite ONLY
+      machine_terminal_prohibition: >
+        BRR_ACCEPTABLE/BRR_UNACCEPTABLE/BRR_MISALIGNED are human-only decisions.
+        No machine agent may issue terminal RISK_BENEFIT decision.
+        This prohibition is ABSOLUTE — no exceptions.
+      composite_note: RISK_BENEFIT is composite — 5 agents contribute partial data; human synthesizes
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Article 52(4) / 54 / 61 Special Procedures
+  # From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 7
+  # ─────────────────────────────────────────────────────────────────────────────
+  special_procedures:
+    article_52_4:
+      requires_dedicated_branch: true
+      separate_review: true
+      outcome_recorded: true
+    article_54:
+      requires_dedicated_branch: true
+      cecp_dossier_required: true
+      separate_review: true
+      outcome_recorded: true
+    article_61_10:
+      requires_dedicated_branch: true
+      special_justification_report: true
+      separate_review: true
+      outcome_recorded: true
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Equivalence Access-to-Data
+  # From: CER_WORKFLOW_SYSTEM_BLUEPRINT_V1.md Section 4.3
+  # ─────────────────────────────────────────────────────────────────────────────
+  equivalence_access:
+    mandatory_verification: true
+    verification_required_for:
+      - technical_equivalence
+      - biological_equivalence
+      - clinical_equivalence
+    access_basis_types:
+      - own_device
+      - contract
+      - group_authority
+      - unclear
+      - none
+    sufficiency_status_values:
+      - sufficient
+      - partial
+      - insufficient
+      - unclear
+    rule: Insufficient access must trigger mandatory_human_review (Gate 1)
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Global Governance Constraints
+  # From: CER_STATE_MACHINE_BLUEPRINT_V1.md Section 1
+  # ─────────────────────────────────────────────────────────────────────────────
+  global_constraints:
+    risk_benefit_gate_routing:
+      rule: RISK_BENEFIT routes to Gate 3 ONLY
+      permitted: S10 → S11
+      forbidden:
+        - RISK_BENEFIT → S08 (Gate 1)
+        - RISK_BENEFIT → S09 (Gate 2)
+        - RISK_BENEFIT → S07 (direct from lanes)
+        - RISK_BENEFIT → S12 (without Gate 3)
+      machine_terminal_prohibition:
+        - BRR_ACCEPTABLE: HUMAN ONLY
+        - BRR_UNACCEPTABLE: HUMAN ONLY
+        - BRR_MISALIGNED: HUMAN ONLY
+
+    gate_separation:
+      rule: Gate 2 and Gate 3 are separate and non-merging
+      gate_2_scope: CLAIM, EVIDENCE_BLOCK, PMCF_HANDOFF
+      gate_3_scope: RISK_BENEFIT composite
+
+    lane_parallelism:
+      rule: Lanes 2A/2B/2C/2D run concurrently
+      convergence: S07_LANE_BUNDLE_COMPLETE
+      no_cross_lane_blocking: true
+
+    consistency_agent_scope:
+      rule: Consistency Agent only owns CROSS_DOC_LINK
+      enforcement: AG-006 owns CROSS_DOC_LINK; RISK_BENEFIT is composite
+
+    evidence_pack_driven:
+      rule: Agents consume Evidence Packs only, not raw documents
+      enforcement: All agents access source documents through EP-001 through EP-005

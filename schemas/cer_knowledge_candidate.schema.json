@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "cer_knowledge_candidate.schema.json",
+  "title": "CER Knowledge Candidate",
+  "description": "Knowledge candidate extracted from CER artifacts",
+  "type": "object",
+  "required": [
+    "candidate_id",
+    "asset_type",
+    "source_artifact",
+    "source_chain",
+    "state",
+    "payload",
+    "confidence",
+    "project_id",
+    "extracted_at"
+  ],
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^KC-[0-9]{8}-[A-F0-9]{8}$",
+      "description": "Unique candidate identifier, e.g., KC-20260419-ABCDEF12"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "RuleUnit",
+        "MethodUnit",
+        "FailurePattern",
+        "ChecklistUnit",
+        "BoundaryCondition",
+        "CrossDocumentMapping",
+        "TerminologyUnit",
+        "EvidenceRequirement",
+        "ReviewHeuristic",
+        "CaseLesson",
+        "WorkflowImprovement"
+      ],
+      "description": "Knowledge asset taxonomy type"
+    },
+    "source_artifact": {
+      "type": "string",
+      "description": "Path to source artifact file"
+    },
+    "source_chain": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Provenance chain: [project_id, run_id, round_id, artifact_path, ...]"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "extracted",
+        "normalized",
+        "needs_human_review",
+        "approved",
+        "rejected",
+        "parked",
+        "published"
+      ],
+      "description": "Current state in candidate state machine"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Type-specific structured data",
+      "additionalProperties": true
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Extraction confidence (0.0-1.0)"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "CER project identifier"
+    },
+    "extracted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO8601 extraction timestamp"
+    },
+    "reviewed_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO8601 review timestamp"
+    },
+    "published_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO8601 publication timestamp"
+    },
+    "review_decision": {
+      "type": ["string", "null"],
+      "enum": ["APPROVE", "REJECT", "PARK", null],
+      "description": "Review decision"
+    },
+    "review_notes": {
+      "type": ["string", "null"],
+      "description": "Review notes"
+    },
+    "reviewed_by": {
+      "type": ["string", "null"],
+      "description": "Reviewer identifier"
+    }
+  }
+}

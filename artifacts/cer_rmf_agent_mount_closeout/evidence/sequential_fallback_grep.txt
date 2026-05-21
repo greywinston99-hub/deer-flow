@@ -1,0 +1,7 @@
+=== CER sequential fallback check ===
+39:class CERWorkflowExecutionError(RuntimeError):
+5637:            raise CERWorkflowExecutionError(
+6271:                    logger.error("DAG execution failed (no silent fallback): %s", e)
+6273:                        "DAG_EXECUTION_FAILED",
+6280:                    raise CERWorkflowExecutionError(
+6281:                        f"D1 DAG execution failed and silent fallback is disabled: {e}"

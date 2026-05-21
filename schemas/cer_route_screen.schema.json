@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Route Screen Schema",
+  "description": "Schema for cer-route-screen-agent output",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id", "agent_name"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_route_screen"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "artifact_id": {"type": "string"},
+    "artifact_type": {"type": "string", "const": "node_output"},
+    "generated_by": {"type": "string", "const": "cer-route-screen-agent"},
+    "generated_at": {"type": "string"},
+    "input_refs": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["draft", "final", "superseded", "archived"]},
+    "summary_cn": {"type": "string"},
+    "route_decision_draft": {
+      "type": "object",
+      "properties": {
+        "primary_route_candidate": {"type": "string"},
+        "secondary_route_candidates": {"type": "array", "items": {"type": "string"}},
+        "equivalence_route_present": {"type": "boolean"},
+        "article_52_4_flag": {"type": "string", "enum": ["yes", "no", "unclear"]},
+        "article_54_flag": {"type": "string", "enum": ["yes", "no", "unclear"]},
+        "article_61_4_6_flag": {"type": "string", "enum": ["yes", "no", "unclear"]},
+        "article_61_10_flag": {"type": "string", "enum": ["yes", "no", "unclear"]}
+      }
+    },
+    "special_procedure_flags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "procedure_type": {"type": "string"},
+          "applicability": {"type": "string"},
+          "notes_cn": {"type": "string"}
+        }
+      }
+    },
+    "finding_items": {"type": "array"},
+    "evidence_basis": {"type": "array"},
+    "confidence_level": {"type": "string", "enum": ["low", "medium", "high"]},
+    "mandatory_human_review": {"type": "boolean"},
+    "escalation_reason": {"type": "array", "items": {"type": "string"}},
+    "suggested_next_action": {"type": "array", "items": {"type": "string"}},
+    "artifact_paths": {"type": "array", "items": {"type": "string"}},
+    "notes_cn": {"type": "string"}
+  }
+}

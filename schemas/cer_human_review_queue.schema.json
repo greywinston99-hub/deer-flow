@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/cer_human_review_queue.schema.json",
+  "title": "CER Human Review Queue",
+  "description": "Human review queue for CER review - items requiring Layer 2 or Layer 3 human judgment.",
+  "type": "object",
+  "required": ["queue_id", "step_id", "recommended_gate", "items"],
+  "properties": {
+    "queue_id": { "type": "string" },
+    "step_id": { "type": "string" },
+    "prompt_contract_loaded": { "type": "boolean" },
+    "recommended_gate": {
+      "type": "string",
+      "enum": ["pass", "conditional_pass", "rework_required"]
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item_id", "topic", "reviewer_focus", "why_not_auto_decidable", "priority", "suggested_gate_if_unresolved", "layer", "evidence_sources"],
+        "properties": {
+          "item_id": { "type": "string" },
+          "topic": { "type": "string" },
+          "reviewer_focus": { "type": "string" },
+          "why_not_auto_decidable": { "type": "string" },
+          "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+          "suggested_gate_if_unresolved": {
+            "type": "string",
+            "enum": ["pass", "conditional_pass", "rework_required"]
+          },
+          "layer": {
+            "type": "integer",
+            "enum": [1, 2, 3],
+            "description": "Layer 1=auto, Layer 2=semi-auto, Layer 3=human judgment required"
+          },
+          "evidence_sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "document_id": { "type": "string" },
+                "path": { "type": "string" },
+                "section": { "type": "string" },
+                "line": { "type": "integer" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "upstream_summary": {
+      "type": "object",
+      "properties": {
+        "total_review_items": { "type": "integer" },
+        "layer3_items": { "type": "integer" },
+        "high_priority_items": { "type": "integer" },
+        "hf_finding_count": { "type": "integer" },
+        "cross_doc_conflicts": { "type": "integer" }
+      }
+    }
+  }
+}

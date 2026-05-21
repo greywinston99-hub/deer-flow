@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/cer_project_profile.schema.json",
+  "title": "CER Project Profile",
+  "description": "Normalized profile for a single-project CER review run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project_id",
+    "project_name",
+    "institution_profile",
+    "review_scope",
+    "primary_review_object",
+    "input_package"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "institution_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organization"],
+      "properties": {
+        "organization": { "type": "string" },
+        "assessment_body": { "type": "string" },
+        "profile_version": { "type": "string" }
+      }
+    },
+    "review_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "human_gate_required"],
+      "properties": {
+        "mode": { "type": "string" },
+        "review_language": { "type": "string" },
+        "jurisdiction": { "type": "string" },
+        "human_gate_required": { "type": "boolean" }
+      }
+    },
+    "primary_review_object": {
+      "type": "string",
+      "const": "CER"
+    },
+    "device_context": {
+      "type": "object",
+      "properties": {
+        "device_name": { "type": "string" },
+        "device_family": { "type": "string" },
+        "device_class": { "type": "string" },
+        "intended_use": { "type": "string" },
+        "market_stage": { "type": "string" }
+      }
+    },
+    "input_package": {
+      "type": "object",
+      "required": ["documents"],
+      "properties": {
+        "root_path": { "type": "string" },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["doc_type", "path"],
+            "properties": {
+              "doc_type": {
+                "type": "string",
+                "enum": ["CER", "CEP", "IFU", "RMF", "RMR", "PMCF_Plan", "Tech_Docs", "Literature", "PMS_PSUR", "Equivalence"]
+              },
+              "label": { "type": "string" },
+              "path": { "type": "string" },
+              "required_for_p0": { "type": "boolean" },
+              "source_ref": {
+                "type": "object",
+                "properties": {
+                  "document_id": { "type": "string" },
+                  "path": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "artifact_policy": {
+      "type": "object"
+    }
+  }
+}

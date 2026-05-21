@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/cer_cross_doc_consistency.schema.json",
+  "title": "CER Cross-Document Consistency",
+  "description": "Cross-document consistency checks for CER review - CER↔IFU, CER↔RMF, CER↔CEP, CER↔PMCF.",
+  "type": "object",
+  "required": ["step_id", "consistency_checks", "total_checks", "check_groups"],
+  "properties": {
+    "step_id": { "type": "string" },
+    "prompt_contract_path": { "type": "string" },
+    "prompt_contract_loaded": { "type": "boolean" },
+    "consistency_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_group", "label", "doc_a", "doc_b", "status"],
+        "properties": {
+          "check_group": { "type": "string" },
+          "label": { "type": "string" },
+          "doc_a": { "type": "string" },
+          "doc_b": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["consistent", "inconsistent", "needs_review"]
+          },
+          "severity": { "type": "string", "enum": ["high", "medium", "low"] },
+          "conflict_detail": { "type": "string" },
+          "evidence_refs": { "type": "array", "items": { "type": "object" } }
+        }
+      }
+    },
+    "total_checks": { "type": "integer" },
+    "check_groups": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "conflicts": { "type": "array", "items": { "type": "object" } },
+    "conflict_count": { "type": "integer" },
+    "requires_human_review": { "type": "boolean" },
+    "structural_status": { "type": "string", "enum": ["pass", "issues_detected"] },
+    "pmcf_cer_mapping": {
+      "type": "array",
+      "description": "Section-level CER↔PMCF claim mapping",
+      "items": {
+        "type": "object",
+        "required": ["mapping_id", "cer_claim_or_risk", "pmcf_support_item", "relationship_type", "consistency_status"],
+        "properties": {
+          "mapping_id": { "type": "string" },
+          "cer_claim_or_risk": { "type": "string" },
+          "pmcf_support_item": { "type": "string" },
+          "relationship_type": { "type": "string" },
+          "consistency_status": {
+            "type": "string",
+            "enum": ["aligned", "partially_aligned", "missing_support", "conflicting", "human_review_required"]
+          },
+          "gap_description": { "type": "string" },
+          "severity": { "type": "string", "enum": ["high", "medium", "low"] },
+          "source_refs": { "type": "array", "items": { "type": "object" } }
+        }
+      }
+    }
+  }
+}

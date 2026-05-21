@@ -1,0 +1,7 @@
+=== CER Live Trace Status ===
+TRACE_NOT_AVAILABLE_ON_DISK — not independently reproducible in current workspace
+
+=== RMF Live Trace Status ===
+Partial: only gate_closure live traces remain on disk.
+Steps 1-7 traces show mock characteristics (duration < 300ms, ai_messages_count=1, schema_valid=false).
+backend/.deer-flow/threads/rmf-review-c12b86bfd6eb/user-data/outputs/rmf_review_v1_1/rmf-099b52fed3f6/artifacts/00_manifest/agent_invocation_trace.jsonl

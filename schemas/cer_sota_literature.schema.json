@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER SOTA Literature Schema",
+  "description": "Schema for State of the Art literature assessment",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "artifact_type", "project_id", "cer_run_id", "workflow_id", "step_id", "status", "created_at"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_sota_literature"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "artifact_type": {"type": "string", "const": "sota_literature_report"},
+    "project_id": {"type": "string"},
+    "cer_run_id": {"type": "string"},
+    "workflow_id": {"type": "string", "const": "cer_review_workflow_v1"},
+    "step_id": {"type": "string", "const": "cer_clinical_evidence_panel"},
+    "produced_by_step": {"type": "string", "const": "cer_clinical_evidence_panel"},
+    "sub_assessment_id": {"type": "string", "const": "sota_literature_assessment"},
+    "status": {"type": "string", "enum": ["scaffold_complete", "scaffold_stub", "draft", "validated"]},
+    "created_at": {"type": "string"},
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "literature_search_ref": {"type": "string"},
+        "sota_definition_ref": {"type": "string"}
+      }
+    },
+    "regulatory_anchor_id": {"type": "string", "enum": ["MDR_Article_83", "Annex_XIV_Part_A_3", null]},
+    "human_gate_required": {"type": "boolean", "const": true},
+    "requires_human_review": {"type": "boolean", "const": true},
+    "human_gate_ref": {"type": "string", "const": "HG-03"},
+    "human_gate_topic": {"type": "string", "const": "SOTA adequacy"},
+    "reviewer_question_id": {"type": "string", "const": "RQ-SOTA-001"},
+    "dimension": {"type": "string", "const": "dim_4"},
+    "sota_claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim_id": {"type": "string"},
+          "claim_text": {"type": "string"},
+          "evidence_supporting": {"type": "array", "items": {"type": "string"}},
+          "evidence_conflicting": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "literature_adequacy": {
+      "type": "object",
+      "properties": {
+        "search_strategy_described": {"type": "boolean"},
+        "databases_searched": {"type": "array", "items": {"type": "string"}},
+        "inclusion_exclusion_criteria_described": {"type": "boolean"},
+        "quality_assessment_method": {"type": "string"}
+      }
+    },
+    "no_final_decision_made": {"type": "boolean", "const": true},
+    "note": {"type": "string"},
+    "schema_gate_status": {"type": "string", "enum": ["scaffold_complete", "validated"]}
+  }
+}

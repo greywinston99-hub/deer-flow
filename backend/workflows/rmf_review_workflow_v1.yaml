@@ -1,0 +1,808 @@
+# RMF Review Workflow v1
+# 12-node DAG for RMF Agent Team attachment to DeerFlow
+
+version: "1.0"
+workflow_id: rmf_review_v1
+name: "RMF Review Workflow v1"
+description: "Risk Management File Review with 6-dimension analysis and Human Gate"
+
+# =============================================================================
+# ORDERED STEPS (runner execution plan)
+# step_id values must match _SUPPORTED_STEP_IDS in RMFReviewRunner
+# =============================================================================
+ordered_steps:
+  - step_id: rmf_intake_agent
+    prompt_contract: backend/prompts/rmf/canonical/rmf_review_orchestrator.md
+  - step_id: rmf_parse_normalize_agent
+    prompt_contract: backend/prompts/rmf/canonical/rmf_docstruct_agent.md
+  - step_id: fmea_precheck_agent
+    prompt_contract: backend/prompts/rmf/canonical/rmf_l1_rule_engine_spec.md
+  - step_id: rmf_precheck_agent
+    prompt_contract: backend/prompts/rmf/canonical/rmf_l1_rule_engine_spec.md
+  - step_id: rmf_dimension_review_agent
+    prompt_contract: backend/prompts/rmf/canonical/rmf_comp_risk_coverage_agent.md
+  - step_id: rmf_human_boundary_agent
+    prompt_contract: backend/prompts/rmf/canonical/rmf_qa_human_gate_packet_agent.md
+  - step_id: rmf_report_agent
+    prompt_contract: backend/prompts/rmf/canonical/rmf_findings_synthesis_agent.md
+  - step_id: rmf_gate_closure_agent
+    prompt_contract: backend/prompts/rmf/canonical/rmf_review_orchestrator.md
+
+# =============================================================================
+# RUNTIME CONFIGURATION
+# =============================================================================
+runtime:
+  type: deerflow_harness
+  max_parallel_nodes: 6  # Parallel dimension agents
+  human_gate_mode: stop_and_wait  # Workflow pauses at human gate
+
+# =============================================================================
+# ARTIFACT CONTRACT
+# Project-bound artifact root: artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/
+# =============================================================================
+artifact_contract:
+  root_template: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}"
+  required_dirs:
+    - input
+    - docstruct
+    - l1_rule_engine
+    - dimension_outputs
+    - qa_gate
+    - human_gate
+    - synthesis
+    - knowledge_backflow
+
+# =============================================================================
+# SHARED STATE SCHEMA
+# =============================================================================
+shared_state:
+  schema:
+    rmf_run_id: string
+    project_id: string
+    project_type: string
+    institution: string
+    current_phase:
+      type: string
+      enum: [ingestion, review, gate, synthesis]
+    human_gate_status:
+      type: string
+      enum: [pending, approved, rejected, deferred]
+    dimension_results:
+      type: object
+      properties:
+        COMP:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [pending, complete, failed]
+            findings:
+              type: array
+              items: {}
+        CORR:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [pending, complete, failed]
+            findings:
+              type: array
+              items: {}
+        ADEQ:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [pending, complete, failed]
+            findings:
+              type: array
+              items: {}
+        TRAC:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [pending, complete, failed]
+            findings:
+              type: array
+              items: {}
+        CONS:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [pending, complete, failed]
+            findings:
+              type: array
+              items: {}
+        ACPT:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [pending, complete, failed]
+            findings:
+              type: array
+              items: {}
+    pms_triggered:
+      type: boolean
+    gate_packet:
+      type: [object, 'null']
+    human_gate_decision:
+      type: [object, 'null']
+    findings_synthesis:
+      type: [object, 'null']
+
+# =============================================================================
+# MODEL PROFILES (referenced by nodes)
+# =============================================================================
+model_profiles:
+  deterministic:
+    type: deterministic
+  structured_extraction:
+    type: cerllm
+    model: minimax-m2.7
+    max_tokens: 8192
+    temperature: 0.1
+  rule_patch_semantic:
+    type: cerllm
+    model: minimax-m2.7
+    max_tokens: 16384
+    temperature: 0.2
+  professional_reasoning:
+    type: cerllm
+    model: minimax-m2.7
+    max_tokens: 16384
+    temperature: 0.3
+  high_stakes_reasoning:
+    type: cerllm
+    model: minimax-m2.7
+    max_tokens: 20480
+    temperature: 0.3
+  qa_synthesis:
+    type: cerllm
+    model: minimax-m2.7
+    max_tokens: 24576
+    temperature: 0.4
+
+# =============================================================================
+# NODES
+# =============================================================================
+nodes:
+
+  # -----------------------------------------------------------------------------
+  # NODE 1: Orchestrator (Entry Point)
+  # -----------------------------------------------------------------------------
+  - id: rmf_orchestrator
+    name: "RMF Review Orchestrator"
+    runtime_type: deterministic_orchestrator
+    description: "Entry point and central coordinator for RMF Review DAG"
+    prompt_file: prompts/rmf/canonical/rmf_review_orchestrator.md
+
+    inputs:
+      - name: project_documents
+        source: user_upload
+        required: true
+      - name: project_metadata
+        source: api
+        required: true
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false  # Degraded mode if unavailable
+
+    outputs:
+      - name: orchestrator_output
+        dest: docstruct
+      - name: review_scope
+        dest: all_dimension_agents
+      - name: shared_state
+        dest: all_nodes
+
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/input"
+
+    failure_policy:
+      mode: fail_hard  # Cannot proceed without orchestrator
+      retry: false
+
+  # -----------------------------------------------------------------------------
+  # NODE 2: DocStruct
+  # -----------------------------------------------------------------------------
+  - id: rmf_docstruct
+    name: "Document Structure Parser"
+    runtime_type: deterministic_parser_plus_optional_llm
+    description: "Parses and structures RMF, CER, IFU, FMEA documents"
+    prompt_file: prompts/rmf/canonical/rmf_docstruct_agent.md
+
+    inputs:
+      - name: raw_documents
+        source: orchestrator.orchestrator_output
+        required: true
+      - name: document_types
+        source: orchestrator.review_scope
+        required: true
+
+    outputs:
+      - name: rmf_structured
+        dest: l1_rule_engine
+        dest: all_dimension_agents
+      - name: cer_structured
+        dest: all_dimension_agents
+      - name: ifu_structured
+        dest: all_dimension_agents
+      - name: fmea_structured
+        dest: all_dimension_agents
+
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/docstruct"
+
+    model_profile: structured_extraction
+    optional_llm: true  # LLM enhancement for ambiguous sections only
+
+    failure_policy:
+      mode: continue_partial  # Can proceed with available docs
+      retry: false
+
+  # -----------------------------------------------------------------------------
+  # NODE 3: L1 Rule Engine
+  # -----------------------------------------------------------------------------
+  - id: rmf_l1_rule_engine
+    name: "L1 Deterministic Rule Engine"
+    runtime_type: deterministic_rule_engine
+    description: "Runs deterministic rule checks before semantic review"
+    prompt_file: prompts/rmf/canonical/rmf_l1_rule_engine_spec.md
+
+    inputs:
+      - name: rmf_structured
+        source: docstruct.rmf_structured
+        required: true
+      - name: cer_structured
+        source: docstruct.cer_structured
+        required: false
+      - name: ifu_structured
+        source: docstruct.ifu_structured
+        required: false
+      - name: fmea_structured
+        source: docstruct.fmea_structured
+        required: false
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false
+
+    outputs:
+      - name: l1_results
+        dest: all_dimension_agents
+      - name: hard_fail
+        dest: qa_gate  # Fast-track to QA if hard fail
+
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/l1_rule_engine"
+
+    # Rules checked: RMF-B-001 (ALARP), RMF-C-001 (Production), RMF-D-001 (PMS), RMF-E-001 (Traceability), RMF-F-001 (IFU)
+
+    failure_policy:
+      mode: continue_partial
+      retry: false
+
+  # -----------------------------------------------------------------------------
+  # NODE 4: COMP Risk Coverage (PARALLEL)
+  # -----------------------------------------------------------------------------
+  - id: rmf_comp_risk_coverage
+    name: "COMP Risk Coverage Agent"
+    runtime_type: live_llm_via_CERLLMInvoker
+    description: "Evaluates risk coverage adequacy"
+    prompt_file: prompts/rmf/canonical/rmf_comp_risk_coverage_agent.md
+
+    inputs:
+      - name: rmf_structured
+        source: docstruct.rmf_structured
+        required: true
+      - name: cer_structured
+        source: docstruct.cer_structured
+        required: false
+      - name: l1_results
+        source: l1_rule_engine.l1_results
+        required: false
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false
+
+    outputs:
+      - name: comp_findings
+        dest: qa_gate
+        dest: shared_state
+
+    parallel_group: dimension_agents
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/dimension_outputs/comp"
+
+    model_profile: professional_reasoning
+    requires_human_review: false
+
+    failure_policy:
+      mode: continue_partial
+      retry: true
+      max_retries: 2
+
+  # -----------------------------------------------------------------------------
+  # NODE 5: CORR Method Matrix (PARALLEL)
+  # -----------------------------------------------------------------------------
+  - id: rmf_corr_method_matrix
+    name: "CORR Method Matrix Agent"
+    runtime_type: live_llm_via_CERLLMInvoker
+    description: "Evaluates risk control method consistency and appropriateness"
+    prompt_file: prompts/rmf/canonical/rmf_corr_method_matrix_agent.md
+
+    inputs:
+      - name: rmf_structured
+        source: docstruct.rmf_structured
+        required: true
+      - name: fmea_structured
+        source: docstruct.fmea_structured
+        required: false
+      - name: l1_results
+        source: l1_rule_engine.l1_results
+        required: false
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false
+
+    outputs:
+      - name: corr_findings
+        dest: qa_gate
+        dest: shared_state
+
+    parallel_group: dimension_agents
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/dimension_outputs/corr"
+
+    model_profile: professional_reasoning
+    requires_human_review: false
+
+    failure_policy:
+      mode: continue_partial
+      retry: true
+      max_retries: 2
+
+  # -----------------------------------------------------------------------------
+  # NODE 6: ADEQ Control Adequacy (PARALLEL)
+  # -----------------------------------------------------------------------------
+  - id: rmf_adeq_control_adequacy
+    name: "ADEQ Control Adequacy Agent"
+    runtime_type: live_llm_via_CERLLMInvoker
+    description: "Evaluates individual risk control measure adequacy"
+    prompt_file: prompts/rmf/canonical/rmf_adeq_control_adequacy_agent.md
+
+    inputs:
+      - name: rmf_structured
+        source: docstruct.rmf_structured
+        required: true
+      - name: l1_results
+        source: l1_rule_engine.l1_results
+        required: false
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false
+
+    outputs:
+      - name: adeq_findings
+        dest: qa_gate
+        dest: shared_state
+
+    parallel_group: dimension_agents
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/dimension_outputs/adeq"
+
+    model_profile: professional_reasoning
+    requires_human_review: false
+
+    failure_policy:
+      mode: continue_partial
+      retry: true
+      max_retries: 2
+
+  # -----------------------------------------------------------------------------
+  # NODE 7: TRAC Traceability (PARALLEL, HYBRID)
+  # -----------------------------------------------------------------------------
+  - id: rmf_trac_traceability
+    name: "TRAC Traceability Agent"
+    runtime_type: rule_engine_with_llm_semantic_patch
+    description: "Verifies traceability chain completeness - deterministic first, LLM patch only for unclear linkages"
+    prompt_file: prompts/rmf/canonical/rmf_trac_traceability_spec.md
+
+    inputs:
+      - name: rmf_structured
+        source: docstruct.rmf_structured
+        required: true
+      - name: cer_structured
+        source: docstruct.cer_structured
+        required: false
+      - name: l1_results
+        source: l1_rule_engine.l1_results
+        required: false
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false
+
+    outputs:
+      - name: trac_findings
+        dest: qa_gate
+        dest: shared_state
+
+    parallel_group: dimension_agents
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/dimension_outputs/trac"
+
+    model_profile: rule_patch_semantic
+    requires_human_review: false
+
+    # Layer 1: Deterministic traceability verification (always runs)
+    # Layer 2: LLM semantic patch (only when structural chain exists but semantic fit unclear)
+
+    failure_policy:
+      mode: continue_partial
+      retry: true
+      max_retries: 2
+
+  # -----------------------------------------------------------------------------
+  # NODE 8: CONS Cross-Document Consistency (PARALLEL)
+  # -----------------------------------------------------------------------------
+  - id: rmf_cons_cross_document_consistency
+    name: "CONS Cross-Document Consistency Agent"
+    runtime_type: live_llm_via_CERLLMInvoker
+    description: "Evaluates consistency across RMF, CER, IFU, FMEA"
+    prompt_file: prompts/rmf/canonical/rmf_cons_cross_document_consistency_agent.md
+
+    inputs:
+      - name: rmf_structured
+        source: docstruct.rmf_structured
+        required: true
+      - name: cer_structured
+        source: docstruct.cer_structured
+        required: false
+      - name: ifu_structured
+        source: docstruct.ifu_structured
+        required: false
+      - name: fmea_structured
+        source: docstruct.fmea_structured
+        required: false
+      - name: l1_results
+        source: l1_rule_engine.l1_results
+        required: false
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false
+
+    outputs:
+      - name: cons_findings
+        dest: qa_gate
+        dest: shared_state
+        dest: pms_trigger_check  # May trigger PMS Lane
+
+    parallel_group: dimension_agents
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/dimension_outputs/cons"
+
+    model_profile: professional_reasoning
+    requires_human_review: false
+
+    failure_policy:
+      mode: continue_partial
+      retry: true
+      max_retries: 2
+
+  # -----------------------------------------------------------------------------
+  # NODE 9: ACPT Residual Risk & Benefit-Risk (PARALLEL)
+  # -----------------------------------------------------------------------------
+  - id: rmf_acpt_residual_risk_benefit_risk
+    name: "ACPT Residual Risk & Benefit-Risk Agent"
+    runtime_type: live_llm_via_CERLLMInvoker
+    description: "Evaluates residual risk acceptability and benefit-risk assessment"
+    prompt_file: prompts/rmf/canonical/rmf_acpt_residual_risk_benefit_risk_agent.md
+
+    inputs:
+      - name: rmf_structured
+        source: docstruct.rmf_structured
+        required: true
+      - name: cer_structured
+        source: docstruct.cer_structured
+        required: false
+      - name: l1_results
+        source: l1_rule_engine.l1_results
+        required: false
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false
+
+    outputs:
+      - name: acpt_findings
+        dest: qa_gate
+        dest: shared_state
+        dest: pms_trigger_check  # May trigger PMS Lane
+
+    parallel_group: dimension_agents
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/dimension_outputs/acpt"
+
+    model_profile: high_stakes_reasoning
+    requires_human_review: true  # HIGH_STAKES - human review required by default
+
+    failure_policy:
+      mode: continue_partial
+      retry: true
+      max_retries: 2
+
+  # -----------------------------------------------------------------------------
+  # NODE 10: QA Human Gate Packet
+  # -----------------------------------------------------------------------------
+  - id: rmf_qa_human_gate_packet
+    name: "QA Human Gate Packet Agent"
+    runtime_type: live_llm_plus_deterministic_validation
+    description: "Synthesizes findings into Human Gate Packet, performs Layer 1/2 arbitration. NOT a Layer 3 裁决者."
+    prompt_file: prompts/rmf/canonical/rmf_qa_human_gate_packet_agent.md
+
+    inputs:
+      - name: dimension_findings
+        source: dimension_agents.all_findings
+        required: true
+      - name: l1_results
+        source: l1_rule_engine.l1_results
+        required: false
+      - name: shared_state
+        source: orchestrator.shared_state
+        required: true
+
+    outputs:
+      - name: human_gate_packet
+        dest: human_gate  # STOP HERE - workflow pauses
+      - name: qa_gate_status
+        dest: shared_state
+
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/qa_gate"
+
+    model_profile: qa_synthesis
+
+    # QA Arbitration Rules (Layer 1/2 only):
+    # - Source-backed beats unsupported
+    # - Deterministic beats LLM
+    # - High-confidence beats low-confidence
+    # - Unresolved conflicts → Human Gate
+
+    failure_policy:
+      mode: fail_hard  # Cannot proceed without QA synthesis
+      retry: false
+
+  # -----------------------------------------------------------------------------
+  # NODE 11: PMS Lane (CONDITIONAL)
+  # -----------------------------------------------------------------------------
+  - id: rmf_pms_post_production_feedback_lane
+    name: "PMS Post-Production Feedback Lane"
+    runtime_type: conditional_live_llm_via_CERLLMInvoker
+    description: "Conditional review triggered by risk conditions. NOT triggered by document existence alone."
+    prompt_file: prompts/rmf/canonical/rmf_pms_post_production_feedback_lane.md
+
+    conditional_trigger:
+      any_of:
+        - condition: acpt_high_residual_risk
+          source: acpt_findings
+          check: severity=critical AND weak_rationale=true
+        - condition: acpt_benefit_risk_uncertainty
+          source: acpt_findings
+          check: overall_benefit_risk=uncertain
+        - condition: cons_missing_pms_reference
+          source: cons_findings
+          check: finding_type=missing_pms_reference
+        - condition: comp_production_weak
+          source: comp_findings
+          check: severity=critical AND section=production
+        - condition: project_profile_flagged
+          source: project_metadata
+          check: pms_trigger=true
+        - condition: human_reviewer_request
+          source: human_gate
+          check: pms_review_requested=true
+
+    inputs:
+      - name: rmf_structured
+        source: docstruct.rmf_structured
+        required: true
+      - name: l1_results
+        source: l1_rule_engine.l1_results
+        required: false
+      - name: approved_knowledge_assets
+        source: nocodb
+        required: false
+      - name: trigger_condition
+        source: orchestrator.pms_trigger_check
+        required: true
+
+    outputs:
+      - name: pms_findings
+        dest: qa_gate  # Goes to QA for inclusion in packet
+      - name: pms_triggered
+        dest: shared_state
+
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/dimension_outputs/pms"
+
+    model_profile: professional_reasoning
+    requires_human_review: false
+
+    # PMS does NOT trigger merely because PMS/PMCF documents exist
+
+    failure_policy:
+      mode: skip  # Not a failure if PMS not triggered
+      retry: false
+
+  # -----------------------------------------------------------------------------
+  # NODE 12: Findings Synthesis (POST-GATE)
+  # -----------------------------------------------------------------------------
+  - id: rmf_findings_synthesis
+    name: "Findings Synthesis Agent"
+    runtime_type: report_synthesis_draft
+    description: "Synthesizes all findings into final report after Human Gate decision"
+    prompt_file: prompts/rmf/canonical/rmf_findings_synthesis_agent.md
+
+    inputs:
+      - name: dimension_findings
+        source: dimension_agents.all_findings
+        required: true
+      - name: human_gate_packet
+        source: qa_gate.human_gate_packet
+        required: true
+      - name: human_gate_decision
+        source: human_gate.decision
+        required: true
+      - name: qa_gate_status
+        source: qa_gate.qa_gate_status
+        required: true
+
+    outputs:
+      - name: synthesis_report
+        dest: artifact
+      - name: knowledge_candidates
+        dest: knowledge_review_gate
+
+    artifact_path: "artifacts/cer/{project_id}/rmf_review/{rmf_run_id}/synthesis"
+
+    model_profile: qa_synthesis
+    requires_human_review: false
+
+    failure_policy:
+      mode: fail_hard
+      retry: false
+
+# =============================================================================
+# EDGES (DAG Structure)
+# =============================================================================
+edges:
+
+  # Orchestrator → DocStruct
+  - from: rmf_orchestrator
+    to: rmf_docstruct
+    label: "start"
+
+  # DocStruct → L1 Rule Engine
+  - from: rmf_docstruct
+    to: rmf_l1_rule_engine
+    label: "structured_documents"
+
+  # L1 Rule Engine → Parallel Dimension Agents
+  - from: rmf_l1_rule_engine
+    to: rmf_comp_risk_coverage
+    label: "l1_results"
+  - from: rmf_l1_rule_engine
+    to: rmf_corr_method_matrix
+    label: "l1_results"
+  - from: rmf_l1_rule_engine
+    to: rmf_adeq_control_adequacy
+    label: "l1_results"
+  - from: rmf_l1_rule_engine
+    to: rmf_trac_traceability
+    label: "l1_results"
+  - from: rmf_l1_rule_engine
+    to: rmf_cons_cross_document_consistency
+    label: "l1_results"
+  - from: rmf_l1_rule_engine
+    to: rmf_acpt_residual_risk_benefit_risk
+    label: "l1_results"
+
+  # Parallel Dimension Agents → QA Gate
+  - from: rmf_comp_risk_coverage
+    to: rmf_qa_human_gate_packet
+    label: "comp_findings"
+  - from: rmf_corr_method_matrix
+    to: rmf_qa_human_gate_packet
+    label: "corr_findings"
+  - from: rmf_adeq_control_adequacy
+    to: rmf_qa_human_gate_packet
+    label: "adeq_findings"
+  - from: rmf_trac_traceability
+    to: rmf_qa_human_gate_packet
+    label: "trac_findings"
+  - from: rmf_cons_cross_document_consistency
+    to: rmf_qa_human_gate_packet
+    label: "cons_findings"
+  - from: rmf_acpt_residual_risk_benefit_risk
+    to: rmf_qa_human_gate_packet
+    label: "acpt_findings"
+
+  # ACPT/CONS → PMS Trigger Check
+  - from: rmf_acpt_residual_risk_benefit_risk
+    to: rmf_pms_post_production_feedback_lane
+    label: "pms_trigger_check"
+    conditional: true
+  - from: rmf_cons_cross_document_consistency
+    to: rmf_pms_post_production_feedback_lane
+    label: "pms_trigger_check"
+    conditional: true
+
+  # PMS Lane → QA Gate (if triggered)
+  - from: rmf_pms_post_production_feedback_lane
+    to: rmf_qa_human_gate_packet
+    label: "pms_findings"
+    conditional: true
+
+  # QA Gate → Human Gate (STOP POINT)
+  - from: rmf_qa_human_gate_packet
+    to: human_gate
+    label: "human_gate_packet"
+    stop_point: true  # Workflow pauses here for human decision
+
+  # Human Gate → Findings Synthesis (after human decision)
+  - from: human_gate
+    to: rmf_findings_synthesis
+    label: "human_gate_decision"
+
+  # Findings Synthesis → Knowledge Review Gate
+  - from: rmf_findings_synthesis
+    to: knowledge_review_gate
+    label: "knowledge_candidates"
+
+# =============================================================================
+# HUMAN GATE CONFIGURATION
+# =============================================================================
+human_gate:
+  stop_point: true
+  required: true
+  layer3_decisions:
+    - RMF_acceptability
+    - benefit_risk_final
+    - residual_risk_closure
+    - residual_risk_acceptance_under_uncertainty
+  packet_sections:
+    - section_a: executive_summary
+    - section_b: dimension_findings
+    - section_c: conflicts_qa_resolutions
+    - section_d: high_risk_items
+    - section_e: pms_findings
+    - section_f: recommended_decisions
+
+# =============================================================================
+# KNOWLEDGE BACKFLOW CONFIGURATION
+# =============================================================================
+knowledge_backflow:
+  candidate_types:
+    - TerminologyUnit
+    - RuleUnit
+    - FailurePattern
+    - BoundaryCondition
+    - ReviewHeuristic
+  gate: knowledge_review_gate
+  nocodb_table: knowledge_assets
+
+# =============================================================================
+# FAILURE MODES
+# =============================================================================
+failure_modes:
+  orchestrator:
+    mode: fail_hard
+    message: "Orchestrator failure - cannot proceed"
+  docstruct:
+    mode: continue_partial
+    message: "Some documents could not be parsed - proceeding with available"
+  l1_rule_engine:
+    mode: continue_partial
+    message: "L1 rule engine had issues - proceeding to dimension review"
+  dimension_agent:
+    mode: continue_partial
+    message: "Dimension agent had issues - findings may be incomplete"
+  qa_gate:
+    mode: fail_hard
+    message: "QA Gate synthesis failed - cannot proceed to human gate"
+  human_gate:
+    mode: stop_and_wait
+    message: "Awaiting human gate decision"
+  findings_synthesis:
+    mode: fail_hard
+    message: "Findings synthesis failed - cannot complete review"

@@ -1,0 +1,21 @@
+=== CER D1 Handler Subagent Dispatch Check ===
+_run_d1_intake: has_subagent=True
+_run_d1_structure_compliance: has_subagent=True
+_run_d1_intended_purpose: has_subagent=True
+_run_d1_cep_methodology: has_subagent=True
+_run_d1_clinical_evidence_panel: has_subagent=True
+_run_d1_ifu_sscp_label: has_subagent=True
+_run_d1_qa_gate: has_subagent=True
+_run_d1_cear_formatter: has_subagent=True
+_run_d1_human_boundary: has_subagent=True
+_run_d1_gate_closure: has_subagent=True
+
+=== RMF Stage Handler Subagent Dispatch Check ===
+_run_intake: has_subagent=True
+_run_parse_normalize: has_subagent=True
+_run_fmea_precheck: has_subagent=True
+_run_rmf_precheck: has_subagent=True
+_run_rmf_dimension_review: has_subagent=True
+_run_human_boundary: has_subagent=True
+_run_report: has_subagent=True
+_run_gate_closure: has_subagent=True

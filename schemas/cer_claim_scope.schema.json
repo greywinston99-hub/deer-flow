@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Claim Scope Schema",
+  "description": "Schema for cer-claim-scope-agent output",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id", "agent_name"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_claim_scope"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "artifact_id": {"type": "string"},
+    "artifact_type": {"type": "string", "const": "node_output"},
+    "generated_by": {"type": "string", "const": "cer-claim-scope-agent"},
+    "generated_at": {"type": "string"},
+    "input_refs": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["draft", "final", "superseded", "archived"]},
+    "summary_cn": {"type": "string"},
+    "claim_consistency_matrix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim_item": {"type": "string"},
+          "cer_ref": {"type": "string"},
+          "ifu_ref": {"type": "string"},
+          "sscp_ref": {"type": "string"},
+          "cep_ref": {"type": "string"},
+          "consistency_status": {"type": "string", "enum": ["consistent", "partially_consistent", "inconsistent", "not_applicable"]},
+          "notes_cn": {"type": "string"}
+        }
+      }
+    },
+    "potential_claim_downgrade_notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "finding_items": {"type": "array"},
+    "evidence_basis": {"type": "array"},
+    "confidence_level": {"type": "string", "enum": ["low", "medium", "high"]},
+    "mandatory_human_review": {"type": "boolean"},
+    "escalation_reason": {"type": "array", "items": {"type": "string"}},
+    "suggested_next_action": {"type": "array", "items": {"type": "string"}},
+    "artifact_paths": {"type": "array", "items": {"type": "string"}},
+    "notes_cn": {"type": "string"}
+  }
+}

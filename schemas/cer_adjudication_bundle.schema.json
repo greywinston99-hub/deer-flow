@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Adjudication Bundle Schema",
+  "description": "Schema for clinical adjudication bundle at human gate",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_adjudication_bundle"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "bundle_id": {"type": "string"},
+    "generated_by": {"type": "string", "const": "cer-review-orchestrator"},
+    "generated_at": {"type": "string"},
+    "status": {"type": "string", "enum": ["draft", "pending_review", "confirmed"]},
+    "claim_findings_ref": {"type": "string"},
+    "sota_evidence_findings_ref": {"type": "string"},
+    "equivalence_findings_ref": {"type": "string"},
+    "access_verification_findings_ref": {"type": "string"},
+    "consistency_findings_ref": {"type": "string"},
+    "gspr_evidence_mapping_ref": {"type": "string"},
+    "risk_coverage_matrix_ref": {"type": "string"},
+    "pmcf_need_statement_ref": {"type": "string"},
+    "pmcf_adequacy_assessment_ref": {"type": "string"},
+    "update_trigger_assessment_ref": {"type": "string"},
+    "escalation_summary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lane": {"type": "string"},
+          "escalation_reason": {"type": "string"},
+          "priority": {"type": "string", "enum": ["high", "medium", "low"]}
+        }
+      }
+    },
+    "route_confirmed": {"type": "boolean"},
+    "equivalence_confirmed": {"type": "boolean"},
+    "pmcf_handoff_complete": {"type": "boolean"},
+    "notes_cn": {"type": "string"}
+  }
+}

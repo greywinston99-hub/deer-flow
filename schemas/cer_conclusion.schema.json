@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Conclusion Schema",
+  "description": "Schema for cer-conclusion-agent output",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id", "agent_name"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_conclusion"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "artifact_id": {"type": "string"},
+    "artifact_type": {"type": "string", "const": "node_output"},
+    "generated_by": {"type": "string", "const": "cer-conclusion-agent"},
+    "generated_at": {"type": "string"},
+    "input_refs": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["draft", "final", "superseded", "archived"]},
+    "summary_cn": {"type": "string"},
+    "constitutional_review_report_ref": {"type": "string"},
+    "overall_conclusion_draft_ref": {"type": "string"},
+    "deficiency_register_ref": {"type": "string"},
+    "route_decision_note_ref": {"type": "string"},
+    "decision_ledger_entry": {
+      "type": "object",
+      "properties": {
+        "decision_id": {"type": "string"},
+        "decision_type": {"type": "string", "enum": ["route", "clinical_adjudication", "closure"]},
+        "decision_text_cn": {"type": "string"},
+        "human_actor": {"type": "string"},
+        "timestamp": {"type": "string"},
+        "conditions": {"type": "array", "items": {"type": "string"}},
+        "status_value": {"type": "string", "enum": ["active", "superseded", "closed"]},
+        "supersedes_decision_id": {"type": "string"}
+      }
+    },
+    "closure_bundle_index": {
+      "type": "object",
+      "properties": {
+        "overall_conclusion_ref": {"type": "string"},
+        "deficiency_register_ref": {"type": "string"},
+        "decision_ledger_entry_ref": {"type": "string"},
+        "followup_items_ref": {"type": "string"},
+        "archived_artifacts": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "finding_items": {"type": "array"},
+    "evidence_basis": {"type": "array"},
+    "confidence_level": {"type": "string", "enum": ["low", "medium", "high"]},
+    "mandatory_human_review": {"type": "boolean"},
+    "escalation_reason": {"type": "array", "items": {"type": "string"}},
+    "suggested_next_action": {"type": "array", "items": {"type": "string"}},
+    "artifact_paths": {"type": "array", "items": {"type": "string"}},
+    "notes_cn": {"type": "string"}
+  }
+}

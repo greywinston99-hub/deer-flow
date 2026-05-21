@@ -52,10 +52,13 @@ artifact_contract:
   rmf_precheck_report: ${artifact_root}/03_rmf_precheck/rmf_precheck_report.json
   dimension_assessment: ${artifact_root}/04_dimension_review/dimension_assessment.json
   human_review_queue: ${artifact_root}/05_human_boundary/human_review_queue.json
+  human_gate_decision: ${artifact_root}/05_human_boundary/human_gate_decision.json
   final_markdown_report: ${artifact_root}/06_final/final_report.md
   final_json_report: ${artifact_root}/06_final/final_report.json
   capa_action_list: ${artifact_root}/06_final/capa_action_list.json
   backflow_candidates: ${artifact_root}/06_final/backflow_candidates.json
+  gate_closure_report: ${artifact_root}/07_gate_closure/gate_closure_report.json
+  next_action_packet: ${artifact_root}/07_gate_closure/next_action_packet.json
 
 layering_rules:
   layer_1:
@@ -159,6 +162,15 @@ ordered_steps:
       - final_json_report
       - capa_action_list
       - backflow_candidates
+    on_fail: stop_and_emit_failure_artifact
+  - step_id: rmf_gate_closure_agent
+    prompt_contract: prompts/rmf_gate_closure_agent.md
+    layer: layer_3
+    depends_on:
+      - rmf_report_agent
+    outputs:
+      - gate_closure_report
+      - next_action_packet
     on_fail: stop_and_emit_failure_artifact
 
 human_gate:

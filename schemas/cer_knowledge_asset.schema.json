@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "cer_knowledge_asset.schema.json",
+  "title": "CER Knowledge Asset",
+  "description": "Published knowledge asset in the machine knowledge container",
+  "type": "object",
+  "required": [
+    "$schema",
+    "schema_version",
+    "asset_id",
+    "asset_type",
+    "project_id",
+    "state",
+    "confidence",
+    "source_artifact",
+    "source_chain",
+    "payload",
+    "metadata"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "cer_knowledge_asset.schema.json"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "asset_id": {
+      "type": "string",
+      "pattern": "^KC-[0-9]{8}-[A-F0-9]{8}$",
+      "description": "Asset identifier (matches candidate_id)"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "RuleUnit",
+        "MethodUnit",
+        "FailurePattern",
+        "ChecklistUnit",
+        "BoundaryCondition",
+        "CrossDocumentMapping",
+        "TerminologyUnit",
+        "EvidenceRequirement",
+        "ReviewHeuristic",
+        "CaseLesson",
+        "WorkflowImprovement"
+      ],
+      "description": "Knowledge asset taxonomy type"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "CER project identifier"
+    },
+    "state": {
+      "type": "string",
+      "const": "published"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "source_artifact": {
+      "type": "string",
+      "description": "Path to original source artifact"
+    },
+    "source_chain": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Full provenance chain"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Type-specific structured knowledge payload",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["extracted_at", "published_at"],
+      "properties": {
+        "extracted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "published_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reviewed_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "reviewed_by": {
+          "type": ["string", "null"]
+        },
+        "review_decision": {
+          "type": ["string", "null"],
+          "enum": ["APPROVE", "REJECT", "PARK", null]
+        },
+        "review_notes": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

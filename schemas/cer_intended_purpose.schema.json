@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Intended Purpose Schema",
+  "description": "Schema for intended purpose assessment and PICO alignment",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "artifact_type", "project_id", "cer_run_id", "workflow_id", "step_id", "status", "created_at"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_intended_purpose"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "artifact_type": {"type": "string", "const": "intended_purpose_assessment"},
+    "project_id": {"type": "string"},
+    "cer_run_id": {"type": "string"},
+    "workflow_id": {"type": "string", "const": "cer_review_workflow_v1"},
+    "step_id": {"type": "string", "const": "cer_intended_purpose"},
+    "produced_by_step": {"type": "string", "const": "cer_intended_purpose"},
+    "status": {"type": "string", "enum": ["scaffold_complete", "scaffold_stub", "draft", "validated"]},
+    "created_at": {"type": "string"},
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "cer_docstruct_ref": {"type": "string"},
+        "ifu_document_ref": {"type": "string"}
+      }
+    },
+    "regulatory_anchor_id": {"type": "string", "enum": ["MDR_Article_83", "Annex_XIV_Part_A", null]},
+    "human_gate_required": {"type": "boolean", "const": true},
+    "requires_human_review": {"type": "boolean", "const": true},
+    "human_gate_ref": {"type": "string", "const": "HG-07"},
+    "human_gate_topic": {"type": "string", "const": "Clinical claim adequacy"},
+    "reviewer_question_id": {"type": "string", "const": "RQ-INTENDED-PURPOSE-001"},
+    "intended_purpose_assessment": {
+      "type": "object",
+      "properties": {
+        "intended_use_statement": {"type": "string"},
+        "indications": {"type": "array", "items": {"type": "string"}},
+        "contraindications": {"type": "array", "items": {"type": "string"}},
+        "patient_population": {"type": "string"},
+        "clinical_benefit_claim": {"type": "string"}
+      }
+    },
+    "pico_alignment": {
+      "type": "object",
+      "properties": {
+        "population_aligned": {"type": "boolean"},
+        "intervention_aligned": {"type": "boolean"},
+        "comparator_aligned": {"type": "boolean"},
+        "outcomes_aligned": {"type": "boolean"},
+        "overall_alignment_status": {"type": "string", "enum": ["aligned", "partial", "misaligned", "pending"]}
+      }
+    },
+    "no_final_decision_made": {"type": "boolean", "const": true},
+    "note": {"type": "string"},
+    "schema_gate_status": {"type": "string", "enum": ["scaffold_complete", "validated"]}
+  }
+}

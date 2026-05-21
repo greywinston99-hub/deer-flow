@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Decision Ledger Schema",
+  "description": "Schema for append-only decision ledger entries",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "review_run_id", "round_id"],
+  "properties": {
+    "schema_name": {"type": "string", "const": "cer_decision_ledger"},
+    "schema_version": {"type": "string", "const": "v1"},
+    "review_run_id": {"type": "string"},
+    "round_id": {"type": "string"},
+    "decision_id": {"type": "string"},
+    "decision_type": {"type": "string", "enum": ["route", "clinical_adjudication", "closure"]},
+    "decision_text_cn": {"type": "string"},
+    "human_actor": {"type": "string"},
+    "timestamp": {"type": "string"},
+    "conditions": {"type": "array", "items": {"type": "string"}},
+    "status_value": {"type": "string", "enum": ["active", "superseded", "closed"]},
+    "supersedes_decision_id": {"type": "string"},
+    "artifact_refs": {"type": "array", "items": {"type": "string"}}
+  }
+}

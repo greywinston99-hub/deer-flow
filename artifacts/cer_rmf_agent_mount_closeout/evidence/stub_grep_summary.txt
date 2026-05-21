@@ -1,0 +1,3 @@
+=== scaffold_stub / skeleton_stub grep ===
+backend/packages/harness/deerflow/runtime/cer_review/runner.py:4522:                    if status == "scaffold_stub":
+backend/packages/harness/deerflow/runtime/cer_review/runner.py:4526:                            "mismatch_description": f"Preceding artifact {step_dir_name}/{filename} has status 'scaffold_stub', indicating incomplete analysis.",

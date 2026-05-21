@@ -6,14 +6,52 @@ from fastapi import FastAPI
 
 from app.gateway.config import get_gateway_config
 from app.gateway.deps import langgraph_runtime
+
+# Increase Starlette's default max_part_size from 1MB to 100MB so that
+# evidence pack uploads (up to 50 MB per file) are not rejected at the
+# form-parser layer.  This is a global default; individual endpoint
+# calls can override it via request.form(max_part_size=...).
+import starlette.requests
+
+_original_get_form = starlette.requests.Request._get_form
+
+
+async def _patched_get_form(
+    self,
+    *,
+    max_files: int | float = 1000,
+    max_fields: int | float = 1000,
+    max_part_size: int = 100 * 1024 * 1024,  # 100 MB (was 1 MB)
+) -> starlette.datastructures.FormData:
+    return await _original_get_form(
+        self,
+        max_files=max_files,
+        max_fields=max_fields,
+        max_part_size=max_part_size,
+    )
+
+
+starlette.requests.Request._get_form = _patched_get_form
 from app.gateway.routers import (
     agents,
     artifacts,
     assistants_compat,
+    cer_available_source_workflow,
+    cer_integration,
+    cer_intake,
+    cer_knowledge,
+    cer_knowledge_assets,
+    cer_review_workspace,
+    cer_source_package_intake_bridge,
     channels,
     mcp,
     memory,
     models,
+    rmf,
+    rmf_artifacts,
+    rmf_board,
+    rmf_export,
+    rmf_projects,
     runs,
     skills,
     suggestions,
@@ -157,6 +195,10 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
                 "description": "LangGraph Platform-compatible runs lifecycle (create, stream, cancel)",
             },
             {
+                "name": "rmf",
+                "description": "RMF Review Workflow - trigger review runs, submit human gate decisions, and retrieve artifacts",
+            },
+            {
                 "name": "health",
                 "description": "Health check and system status endpoints",
             },
@@ -181,6 +223,21 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
     # Artifacts API is mounted at /api/threads/{thread_id}/artifacts
     app.include_router(artifacts.router)
 
+    # RMF Review Workflow API is mounted at /api/rmf
+    app.include_router(rmf.router)
+
+    # RMF Artifact Read API is mounted at /api/rmf/projects/{id}/artifacts/*
+    app.include_router(rmf_artifacts.router)
+
+    # RMF Project Layer API is mounted at /api/rmf/projects
+    app.include_router(rmf_projects.router)
+
+    # RMF Operations Board API is mounted at /api/rmf/board
+    app.include_router(rmf_board.router)
+
+    # RMF Governance Export API is mounted at /api/rmf/projects/{id}/export/*
+    app.include_router(rmf_export.router)
+
     # Uploads API is mounted at /api/threads/{thread_id}/uploads
     app.include_router(uploads.router)
 
@@ -204,6 +261,15 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
 
     # Stateless Runs API (stream/wait without a pre-existing thread)
     app.include_router(runs.router)
+
+    # CER Review Workspace API — governance-aware endpoints
+    app.include_router(cer_review_workspace.router)
+    app.include_router(cer_intake.router)
+    app.include_router(cer_knowledge.router)
+    app.include_router(cer_knowledge_assets.router)
+    app.include_router(cer_integration.router)
+    app.include_router(cer_available_source_workflow.router)
+    app.include_router(cer_source_package_intake_bridge.router)
 
     @app.get("/health", tags=["health"])
     async def health_check() -> dict:

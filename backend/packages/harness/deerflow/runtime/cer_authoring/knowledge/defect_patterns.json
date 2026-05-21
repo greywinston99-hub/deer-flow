@@ -1,0 +1,247 @@
+{
+  "patterns": [
+    {
+      "id": "DP-001",
+      "name": "domain_contamination",
+      "severity": "critical",
+      "category": "content",
+      "detection": "forbidden_term_in_body",
+      "fix": "trace_source_and_reroute"
+    },
+    {
+      "id": "DP-002",
+      "name": "template_residue",
+      "severity": "critical",
+      "category": "content",
+      "detection": "banned_string_in_body",
+      "fix": "strip_template_and_regenerate"
+    },
+    {
+      "id": "DP-003",
+      "name": "evidence_conclusion_mismatch",
+      "severity": "critical",
+      "category": "logic",
+      "detection": "support_level_vs_wording",
+      "fix": "downgrade_wording"
+    },
+    {
+      "id": "DP-004",
+      "name": "circular_reasoning",
+      "severity": "high",
+      "category": "logic",
+      "detection": "claim_citing_claim",
+      "fix": "add_external_evidence"
+    },
+    {
+      "id": "DP-005",
+      "name": "missing_sota_benchmark",
+      "severity": "high",
+      "category": "data",
+      "detection": "claim_without_sota",
+      "fix": "trigger_alignment_check"
+    },
+    {
+      "id": "DP-006",
+      "name": "insufficient_evidence",
+      "severity": "high",
+      "category": "data",
+      "detection": "g42_insufficient",
+      "fix": "endpoint_substitution_then_pmcf"
+    },
+    {
+      "id": "DP-007",
+      "name": "over_strong_conclusion",
+      "severity": "high",
+      "category": "logic",
+      "detection": "oxford_vs_wording",
+      "fix": "downgrade_to_oxford_level"
+    },
+    {
+      "id": "DP-008",
+      "name": "missing_rmf_coverage",
+      "severity": "critical",
+      "category": "data",
+      "detection": "no_rmf_for_warning",
+      "fix": "flag_gap_and_downgrade"
+    },
+    {
+      "id": "DP-009",
+      "name": "endpoint_context_lost",
+      "severity": "high",
+      "category": "data",
+      "detection": "fact_without_claim_link",
+      "fix": "add_claim_context_hint"
+    },
+    {
+      "id": "DP-010",
+      "name": "br_quality_asymmetry",
+      "severity": "high",
+      "category": "logic",
+      "detection": "benefit_risk_diff_quality",
+      "fix": "separate_quality_tiers"
+    },
+    {
+      "id": "DP-011",
+      "name": "ifu_quality_degraded",
+      "severity": "medium",
+      "category": "input",
+      "detection": "scanned_unreadable_ifu",
+      "fix": "flag_for_human_review"
+    },
+    {
+      "id": "DP-012",
+      "name": "screening_pool_shallow",
+      "severity": "medium",
+      "category": "data",
+      "detection": "pool_below_threshold",
+      "fix": "expand_search_or_document"
+    },
+    {
+      "id": "DP-013",
+      "name": "spiral_exhausted",
+      "severity": "high",
+      "category": "process",
+      "detection": "max_rounds_reached",
+      "fix": "controlled_compromise"
+    },
+    {
+      "id": "DP-014",
+      "name": "equivalence_not_justified",
+      "severity": "high",
+      "category": "logic",
+      "detection": "missing_3d_comparison",
+      "fix": "add_technical_bio_clinical"
+    },
+    {
+      "id": "DP-015",
+      "name": "gspr_coverage_gap",
+      "severity": "medium",
+      "category": "data",
+      "detection": "gspr_without_evidence",
+      "fix": "flag_gap_or_route_to_rmf"
+    },
+    {
+      "id": "DP-016",
+      "name": "pmcf_premature",
+      "severity": "medium",
+      "category": "process",
+      "detection": "pmcf_before_alternatives",
+      "fix": "try_endpoint_substitution_first"
+    },
+    {
+      "id": "DP-017",
+      "name": "pico_over_generation",
+      "severity": "low",
+      "category": "efficiency",
+      "detection": "pico_for_ifu_warning",
+      "fix": "skip_pico_for_non_clinical"
+    },
+    {
+      "id": "DP-018",
+      "name": "keyword_mismatch_regional",
+      "severity": "medium",
+      "category": "data",
+      "detection": "term_not_found",
+      "fix": "expand_with_regional_variants"
+    },
+    {
+      "id": "DP-019",
+      "name": "confidence_overstated",
+      "severity": "medium",
+      "category": "logic",
+      "detection": "low_confidence_strong_wording",
+      "fix": "apply_confidence_wording_map"
+    },
+    {
+      "id": "DP-020",
+      "name": "model_resolution_fallback",
+      "severity": "low",
+      "category": "system",
+      "detection": "default_model_used",
+      "fix": "log_and_proceed"
+    },
+    {
+      "id": "DP-021",
+      "name": "annex_traceability_gap",
+      "severity": "medium",
+      "category": "data",
+      "detection": "claim_without_annex_ref",
+      "fix": "add_cross_reference"
+    },
+    {
+      "id": "DP-022",
+      "name": "human_confirmation_skipped",
+      "severity": "critical",
+      "category": "process",
+      "detection": "interrupt_not_triggered",
+      "fix": "enforce_interrupt_flow"
+    },
+    {
+      "id": "DP-023",
+      "name": "alignment_conflict",
+      "severity": "high",
+      "category": "logic",
+      "detection": "equivalence_vs_vigilance_mismatch",
+      "fix": "flag_and_document"
+    },
+    {
+      "id": "DP-024",
+      "name": "sota_benchmark_low_confidence",
+      "severity": "medium",
+      "category": "data",
+      "detection": "benchmark_confidence_low",
+      "fix": "downgrade_wording"
+    },
+    {
+      "id": "DP-025",
+      "name": "data_source_type_undifferentiated",
+      "severity": "medium",
+      "category": "data",
+      "detection": "manufacturer_vs_literature_mixed",
+      "fix": "add_data_source_type"
+    },
+    {
+      "id": "DP-026",
+      "name": "follow_up_inadequate",
+      "severity": "high",
+      "category": "data",
+      "detection": "short_follow_up_for_implant",
+      "fix": "flag_pmcf_long_term"
+    },
+    {
+      "id": "DP-027",
+      "name": "rare_event_underpowered",
+      "severity": "high",
+      "category": "data",
+      "detection": "sample_too_small_for_rare_event",
+      "fix": "flag_pmcf_large_sample"
+    },
+    {
+      "id": "DP-028",
+      "name": "cer_update_missing",
+      "severity": "low",
+      "category": "process",
+      "detection": "no_update_mode",
+      "fix": "reserved_for_future"
+    },
+    {
+      "id": "DP-029",
+      "name": "skill_not_integrated",
+      "severity": "medium",
+      "category": "system",
+      "detection": "skill_file_no_prompt_ref",
+      "fix": "add_skill_reference"
+    },
+    {
+      "id": "DP-030",
+      "name": "gate_weight_misconfigured",
+      "severity": "medium",
+      "category": "system",
+      "detection": "critical_treated_as_minor",
+      "fix": "check_critical_gates_list"
+    }
+  ],
+  "total": 30,
+  "version": "V2",
+  "last_updated": "2026-05-21"
+}
