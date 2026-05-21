@@ -1,0 +1,20 @@
+{
+  "injection_interfaces": {
+    "slot": {
+      "device_name": "{device_name}",
+      "sota_benchmark": "{benchmark_value} ({confidence})",
+      "gspr_number": "GSPR {gspr_id}",
+      "claim_text": "{claim_text}",
+      "evidence_summary": "{evidence_summary}"
+    },
+    "writer": {
+      "chapter_template": "Write {chapter_name} using data from {input_data_spec}",
+      "evidence_paragraph": "Based on {evidence_count} sources, {device_name} {conclusion_wording}"
+    },
+    "gap": {
+      "insufficient_evidence": "Evidence gap for {claim_id}: {gap_description}. Recommended: {pmcf_measure}",
+      "missing_endpoint": "No SOTA benchmark for {endpoint}. Suggested alternatives: {alternatives}"
+    }
+  },
+  "_note": "KA-06: Define injection interfaces (Slot/Writer/Gap). DeerFlow consumes read-only knowledge assets. Dynamic loading support. Knowledge update without restart."
+}

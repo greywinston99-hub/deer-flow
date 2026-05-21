@@ -1,0 +1,70 @@
+{
+  "section_rules": {
+    "§1_Summary": [
+      "no_evidence_id_dump",
+      "must_state_uncertainty",
+      "device_identity_present",
+      "evidence_overview_present",
+      "conclusion_not_overstated"
+    ],
+    "§2.1_Device_Description": [
+      "no_not_extracted_placeholder",
+      "composition_from_document_structured_content",
+      "working_principle_present",
+      "device_name_from_ifu",
+      "intended_purpose_clinical_not_control"
+    ],
+    "§2.2_Intended_Purpose": [
+      "matches_ifu",
+      "target_population_specific",
+      "clinical_benefit_stated",
+      "not_template_placeholder",
+      "indications_complete"
+    ],
+    "§3_SOTA": [
+      "clinical_background_present",
+      "alternative_treatments_listed",
+      "guidelines_referenced",
+      "safety_performance_endpoints_present",
+      "no_template_placeholder_text"
+    ],
+    "§4.2_Equivalence": [
+      "3d_comparison_present",
+      "difference_impact_assessed",
+      "equivalence_not_claimed_if_applicable",
+      "performance_data_source_traced",
+      "no_circular_reasoning"
+    ],
+    "§4.7_GSPR_Analysis": [
+      "five_paragraph_structure",
+      "requirement_restated",
+      "evidence_sources_listed",
+      "conformity_conclusion_explicit",
+      "wording_matches_support_level"
+    ],
+    "§5_Conclusions": [
+      "benefit_risk_balance_stated",
+      "limitations_acknowledged",
+      "no_internal_control_fields",
+      "sentence_length_under_20",
+      "uncertainty_expressed"
+    ],
+    "§6_Next_Evaluation": [
+      "date_specified",
+      "class_based_interval",
+      "not_placeholder",
+      "mdr_reference",
+      "evaluator_identified"
+    ],
+    "§7_Qualification": [
+      "evaluator_named",
+      "qualifications_listed",
+      "not_placeholder",
+      "independence_stated",
+      "experience_relevant"
+    ]
+  },
+  "version": "V2",
+  "total_sections": 9,
+  "total_checkpoints": 45
+}

@@ -1,0 +1,29 @@
+{
+  "zh_en_variants": [
+    {"zh": "手术薄膜", "en_primary": "surgical_drape", "en_variants": ["surgical_curtain", "incise_drape", "sterile_drape"]},
+    {"zh": "射频消融", "en_primary": "radiofrequency_ablation", "en_variants": ["RF_ablation", "RFA", "thermal_ablation"]},
+    {"zh": "输尿管软镜", "en_primary": "flexible_ureteroscope", "en_variants": ["fURS", "digital_ureteroscope", "flexible_ureterorenoscope"]},
+    {"zh": "血液灌流", "en_primary": "hemoperfusion", "en_variants": ["blood_perfusion", "sorbent_hemoperfusion", "charcoal_perfusion"]},
+    {"zh": "心脏组织稳定器", "en_primary": "cardiac_tissue_stabilizer", "en_variants": ["heart_stabilizer", "myocardial_stabilizer", "coronary_stabilizer"]},
+    {"zh": "等离子手术电极", "en_primary": "plasma_surgical_electrode", "en_variants": ["coblation_electrode", "RF_plasma_electrode", "plasma_wand"]},
+    {"zh": "脉冲电场消融", "en_primary": "pulsed_field_ablation", "en_variants": ["PFA", "electroporation_ablation", "irreversible_electroporation"]},
+    {"zh": "封堵器", "en_primary": "occluder", "en_variants": ["closure_device", "septal_occluder", "vascular_plug"]},
+    {"zh": "球囊导管", "en_primary": "balloon_catheter", "en_variants": ["PTCA_balloon", "dilatation_catheter", "angioplasty_balloon"]},
+    {"zh": "支架", "en_primary": "stent", "en_variants": ["vascular_stent", "coronary_stent", "endoprosthesis"]}
+  ],
+  "regional_variants": [
+    {"term": "ureteral_access_sheath", "US": "ureteral_access_sheath", "EU": "ureteric_access_sheath", "UK": "ureteric_access_sheath"},
+    {"term": "intravascular_ultrasound", "US": "intravascular_ultrasound", "EU": "intravascular_ultrasound", "UK": "intravascular_ultrasound"},
+    {"term": "hemoperfusion_cartridge", "US": "hemoperfusion_cartridge", "EU": "haemoperfusion_cartridge", "UK": "haemoperfusion_cartridge"},
+    {"term": "catheter_ablation", "US": "catheter_ablation", "EU": "catheter_ablation", "UK": "catheter_ablation"},
+    {"term": "edema", "US": "edema", "EU": "oedema", "UK": "oedema"},
+    {"term": "ischemic", "US": "ischemic", "EU": "ischaemic", "UK": "ischaemic"}
+  ],
+  "synonym_clusters": [
+    {"canonical": "major_adverse_cardiac_events", "synonyms": ["MACE", "MACCE", "major_cardiac_events", "cardiac_adverse_events"]},
+    {"canonical": "target_lesion_failure", "synonyms": ["TLF", "target_lesion_revascularization", "TLR", "lesion_failure"]},
+    {"canonical": "all_cause_mortality", "synonyms": ["all_cause_death", "total_mortality", "overall_survival"]},
+    {"canonical": "quality_of_life", "synonyms": ["QoL", "health_related_quality_of_life", "HRQoL", "patient_reported_outcomes"]},
+    {"canonical": "procedural_success", "synonyms": ["technical_success", "device_success", "acute_procedural_success"]}
+  ]
+}

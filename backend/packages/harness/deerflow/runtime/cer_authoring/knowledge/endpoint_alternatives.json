@@ -1,0 +1,22 @@
+{
+  "orthopedic_knee": [
+    {"primary": "knee_angle_difference", "alternatives": ["KSS_score", "WOMAC_score", "KOOS_score"], "equivalence": "clinical", "confidence": 0.85},
+    {"primary": "implant_survival_rate", "alternatives": ["revision_free_survival", "kaplan_meier_survival"], "equivalence": "statistical", "confidence": 0.90}
+  ],
+  "cardiac_ablation": [
+    {"primary": "pulmonary_artery_pressure_reduction", "alternatives": ["6MWD", "PAH_hemodynamics", "PVR_reduction"], "equivalence": "clinical", "confidence": 0.80},
+    {"primary": "arrhythmia_free_survival", "alternatives": ["AF_recurrence_free", "repeat_ablation_rate"], "equivalence": "clinical", "confidence": 0.85}
+  ],
+  "urology_endoscopy": [
+    {"primary": "stone_free_rate", "alternatives": ["residual_fragment_rate", "retreatment_rate", "auxiliary_procedure_rate"], "equivalence": "clinical", "confidence": 0.90},
+    {"primary": "ureteral_access_success", "alternatives": ["sheath_placement_success", "first_pass_success"], "equivalence": "procedural", "confidence": 0.85}
+  ],
+  "cardiovascular_intervention": [
+    {"primary": "MACE_rate", "alternatives": ["MACCE_rate", "TLF_rate", "TVF_rate"], "equivalence": "clinical", "confidence": 0.90},
+    {"primary": "target_lesion_revascularization", "alternatives": ["target_vessel_revascularization", "clinically_driven_TLR"], "equivalence": "clinical", "confidence": 0.85}
+  ],
+  "blood_purification": [
+    {"primary": "urea_reduction_ratio", "alternatives": ["Kt_V", "spKt_V", "eKt_V"], "equivalence": "mathematical", "confidence": 0.95},
+    {"primary": "beta2_microglobulin_removal", "alternatives": ["middle_molecule_clearance", "large_solute_removal"], "equivalence": "clinical", "confidence": 0.80}
+  ]
+}

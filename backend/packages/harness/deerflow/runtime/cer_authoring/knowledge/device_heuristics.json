@@ -1,0 +1,12 @@
+{
+  "categories": {
+    "implantable": {"min_follow_up_years": 5, "require_pmcf": true, "rare_event_threshold": 300},
+    "energy_delivering": {"require_thermal_safety": true, "require_output_consistency": true},
+    "software_as_medical_device": {"require_validation_dataset": true, "require_cybersecurity": true},
+    "cardiovascular": {"typical_endpoints": ["MACE", "TLF", "mortality"], "min_patient_count": 100, "require_imaging": true},
+    "urology": {"typical_endpoints": ["stone_free_rate", "QoL"], "require_endoscopic_evidence": true},
+    "orthopedic": {"typical_endpoints": ["implant_survival", "functional_score"], "min_follow_up_years": 2},
+    "blood_contact": {"require_hemocompatibility": true, "require_sterility_validation": true}
+  },
+  "_note": "KA-04: Cover 7 categories (DEV-CV/SU/OP/VAD/ER/MO/SW). Each: typical_endpoints, common_claims, search_strategy, evaluation_focus, writing_points."
+}

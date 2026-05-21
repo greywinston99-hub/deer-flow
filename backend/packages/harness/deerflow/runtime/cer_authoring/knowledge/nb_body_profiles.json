@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "BSI": {"strictness": "high", "focus_areas": ["equivalence", "clinical_data", "pmcf"], "common_questions": []},
+    "TUV_SUD": {"strictness": "high", "focus_areas": ["gspr_traceability", "risk_management"], "common_questions": []},
+    "DEKRA": {"strictness": "medium", "focus_areas": ["literature_search", "sota"], "common_questions": []},
+    "IMQ": {"strictness": "medium", "focus_areas": ["clinical_evaluation", "pmcf"], "common_questions": []},
+    "MEDCERT": {"strictness": "high", "focus_areas": ["equivalence", "benefit_risk", "sota"], "common_questions": []}
+  },
+  "_note": "KA-03: >=5 NB body profiles. Each: focus_areas, common_defect_types, wording_style, review_depth. Use profiles for precheck strategy adjustment."
+}
