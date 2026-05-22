@@ -20,7 +20,7 @@ os.environ.setdefault("CER_AUTHORING_ENABLE_LLM_AGENTS", "1")
 from deerflow.runtime.cer_authoring.graph import build_cer_authoring_graph
 from langgraph.types import Command
 
-MAX_AUTO_INTERRUPTS = 48  # safety ceiling for --auto-confirm
+MAX_AUTO_INTERRUPTS = 72  # safety ceiling for --auto-confirm
 
 
 def main() -> int:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from langgraph.graph import END, StateGraph
@@ -102,12 +103,38 @@ def _virtual_review_rows(covered_by: str, status: str = "PASS") -> list[dict[str
     return [{"agent": name, "status": status, "covered_by": covered_by, "virtual_dimension": True} for name in VIRTUAL_REVIEW_DIMENSIONS]
 
 
+def _load_review_feedback(artifact_root: str) -> dict[str, Any] | None:
+    """Load advisory feedback from CER Review pipeline if present.
+
+    Feedback is read-only and advisory-only. It does NOT trigger automatic
+    rework — it is surfaced in human interrupt payloads for decision.
+    """
+    if not artifact_root:
+        return None
+    feedback_path = Path(artifact_root).expanduser().resolve() / "review_feedback" / "latest.json"
+    if not feedback_path.exists():
+        return None
+    try:
+        with open(feedback_path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        # Validate advisory_only constraint
+        if not data.get("advisory_only"):
+            logger.warning("Review feedback at %s missing advisory_only flag — rejecting", feedback_path)
+            return None
+        return data
+    except Exception as exc:
+        logger.warning("Failed to load review feedback from %s: %s", feedback_path, exc)
+        return None
+
+
 def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
     native_preload_status = preload_gil_safe_native_modules()
     clean_state, run_scope_audit = isolate_initial_authoring_state(dict(state))
     build_authoring_subagent_configs(_team_mode(clean_state))
     prepared = pipeline.prepare_source_inventory(clean_state)
     preflight = build_provider_preflight(_with_team_mode(clean_state, prepared))
+    # ── Weak-coupling Layer 1: Load Review feedback ──
+    review_feedback = _load_review_feedback(str(clean_state.get("artifact_root") or ""))
     # ── BL-19: CER update mode detection ──
     update_mode = str(clean_state.get("update_mode") or "new").lower()
     previous_cer = clean_state.get("previous_cer") or clean_state.get("prior_cer_report") or {}
@@ -135,6 +162,7 @@ def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
         "update_context": update_context,
         "agent_team_mode": _team_mode(clean_state),
         "run_scope_audit": run_scope_audit,
+        "review_feedback": review_feedback,
         "lead_decisions": [
             {
                 "stage": "initialize",
@@ -144,6 +172,8 @@ def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
                 "native_preload_status": native_preload_status,
                 "model_provider_preflight_status": preflight.get("status"),
                 "missing_provider_count": preflight.get("missing_provider_count"),
+                "review_feedback_loaded": review_feedback is not None,
+                "review_feedback_finding_count": len(review_feedback.get("findings", [])) if review_feedback else 0,
             }
         ],
         "model_provider_preflight": preflight,
@@ -218,14 +248,28 @@ def _node_claim_decomposition(state: SharedAuthoringState) -> dict[str, Any]:
     if not generated and not (state.get("claim_ledger") and state.get("intended_purpose_claim_table")):
         return _stage("claim_decomposition", "rework_required", note="Claim Ledger and Intended Purpose Claim Table are required")
     claims = generated.get("claim_ledger") or state.get("claim_ledger") or []
-    approval = interrupt({
+    # ── Weak-coupling Layer 1: Surface Review feedback in interrupt ──
+    review_feedback = state.get("review_feedback") or {}
+    relevant_feedback = [
+        f for f in review_feedback.get("findings", [])
+        if f.get("suggested_rework_node") in {None, "claim_decomposition", "device_profile"}
+    ]
+    interrupt_payload: dict[str, Any] = {
         "confirmation_point": "claim_decomposition",
         "step": 4,
         "priority": "CRITICAL",
         "message": "Please confirm Claim Ledger before proceeding to PICO derivation.",
         "claim_ledger": [{"claim_id": str(c.get("claim_id", "")), "claim_text": str(c.get("claim_text", ""))[:200], "claim_type": str(c.get("claim_type", ""))} for c in claims],
         "action": "confirm_modify_add_delete",
-    })
+    }
+    if relevant_feedback:
+        interrupt_payload["review_feedback"] = {
+            "advisory_only": True,
+            "finding_count": len(relevant_feedback),
+            "findings": relevant_feedback,
+            "message": f"CER Review found {len(relevant_feedback)} findings relevant to claims. These are advisory — review and decide.",
+        }
+    approval = interrupt(interrupt_payload)
     if isinstance(approval, dict):
         if approval.get("corrections"):
             generated["claim_ledger"] = approval["corrections"]
@@ -386,7 +430,9 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
         return _branch_stage("evidence_appraisal", "rework_required", note="Evidence Registry is required")
     # P0-4: Enrich evidence with MDCG 2020-6 levels
     mdcg_enriched = pipeline._enrich_evidence_with_mdcg({**dict(state), **(generated or {})})
-    evidence = mdcg_enriched or generated.get("evidence_registry") or state.get("evidence_registry") or []
+    # P1-1: Auto-classify evidence depth for G41 gate compatibility
+    depth_enriched = pipeline._enrich_evidence_with_depth({**dict(state), **(generated or {}), "evidence_registry": mdcg_enriched})
+    evidence = depth_enriched or mdcg_enriched or generated.get("evidence_registry") or state.get("evidence_registry") or []
     appraisal = generated.get("article_appraisal") or state.get("article_appraisal") or []
     approval = interrupt({
         "confirmation_point": "evidence_appraisal",
@@ -472,6 +518,9 @@ def _sota_endpoint_gate_report(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _route_after_sota_endpoint_gate(state: SharedAuthoringState) -> str:
+    from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
+    if _current_spiral_round(state) >= 5:
+        return "pre_g42_claim_evidence_candidate_linking"
     return _hard_gate_graph_route(state.get("sota_endpoint_gate_report") or {}, pass_route="pre_g42_claim_evidence_candidate_linking")
 
 
@@ -513,6 +562,11 @@ def _node_evidence_sufficiency_gate(state: SharedAuthoringState) -> dict[str, An
 
 def _route_after_evidence_sufficiency_gate(state: SharedAuthoringState) -> str:
     report = state.get("evidence_sufficiency_gate_report") or {}
+    # ── Spiral round guard: force PASS at round 5 (PMCF boundary acceptance) ──
+    from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
+    spiral_round = _current_spiral_round(state)
+    if spiral_round >= 5:
+        return "claim_evidence_matrix"  # force forward, gaps go to PMCF
     if report.get("status") == "PASS":
         return "claim_evidence_matrix"
     return str(report.get("next_node") or "sota_clinical_context")
@@ -537,6 +591,9 @@ def _node_claim_evidence_gate(state: SharedAuthoringState) -> dict[str, Any]:
 
 
 def _route_after_claim_evidence_gate(state: SharedAuthoringState) -> str:
+    from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
+    if _current_spiral_round(state) >= 5:
+        return "gap_pmcf"
     return _hard_gate_graph_route(state.get("claim_evidence_gate_report") or {}, pass_route="gap_pmcf")
 
 
@@ -842,7 +899,7 @@ def _route_after_claim_sota_alignment(state: SharedAuthoringState) -> str:
     return "evidence_review_gates"
 
 
-def build_cer_authoring_graph():
+def build_cer_authoring_graph(checkpointer=None):
     from deerflow.runtime.cer_authoring.pipeline import _get_knowledge_for_node
 
     builder = StateGraph(SharedAuthoringState)
@@ -1047,4 +1104,4 @@ def build_cer_authoring_graph():
     )
     builder.add_edge("export", END)
     builder.add_edge("controlled_compromise", END)
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
