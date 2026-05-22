@@ -19601,6 +19601,8 @@ def _chapter_scope(profile: dict[str, Any], state: dict[str, Any]) -> str:
     domain = _clinical_domain(state)
     # V2: Read document_structured_content for device description (not fact_table)
     doc_content = state.get("document_structured_content") or {}
+    if isinstance(doc_content, list):
+        doc_content = doc_content[0] if doc_content else {}
     ifu_text = str(doc_content.get("body_text") or doc_content.get("full_text") or "")
     rmf_text = _source_text(state, "rmf")
     rmf_scope = english_report_text(_extract_section_after_heading(rmf_text, ["产品简介", "风险管理实施情况简述"], max_chars=900), "risk management source context")
