@@ -1269,6 +1269,37 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
         failures.append(f"DP-038 Unpopulated annexes: {annex_check}")
     if citation_check:
         failures.append(f"DP-036 Citation density: {citation_check}")
+    # ── Section-specific DP checks (Phase 5) ──
+    _SECTION_DP_MAP = {
+        "1 Summary": ["DP-007", "DP-003", "DP-019"],  # over_strong, evidence_conclusion_mismatch, confidence_overstated
+        "3 SOTA": ["DP-005", "DP-024"],  # missing_sota_benchmark, benchmark_low_confidence
+        "4.7 GSPR": ["DP-015", "DP-037"],  # gspr_coverage_gap, gspr_traceability_gap
+        "5 Conclusions": ["DP-045", "DP-019"],  # br_quantitative_gap, confidence_overstated
+    }
+    section_dp_hits = []
+    for section_key, dp_ids in _SECTION_DP_MAP.items():
+        section_text = ""
+        for ch_key, ch_text in cer_chapters.items():
+            if section_key in ch_key:
+                section_text = str(ch_text)
+                break
+        if section_text:
+            for dp_id in dp_ids:
+                dp_entry = dp_data.get("by_id", {}).get(dp_id, {})
+                dp_name = dp_entry.get("name", "")
+                # Check for section-specific indicators
+                if dp_id == "DP-007" and any(w in section_text.lower() for w in ["clearly demonstrates", "definitively proves", "undeniably"]):
+                    section_dp_hits.append(f"{dp_id} ({dp_name}) in {section_key}")
+                elif dp_id == "DP-005" and "benchmark" not in section_text.lower() and "SOTA" in section_key:
+                    section_dp_hits.append(f"{dp_id} ({dp_name}) in {section_key}: no benchmark reference found")
+                elif dp_id == "DP-015" and "GSPR" in section_key:
+                    # Check for GSPR items without evidence citation
+                    evidence_refs = sum(1 for w in ["evidence", "study", "trial", "literature", "data from"] if w in section_text.lower())
+                    if evidence_refs < 2:
+                        section_dp_hits.append(f"{dp_id} ({dp_name}) in {section_key}: low evidence citation density")
+    if section_dp_hits:
+        failures.append(f"Section-specific DP: {'; '.join(section_dp_hits[:5])}")
+        dp_matches.extend(section_dp_hits[:5])
     if quality_pct < 70:
         failures.append(f"Writer quality score too low: {quality_pct}%")
     if claim_check.status == "FAIL":
@@ -1454,8 +1485,36 @@ def _gate_defect_state_consistency(state: dict[str, Any]) -> GateResult:
     if searched > 0 and screened < 5:
         violations.append(f"DP-012: Screening pool shallow ({screened} screened from {searched} searches, threshold: 5)")
 
+    # DP-034: annex_body_inconsistency
+    cer_chapters = state.get("cer_chapter_drafts") or {}
+    annex_keys = [k for k in cer_chapters if "Annex" in k]
+    body_text = " ".join(str(v) for k, v in cer_chapters.items() if "Annex" not in k)
+    for ak in annex_keys[:5]:
+        annex_label = ak.split("Annex ")[-1].strip() if "Annex " in ak else ak
+        if annex_label and annex_label not in body_text:
+            violations.append(f"DP-034: Annex {annex_label} not referenced in body text")
+            break
+
+    # DP-035: dependency_chain_broken
+    sota_text = " ".join(str(v) for k, v in cer_chapters.items() if "SOTA" in k or "3 " in k)
+    conclusions_text = " ".join(str(v) for k, v in cer_chapters.items() if "Conclusion" in k or "5 " in k)
+    if sota_text and conclusions_text and "SOTA" not in conclusions_text and "benchmark" not in conclusions_text:
+        violations.append("DP-035: Conclusions section does not reference upstream SOTA benchmarks")
+
+    # DP-037: gspr_traceability_gap
+    gspr_checklist = state.get("gspr_checklist") or state.get("gspr_trace_matrix") or []
+    gspr_text = " ".join(str(v) for k, v in cer_chapters.items() if "GSPR" in k or "4.7" in k)
+    if gspr_checklist and gspr_text:
+        gspr_ids_in_checklist = {str(g.get("gspr_id", g.get("id", ""))) for g in gspr_checklist if g.get("gspr_id") or g.get("id")}
+        gspr_ids_in_text = 0
+        for gid in gspr_ids_in_checklist:
+            if gid and gid in gspr_text:
+                gspr_ids_in_text += 1
+        if gspr_ids_in_checklist and gspr_ids_in_text < len(gspr_ids_in_checklist) * 0.5:
+            violations.append(f"DP-037: Only {gspr_ids_in_text}/{len(gspr_ids_in_checklist)} GSPR items traced in body text")
+
     if violations:
-        return GateResult("G_DP_STATE", "FAIL", "; ".join(violations[:7]))
+        return GateResult("G_DP_STATE", "FAIL", "; ".join(violations[:10]))
     return GateResult("G_DP_STATE", "PASS", f"State consistency verified against {len(dp_data.get('patterns', []))} DP patterns.")
 
 

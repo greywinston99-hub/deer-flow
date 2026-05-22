@@ -7087,6 +7087,146 @@ def _build_device_heuristics_context(state: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+# ── Phase 5: Per-Node Dynamic Knowledge Routing ──────────────────────────
+# Maps 42 LangGraph nodes to KAI index injection_map components.
+# Each node loads only the knowledge subset relevant to its stage.
+
+_NODE_TO_KAI_COMPONENT: dict[str, list[str]] = {
+    # Data extraction / slot nodes
+    "device_profile": ["slots"],
+    "claim_decomposition": ["slots"],
+    "pico_derivation": ["slots"],
+    "methodology_review": ["slots"],
+    "sota_search": ["slots"],
+    "device_equivalence_search": ["slots"],
+    "literature_screening": ["slots"],
+    "evidence_appraisal": ["slots", "gates"],
+    "endpoint_extraction": ["slots"],
+    "pre_g42_claim_evidence_candidate_linking": ["slots", "gates"],
+    "query_expansion": ["slots"],
+    "claim_evidence_matrix": ["slots"],
+    "gap_pmcf": ["slots", "gap_actions"],
+    "sota_clinical_context": ["slots"],
+    "claim_sota_alignment": ["slots", "gates"],
+    "device_profile_iteration": ["slots"],
+    "vigilance_search": ["slots"],
+    "equivalence_analysis": ["slots", "gates"],
+    "risk_gspr_mapping": ["slots", "writer_guards"],
+    "benefit_risk_ledger": ["slots", "writer_guards"],
+    "alignment_matrix": ["slots", "gates"],
+    "writer_synthesis": ["writer_guards", "slots"],
+    # Gate nodes
+    "input_gate": ["gates"],
+    "retrieval_domain_gate": ["gates"],
+    "screening_depth_gate": ["gates"],
+    "fulltext_basis_gate": ["gates"],
+    "sota_endpoint_gate": ["gates"],
+    "evidence_sufficiency_gate": ["gates"],
+    "claim_evidence_gate": ["gates"],
+    "evidence_review_gates": ["gates"],
+    "br_justified_gate": ["gates"],
+    "alignment_gate": ["gates"],
+    "pre_writer_readiness_gate": ["gates", "writer_guards"],
+    "gates": ["gates"],
+    "nb_precheck": ["gates", "writer_guards"],
+    # Writer / export nodes
+    "cer_writing": ["writer_guards", "slots"],
+    "human_style_review": ["writer_guards"],
+    "workbook": ["writer_guards", "slots"],
+    "controlled_compromise": ["gap_actions", "writer_guards"],
+    "self_inspection": ["gates"],
+    "export": ["gates"],
+    # Entry / init nodes
+    "initialize": [],
+    "input_gate": ["gates"],
+}
+
+# Asset ID → loader function mapping
+_ASSET_LOADERS: dict[str, Any] = {}  # built lazily
+
+
+def _get_knowledge_for_node(node_name: str, state: dict[str, Any]) -> dict[str, Any]:
+    """Return filtered knowledge assets relevant to the current graph node.
+
+    Uses kai_index.json injection_map to determine which assets belong to which node.
+    Does NOT change graph routing — provides per-node knowledge subset only.
+    """
+    kai = _load_knowledge_asset("kai_index.json")
+    if not kai:
+        return {"_node": node_name}
+    injection_map = kai.get("deerflow_injection_map", {})
+    components = _NODE_TO_KAI_COMPONENT.get(node_name, [])
+    if not components:
+        return {"_node": node_name, "_components": []}
+
+    # Collect asset_ids for this node's components
+    asset_ids: set[str] = set()
+    for comp in components:
+        entries = injection_map.get(comp, [])
+        items = entries if isinstance(entries, list) else list(entries.values()) if isinstance(entries, dict) else []
+        for entry in items:
+            if isinstance(entry, dict):
+                aid = str(entry.get("asset_id", ""))
+                if aid:
+                    asset_ids.add(aid)
+
+    # Load relevant knowledge subset
+    result: dict[str, Any] = {"_node": node_name, "_components": components, "_asset_ids": sorted(asset_ids)}
+
+    # Map asset_ids to their loader functions
+    for aid in asset_ids:
+        if aid in ("CER_04_ANSWERS", "CER_05_TABLES"):
+            result["structured_knowledge"] = True
+        elif aid == "CER_01_MATRIX":
+            result["section_defense"] = True
+        elif aid == "CER_02_LOGIC":
+            result["logic_validation"] = True
+        elif aid == "CER_03_STYLE":
+            result["style_validation"] = True
+        elif aid and aid.startswith("DEV-"):
+            kb_ctx = _load_device_kb_context(state) if _load_device_kb_context(state) else None
+            if kb_ctx:
+                result["device_kb"] = True
+
+    return result
+
+
+# ── Phase 5: Skill Registry + Selector ───────────────────────────────────
+
+def _load_skill_registry() -> dict[str, Any]:
+    """Load skill_registry.json. Returns {skills: [...]} with 30 skill entries."""
+    return _load_knowledge_asset("skill_registry.json")
+
+
+def _select_skills_for_node(node_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return skill prompts relevant to the current graph node.
+
+    Filters the 30-skill registry by target_node matching.
+    Adds domain-specific and NB-specific skill selection.
+    """
+    registry = _load_skill_registry()
+    skills = registry.get("skills", [])
+    if not skills:
+        return []
+
+    profile = state.get("device_profile") or {}
+    domain = str(profile.get("clinical_domain") or _clinical_domain(state) or "")
+    nb_name = _nb_body(state)
+
+    selected = []
+    for skill in skills:
+        target = str(skill.get("target_node", ""))
+        if target == node_name or target == "all":
+            selected.append({
+                "id": skill.get("id", ""),
+                "name": skill.get("name", ""),
+                "category": skill.get("category", ""),
+                "description": skill.get("description", ""),
+            })
+
+    return selected
+
+
 # ── Connection 7: knowledge_routing (kai_index → routing metadata) ────────────
 
 def _build_knowledge_routing_metadata(state: dict[str, Any]) -> dict[str, Any]:
@@ -18359,7 +18499,15 @@ def _chapter_summary(device: str, state: dict[str, Any]) -> str:
     # output_narrative_spec: 1-2 page natural paragraphs with device overview, evidence base, uncertainties, overall conclusion
     """input_data_spec: claim_sota_alignment_table, benefit_risk_ledger, evidence_funnel_counts, claim_ledger, evidence_registry, sota_benchmark_matrix, vigilance_recall_registry, gap_pmcf_recommendations"""
     profile = state.get("device_profile") or {}
-    # ── Paragraph 1: Device Identity ──────────────────────────
+    # ── Structured knowledge: six-element summary framework ──
+    pkt = state.get("writer_input_packet") or {}
+    skc = pkt.get("structured_knowledge_context") or {}
+    summary_tmpl = skc.get("summary_template") or {}
+    six_elements = summary_tmpl.get("elements", [
+        "Device Identity", "Indication/Intended Purpose", "Evidence Base Overview",
+        "Benefit-Risk Balance", "Uncertainties and Gaps", "Overall Conclusion",
+    ])
+    # ── Paragraph 1: Device Identity (Element 1-2) ────────────
     device_type = profile.get("device_type", "medical device")
     intended_purpose = profile.get("intended_purpose", "the IFU-defined intended purpose")
     anatomical_site = profile.get("anatomical_site", "")
@@ -19499,7 +19647,24 @@ def _chapter_conclusions(state: dict[str, Any]) -> str:
     matrix = state.get("claim_support_matrix") or {}
     br_conclusion = state.get("benefit_risk_conclusion") or {}
     constraints = state.get("writer_conclusion_constraints") or {}
-    conclusion_wording = {
+    # ── Structured knowledge: wording strength map ──
+    pkt = state.get("writer_input_packet") or {}
+    skc = pkt.get("structured_knowledge_context") or {}
+    wording_map = skc.get("wording_strength_map") or {}
+    # Build conclusion wording from structured knowledge if available, else default
+    if wording_map:
+        _strong = wording_map.get("STRONG", wording_map.get("Strong", wording_map.get("充分证据", {})))
+        _moderate = wording_map.get("MODERATE", wording_map.get("Moderate", wording_map.get("部分证据", {})))
+        _cautious = wording_map.get("CAUTIOUS", wording_map.get("Cautious", wording_map.get("有限证据", {})))
+        _insufficient = wording_map.get("INSUFFICIENT", wording_map.get("Insufficient", wording_map.get("证据不足", {})))
+        conclusion_wording = {
+            "STRONG": _strong.get("recommended", "The clinical evidence demonstrates that") if isinstance(_strong, dict) else str(_strong),
+            "MODERATE": _moderate.get("recommended", "The available evidence indicates that") if isinstance(_moderate, dict) else str(_moderate),
+            "CAUTIOUS": _cautious.get("recommended", "The preliminary data suggest that") if isinstance(_cautious, dict) else str(_cautious),
+            "INSUFFICIENT": _insufficient.get("recommended", "There is insufficient evidence to conclude that") if isinstance(_insufficient, dict) else str(_insufficient),
+        }
+    else:
+        conclusion_wording = {
         "STRONG": "The clinical evidence demonstrates that",
         "MODERATE": "The available evidence indicates that",
         "CAUTIOUS": "The preliminary data suggest that",

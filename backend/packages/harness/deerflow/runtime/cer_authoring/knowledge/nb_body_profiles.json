@@ -795,24 +795,87 @@
       }
     },
     "DEKRA": {
+      "profile_id": "NB-DEKRA-001",
+      "profile_version": "1.0.0",
+      "nb_body": "DEKRA",
+      "nb_body_full_name": "DEKRA Certification GmbH",
       "strictness": "medium",
-      "focus_areas": [
-        "literature_search",
-        "sota"
+      "review_model": {
+        "type": "focus_area_review",
+        "description": "DEKRA reviewers emphasize literature search methodology and SOTA justification. Strong focus on search protocol reproducibility and database selection rationale."
+      },
+      "defect_focus_heatmap": {
+        "literature_search": 40,
+        "sota": 35,
+        "equivalence": 15,
+        "clinical_data": 10
+      },
+      "focus_areas": ["literature_search", "sota"],
+      "severity_profile": {"critical": 15, "high": 40, "medium": 35, "low": 10},
+      "writer_guard_injection": {
+        "injection_point": "Before Writer Agent generates SOTA and literature search sections for DEKRA submission",
+        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to DEKRA. DEKRA reviewers place exceptional emphasis on literature search methodology and SOTA justification.\n\nCRITICAL DEKRA-SPECIFIC RULES:\n1. Every database selection must have explicit rationale (why PubMed + Embase + CT.gov, not just what databases).\n2. Search protocol must be fully reproducible: include exact query strings, date stamps, filters, and hit counts per database.\n3. SOTA benchmarks must clearly show the deduction chain: disease background -> endpoint selection -> benchmark value derivation -> clinical meaning.\n4. Literature exclusion reasons must be individually documented, not summarized in aggregate."
+      },
+      "deerflow_pre_check_rules": [
+        "Verify search protocol reproducibility before Writer invocation",
+        "Check SOTA deduction chain completeness (all 7 steps)",
+        "Validate database selection rationale per device class"
       ]
     },
     "IMQ": {
+      "profile_id": "NB-IMQ-001",
+      "profile_version": "1.0.0",
+      "nb_body": "IMQ",
+      "nb_body_full_name": "IMQ (Istituto Italiano del Marchio di Qualita)",
       "strictness": "medium",
-      "focus_areas": [
-        "clinical_evaluation",
-        "pmcf"
+      "review_model": {
+        "type": "clinical_focus_review",
+        "description": "IMQ reviewers focus on clinical evaluation methodology and PMCF planning. They expect clear demonstration of clinical benefit and structured post-market follow-up."
+      },
+      "defect_focus_heatmap": {
+        "clinical_evaluation": 45,
+        "pmcf": 35,
+        "benefit_risk": 15,
+        "equivalence": 5
+      },
+      "focus_areas": ["clinical_evaluation", "pmcf"],
+      "severity_profile": {"critical": 10, "high": 45, "medium": 35, "low": 10},
+      "writer_guard_injection": {
+        "injection_point": "Before Writer Agent generates clinical evaluation and PMCF sections for IMQ submission",
+        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to IMQ. IMQ reviewers emphasize clinical evaluation methodology and PMCF planning completeness.\n\nCRITICAL IMQ-SPECIFIC RULES:\n1. Clinical benefit must be demonstrated with quantitative endpoints, not narrative descriptions.\n2. PMCF plan must specify objectives, endpoints, sample size justification, and timeline — generic PMCF statements are rejected.\n3. Every clinical claim must be traceable to a specific evidence record with appraisal result.\n4. Benefit-risk conclusions must reference both clinical data and PMCF data separately."
+      },
+      "deerflow_pre_check_rules": [
+        "Verify PMCF plan has specific objectives and timelines",
+        "Check all clinical claims have evidence record traceability",
+        "Validate benefit-risk analysis references PMCF data"
       ]
     },
     "MEDCERT": {
+      "profile_id": "NB-MEDCERT-001",
+      "profile_version": "1.0.0",
+      "nb_body": "MEDCERT",
+      "nb_body_full_name": "MEDCERT GmbH",
       "strictness": "high",
-      "focus_areas": [
-        "equivalence",
-        "benefit_risk"
+      "review_model": {
+        "type": "equivalence_br_focus_review",
+        "description": "MEDCERT reviewers are known for rigorous equivalence demonstration requirements and benefit-risk quantification. They expect numerical comparison where possible."
+      },
+      "defect_focus_heatmap": {
+        "equivalence": 50,
+        "benefit_risk": 35,
+        "clinical_data": 10,
+        "sota": 5
+      },
+      "focus_areas": ["equivalence", "benefit_risk"],
+      "severity_profile": {"critical": 20, "high": 50, "medium": 25, "low": 5},
+      "writer_guard_injection": {
+        "injection_point": "Before Writer Agent generates equivalence and benefit-risk sections for MEDCERT submission",
+        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to MEDCERT. MEDCERT reviewers demand rigorous equivalence demonstration and quantitative benefit-risk analysis.\n\nCRITICAL MEDCERT-SPECIFIC RULES:\n1. Equivalence must be demonstrated across ALL THREE dimensions (technical, biological, clinical) with measurable comparisons.\n2. Any difference between subject and equivalent device must have a documented impact analysis (difference -> mechanism -> evidence -> clinical impact).\n3. Benefit-risk analysis must include quantitative comparison where data permits — narrative BR is insufficient.\n4. Equivalence cannot be claimed if any dimension has missing data — mark as 'not demonstrated' instead."
+      },
+      "deerflow_pre_check_rules": [
+        "Verify 3D equivalence comparison completeness",
+        "Check difference impact analysis for each dimension",
+        "Validate quantitative benefit-risk comparison where data exists"
       ]
     }
   },

@@ -536,3 +536,54 @@ Required operating method:
 4. Treat missing source evidence as a gap, not as a basis for an affirmative conclusion.
 5. Final output must be a deterministic review decision plus a concise rework list and optional insufficiency object.
 """
+
+
+# ── Phase 5: Dynamic Skill Resolution ────────────────────────────────────
+# Maps physical agent names to skill IDs from skill_registry.json.
+# Skills are now managed in knowledge/skill_registry.json (30 skills).
+# This function resolves agent → skills at runtime instead of hardcoding.
+
+_AGENT_SKILL_MAP: dict[str, list[str]] = {
+    "authoring-device-profile-builder": ["S-DPROF-03"],
+    "authoring-claim-pico-builder": ["S-CLAIM-04", "S-PICO-05", "S-INIT-01", "B-ROUTE-01"],
+    "authoring-sota-analyst": ["S-SOTA-07", "S-SOTAEP-14", "S-KEYWORD-EXP-XX", "S-ALIGN-XX"],
+    "authoring-literature-searcher": ["S-SOTA-07", "S-DOMAIN-08"],
+    "authoring-evidence-appraiser": ["S-SCREEN-10", "S-APPRAISE-11", "S-FT-12", "S-ENDPT-13", "S-G42-15", "S-CEMAT-16", "B-SCORE-02", "B-G42-03", "S-ENDPT-ALT-XX"],
+    "authoring-equivalence-analyst": ["S-EQUIV-09", "S-DOMAIN-08"],
+    "authoring-vigilance-recall-analyst": ["S-DOMAIN-08", "S-EQUIV-09"],
+    "authoring-risk-gspr-mapper": ["S-BRALIGN-17"],
+    "authoring-cer-writer": ["W-SUM-18", "W-DD-19", "W-SOTA-21", "W-EVID-22", "W-CONC-23", "W-CLEAN-24", "W-LANG-25", "W-ARG-27"],
+    "authoring-export-packager": ["W-CLEAN-24", "S-QA-25"],
+    "authoring-gate-controller": ["S-G42-15", "S-ALIGN-XX", "B-G42-03", "S-QA-25"],
+    "authoring-qa-review-agent": ["S-QA-25"],
+    "cer-authoring-lead-agent": ["S-G42-15", "S-BRALIGN-17", "S-ALIGN-XX"],
+}
+
+
+def resolve_agent_skills(agent_name: str) -> list[dict[str, str]]:
+    """Return skill definitions for a given agent from skill_registry.json.
+
+    This replaces the previous hardcoded SKILL REFERENCE strings with
+    runtime-loaded skill definitions from the centralized registry.
+    """
+    import json
+    from pathlib import Path
+    registry_path = Path(__file__).parent / "knowledge" / "skill_registry.json"
+    try:
+        registry = json.loads(registry_path.read_text())
+    except Exception:
+        return []
+    all_skills = registry.get("skills", [])
+    skill_by_id = {s["id"]: s for s in all_skills}
+    agent_skill_ids = _AGENT_SKILL_MAP.get(agent_name, [])
+    resolved = []
+    for sid in agent_skill_ids:
+        if sid in skill_by_id:
+            s = skill_by_id[sid]
+            resolved.append({
+                "id": s["id"],
+                "name": s["name"],
+                "description": s["description"],
+            })
+    return resolved
+

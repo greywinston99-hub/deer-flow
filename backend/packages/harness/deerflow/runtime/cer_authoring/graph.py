@@ -799,49 +799,65 @@ def _route_after_claim_sota_alignment(state: SharedAuthoringState) -> str:
 
 
 def build_cer_authoring_graph():
+    from deerflow.runtime.cer_authoring.pipeline import _get_knowledge_for_node
+
     builder = StateGraph(SharedAuthoringState)
-    builder.add_node("initialize", _node_initialize)
-    builder.add_node("input_gate", _node_input_gate)
-    builder.add_node("device_profile", _node_device_profile)
-    builder.add_node("claim_decomposition", _node_claim_decomposition)
-    builder.add_node("pico_derivation", _node_pico_derivation)
-    builder.add_node("methodology_review", _node_methodology_review)
-    builder.add_node("sota_search", _node_sota_search)
-    builder.add_node("retrieval_domain_gate", _node_retrieval_domain_gate)
-    builder.add_node("device_equivalence_search", _node_device_equivalence_search)
-    builder.add_node("literature_screening", _node_literature_screening)
-    builder.add_node("screening_depth_gate", _node_screening_depth_gate)
-    builder.add_node("evidence_appraisal", _node_evidence_appraisal)
-    builder.add_node("fulltext_basis_gate", _node_fulltext_basis_gate)
-    builder.add_node("endpoint_extraction", _node_endpoint_extraction)
-    builder.add_node("sota_endpoint_gate", _node_sota_endpoint_gate)
-    builder.add_node("pre_g42_claim_evidence_candidate_linking", _node_pre_g42_claim_evidence_candidate_linking)
-    builder.add_node("evidence_sufficiency_gate", _node_evidence_sufficiency_gate)
-    builder.add_node("query_expansion", _node_query_expansion)
-    builder.add_node("claim_evidence_matrix", _node_claim_evidence_matrix)
-    builder.add_node("claim_evidence_gate", _node_claim_evidence_gate)
-    builder.add_node("gap_pmcf", _node_gap_pmcf)
-    builder.add_node("sota_clinical_context", _node_sota_clinical_context)
-    builder.add_node("claim_sota_alignment", _node_claim_sota_alignment)
-    builder.add_node("device_profile_iteration", _node_device_profile_iteration)
-    builder.add_node("vigilance_search", _node_vigilance_search)
-    builder.add_node("equivalence_analysis", _node_equivalence_analysis)
-    builder.add_node("risk_gspr_mapping", _node_risk_gspr_mapping)
-    builder.add_node("evidence_review_gates", _node_evidence_review_gates)
-    builder.add_node("writer_synthesis", _node_writer_synthesis)
-    builder.add_node("benefit_risk_ledger", _node_benefit_risk_ledger)
-    builder.add_node("br_justified_gate", _node_br_justified_gate)
-    builder.add_node("alignment_matrix", _node_alignment_matrix)
-    builder.add_node("alignment_gate", _node_alignment_gate)
-    builder.add_node("pre_writer_readiness_gate", _node_pre_writer_readiness_gate)
-    builder.add_node("controlled_compromise", _node_controlled_compromise)
-    builder.add_node("cer_writing", _node_cer_writing)
-    builder.add_node("human_style_review", _node_human_style_review)
-    builder.add_node("nb_precheck", _node_nb_precheck)
-    builder.add_node("workbook", _node_workbook)
-    builder.add_node("gates", _node_gates)
-    builder.add_node("self_inspection", _node_self_inspection)
-    builder.add_node("export", _node_export)
+
+    # ── Node registry with per-node knowledge injection (Phase 5) ──
+    _NODE_REGISTRY = {
+        "initialize": _node_initialize,
+        "input_gate": _node_input_gate,
+        "device_profile": _node_device_profile,
+        "claim_decomposition": _node_claim_decomposition,
+        "pico_derivation": _node_pico_derivation,
+        "methodology_review": _node_methodology_review,
+        "sota_search": _node_sota_search,
+        "retrieval_domain_gate": _node_retrieval_domain_gate,
+        "device_equivalence_search": _node_device_equivalence_search,
+        "literature_screening": _node_literature_screening,
+        "screening_depth_gate": _node_screening_depth_gate,
+        "evidence_appraisal": _node_evidence_appraisal,
+        "fulltext_basis_gate": _node_fulltext_basis_gate,
+        "endpoint_extraction": _node_endpoint_extraction,
+        "sota_endpoint_gate": _node_sota_endpoint_gate,
+        "pre_g42_claim_evidence_candidate_linking": _node_pre_g42_claim_evidence_candidate_linking,
+        "evidence_sufficiency_gate": _node_evidence_sufficiency_gate,
+        "query_expansion": _node_query_expansion,
+        "claim_evidence_matrix": _node_claim_evidence_matrix,
+        "claim_evidence_gate": _node_claim_evidence_gate,
+        "gap_pmcf": _node_gap_pmcf,
+        "sota_clinical_context": _node_sota_clinical_context,
+        "claim_sota_alignment": _node_claim_sota_alignment,
+        "device_profile_iteration": _node_device_profile_iteration,
+        "vigilance_search": _node_vigilance_search,
+        "equivalence_analysis": _node_equivalence_analysis,
+        "risk_gspr_mapping": _node_risk_gspr_mapping,
+        "evidence_review_gates": _node_evidence_review_gates,
+        "writer_synthesis": _node_writer_synthesis,
+        "benefit_risk_ledger": _node_benefit_risk_ledger,
+        "br_justified_gate": _node_br_justified_gate,
+        "alignment_matrix": _node_alignment_matrix,
+        "alignment_gate": _node_alignment_gate,
+        "pre_writer_readiness_gate": _node_pre_writer_readiness_gate,
+        "controlled_compromise": _node_controlled_compromise,
+        "cer_writing": _node_cer_writing,
+        "human_style_review": _node_human_style_review,
+        "nb_precheck": _node_nb_precheck,
+        "workbook": _node_workbook,
+        "gates": _node_gates,
+        "self_inspection": _node_self_inspection,
+        "export": _node_export,
+    }
+
+    # Wrap each node with per-node knowledge injection from KAI index
+    for node_name, node_fn in _NODE_REGISTRY.items():
+        def _make_wrapped(name: str, fn):
+            def _wrapped_node(state: SharedAuthoringState) -> dict[str, Any]:
+                knowledge = _get_knowledge_for_node(name, state)
+                return fn({**state, "_node_knowledge": knowledge})
+            return _wrapped_node
+        builder.add_node(node_name, _make_wrapped(node_name, node_fn))
+
     builder.set_entry_point("initialize")
     builder.add_edge("initialize", "input_gate")
     builder.add_conditional_edges("input_gate", _route_after_input_gate, {"device_profile": "device_profile", "export": "export"})
