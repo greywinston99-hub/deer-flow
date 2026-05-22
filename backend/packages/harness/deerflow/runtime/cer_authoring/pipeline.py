@@ -10887,6 +10887,16 @@ def _build_section_refinement_task(section_key: str, draft_text: str, packet: di
         "Refine this CER section to professional regulatory English. Ensure logical flow, precise terminology, and appropriate evidence citation."
     )
     nb_name = packet.get("nb_specific_context", {}).get("nb_body", "")
+    # Add remediation context for this section
+    remediation = packet.get("remediation_templates", {})
+    section_remediation = []
+    for entry_id, entry in remediation.items():
+        if not isinstance(entry, dict):
+            continue
+        di = entry.get("deerflow_injection", {})
+        prefix = di.get("auto_prompt_prefix", "")
+        if prefix and section_key.split(" ")[0] in str(entry.get("defect_id", "")):
+            section_remediation.append(f"[{entry_id}] {prefix[:200]}")
     nb_tone = _NB_TONE_INSTRUCTIONS.get(nb_name, "")
     word_count = len(draft_text.split())
     return (
