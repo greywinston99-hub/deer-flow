@@ -7965,6 +7965,19 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
     }
     chapters = {key: _sanitize_regulatory_language(value) for key, value in chapters.items()}
     chapters = _sanitize_chapters_for_domain(chapters, domain)
+    # ── R1: Attempt LLM refinement ──
+    llm_refined = False
+    try:
+        refined = _llm_refine_chapters({**state, "cer_chapter_drafts": chapters, "writer_input_packet": writer_input_packet})
+        if refined and any(
+            str(refined.get(k, "")) != str(chapters.get(k, ""))
+            for k in chapters
+            if k in refined and len(str(chapters.get(k, "")).split()) > 50
+        ):
+            chapters = refined
+            llm_refined = True
+    except Exception:
+        pass  # LLM unavailable — use deterministic chapters
     return {
         "cer_chapter_drafts": chapters,
         "domain_contamination_report": _domain_contamination_report({**state, "cer_chapter_drafts": chapters}),
@@ -7973,7 +7986,7 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
         "ifu_feedback_suggestions": ifu_feedback,
         "argument_flow_report": _score_argument_flow(chapters),
         "cross_chapter_review": _llm_cross_chapter_review({**state, "cer_chapter_drafts": chapters}),
-        "llm_refinement_applied": False,
+        "llm_refinement_applied": llm_refined,
         **ledger_updates,
         **synthesis_updates,
         **template_updates,
