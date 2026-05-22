@@ -38,6 +38,44 @@ _SERVER_FILES = {
 }
 
 
+# ── PDF Reading Tool ──
+
+def read_pdf(file_path: str, max_pages: int = 50) -> dict[str, Any]:
+    """Read PDF file and extract text content.
+
+    Uses pymupdf (fitz) as primary, falls back to pdfplumber.
+    Returns {text, pages, metadata}.
+    """
+    result: dict[str, Any] = {"file_path": file_path, "text": "", "pages": 0, "metadata": {}}
+    try:
+        import fitz
+        doc = fitz.open(file_path)
+        result["metadata"] = dict(doc.metadata or {})
+        pages_text = []
+        for i, page in enumerate(doc):
+            if i >= max_pages:
+                break
+            pages_text.append(page.get_text())
+        result["text"] = "\n\n".join(pages_text)
+        result["pages"] = len(pages_text)
+        doc.close()
+    except Exception:
+        try:
+            import pdfplumber
+            with pdfplumber.open(file_path) as pdf:
+                pages_text = []
+                for i, page in enumerate(pdf.pages):
+                    if i >= max_pages:
+                        break
+                    pages_text.append(page.extract_text() or "")
+                result["text"] = "\n\n".join(pages_text)
+                result["pages"] = len(pages_text)
+                result["metadata"] = dict(pdf.metadata or {})
+        except Exception as e:
+            result["error"] = str(e)
+    return result
+
+
 def call_tool(server: str, tool: str, arguments: dict[str, Any] | None = None, timeout: int | None = None) -> dict[str, Any]:
     """Call an authoring MCP tool and return a structured result.
 
