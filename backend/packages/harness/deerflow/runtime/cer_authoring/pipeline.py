@@ -7273,6 +7273,32 @@ def _build_structured_knowledge_context(state: dict[str, Any]) -> dict[str, Any]
 
     # Phase 6: GSPR depth config by device class
     result["gspr_depth_config"] = _gspr_depth_config(state)
+    # Batch 3: Template consumption — sentence templates + paragraph structures
+    result["sentence_templates"] = {
+        "device_purpose": "The [Device] is designed/intended for [clinical purpose].",
+        "working_principle": "The device uses [technology] to [achieve effect].",
+        "specifications": "The main specifications include [param1], [param2], [param3].",
+        "evidence_summary": "Based on the available [data/evidence], [N] studies were identified.",
+        "compliance_statement": "The device meets the requirements of [standard/regulation].",
+        "analysis_conclusion": "The analysis demonstrates that [finding], supported by [evidence].",
+        "negative_finding": "No [event/complication] was observed/reported. However, [limitation].",
+        "comparison": "Compared with [benchmark], the device shows [similar/different] [characteristic].",
+        "overall_conclusion": "In conclusion, the clinical evidence [supports/does not support] the safety and performance.",
+        "gspr_compliance": "GSPR [N] is satisfied through [evidence type] as documented in [section].",
+    }
+    result["paragraph_structures"] = {
+        "§1 Summary": ["Device Identity", "Evidence Base", "Uncertainties", "Overall Conclusion"],
+        "§2 Scope": ["Device Description", "Intended Purpose", "Contraindications", "Previous Generations", "Marketing History"],
+        "§3 SOTA": ["Clinical Background", "Alternative Treatments", "Guidelines", "Benchmark Endpoints"],
+        "§4 Evidence": ["Search Results", "Study Characteristics", "Key Findings", "Quality Appraisal"],
+        "§5 Conclusions": ["Summary Statement", "Claim-by-Claim Conclusions", "Next Steps"],
+    }
+    # Enhanced cross-reference consistency
+    result["cross_reference_rules"] = {
+        "annex_to_body": "Every Annex table must be referenced in body text",
+        "claim_to_evidence": "Every conclusion must cite evidence_id or gap_id",
+        "gspr_to_sota": "GSPR analysis must reference SOTA benchmarks from §3",
+    }
 
     return result
 
@@ -7680,6 +7706,10 @@ def _build_writer_input_packet(state: dict[str, Any]) -> dict[str, Any]:
         "slot_template_context": _build_slot_template_context(state),
         "nb_specific_context": _build_nb_specific_context(state),
         "knowledge_routing": _build_knowledge_routing_metadata(state),
+        "equivalence_decision": _equivalence_three_step_decision(state),
+        "data_classification": _standard_data_classification(state),
+        "endpoint_matrix": _endpoint_decision_matrix(state),
+        "safety_data_table": _build_safety_data_table(state),
     }
 
 
@@ -10694,6 +10724,85 @@ def _ei_admissibility_condition_met(evidence: dict[str, Any], category: str) -> 
         ok = any(token in text for token in ("comparison", "improvement", "delta", "unchanged"))
         return ok, "previous-generation comparison rationale present" if ok else "previous-generation comparison rationale absent"
     return True, "conditional context accepted for background/risk use"
+
+
+# ── Batch 2: Data Enrichment (5 items → 32→48/57) ──
+
+def _equivalence_three_step_decision(state: dict[str, Any]) -> dict[str, Any]:
+    """CER_04 5A.1: 等效性三步决策路由."""
+    profile = state.get("device_profile") or {}
+    equivalence = state.get("equivalence_3d_matrix") or state.get("equivalence_comparison") or []
+    claims = state.get("claim_ledger") or []
+
+    step1 = bool(equivalence)  # Step 1: 是否有同类产品
+    step2 = any("等效" in str(c.get("claim_text", "")) or "equivalence" in str(c.get("claim_text", "")).lower() for c in claims)  # Step 2: 是否引用数据
+    step3 = len(equivalence) >= 3 if equivalence else False  # Step 3: 三维度完整
+
+    decision = "full_equivalence" if (step1 and step2 and step3) else (
+        "background_only" if step1 else "equivalence_not_claimed"
+    )
+    return {
+        "decision": decision,
+        "step1_has_equivalent": step1,
+        "step2_plans_to_cite": step2,
+        "step3_three_dimensions_complete": step3,
+        "recommendation": (
+            "Complete 3D comparison" if step1 and step2 and not step3
+            else "Declare equivalence not claimed" if not step1
+            else "Proceed with equivalence demonstration"
+        ),
+    }
+
+
+def _standard_data_classification(state: dict[str, Any]) -> dict[str, Any]:
+    """CER_04 5D.1: 标准数据分类树 — Clinical vs Non-clinical."""
+    evidence = state.get("evidence_registry") or []
+    classified = {"clinical": [], "non_clinical": [], "vigilance": [], "pms": [], "manufacturer": []}
+    for ev in evidence:
+        src = str(ev.get("source_type", ev.get("data_source_type", ""))).lower()
+        if any(kw in src for kw in ("pubmed", "clinical", "trial", "study", "literature")):
+            classified["clinical"].append(ev.get("evidence_id", ev.get("article_id", "")))
+        elif any(kw in src for kw in ("bench", "pre-clinical", "animal", "lab")):
+            classified["non_clinical"].append(ev.get("evidence_id", ev.get("article_id", "")))
+        elif any(kw in src for kw in ("vigilance", "maude", "mhra", "recall")):
+            classified["vigilance"].append(ev.get("evidence_id", ev.get("article_id", "")))
+        elif any(kw in src for kw in ("pms", "pmcf", "post-market")):
+            classified["pms"].append(ev.get("evidence_id", ev.get("article_id", "")))
+        elif any(kw in src for kw in ("ifu", "rmf", "manufacturer", "gspr")):
+            classified["manufacturer"].append(ev.get("evidence_id", ev.get("article_id", "")))
+    return {"data_classification_tree": classified, "total_classified": sum(len(v) for v in classified.values())}
+
+
+def _endpoint_decision_matrix(state: dict[str, Any]) -> dict[str, Any]:
+    """CER_04 5E.2: 端点提取决策矩阵 — 数值/定性/缺口."""
+    benchmarks = state.get("sota_benchmark_matrix") or []
+    matrix = {"numerical": [], "qualitative": [], "gap": []}
+    for bm in benchmarks:
+        endpoint = bm.get("endpoint", "")
+        value = bm.get("sota_value_range", bm.get("benchmark_value", ""))
+        if not value or "to be extracted" in str(value).lower() or "pending" in str(value).lower():
+            matrix["gap"].append({"endpoint": endpoint[:60], "status": "gap — requires further extraction"})
+        elif any(c.isdigit() for c in str(value)):
+            matrix["numerical"].append({"endpoint": endpoint[:60], "value": str(value)[:80]})
+        else:
+            matrix["qualitative"].append({"endpoint": endpoint[:60], "value": str(value)[:80]})
+    return {"endpoint_decision_matrix": matrix}
+
+
+def _build_safety_data_table(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """CER_05 Type E: 结构化安全性数据表."""
+    vigilance = state.get("vigilance_recall_registry") or []
+    safety_table = []
+    for vig in vigilance[:20]:
+        safety_table.append({
+            "adverse_event": vig.get("event_type", vig.get("description", ""))[:100],
+            "incidence_rate": vig.get("incidence", vig.get("rate", "Not specified")),
+            "severity": vig.get("severity", vig.get("seriousness", "Not classified")),
+            "device_relationship": vig.get("device_relationship", vig.get("causality", "Not assessed")),
+            "source": vig.get("source", vig.get("database", "Unknown")),
+            "report_count": vig.get("count", vig.get("report_count", 1)),
+        })
+    return safety_table
 
 
 # ── Phase 6: Binary Evidence Inclusion (engineer feedback: 层级筛选) ──

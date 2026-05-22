@@ -1380,6 +1380,171 @@ def _check_paragraph_logic(cer_chapters: dict[str, str]) -> list[str]:
     return violations[:5]
 
 
+# ── Annex Density Check (engineer CER_01: 3-5 tables per 10 pages) ──
+
+def _check_annex_density(cer_chapters: dict[str, str]) -> list[str]:
+    """Check table density per CER_01 standard: 3-5 tables per 10 pages."""
+    violations = []
+    annex_chapters = {k: v for k, v in cer_chapters.items() if "Annex" in k}
+    if not annex_chapters:
+        return []
+    total_words = sum(len(str(v).split()) for v in annex_chapters.values())
+    est_pages = max(total_words / 400, 1)  # ~400 words/page
+    table_count = sum(str(v).count("|---|") for v in annex_chapters.values())
+    density = (table_count / est_pages) * 10
+    if density < 2:
+        violations.append(f"Annex table density too LOW: {density:.1f}/10pp ({table_count} tables, ~{est_pages:.0f}pp). CER_01 standard: 3-5/10pp.")
+    elif density > 8:
+        violations.append(f"Annex table density too HIGH: {density:.1f}/10pp. Consider moving detail tables to separate appendix.")
+    return violations
+
+
+# ── Type A Device Description 8-Field Check (engineer CER_05) ──
+
+_TYPE_A_REQUIRED_FIELDS = [
+    "Device Name", "Model / Variant", "EMDN Code", "Classification",
+    "Intended Purpose", "Key Components", "Accessories", "Principle of Operation",
+]
+
+
+def _check_device_description_fields(state: dict[str, Any]) -> list[str]:
+    """Verify §2.1 Device Description has Type A 8 standard fields."""
+    cer_chapters = state.get("cer_chapter_drafts") or {}
+    dd_text = ""
+    for key in cer_chapters:
+        if "2.1" in key or "Device Description" in key or "2 Scope" in key:
+            dd_text = str(cer_chapters.get(key, ""))
+            break
+    if not dd_text:
+        profile = state.get("device_profile") or {}
+        dd_text = str(profile.get("composition", "")) + " " + str(profile.get("working_principle", ""))
+    if len(dd_text.split()) < 20:
+        return []
+    # Check for key field indicators
+    field_keywords = {
+        "Device Name": ["device name", "device under evaluation", "subject device"],
+        "Model / Variant": ["model", "variant", "catalog number", "reference number"],
+        "Classification": ["class", "md rule", "classification"],
+        "Intended Purpose": ["intended purpose", "intended use", "indication"],
+        "Key Components": ["component", "consists of", "comprises", "material"],
+        "Accessories": ["accessor", "compatible", "peripheral"],
+        "Principle of Operation": ["principle", "mechanism", "mode of action", "working"],
+    }
+    missing = []
+    for field, keywords in field_keywords.items():
+        if not any(kw in dd_text.lower() for kw in keywords):
+            missing.append(field)
+    if len(missing) >= 3:
+        return [f"Device Description missing {len(missing)}/8 Type A fields: {', '.join(missing[:4])}"]
+    return []
+
+
+# ── Type B Equivalence Standardized Wording (engineer CER_05) ──
+
+def _check_equivalence_wording(cer_chapters: dict[str, str]) -> list[str]:
+    """Validate equivalence table uses standardized wording per CER_05 Type B."""
+    violations = []
+    eq_text = ""
+    for key in cer_chapters:
+        if "Equivalent" in key or "Equivalence" in key or "4.2" in key:
+            eq_text += " " + str(cer_chapters.get(key, ""))
+    if not eq_text or len(eq_text.split()) < 30:
+        return []
+    # Required standardized terms
+    has_equivalent = any(w in eq_text.lower() for w in ["substantially equivalent", "equivalent with minor", "not equivalent"])
+    has_impact = any(w in eq_text.lower() for w in ["impact assessment", "difference impact", "clinical impact"])
+    if not has_equivalent:
+        violations.append("Type B: Equivalence table missing standardized wording (Substantially equivalent / Equivalent with minor / Not equivalent)")
+    if not has_impact:
+        violations.append("Type B: Equivalence differences lack impact assessment")
+    return violations
+
+
+# ── Endpoint 4-Element Enforcement (engineer CER_04 5E.1) ──
+
+def _check_endpoint_completeness(state: dict[str, Any]) -> list[str]:
+    """Verify endpoints have 4 required elements: definition, measurement, time window, clinical meaning."""
+    benchmarks = state.get("sota_benchmark_matrix") or []
+    if not benchmarks:
+        return []
+    incomplete = []
+    for bm in benchmarks[:15]:
+        endpoint = bm.get("endpoint", "")
+        missing = []
+        if not bm.get("sota_value_range"):
+            missing.append("value/range")
+        if not bm.get("clinical_significance"):
+            missing.append("clinical_significance")
+        if missing and endpoint:
+            incomplete.append(f"{endpoint[:40]}... (missing: {', '.join(missing)})")
+    if len(incomplete) >= 3:
+        return [f"Endpoint incompleteness: {len(incomplete)}/{len(benchmarks)} endpoints lack required elements (4-element framework: definition+measurement+time+clinical meaning)"]
+    return []
+
+
+# ── SOTA 3-Function Verification (engineer CER_04 P1.1) ──
+
+def _check_sota_three_functions(state: dict[str, Any]) -> list[str]:
+    """P1.1: Verify SOTA serves 3 functions: clinical background, benchmark, gap identification."""
+    cer_chapters = state.get("cer_chapter_drafts") or {}
+    sota_text = ""
+    for key in cer_chapters:
+        if "SOTA" in key or "3 " in key or "Clinical Background" in key:
+            sota_text += " " + str(cer_chapters.get(key, ""))
+    if len(sota_text.split()) < 100:
+        return []
+    violations = []
+    # Function 1: Clinical background
+    if not any(kw in sota_text.lower() for kw in ["epidemiology", "prevalence", "incidence", "pathophysi", "natural history"]):
+        violations.append("SOTA Function 1 missing: clinical background (epidemiology/pathophysiology)")
+    # Function 2: Benchmark establishment
+    if not any(kw in sota_text.lower() for kw in ["benchmark", "endpoint", "acceptance criteri", "performance threshold"]):
+        violations.append("SOTA Function 2 missing: benchmark/acceptance criteria")
+    # Function 3: Gap identification
+    if not any(kw in sota_text.lower() for kw in ["gap", "unmet need", "limitation", "insufficient"]):
+        violations.append("SOTA Function 3 missing: gap/limitation identification")
+    return violations
+
+
+# ── PMCF Acceptability Prerequisite (engineer: RMF must accept residual risk before PMCF) ──
+
+def _check_pmcf_rmf_prerequisite(state: dict[str, Any]) -> list[str]:
+    """P1-G6: PMCF requires RMF to first accept residual risk."""
+    pmcf = state.get("pmcf_gap_register") or state.get("gap_pmcf_recommendations") or []
+    if not pmcf:
+        return []
+    rmf = state.get("rmf_registry") or state.get("risk_management_file") or []
+    if not rmf:
+        return ["PMCF triggered but RMF is missing — RMF must accept residual risk before PMCF can be a tracking commitment (per engineer: RMF整套体系必须先接受风险可接受)"]
+    # Check if RMF has residual risk acceptance
+    rmf_has_acceptance = any(
+        "accept" in str(r.get("residual_risk", "")).lower() or
+        "acceptable" in str(r.get("risk_acceptance", "")).lower()
+        for r in rmf if isinstance(r, dict)
+    )
+    if not rmf_has_acceptance:
+        return ["PMCF triggered but RMF has no explicit residual risk acceptance — PMCF is a tracking commitment, not a risk resolution mechanism"]
+    return []
+
+
+# ── Safety Benefit Subtype Routing (engineer: P0-G1 claim_type expansion) ──
+
+def _check_claim_subtype_routing(state: dict[str, Any]) -> list[str]:
+    """Verify safety benefit claims are routed to clinical literature, not RMF."""
+    claims = state.get("claim_ledger") or state.get("claim_evidence_matrix") or []
+    violations = []
+    for claim in claims:
+        claim_type = str(claim.get("claim_type", "")).lower()
+        claim_text = str(claim.get("claim_text", ""))[:80]
+        # Check: "safety" claims should specify subtype (efficacy_benefit vs safety_benefit)
+        if claim_type == "safety" and "benefit" in claim_text.lower():
+            # This is likely a safety benefit claim, needs clinical evidence not just RMF
+            evidence_ids = claim.get("evidence_ids") or claim.get("allowed_evidence_ids") or []
+            if not evidence_ids:
+                violations.append(f"Claim '{claim_text[:60]}' type=safety but appears to be safety benefit — may need clinical evidence routing, not RMF-only")
+    return violations[:3]
+
+
 def _gate_claim_text_consistency(state: dict[str, Any]) -> GateResult:
     """Check rendered CER body for claim/BR/text consistency violations.
 
@@ -1577,6 +1742,28 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
     para_logic = _check_paragraph_logic(cer_chapters)
     if para_logic:
         failures.append(f"Paragraph logic: {'; '.join(para_logic[:3])}")
+    # ── Batch 7 quick checks ──
+    annex_density = _check_annex_density(cer_chapters)
+    if annex_density:
+        failures.append(f"Annex density: {'; '.join(annex_density)}")
+    dd_fields = _check_device_description_fields(state)
+    if dd_fields:
+        failures.append(f"Device desc: {'; '.join(dd_fields)}")
+    eq_wording = _check_equivalence_wording(cer_chapters)
+    if eq_wording:
+        failures.append(f"Equivalence wording: {'; '.join(eq_wording)}")
+    ep_incomplete = _check_endpoint_completeness(state)
+    if ep_incomplete:
+        failures.append(f"Endpoint: {'; '.join(ep_incomplete)}")
+    sota_3f = _check_sota_three_functions(state)
+    if sota_3f:
+        failures.append(f"SOTA 3-function: {'; '.join(sota_3f)}")
+    pmcf_rmf = _check_pmcf_rmf_prerequisite(state)
+    if pmcf_rmf:
+        failures.append(f"PMCF prerequisite: {'; '.join(pmcf_rmf)}")
+    claim_subtype = _check_claim_subtype_routing(state)
+    if claim_subtype:
+        failures.append(f"Claim subtype: {'; '.join(claim_subtype)}")
     if claim_check.status == "FAIL":
         failures.append(f"Claim/BR/text consistency: {claim_failures}")
 
