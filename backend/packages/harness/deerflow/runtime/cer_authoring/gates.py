@@ -1121,6 +1121,89 @@ def _check_citation_density(body_text: str) -> str:
     return ""
 
 
+# ── P0-2: Writing Style Detection (engineer feedback: passive voice, sentence length) ──
+
+# Per-section sentence length constraints from CER_03 engineer feedback
+_SECTION_SENTENCE_LENGTH = {
+    "2": (22, 32),   # Device description: longer (technical parameters)
+    "3": (22, 32),   # SOTA: standard
+    "4": (25, 30),   # Evidence analysis: moderate
+    "5": (15, 20),   # Conclusions: short and direct
+    "1": (20, 28),   # Summary
+}
+
+# Passive voice patterns (common in CER)
+_PASSIVE_PATTERNS = [
+    r"\bis\s+\w+ed\b", r"\bare\s+\w+ed\b", r"\bwas\s+\w+ed\b",
+    r"\bwere\s+\w+ed\b", r"\bbeen\s+\w+ed\b", r"\bbeing\s+\w+ed\b",
+    r"\bhas\s+been\s+\w+ed\b", r"\bhave\s+been\s+\w+ed\b",
+]
+
+
+def _check_writing_style(cer_chapters: dict[str, str]) -> list[str]:
+    """P0-2: Check CER body for writing style violations per engineer feedback.
+
+    Returns list of style violation descriptions.
+    """
+    import re
+    violations = []
+
+    for section_key, text in cer_chapters.items():
+        if not text or not isinstance(text, str):
+            continue
+        words = text.split()
+        word_count = len(words)
+        if word_count < 20:
+            continue  # too short to assess
+
+        # ── Passive voice ratio check ──
+        # Target: 15-25% passive. Flag if <10% or >40%
+        passive_count = 0
+        for pattern in _PASSIVE_PATTERNS:
+            passive_count += len(re.findall(pattern, text, re.IGNORECASE))
+        total_verbs_approx = max(word_count // 5, 1)  # rough estimate
+        passive_pct = (passive_count / total_verbs_approx) * 100
+        section_num = section_key.split(" ")[0].replace("§", "").split(".")[0]
+
+        # §2 should have HIGHER passive (technical description)
+        # §4.7/§5 should have LOWER passive (active analysis)
+        is_analysis_section = any(kw in section_key for kw in ["4.7", "Analysis", "5 "])
+        is_device_section = any(kw in section_key for kw in ["2.", "Device", "Description"])
+
+        if is_device_section and passive_pct < 10:
+            violations.append(f"§{section_num}: Passive voice too LOW ({passive_pct:.0f}%), should be 15-25% for device description")
+        elif is_analysis_section and passive_pct > 30:
+            violations.append(f"§{section_num}: Passive voice too HIGH ({passive_pct:.0f}%), should be 10-20% for analysis sections")
+        elif not is_device_section and not is_analysis_section and (passive_pct < 8 or passive_pct > 35):
+            violations.append(f"§{section_num}: Passive voice ratio outside 15-25% range ({passive_pct:.0f}%)")
+
+        # ── Section-specific sentence length check ──
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if len(s.strip().split()) > 3]
+        if not sentences:
+            continue
+        avg_len = sum(len(s.split()) for s in sentences) // len(sentences)
+        limit = _SECTION_SENTENCE_LENGTH.get(section_num, (20, 30))
+        if avg_len < limit[0] * 0.7 or avg_len > limit[1] * 1.3:
+            violations.append(
+                f"§{section_num}: Avg sentence length {avg_len} words "
+                f"(target {limit[0]}-{limit[1]} for this section type)"
+            )
+
+        # ── Hedging/certainty balance check ──
+        hedging_words = ["may", "might", "could", "approximately", "typically", "generally", "suggests"]
+        certainty_words = ["demonstrated", "confirmed", "proven", "verified", "established", "clearly"]
+        hedging_count = sum(1 for w in hedging_words if w in text.lower().split())
+        certainty_count = sum(1 for w in certainty_words if w in text.lower().split())
+        if certainty_count > hedging_count * 3 and certainty_count > 5:
+            violations.append(
+                f"§{section_num}: Certainty/Hedging imbalance ({certainty_count} certainty vs {hedging_count} hedging). "
+                f"Engineer feedback: 帕姆 writes with 72 certainty / 55 hedging = 1.3 ratio."
+            )
+
+    return violations[:8]
+
+
 def _gate_claim_text_consistency(state: dict[str, Any]) -> GateResult:
     """Check rendered CER body for claim/BR/text consistency violations.
 
@@ -1302,6 +1385,10 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
         dp_matches.extend(section_dp_hits[:5])
     if quality_pct < 70:
         failures.append(f"Writer quality score too low: {quality_pct}%")
+    # ── P0-2: Writing style detection ──
+    style_violations = _check_writing_style(cer_chapters)
+    if style_violations:
+        failures.append(f"Writing style: {'; '.join(style_violations[:5])}")
     if claim_check.status == "FAIL":
         failures.append(f"Claim/BR/text consistency: {claim_failures}")
 

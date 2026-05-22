@@ -345,10 +345,12 @@ def _node_device_equivalence_search(state: SharedAuthoringState) -> dict[str, An
 
 def _node_literature_screening(state: SharedAuthoringState) -> dict[str, Any]:
     generated = pipeline.screen_literature(dict(state))
+    # P0-1: Generate PRISMA flow diagram
+    prisma = pipeline._generate_prisma_flow(dict(state))
     if generated:
-        return {**_branch_stage("literature_screening"), **generated}
+        return {**_branch_stage("literature_screening"), **generated, "prisma_flow": prisma}
     if state.get("search_run_registry") or state.get("screening_disposition"):
-        return _branch_stage("literature_screening")
+        return {**_branch_stage("literature_screening"), "prisma_flow": prisma}
     return _branch_stage("literature_screening", "rework_required", note="Search run registry and screening disposition are required")
 
 
@@ -364,7 +366,9 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
     generated = pipeline.appraise_evidence(dict(state))
     if not generated and not state.get("evidence_registry"):
         return _branch_stage("evidence_appraisal", "rework_required", note="Evidence Registry is required")
-    evidence = generated.get("evidence_registry") or state.get("evidence_registry") or []
+    # P0-4: Enrich evidence with MDCG 2020-6 levels
+    mdcg_enriched = pipeline._enrich_evidence_with_mdcg({**dict(state), **(generated or {})})
+    evidence = mdcg_enriched or generated.get("evidence_registry") or state.get("evidence_registry") or []
     appraisal = generated.get("article_appraisal") or state.get("article_appraisal") or []
     approval = interrupt({
         "confirmation_point": "evidence_appraisal",

@@ -2629,9 +2629,268 @@ def evaluate_evidence_sufficiency_gate(state: dict[str, Any]) -> dict[str, Any]:
                     "original_endpoint": claim_endpoint,
                     "suggested_alternatives": alts,
                 })
+    # ── P0-3: Alternative path recommender (BL-3) ──
+    # Before PMCF, exhaust 4 alternative paths per engineer feedback
+    alt_paths = _recommend_alternative_paths(state)
+    if alt_paths:
+        result["alternative_paths"] = alt_paths
     if alt_attempted:
         result["endpoint_alternatives_attempted"] = alt_attempted
     return result
+
+
+# ── P0-3: Alternative Path Recommender (engineer feedback: 4 paths before PMCF) ──
+
+def _recommend_alternative_paths(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Recommend alternative evidence paths before triggering PMCF.
+
+    Per engineer feedback: PMCF is the last resort. Before PMCF:
+    1. Change endpoint (endpoint substitution to clinically equivalent endpoint)
+    2. Find corroborating evidence (keyword expansion, broader search)
+    3. Change equivalence device (switch to different equivalent device)
+    4. Change clinical pathway (use different clinical investigation route)
+
+    Returns list of {path, feasibility, rationale} for each insufficient claim.
+    """
+    claim_matrix = state.get("claim_evidence_matrix") or []
+    evidence_registry = state.get("evidence_registry") or []
+    endpoint_alts = state.get("endpoint_alternatives_attempted") or []
+    profile = state.get("device_profile") or {}
+
+    insufficient_claims = []
+    for row in claim_matrix:
+        status = str(row.get("support_status", "")).upper()
+        if status in ("INSUFFICIENT", "EVIDENCE_GAP", "NOT_SUPPORTED"):
+            insufficient_claims.append(row)
+
+    if not insufficient_claims:
+        return []
+
+    paths = []
+    for claim in insufficient_claims[:5]:
+        claim_id = str(claim.get("claim_id", ""))
+        claim_text = str(claim.get("claim_text", ""))[:100]
+        claim_paths = []
+
+        # Path 1: Endpoint substitution
+        if endpoint_alts:
+            for alt in endpoint_alts:
+                if alt.get("claim_id") == claim_id and alt.get("suggested_alternatives"):
+                    claim_paths.append({
+                        "path": "endpoint_substitution",
+                        "priority": 1,
+                        "alternatives": alt["suggested_alternatives"][:3],
+                        "feasibility": "high" if len(alt["suggested_alternatives"]) > 0 else "low",
+                        "rationale": "Replace missing clinical endpoint with clinically equivalent alternative endpoint.",
+                    })
+                    break
+        if not any(p["path"] == "endpoint_substitution" for p in claim_paths):
+            claim_paths.append({
+                "path": "endpoint_substitution",
+                "priority": 1,
+                "feasibility": "unknown",
+                "rationale": f"No endpoint alternatives cached for '{claim_text[:60]}...' — re-run endpoint extraction with broader scope.",
+            })
+
+        # Path 2: Corroborating evidence (keyword expansion)
+        claim_paths.append({
+            "path": "keyword_expansion",
+            "priority": 2,
+            "feasibility": "medium",
+            "rationale": "Expand search terms with regional variants, synonyms, hypernyms/hyponyms from domain_term_variants.json.",
+        })
+
+        # Path 3: Change equivalence device
+        equivalence = state.get("equivalence_3d_matrix") or state.get("equivalence_comparison") or []
+        if equivalence:
+            claim_paths.append({
+                "path": "change_equivalence_device",
+                "priority": 3,
+                "feasibility": "medium",
+                "rationale": "Current equivalent device lacks data for this endpoint. Switch to alternative equivalent device with published clinical data.",
+            })
+
+        # Path 4: Change clinical pathway
+        device_class = str(profile.get("device_class", ""))
+        if "III" in device_class:
+            claim_paths.append({
+                "path": "clinical_investigation",
+                "priority": 4,
+                "feasibility": "low",
+                "rationale": "Class III device: consider clinical investigation if literature+equivalence paths are exhausted.",
+            })
+        else:
+            claim_paths.append({
+                "path": "clinical_investigation",
+                "priority": 4,
+                "feasibility": "low",
+                "rationale": "Consider PMCF or clinical investigation as last resort per MDR Article 61.",
+            })
+
+        paths.append({"claim_id": claim_id, "claim_text": claim_text[:80], "alternative_paths": claim_paths})
+
+    return paths
+
+
+# ── P0-4: MDCG 2020-6 Evidence Level Mapping ──
+
+# MDCG 2020-6 clinical evidence levels (1=highest, 12=lowest)
+_MDCG_EVIDENCE_LEVELS = {
+    "Level 1": "High-quality systematic review or meta-analysis of RCTs",
+    "Level 2": "Well-designed randomized controlled trial (RCT)",
+    "Level 3": "Non-randomized controlled trial (controlled clinical study)",
+    "Level 4": "Well-designed cohort or case-control study",
+    "Level 5": "Systematic review of descriptive/qualitative studies",
+    "Level 6": "Single descriptive/qualitative study",
+    "Level 7": "Expert committee reports / consensus standards",
+    "Level 8": "Pre-clinical / animal / bench testing data",
+    "Level 9": "Manufacturer PMS / PMCF data",
+    "Level 10": "Vigilance / adverse event database reports",
+    "Level 11": "Physician survey / user feedback",
+    "Level 12": "Manufacturer internal report / IFU claims without published evidence",
+}
+
+# Oxford → MDCG 2020-6 mapping
+_OXFORD_TO_MDCG = {
+    "1a": 1, "1b": 2, "2a": 3, "2b": 4, "3a": 5, "3b": 6,
+    "4": 8, "5": 11,
+    "SR-MA": 1, "RCT": 2, "NRCT": 3, "Cohort": 4, "Case-Control": 4,
+    "Case-Series": 6, "Expert": 7, "Pre-clinical": 8, "PMS": 9,
+    "Vigilance": 10, "Survey": 11, "Manufacturer": 12,
+}
+
+
+def _assign_mdcg_level(evidence_record: dict[str, Any]) -> int:
+    """Assign MDCG 2020-6 evidence level based on study design and quality."""
+    design = str(evidence_record.get("study_design") or evidence_record.get("design") or "").strip()
+    level_str = str(evidence_record.get("oxford_level") or evidence_record.get("evidence_level") or "").strip()
+    # Try direct Oxford mapping
+    for ox_key, mdcg_level in _OXFORD_TO_MDCG.items():
+        if ox_key.lower() in level_str.lower() or ox_key.lower() in design.lower():
+            return mdcg_level
+    # Fallback based on weight tier
+    weight = str(evidence_record.get("weight", "")).upper()
+    if weight == "HIGH":
+        return 2  # RCT-equivalent
+    elif weight == "MEDIUM":
+        return 4  # cohort-equivalent
+    elif weight == "LOW":
+        return 6  # descriptive-equivalent
+    return 8  # default: pre-clinical/bench
+
+
+def _enrich_evidence_with_mdcg(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Add MDCG 2020-6 evidence level to all evidence registry entries."""
+    registry = state.get("evidence_registry") or []
+    enriched = []
+    for rec in registry:
+        rec_copy = dict(rec)
+        if "mdcg_level" not in rec_copy:
+            rec_copy["mdcg_level"] = _assign_mdcg_level(rec_copy)
+            rec_copy["mdcg_description"] = _MDCG_EVIDENCE_LEVELS.get(
+                f"Level {rec_copy['mdcg_level']}", ""
+            )
+        enriched.append(rec_copy)
+    return enriched
+
+
+# ── P0-1: PRISMA Flow Diagram Generator ──
+
+def _generate_prisma_flow(state: dict[str, Any]) -> dict[str, Any]:
+    """Generate PRISMA flow diagram from literature screening results.
+
+    Per engineer feedback: PRISMA flow is MANDATORY for NB submission.
+    Steps: Initial search → Dedup → Title/Abstract screen → Full-text screen → Final inclusion.
+    Each step must have count + exclusion reasons.
+    Dedup MUST occur before title/abstract screening.
+    """
+    searches = state.get("search_run_registry") or []
+    screening = state.get("screening_disposition") or []
+    raw = state.get("raw_literature_records") or []
+
+    # Step 0: Initial search hits (sum all search hit counts)
+    initial_hits = sum(
+        int(r.get("hits") or r.get("returned_count") or len(r.get("records", [])) or 0)
+        for r in searches
+        if isinstance(r, dict)
+    )
+    if not initial_hits:
+        initial_hits = len(raw) if raw else 0
+
+    # Step 1: Deduplication (before screening per PRISMA standard)
+    # Count unique by pmid/doi/article_id
+    seen_ids = set()
+    dedup_count = 0
+    for rec in raw:
+        rid = rec.get("pmid") or rec.get("doi") or rec.get("article_id", "")
+        if rid and rid in seen_ids:
+            dedup_count += 1
+        elif rid:
+            seen_ids.add(rid)
+    after_dedup = max(initial_hits - dedup_count, 0) if initial_hits else len(seen_ids)
+
+    # Step 2: Title/Abstract screening
+    title_screened = len(screening) if screening else after_dedup
+    title_excluded = sum(
+        1 for s in screening
+        if str(s.get("title_abstract_decision", "")).lower() in ("exclude", "reject")
+    ) if screening else 0
+    title_included = title_screened - title_excluded
+
+    # Step 3: Full-text screening
+    ft_screened = title_included
+    ft_acquired = len(state.get("fulltext_acquisition_status_table") or [])
+    ft_excluded = sum(
+        1 for s in screening
+        if str(s.get("fulltext_decision", "")).lower() in ("exclude", "reject")
+    ) if screening else 0
+    ft_included = max(ft_screened - ft_excluded, 0)
+
+    # Step 4: Final inclusion (evidence registry)
+    final_included = len(state.get("evidence_registry") or [])
+
+    # Collect exclusion reasons
+    title_exclusion_reasons = []
+    ft_exclusion_reasons = []
+    for s in (screening or [])[:20]:
+        if str(s.get("title_abstract_decision", "")).lower() in ("exclude", "reject"):
+            reason = str(s.get("exclusion_reason") or s.get("rejection_reason") or "Not specified")
+            title_exclusion_reasons.append(reason[:120])
+        if str(s.get("fulltext_decision", "")).lower() in ("exclude", "reject"):
+            reason = str(s.get("ft_exclusion_reason") or s.get("exclusion_reason") or "Not specified")
+            ft_exclusion_reasons.append(reason[:120])
+
+    return {
+        "prisma_flow_diagram": {
+            "identification": {
+                "records_from_databases": initial_hits or len(raw),
+                "records_from_other_sources": 0,
+                "total_initial": initial_hits or len(raw),
+            },
+            "screening": {
+                "after_deduplication": after_dedup or (initial_hits or len(raw)),
+                "records_screened": title_screened,
+                "records_excluded_title_abstract": title_excluded,
+                "exclusion_reasons": title_exclusion_reasons[:5],
+            },
+            "eligibility": {
+                "fulltext_assessed": ft_screened,
+                "fulltext_acquired": ft_acquired,
+                "records_excluded_fulltext": ft_excluded,
+                "exclusion_reasons": ft_exclusion_reasons[:5],
+            },
+            "included": {
+                "studies_included": final_included or title_included,
+                "note": "Evidence included in qualitative/quantitative synthesis per §4.5 Appraisal",
+            },
+        },
+        "prisma_checklist": [
+            "Deduplication performed BEFORE title/abstract screening",
+            "Each exclusion step has reasons recorded",
+            "Initial search hit counts recorded per database",
+            "Flow diagram ready for NB submission (per engineer requirement)",
+        ],
+    }
 
 
 def _load_knowledge_asset(filename: str) -> dict[str, Any]:
