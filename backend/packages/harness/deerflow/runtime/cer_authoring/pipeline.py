@@ -2034,12 +2034,60 @@ def build_pico_matrix(state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _device_domain_to_kb_family(clinical_domain: str) -> str:
+    """Map DeerFlow clinical_domain to AUDIT_ARCHIVE DEV-*_KB family_id."""
+    mapping = {
+        "cardiac_pfa": "DEV-CV",
+        "cardiovascular_rf_ablation_catheter": "DEV-CV",
+        "cardiovascular": "DEV-CV",
+        "cardiac_tissue_stabilizer": "DEV-CV",
+        "ventricular_assist": "DEV-VAD",
+        "emergency": "DEV-ER",
+        "monitoring": "DEV-MO",
+        "orthopedic": "DEV-OP",
+        "orthopedic_rf_plasma_electrode": "DEV-OP",
+        "surgical": "DEV-SU",
+        "urology_uas": "DEV-SU",
+        "urology_nephroscope": "DEV-SU",
+        "plasma_surgical_electrode": "DEV-SU",
+        "medical_imaging_software": "DEV-SW",
+        "ai_diagnostic_software": "DEV-SW",
+    }
+    return mapping.get(clinical_domain, "DEV-SU")  # default to surgical
+
+
+def _load_device_kb_context(state: dict[str, Any]) -> dict[str, Any]:
+    """Load device-specific KB for sota_benchmarks and cer_special_requirements."""
+    profile = state.get("device_profile") or {}
+    domain = str(profile.get("clinical_domain") or _clinical_domain(state) or "")
+    family = _device_domain_to_kb_family(domain)
+    kb = _load_knowledge_asset(f"device_kb/{family}_KB.json")
+    if not kb:
+        return {}
+    result: dict[str, Any] = {"_source": f"device_kb/{family}_KB.json", "_family": family}
+    # Extract sota_benchmarks
+    benchmarks = kb.get("sota_benchmarks", [])
+    if benchmarks:
+        result["sota_benchmarks"] = benchmarks
+    # Extract cer_special_requirements for writer guidance
+    cer_reqs = kb.get("cer_special_requirements", {})
+    if cer_reqs:
+        result["cer_special_requirements"] = cer_reqs
+    # Extract writing_guidelines
+    writing = kb.get("writing_guidelines", {})
+    if writing:
+        result["writing_guidelines"] = writing
+    return result
+
+
 def run_sota_search(state: dict[str, Any]) -> dict[str, Any]:
     if _evidence_lineage_is_frozen(state):
         return {}
     if state.get("sota_benchmark_matrix") and state.get("search_run_registry") and not _sota_spiral_rerun_requested(state):
         return {}
     profile = state.get("device_profile") or {}
+    # ── Load device KB for known benchmark reference values ──
+    kb_context = _load_device_kb_context(state)
     search_plan = _phase7_search_plan(profile, state)
     sota_searches = []
     due_searches = []
@@ -2246,6 +2294,7 @@ def run_sota_search(state: dict[str, Any]) -> dict[str, Any]:
         "pubmed_mcp_retrieval_ledger": _pubmed_mcp_retrieval_ledger_rows(searches, registry),
         "sota_benchmark_matrix": benchmarks,
         "mcp_call_log": mcp_log,
+        "device_kb_context": kb_context,
         **lsp_payload,
     }
 
@@ -6701,6 +6750,46 @@ def _validate_writer_paths(state: dict[str, Any]) -> dict[str, Any]:
     return audit
 
 
+def _build_section_defense_context(state: dict[str, Any]) -> dict[str, Any]:
+    """Extract writer_guard_prompt per chapter from section_defense_rules.json.
+
+    Returns a dict mapping CER section keys to their writer guard prompts.
+    Injected into writer_input_packet so the Writer Agent receives per-section rules.
+    """
+    sd = _load_knowledge_asset("section_defense_rules.json")
+    chapters = sd.get("chapters", [])
+    if not chapters:
+        return {}
+    # Map AUDIT_ARCHIVE chapter IDs (CER-00~CER-10) to DeerFlow section names
+    chapter_map = {
+        "CER-00": "1 Summary",
+        "CER-01": "0 Scope",
+        "CER-02": "2.1 Device Description",
+        "CER-03": "2.2 Intended Purpose",
+        "CER-04": "3 SOTA",
+        "CER-05": "4 Device Under Evaluation",
+        "CER-06": "4.7 GSPR Analysis",
+        "CER-07": "5 Conclusions",
+        "CER-08": "6 Next Evaluation",
+        "CER-09": "7 Qualification",
+        "CER-10": "Annexes",
+    }
+    context: dict[str, Any] = {"_source": "section_defense_rules.json (AUDIT_ARCHIVE R2)", "chapters": {}}
+    for ch in chapters:
+        ch_id = ch.get("chapter_id", "")
+        guard = ch.get("writer_guard_prompt", "")
+        defense_count = len(ch.get("defense_points", []))
+        section_name = chapter_map.get(ch_id, ch_id)
+        if guard:
+            context["chapters"][section_name] = {
+                "chapter_id": ch_id,
+                "writer_guard_prompt": guard,
+                "defense_point_count": defense_count,
+                "common_defects": ch.get("common_defects", []),
+            }
+    return context
+
+
 def _build_writer_input_packet(state: dict[str, Any]) -> dict[str, Any]:
     """Assemble the Writer's input context for traceability and quarantine audit."""
     profile = state.get("device_profile") or {}
@@ -6767,6 +6856,7 @@ def _build_writer_input_packet(state: dict[str, Any]) -> dict[str, Any]:
             "gate_debug_info",
         ],
         "writer_path_audit": _validate_writer_paths(state),
+        "section_defense_context": _build_section_defense_context(state),
     }
 
 
