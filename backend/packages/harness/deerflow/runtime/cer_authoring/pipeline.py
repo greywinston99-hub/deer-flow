@@ -7971,6 +7971,8 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
         "writer_quality_report": _writer_quality_self_check(chapters),
         "writer_input_packet": writer_input_packet,
         "ifu_feedback_suggestions": ifu_feedback,
+        "argument_flow_report": _score_argument_flow(chapters),
+        "llm_refinement_applied": False,  # set True when DeerFlow LLM runtime available
         **ledger_updates,
         **synthesis_updates,
         **template_updates,
@@ -10803,6 +10805,176 @@ def _build_safety_data_table(state: dict[str, Any]) -> list[dict[str, Any]]:
             "report_count": vig.get("count", vig.get("report_count", 1)),
         })
     return safety_table
+
+
+# ── Round 1: PRISMA Mermaid Renderer ──
+
+def _render_prisma_mermaid(prisma_flow: dict) -> str:
+    """Render PRISMA flow as Mermaid diagram for NB submission."""
+    diag = prisma_flow.get("prisma_flow_diagram", {})
+    ident = diag.get("identification", {})
+    screen = diag.get("screening", {})
+    elig = diag.get("eligibility", {})
+    incl = diag.get("included", {})
+    return f"""```mermaid
+flowchart TD
+    A["Records identified from databases (n={ident.get('records_from_databases', 0)})"] --> B["Records after duplicates removed (n={screen.get('after_deduplication', 0)})"]
+    B --> C["Records screened — title/abstract (n={screen.get('records_screened', 0)})"]
+    C --> D["Records excluded (n={screen.get('records_excluded_title_abstract', 0)})"]
+    C --> E["Full-text articles assessed (n={elig.get('fulltext_assessed', 0)})"]
+    E --> F["Full-text excluded (n={elig.get('records_excluded_fulltext', 0)})"]
+    E --> G["Studies included in synthesis (n={incl.get('studies_included', 0)})"]
+```"""
+
+
+def _render_prisma_table(prisma_flow: dict) -> str:
+    """Render PRISMA flow as Markdown table."""
+    diag = prisma_flow.get("prisma_flow_diagram", {})
+    ident = diag.get("identification", {})
+    screen = diag.get("screening", {})
+    elig = diag.get("eligibility", {})
+    incl = diag.get("included", {})
+    return f"""| PRISMA Stage | Count | Notes |
+|:---|---:|:---|
+| Records from databases | {ident.get('records_from_databases', 0)} | Initial search hits |
+| After deduplication | {screen.get('after_deduplication', 0)} | Duplicates removed BEFORE screening |
+| Title/abstract screened | {screen.get('records_screened', 0)} | |
+| Title/abstract excluded | {screen.get('records_excluded_title_abstract', 0)} | See exclusion reasons below |
+| Full-text assessed | {elig.get('fulltext_assessed', 0)} | |
+| Full-text excluded | {elig.get('records_excluded_fulltext', 0)} | See exclusion reasons below |
+| **Studies included** | **{incl.get('studies_included', 0)}** | Final evidence pool |
+"""
+
+
+# ── Round 1: LLM Writer Refinement ──
+
+_SECTION_REFINEMENT_TASKS = {
+    "1 Summary": "Refine this Summary to be a concise 1-page overview. Use the six-element framework: device identity, indication, evidence base, benefit-risk balance, uncertainties, and overall conclusion. Write natural regulatory English paragraphs with logical transitions.",
+    "3 SOTA": "Refine this SOTA chapter to read as a coherent clinical narrative. Ensure benchmarks are clearly stated with their clinical meaning. Connect disease background → alternative treatments → guidelines → endpoints in a logical flow.",
+    "4 Device": "Refine this Device Under Evaluation chapter. Ensure every technical feature is linked to its clinical relevance. Use professional regulatory English with appropriate passive voice for device description.",
+    "5 Conclusions": "Refine these Conclusions to be definitive yet appropriately cautious. Every conclusion must reference specific evidence. Use the wording strength map: STRONG→'demonstrates', MODERATE→'indicates', CAUTIOUS→'suggests', INSUFFICIENT→'insufficient evidence to conclude'.",
+}
+
+_NB_TONE_INSTRUCTIONS = {
+    "BSI": "Target BSI modular review: use precise technical language, address GSPR individually with explicit clause references, avoid general statements.",
+    "TUV_SUD": "Target TUV SUD sequential DR: use highly standardized phrasing, note every variant/model difference explicitly, be definitive not exploratory.",
+    "DEKRA": "Target DEKRA review: emphasize search methodology reproducibility, provide explicit rationale for every database choice.",
+}
+
+
+def _build_section_refinement_task(section_key: str, draft_text: str, packet: dict) -> str:
+    """Build section-specific refinement prompt for LLM Writer."""
+    base_task = _SECTION_REFINEMENT_TASKS.get(
+        section_key,
+        "Refine this CER section to professional regulatory English. Ensure logical flow, precise terminology, and appropriate evidence citation."
+    )
+    nb_name = packet.get("nb_specific_context", {}).get("nb_body", "")
+    nb_tone = _NB_TONE_INSTRUCTIONS.get(nb_name, "")
+    word_count = len(draft_text.split())
+    return (
+        f"{base_task}\n\n"
+        f"{'NB-SPECIFIC: ' + nb_tone if nb_tone else ''}\n\n"
+        f"Current draft ({word_count} words):\n{draft_text[:3000]}\n\n"
+        f"Refine the above text. Maintain all factual claims and evidence references. "
+        f"Improve natural language flow, paragraph transitions, and regulatory tone. "
+        f"Output ONLY the refined section text, no commentary."
+    )
+
+
+def _extract_refined_text(result: dict, section_key: str) -> str:
+    """Extract refined chapter text from LLM agent response."""
+    if not result or not isinstance(result, dict):
+        return ""
+    # Try common response fields
+    for field in ("content", "text", "response", "output", "refined_text", "result"):
+        text = result.get(field)
+        if text and isinstance(text, str) and len(text) > 50:
+            return text
+    # Try invocation log
+    invocations = result.get("subagent_invocation_log") or result.get("invocations") or []
+    for inv in invocations:
+        if isinstance(inv, dict):
+            for field in ("content", "text", "output"):
+                text = inv.get(field)
+                if text and isinstance(text, str) and len(text) > 50:
+                    return text
+    return ""
+
+
+def _llm_refine_chapters(state: dict[str, Any]) -> dict[str, str]:
+    """Post-process deterministic chapter drafts through LLM Writer.
+
+    Sends each major chapter to authoring-cer-writer-agent for refinement.
+    Falls back to original draft if LLM is unavailable.
+    """
+    try:
+        from deerflow.runtime.cer_authoring.graph import invoke_authoring_agent
+    except ImportError:
+        return state.get("cer_chapter_drafts") or {}
+
+    drafts = state.get("cer_chapter_drafts") or {}
+    packet = state.get("writer_input_packet") or {}
+    refined = {}
+    # Only refine major narrative chapters
+    major_chapters = {k: v for k, v in drafts.items()
+                      if any(s in k for s in ["Summary", "SOTA", "Device", "Conclusions", "GSPR"])
+                      and v and len(str(v).split()) >= 30}
+
+    for section_key, draft_text in major_chapters.items():
+        try:
+            task = _build_section_refinement_task(section_key, str(draft_text), packet)
+            result = invoke_authoring_agent(
+                "authoring-cer-writer-agent",
+                {**state, "current_section": section_key, "draft_text": str(draft_text)},
+                task,
+            )
+            refined_text = _extract_refined_text(result, section_key)
+            refined[section_key] = refined_text if refined_text else str(draft_text)
+        except Exception:
+            refined[section_key] = str(draft_text)
+
+    # Keep non-refined chapters as-is
+    for k, v in drafts.items():
+        if k not in refined:
+            refined[k] = v
+
+    return refined
+
+
+# ── Round 2: Argument Flow Scoring ──
+
+def _score_argument_flow(chapters: dict[str, str]) -> dict[str, Any]:
+    """Score argument flow between adjacent paragraphs.
+
+    Checks: transition words, topic continuity, PEEL structure compliance.
+    Returns per-section scores and overall flow score.
+    """
+    import re
+    scores = {}
+    for section, text in chapters.items():
+        if not text or len(text.split()) < 50:
+            continue
+        paragraphs = [p.strip() for p in text.split("\n\n") if p.strip() and len(p.split()) > 10]
+        if len(paragraphs) < 2:
+            continue
+        # Count transitions between paragraphs
+        transition_pattern = r'^(However|Therefore|Furthermore|In\s+addition|Moreover|Consequently|Similarly|In\s+contrast|Specifically|For\s+example|Based\s+on|The\s+clinical|This\s+|These\s+|Accordingly|Thus|As\s+a\s+result|Notably|Importantly)'
+        transitions = sum(1 for p in paragraphs[1:] if re.match(transition_pattern, p, re.IGNORECASE))
+        # Count PEEL markers
+        peel_count = sum(1 for p in paragraphs if "<!-- PEEL:" in p)
+        flow_score = min(100, int((transitions / max(len(paragraphs) - 1, 1)) * 60 + (peel_count / max(len(paragraphs), 1)) * 40))
+        scores[section] = flow_score
+
+    overall = int(sum(scores.values()) / max(len(scores), 1)) if scores else 0
+    return {
+        "argument_flow_scores": scores,
+        "overall_flow": overall,
+        "assessment": (
+            "Excellent — strong paragraph transitions and logical flow" if overall >= 80
+            else "Good — adequate flow with some transition gaps" if overall >= 60
+            else "Needs improvement — weak paragraph transitions, consider LLM refinement"
+        ),
+    }
 
 
 # ── Phase 6: Binary Evidence Inclusion (engineer feedback: 层级筛选) ──

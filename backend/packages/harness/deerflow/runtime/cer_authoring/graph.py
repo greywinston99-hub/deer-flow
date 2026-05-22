@@ -345,12 +345,30 @@ def _node_device_equivalence_search(state: SharedAuthoringState) -> dict[str, An
 
 def _node_literature_screening(state: SharedAuthoringState) -> dict[str, Any]:
     generated = pipeline.screen_literature(dict(state))
-    # P0-1: Generate PRISMA flow diagram
+    # R1: Generate PRISMA flow diagram + bridge to artifacts.py format
     prisma = pipeline._generate_prisma_flow(dict(state))
+    diag = prisma.get("prisma_flow_diagram", {})
+    prisma_artifacts_data = {
+        "identification": {
+            "database_records": diag.get("identification", {}).get("records_from_databases", 0),
+            "other_source_records": diag.get("identification", {}).get("records_from_other_sources", 0),
+        },
+        "screening": {
+            "deduplicated_records": diag.get("screening", {}).get("after_deduplication", 0),
+            "title_abstract_screened": diag.get("screening", {}).get("records_screened", 0),
+            "title_abstract_excluded": diag.get("screening", {}).get("records_excluded_title_abstract", 0),
+            "full_text_assessed": diag.get("eligibility", {}).get("fulltext_assessed", 0),
+            "full_text_excluded": diag.get("eligibility", {}).get("records_excluded_fulltext", 0),
+        },
+        "included": {
+            "sota_included": diag.get("included", {}).get("studies_included", 0),
+            "due_included": 0,
+        },
+    }
     if generated:
-        return {**_branch_stage("literature_screening"), **generated, "prisma_flow": prisma}
+        return {**_branch_stage("literature_screening"), **generated, "prisma_flow": prisma, "prisma_flow_data": prisma_artifacts_data}
     if state.get("search_run_registry") or state.get("screening_disposition"):
-        return {**_branch_stage("literature_screening"), "prisma_flow": prisma}
+        return {**_branch_stage("literature_screening"), "prisma_flow": prisma, "prisma_flow_data": prisma_artifacts_data}
     return _branch_stage("literature_screening", "rework_required", note="Search run registry and screening disposition are required")
 
 
