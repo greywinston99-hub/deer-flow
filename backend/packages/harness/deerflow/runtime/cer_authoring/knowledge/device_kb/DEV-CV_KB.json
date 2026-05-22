@@ -1,0 +1,180 @@
+{
+  "metadata": {
+    "family_id": "DEV-CV",
+    "name": "Cardiovascular",
+    "name_cn": "心血管领域",
+    "version": "1.0",
+    "generated_at": "2026-05-20T22:37:16.467753",
+    "source_projects": [
+      "帕姆 (PADN)",
+      "苏州心擎 (介入心室辅助)"
+    ]
+  },
+  "domain_definition": {
+    "description": "心血管介入与治疗器械，包括冠脉介入、外周血管、结构性心脏病、肺动脉高压治疗等",
+    "emdn_codes": [
+      "V0101",
+      "V0102",
+      "V0103",
+      "V0201",
+      "V0202"
+    ],
+    "typical_class": "Class IIb / Class III",
+    "cer_pathways": [
+      "等效性路径 (有已上市类似器械时)",
+      "临床调查路径 (创新器械如VAD)"
+    ]
+  },
+  "regulatory_standards": {
+    "key_standards": [
+      "ISO 10993 (生物相容性)",
+      "IEC 60601-1 (电气安全)",
+      "ISO 14155 (临床试验)"
+    ],
+    "specific_risks": [
+      "血管穿孔",
+      "血栓形成",
+      "心律失常",
+      "出血",
+      "器械栓塞"
+    ]
+  },
+  "cer_special_requirements": {
+    "§2.1": "必须包含血管解剖适配表（直径范围、弯曲半径、入路位置）",
+    "§3.4": "必须对比药物治疗 vs 介入治疗 vs 外科手术的三线治疗路径",
+    "§4.3.2": "必须包含血流动力学测试数据（若适用）",
+    "§4.7.1": "必须包含血栓事件率（按BARC出血分型或类似标准）"
+  },
+  "sota_benchmarks": [
+    {
+      "endpoint": "6MWD",
+      "unit": "m",
+      "typical_value": "300-400",
+      "source": "SOTA文献"
+    },
+    {
+      "endpoint": "NYHA Class",
+      "unit": "等级",
+      "typical_value": "II-III",
+      "source": "临床实践"
+    },
+    {
+      "endpoint": "全因死亡率",
+      "unit": "%/年",
+      "typical_value": "5-15",
+      "source": "注册登记"
+    }
+  ],
+  "defect_patterns": [
+    {
+      "code": "DO-001",
+      "count": 12,
+      "context": "器械描述中血管规格、导管尺寸、材料牌号缺失"
+    },
+    {
+      "code": "EV-001",
+      "count": 4,
+      "context": "血流动力学终点数据不足，缺少长期随访"
+    },
+    {
+      "code": "GS-001",
+      "count": 3,
+      "context": "ISO 10993 系列覆盖不全，生物相容性评价不完整"
+    }
+  ],
+  "table_templates": [
+    {
+      "name": "血管解剖适配表",
+      "fields": [
+        "血管部位",
+        "最小直径(mm)",
+        "最大直径(mm)",
+        "弯曲半径(mm)",
+        "推荐入路"
+      ],
+      "section": "§2.1"
+    },
+    {
+      "name": "血流动力学终点表",
+      "fields": [
+        "参数",
+        "基线",
+        "术后即刻",
+        "30天",
+        "6个月",
+        "12个月",
+        "P值"
+      ],
+      "section": "§4.7.3"
+    },
+    {
+      "name": "抗凝方案对比表",
+      "fields": [
+        "方案",
+        "药物",
+        "剂量",
+        "启动时间",
+        "持续时间",
+        "监测指标"
+      ],
+      "section": "§4.3.3"
+    }
+  ],
+  "writing_guidelines": [
+    "血流动力学参数使用标准术语（CO/CI/SV/SVR/PVR）",
+    "血管尺寸必须标注测量方法（超声/造影/CT）",
+    "抗凝方案必须明确（药物类型、剂量、持续时间）",
+    "随访时间点必须标准化（30天/6月/1年/2年）"
+  ],
+  "deerflow_injection": {
+    "slot_rules": {
+      "DO-001": "器械描述中血管规格、导管尺寸、材料牌号缺失",
+      "EV-001": "血流动力学终点数据不足，缺少长期随访",
+      "GS-001": "ISO 10993 系列覆盖不全，生物相容性评价不完整"
+    },
+    "gate_checks": [
+      {
+        "table": "血管解剖适配表",
+        "section": "§2.1",
+        "required_fields": [
+          "血管部位",
+          "最小直径(mm)",
+          "最大直径(mm)",
+          "弯曲半径(mm)",
+          "推荐入路"
+        ]
+      },
+      {
+        "table": "血流动力学终点表",
+        "section": "§4.7.3",
+        "required_fields": [
+          "参数",
+          "基线",
+          "术后即刻",
+          "30天",
+          "6个月",
+          "12个月",
+          "P值"
+        ]
+      },
+      {
+        "table": "抗凝方案对比表",
+        "section": "§4.3.3",
+        "required_fields": [
+          "方案",
+          "药物",
+          "剂量",
+          "启动时间",
+          "持续时间",
+          "监测指标"
+        ]
+      }
+    ],
+    "agent_prompt_additions": [
+      "血流动力学参数使用标准术语（CO/CI/SV/SVR/PVR）",
+      "血管尺寸必须标注测量方法（超声/造影/CT）",
+      "抗凝方案必须明确（药物类型、剂量、持续时间）",
+      "Pay special attention to: 血管穿孔, 血栓形成, 心律失常"
+    ]
+  }
+}

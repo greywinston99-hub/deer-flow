@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "family_id": "DEV-OP",
+    "name": "Ophthalmology",
+    "name_cn": "眼科领域",
+    "version": "1.0",
+    "generated_at": "2026-05-20T22:37:16.468270",
+    "source_projects": [
+      "安徽巨目 (推测: 眼科设备)"
+    ]
+  },
+  "domain_definition": {
+    "description": "眼科器械，包括屈光手术、白内障、青光眼、视网膜治疗、角膜移植等",
+    "emdn_codes": [
+      "M0101",
+      "M0102",
+      "M0201",
+      "M0301",
+      "M0401"
+    ],
+    "typical_class": "Class IIa / Class IIb",
+    "cer_pathways": [
+      "等效性路径 (白内障/屈光手术常见)",
+      "临床调查路径 (新型给药系统)"
+    ]
+  },
+  "regulatory_standards": {
+    "key_standards": [
+      "ISO 10993",
+      "ISO 11979 (眼内植入物)",
+      "IEC 60601-1",
+      "ISO 14155"
+    ],
+    "specific_risks": [
+      "角膜水肿",
+      "眼内炎",
+      "高眼压",
+      "视网膜脱离",
+      "后囊膜混浊"
+    ]
+  },
+  "cer_special_requirements": {
+    "§2.1": "必须包含光学参数表（焦距、屈光度、球差、像差、透光率）",
+    "§3.4": "必须对比框架眼镜 vs 隐形眼镜 vs 屈光手术 vs 眼内晶体",
+    "§4.3.2": "必须包含眼内植入物生物相容性数据（ISO 11979-5）",
+    "§4.7.1": "必须包含眼内炎发生率（按发生率/1000例）"
+  },
+  "sota_benchmarks": [
+    {
+      "endpoint": "BCVA",
+      "unit": "logMAR",
+      "typical_value": "0.0-0.3",
+      "source": "SOTA文献"
+    },
+    {
+      "endpoint": "IOP",
+      "unit": "mmHg",
+      "typical_value": "10-21",
+      "source": "临床实践"
+    },
+    {
+      "endpoint": "角膜内皮细胞密度",
+      "unit": "cells/mm²",
+      "typical_value": ">2000",
+      "source": "SOTA文献"
+    }
+  ],
+  "defect_patterns": [
+    {
+      "code": "DO-001",
+      "count": 6,
+      "context": "光学参数（焦距、屈光度、像差）描述不完整"
+    },
+    {
+      "code": "EV-001",
+      "count": 3,
+      "context": "视力终点评估方法不一致（Snellen vs logMAR）"
+    },
+    {
+      "code": "GS-001",
+      "count": 2,
+      "context": "ISO 11979 系列符合性声明缺失"
+    }
+  ],
+  "table_templates": [
+    {
+      "name": "光学参数规格表",
+      "fields": [
+        "参数",
+        "数值",
+        "单位",
+        "公差",
+        "测量方法"
+      ],
+      "section": "§2.1"
+    },
+    {
+      "name": "视力评估表",
+      "fields": [
+        "时间点",
+        "BCVA(logMAR)",
+        "CDVA(logMAR)",
+        "屈光度(D)",
+        "像差(μm)"
+      ],
+      "section": "§4.7.3"
+    },
+    {
+      "name": "眼内并发症表",
+      "fields": [
+        "并发症",
+        "发生率(%)",
+        "严重程度",
+        "处理方式",
+        "随访结果"
+      ],
+      "section": "§4.7.1"
+    }
+  ],
+  "writing_guidelines": [
+    "视力必须使用 logMAR 或 ETDRS 字母表，避免单独使用 Snellen",
+    "眼压必须标注测量方法（Goldmann/非接触式/Tono-Pen）",
+    "角膜参数必须标注测量设备（Pentacam/OCT/角膜地形图）",
+    "眼内植入物必须标注材料（亲水性/疏水性丙烯酸酯、硅胶、PMMA）"
+  ],
+  "deerflow_injection": {
+    "slot_rules": {
+      "DO-001": "光学参数（焦距、屈光度、像差）描述不完整",
+      "EV-001": "视力终点评估方法不一致（Snellen vs logMAR）",
+      "GS-001": "ISO 11979 系列符合性声明缺失"
+    },
+    "gate_checks": [
+      {
+        "table": "光学参数规格表",
+        "section": "§2.1",
+        "required_fields": [
+          "参数",
+          "数值",
+          "单位",
+          "公差",
+          "测量方法"
+        ]
+      },
+      {
+        "table": "视力评估表",
+        "section": "§4.7.3",
+        "required_fields": [
+          "时间点",
+          "BCVA(logMAR)",
+          "CDVA(logMAR)",
+          "屈光度(D)",
+          "像差(μm)"
+        ]
+      },
+      {
+        "table": "眼内并发症表",
+        "section": "§4.7.1",
+        "required_fields": [
+          "并发症",
+          "发生率(%)",
+          "严重程度",
+          "处理方式",
+          "随访结果"
+        ]
+      }
+    ],
+    "agent_prompt_additions": [
+      "视力必须使用 logMAR 或 ETDRS 字母表，避免单独使用 Snellen",
+      "眼压必须标注测量方法（Goldmann/非接触式/Tono-Pen）",
+      "角膜参数必须标注测量设备（Pentacam/OCT/角膜地形图）",
+      "Pay special attention to: 角膜水肿, 眼内炎, 高眼压"
+    ]
+  }
+}

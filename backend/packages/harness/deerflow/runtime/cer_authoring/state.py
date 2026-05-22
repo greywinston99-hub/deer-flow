@@ -260,6 +260,7 @@ class SharedAuthoringState(ThreadState):
     rework_queue: Annotated[list[dict[str, Any]], merge_records]
     authoring_workbook: Annotated[dict[str, Any], merge_dict]
     stage_results: Annotated[list[dict[str, Any]], append_list]
+    model_provider_preflight: Annotated[dict[str, Any], merge_dict]
     spiral_round_id: NotRequired[int | None]
     evidence_lineage_frozen: NotRequired[bool]
     evidence_lineage_frozen_at_stage: NotRequired[str | None]

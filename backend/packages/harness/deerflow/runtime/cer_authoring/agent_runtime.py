@@ -225,6 +225,7 @@ def invoke_authoring_agent(agent_name: str, state: dict[str, Any], task: str, *,
     from deerflow.runtime.cer_authoring.writer_remediation.model_routing import (
         resolve_agent_model,
         is_model_allowed_for_agent,
+        missing_provider_env,
         get_agent_task_type,
         record_resolution_trace,
         ROUTING_POLICY_V1,
@@ -240,6 +241,7 @@ def invoke_authoring_agent(agent_name: str, state: dict[str, Any], task: str, *,
     config.model = routed_model
     payload["routed_model"] = routed_model
     payload["task_type"] = task_type
+    missing_env = missing_provider_env(routed_model)
     # Determine routing source for audit trail
     env_key = f"CER_AUTHORING_MODEL_{agent_name.upper().replace('-', '_')}"
     if os.getenv(env_key):
@@ -259,9 +261,17 @@ def invoke_authoring_agent(agent_name: str, state: dict[str, Any], task: str, *,
         "actual_resolved_model": routed_model,
         "route_source": route_source,
         "fallback_used": False,
-        "provider_status": "unknown",
+        "provider_status": "missing_env" if missing_env else "configured",
+        "missing_env": missing_env,
         "model_invocation_success": False,
     })
+    if missing_env:
+        return {
+            **payload,
+            "status": "BLOCKED_PROVIDER_UNAVAILABLE",
+            "error": f"Model '{routed_model}' is configured for '{agent_name}', but required environment variable(s) are missing: {', '.join(missing_env)}.",
+            "missing_env": missing_env,
+        }
     prompt = "\n".join(
         [
             task,

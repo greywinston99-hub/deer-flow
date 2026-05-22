@@ -158,6 +158,14 @@ MODEL_BOUNDARIES: dict[str, dict[str, Any]] = {
     },
 }
 
+MODEL_REQUIRED_ENV: dict[str, tuple[str, ...]] = {
+    "kimi-k2.6-code": ("KIMI_CODE_API_KEY",),
+    "kimi-k2.6": ("KIMI_API_KEY",),
+    "kimi-k2.6-api": ("KIMI_API_KEY",),
+    "kimi-api": ("KIMI_API_KEY",),
+    "deepseek-v4-pro": ("DEEPSEEK_API_KEY",),
+}
+
 # -- Routing resolver --------------------------------------------------------
 
 # Priority for resolving model name per agent:
@@ -246,6 +254,46 @@ def get_agent_routing_info(agent_name: str) -> dict[str, Any] | None:
 def get_model_boundaries(model_name: str) -> dict[str, Any] | None:
     """Return the usage boundary rules for a model."""
     return MODEL_BOUNDARIES.get(model_name)
+
+
+def missing_provider_env(model_name: str) -> list[str]:
+    """Return missing environment variables required by the routed model."""
+
+    required = MODEL_REQUIRED_ENV.get(model_name, ())
+    return [name for name in required if not os.getenv(name)]
+
+
+def is_model_provider_configured(model_name: str) -> bool:
+    """Whether the routed model has the local credentials needed to instantiate."""
+
+    return not missing_provider_env(model_name)
+
+
+def build_provider_preflight(state: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Build a run-start provider readiness report for all routed agents."""
+
+    agent_models = resolve_all_agent_models(state)
+    checks = []
+    missing: dict[str, list[str]] = {}
+    for agent_name, model_name in agent_models.items():
+        missing_env = missing_provider_env(model_name)
+        if missing_env:
+            missing[agent_name] = missing_env
+        checks.append(
+            {
+                "agent_name": agent_name,
+                "model_name": model_name,
+                "provider_status": "missing_env" if missing_env else "configured",
+                "missing_env": missing_env,
+            }
+        )
+    return {
+        "schema_name": "cer_authoring_model_provider_preflight",
+        "status": "BLOCKED_PROVIDER_UNAVAILABLE" if missing else "PASS",
+        "missing_provider_count": len(missing),
+        "missing_providers": missing,
+        "checks": checks,
+    }
 
 
 def is_deterministic_stage(agent_name: str) -> bool:

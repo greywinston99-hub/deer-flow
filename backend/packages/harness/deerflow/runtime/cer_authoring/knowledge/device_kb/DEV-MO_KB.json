@@ -1,0 +1,184 @@
+{
+  "metadata": {
+    "family_id": "DEV-MO",
+    "name": "Monitoring",
+    "name_cn": "监测领域",
+    "version": "1.0",
+    "generated_at": "2026-05-20T22:37:16.468896",
+    "source_projects": [
+      "湖北高德 (推测: 监测/影像设备)"
+    ]
+  },
+  "domain_definition": {
+    "description": "生命体征和生理参数监测器械，包括监护仪、血氧仪、遥测系统、连续血糖监测等",
+    "emdn_codes": [
+      "J0401",
+      "J0402",
+      "J0403",
+      "J0501"
+    ],
+    "typical_class": "Class IIa / Class IIb",
+    "cer_pathways": [
+      "等效性路径 (大多数监测设备)",
+      "临床调查路径 (新型连续监测技术)"
+    ]
+  },
+  "regulatory_standards": {
+    "key_standards": [
+      "IEC 60601-1",
+      "IEC 60601-1-8 (报警)",
+      "IEC 60601-2-X (专用标准)",
+      "ISO 81060-2 (无创血压)",
+      "ISO 80601-2-61 (脉率血氧)"
+    ],
+    "specific_risks": [
+      "误报警",
+      "漏报警",
+      "测量误差",
+      "电磁干扰",
+      "传感器失效"
+    ]
+  },
+  "cer_special_requirements": {
+    "§2.1": "必须包含监测参数表（参数名称、范围、精度、分辨率、采样率）",
+    "§3.4": "必须对比间歇监测 vs 连续监测的临床价值",
+    "§4.3.1": "必须包含精度验证（与金标准对比，Bland-Altman分析）",
+    "§4.7.1": "必须包含报警相关不良事件（误报警率、漏报警率）"
+  },
+  "sota_benchmarks": [
+    {
+      "endpoint": "测量精度",
+      "unit": "依参数而定",
+      "typical_value": "按IEC 60601-2-X要求",
+      "source": "IEC标准"
+    },
+    {
+      "endpoint": "报警响应时间",
+      "unit": "s",
+      "typical_value": "<10",
+      "source": "IEC 60601-1-8"
+    },
+    {
+      "endpoint": "假阳性率",
+      "unit": "%",
+      "typical_value": "<5",
+      "source": "SOTA文献"
+    },
+    {
+      "endpoint": "假阴性率",
+      "unit": "%",
+      "typical_value": "<1",
+      "source": "SOTA文献"
+    }
+  ],
+  "defect_patterns": [
+    {
+      "code": "DO-001",
+      "count": 5,
+      "context": "监测参数范围和精度描述不完整"
+    },
+    {
+      "code": "SW-001",
+      "count": 3,
+      "context": "报警算法验证、临床验证数据缺失"
+    },
+    {
+      "code": "GS-001",
+      "count": 2,
+      "context": "IEC 60601-1-8 报警系统符合性不足"
+    }
+  ],
+  "table_templates": [
+    {
+      "name": "监测参数规格表",
+      "fields": [
+        "参数",
+        "范围",
+        "精度",
+        "分辨率",
+        "采样率",
+        "单位"
+      ],
+      "section": "§2.1"
+    },
+    {
+      "name": "精度验证对比表",
+      "fields": [
+        "参数",
+        "器械测量",
+        "金标准",
+        "偏差",
+        "95% LOA",
+        "样本量"
+      ],
+      "section": "§4.3.1"
+    },
+    {
+      "name": "报警性能表",
+      "fields": [
+        "报警类型",
+        "灵敏度(%)",
+        "特异度(%)",
+        "假阳性率(%)",
+        "假阴性率(%)"
+      ],
+      "section": "§4.7.1"
+    }
+  ],
+  "writing_guidelines": [
+    "精度必须使用标准统计方法（均值±SD、95% LOA Bland-Altman）",
+    "测量范围必须标注临床意义范围（如SpO2 70-100%为临床有效范围）",
+    "报警必须分类（高/中/低优先级 + 技术报警/生理报警）",
+    "必须描述干扰因素（运动伪差、低灌注、电磁干扰）及处理方式"
+  ],
+  "deerflow_injection": {
+    "slot_rules": {
+      "DO-001": "监测参数范围和精度描述不完整",
+      "SW-001": "报警算法验证、临床验证数据缺失",
+      "GS-001": "IEC 60601-1-8 报警系统符合性不足"
+    },
+    "gate_checks": [
+      {
+        "table": "监测参数规格表",
+        "section": "§2.1",
+        "required_fields": [
+          "参数",
+          "范围",
+          "精度",
+          "分辨率",
+          "采样率",
+          "单位"
+        ]
+      },
+      {
+        "table": "精度验证对比表",
+        "section": "§4.3.1",
+        "required_fields": [
+          "参数",
+          "器械测量",
+          "金标准",
+          "偏差",
+          "95% LOA",
+          "样本量"
+        ]
+      },
+      {
+        "table": "报警性能表",
+        "section": "§4.7.1",
+        "required_fields": [
+          "报警类型",
+          "灵敏度(%)",
+          "特异度(%)",
+          "假阳性率(%)",
+          "假阴性率(%)"
+        ]
+      }
+    ],
+    "agent_prompt_additions": [
+      "精度必须使用标准统计方法（均值±SD、95% LOA Bland-Altman）",
+      "测量范围必须标注临床意义范围（如SpO2 70-100%为临床有效范围）",
+      "报警必须分类（高/中/低优先级 + 技术报警/生理报警）",
+      "Pay special attention to: 误报警, 漏报警, 测量误差"
+    ]
+  }
+}

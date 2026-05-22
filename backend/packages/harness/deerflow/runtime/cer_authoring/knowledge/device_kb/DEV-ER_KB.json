@@ -1,0 +1,180 @@
+{
+  "metadata": {
+    "family_id": "DEV-ER",
+    "name": "Emergency / Resuscitation",
+    "name_cn": "急诊/复苏领域",
+    "version": "1.0",
+    "generated_at": "2026-05-20T22:37:16.468692",
+    "source_projects": [
+      "鱼跃 (AED)",
+      "普美康 (AED)"
+    ]
+  },
+  "domain_definition": {
+    "description": "急诊和复苏器械，包括自动体外除颤器(AED)、心肺复苏设备、急救通气设备等",
+    "emdn_codes": [
+      "J0301",
+      "J0302",
+      "J0303"
+    ],
+    "typical_class": "Class IIb / Class III",
+    "cer_pathways": [
+      "等效性路径 (AED有成熟已上市产品)",
+      "临床调查路径 (新型复苏技术)"
+    ]
+  },
+  "regulatory_standards": {
+    "key_standards": [
+      "IEC 60601-2-4 (除颤器)",
+      "IEC 60601-1",
+      "ISO 14971",
+      "ISO 14155"
+    ],
+    "specific_risks": [
+      "电击失败",
+      "误电击",
+      "皮肤灼伤",
+      "心肌损伤",
+      "操作延误"
+    ]
+  },
+  "cer_special_requirements": {
+    "§2.1": "必须包含除颤波形参数表（能量/J、脉宽/ms、波形类型、阻抗范围）",
+    "§3.4": "必须对比手动除颤 vs AED vs 无除颤的预后差异",
+    "§4.3.1": "必须包含除颤成功率测试（各能量档位 × 阻抗范围）",
+    "§4.7.1": "必须包含电击相关不良事件（皮肤灼伤、心肌酶升高）"
+  },
+  "sota_benchmarks": [
+    {
+      "endpoint": "首次电击成功率",
+      "unit": "%",
+      "typical_value": ">90",
+      "source": "AHA/ERC指南"
+    },
+    {
+      "endpoint": "ROSC率",
+      "unit": "%",
+      "typical_value": "30-50",
+      "source": "SOTA文献"
+    },
+    {
+      "endpoint": "出院生存率",
+      "unit": "%",
+      "typical_value": "5-15",
+      "source": "SOTA文献"
+    },
+    {
+      "endpoint": "CPR质量分数",
+      "unit": "%",
+      "typical_value": ">80",
+      "source": "AHA指南"
+    }
+  ],
+  "defect_patterns": [
+    {
+      "code": "DO-001",
+      "count": 7,
+      "context": "除颤波形参数（双相波能量、脉宽、斜率）描述不完整"
+    },
+    {
+      "code": "GS-001",
+      "count": 3,
+      "context": "IEC 60601-2-4 符合性测试数据缺失"
+    },
+    {
+      "code": "EQ-001",
+      "count": 2,
+      "context": "与已上市AED的等效性论证不充分"
+    }
+  ],
+  "table_templates": [
+    {
+      "name": "除颤波形参数表",
+      "fields": [
+        "参数",
+        "成人",
+        "儿童",
+        "婴儿",
+        "单位"
+      ],
+      "section": "§2.1"
+    },
+    {
+      "name": "除颤成功率测试表",
+      "fields": [
+        "能量(J)",
+        "阻抗(Ω)",
+        "测试次数",
+        "成功次数",
+        "成功率(%)"
+      ],
+      "section": "§4.3.1"
+    },
+    {
+      "name": "复苏终点对比表",
+      "fields": [
+        "终点",
+        "AED组",
+        "手动除颤组",
+        "无除颤组",
+        "P值"
+      ],
+      "section": "§4.7.3"
+    }
+  ],
+  "writing_guidelines": [
+    "除颤能量使用标准单位（J），标注成人/儿童/婴儿剂量差异",
+    "波形描述使用标准术语（双相截断指数BTE、双相直线、脉冲等）",
+    "操作时间必须标注（开机→首次分析→首次电击的时间间隔）",
+    "必须明确适用人群（成人/儿童/婴儿，体重阈值）",
+    "必须描述语音提示内容和语言覆盖"
+  ],
+  "deerflow_injection": {
+    "slot_rules": {
+      "DO-001": "除颤波形参数（双相波能量、脉宽、斜率）描述不完整",
+      "GS-001": "IEC 60601-2-4 符合性测试数据缺失",
+      "EQ-001": "与已上市AED的等效性论证不充分"
+    },
+    "gate_checks": [
+      {
+        "table": "除颤波形参数表",
+        "section": "§2.1",
+        "required_fields": [
+          "参数",
+          "成人",
+          "儿童",
+          "婴儿",
+          "单位"
+        ]
+      },
+      {
+        "table": "除颤成功率测试表",
+        "section": "§4.3.1",
+        "required_fields": [
+          "能量(J)",
+          "阻抗(Ω)",
+          "测试次数",
+          "成功次数",
+          "成功率(%)"
+        ]
+      },
+      {
+        "table": "复苏终点对比表",
+        "section": "§4.7.3",
+        "required_fields": [
+          "终点",
+          "AED组",
+          "手动除颤组",
+          "无除颤组",
+          "P值"
+        ]
+      }
+    ],
+    "agent_prompt_additions": [
+      "除颤能量使用标准单位（J），标注成人/儿童/婴儿剂量差异",
+      "波形描述使用标准术语（双相截断指数BTE、双相直线、脉冲等）",
+      "操作时间必须标注（开机→首次分析→首次电击的时间间隔）",
+      "Pay special attention to: 电击失败, 误电击, 皮肤灼伤"
+    ]
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "metadata": {
+    "family_id": "DEV-VAD",
+    "name": "Ventricular Assist Device",
+    "name_cn": "心室辅助装置领域",
+    "version": "1.0",
+    "generated_at": "2026-05-20T22:37:16.468487",
+    "source_projects": [
+      "苏州心擎 (介入心室辅助装置)"
+    ]
+  },
+  "domain_definition": {
+    "description": "心室辅助装置(VAD)和全人工心脏(TAH)，包括短期机械循环支持(MCS)和长期植入式VAD",
+    "emdn_codes": [
+      "V0203",
+      "V0204"
+    ],
+    "typical_class": "Class III",
+    "cer_pathways": [
+      "临床调查路径 (绝大多数VAD为创新器械)"
+    ]
+  },
+  "regulatory_standards": {
+    "key_standards": [
+      "ISO 10993",
+      "IEC 60601-1",
+      "ISO 14708-5 (有源植入物)",
+      "ISO 14155",
+      "ASTM F1841 (体外血液回路)"
+    ],
+    "specific_risks": [
+      "泵血栓形成",
+      "卒中",
+      "出血",
+      "感染",
+      "右心衰竭",
+      "溶血"
+    ]
+  },
+  "cer_special_requirements": {
+    "§2.1": "必须包含H-Q曲线（流量-压力头关系）和效率曲线",
+    "§3.4": "必须对比药物优化 vs IABP vs Impella vs ECMO vs 长期VAD vs 心脏移植",
+    "§4.3.2": "必须包含溶血测试（血浆游离血红蛋白、LDH）",
+    "§4.3.3": "必须包含INTERMACS Profile分布和终点事件（按INTERMACS定义）",
+    "§4.7.1": "必须包含抗凝方案及出血/血栓事件（按BARC或类似标准）",
+    "§4.7.2": "必须按INTERMACS Profile分层获益风险"
+  },
+  "sota_benchmarks": [
+    {
+      "endpoint": "30天生存率",
+      "unit": "%",
+      "typical_value": "80-90",
+      "source": "INTERMACS/欧盟注册"
+    },
+    {
+      "endpoint": "1年生存率",
+      "unit": "%",
+      "typical_value": "70-80",
+      "source": "INTERMACS"
+    },
+    {
+      "endpoint": "重大出血率",
+      "unit": "%/患者年",
+      "typical_value": "20-30",
+      "source": "SOTA文献"
+    },
+    {
+      "endpoint": "卒中率",
+      "unit": "%/患者年",
+      "typical_value": "8-15",
+      "source": "SOTA文献"
+    },
+    {
+      "endpoint": "泵血栓率",
+      "unit": "%/患者年",
+      "typical_value": "5-10",
+      "source": "SOTA文献"
+    }
+  ],
+  "defect_patterns": [
+    {
+      "code": "DO-001",
+      "count": 5,
+      "context": "血流动力学性能曲线（H-Q曲线）描述不完整"
+    },
+    {
+      "code": "EV-001",
+      "count": 4,
+      "context": "长期耐久性数据不足，缺少加速老化测试"
+    },
+    {
+      "code": "PM-001",
+      "count": 3,
+      "context": "PMCF研究设计不充分，缺少真实世界长期随访"
+    },
+    {
+      "code": "BR-001",
+      "count": 2,
+      "context": "获益风险分析未按INTERMACS Profile分层"
+    }
+  ],
+  "table_templates": [
+    {
+      "name": "H-Q性能曲线表",
+      "fields": [
+        "转速(rpm)",
+        "流量(L/min)",
+        "压力头(mmHg)",
+        "功率(W)",
+        "效率(%)"
+      ],
+      "section": "§2.1"
+    },
+    {
+      "name": "INTERMACS终点事件表",
+      "fields": [
+        "事件类型",
+        "定义",
+        "发生率(%)",
+        "时间窗",
+        "处理方式"
+      ],
+      "section": "§4.3.3"
+    },
+    {
+      "name": "抗凝方案与出血/血栓表",
+      "fields": [
+        "抗凝方案",
+        "目标INR/aPTT",
+        "大出血率",
+        "血栓栓塞率",
+        "泵血栓率"
+      ],
+      "section": "§4.7.1"
+    }
+  ],
+  "writing_guidelines": [
+    "血流动力学参数使用标准单位（L/min, mmHg, rpm, W）",
+    "所有终点事件必须按INTERMACS或类似注册登记标准定义",
+    "抗凝方案必须完整（抗凝药物、目标INR/aPTT、桥接方案）",
+    "耐久性数据必须包含体外加速老化和体内随访两部分",
+    "必须明确短期支持（<14天）vs 长期支持（>14天）的适应症差异"
+  ],
+  "deerflow_injection": {
+    "slot_rules": {
+      "DO-001": "血流动力学性能曲线（H-Q曲线）描述不完整",
+      "EV-001": "长期耐久性数据不足，缺少加速老化测试",
+      "PM-001": "PMCF研究设计不充分，缺少真实世界长期随访",
+      "BR-001": "获益风险分析未按INTERMACS Profile分层"
+    },
+    "gate_checks": [
+      {
+        "table": "H-Q性能曲线表",
+        "section": "§2.1",
+        "required_fields": [
+          "转速(rpm)",
+          "流量(L/min)",
+          "压力头(mmHg)",
+          "功率(W)",
+          "效率(%)"
+        ]
+      },
+      {
+        "table": "INTERMACS终点事件表",
+        "section": "§4.3.3",
+        "required_fields": [
+          "事件类型",
+          "定义",
+          "发生率(%)",
+          "时间窗",
+          "处理方式"
+        ]
+      },
+      {
+        "table": "抗凝方案与出血/血栓表",
+        "section": "§4.7.1",
+        "required_fields": [
+          "抗凝方案",
+          "目标INR/aPTT",
+          "大出血率",
+          "血栓栓塞率",
+          "泵血栓率"
+        ]
+      }
+    ],
+    "agent_prompt_additions": [
+      "血流动力学参数使用标准单位（L/min, mmHg, rpm, W）",
+      "所有终点事件必须按INTERMACS或类似注册登记标准定义",
+      "抗凝方案必须完整（抗凝药物、目标INR/aPTT、桥接方案）",
+      "Pay special attention to: 泵血栓形成, 卒中, 出血"
+    ]
+  }
+}

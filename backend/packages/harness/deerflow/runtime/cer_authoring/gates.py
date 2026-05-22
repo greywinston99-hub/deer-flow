@@ -1067,21 +1067,116 @@ def _g42_unique(values: list[str]) -> list[str]:
     return output
 
 
+def _gate_claim_text_consistency(state: dict[str, Any]) -> GateResult:
+    """Check rendered CER body for claim/BR/text consistency violations.
+
+    Rules:
+    - If claim status is insufficient/evidence_gap/not_allowed/ALLOWED_USE_BLOCKED
+      → final text must NOT state support
+    - If BR ledger says benefit-risk not established or unfavourable
+      → summary/conclusion must NOT imply favourable benefit-risk
+    """
+    cer_chapters = state.get("cer_chapter_drafts") or {}
+    body_text = " ".join(str(v) for v in cer_chapters.values())
+    body_lower = body_text.lower()
+
+    violations = []
+
+    # ── Check 1: Claim-level consistency ──
+    claim_matrix = state.get("claim_evidence_matrix") or []
+    for row in claim_matrix:
+        claim_id = str(row.get("claim_id", ""))
+        status = str(row.get("support_status", "")).upper()
+        allowed = str(row.get("allowed_use", "")).upper()
+        blocked = status in ("INSUFFICIENT", "EVIDENCE_GAP", "NOT_SUPPORTED") or allowed == "ALLOWED_USE_BLOCKED"
+        if not blocked:
+            continue
+        # Check if claim ID appears with support wording in body
+        support_wording = ["demonstrates", "confirms", "supports", "proves", "establishes",
+                          "is effective", "is safe", "meets requirements"]
+        for word in support_wording:
+            if word in body_lower and claim_id.lower() in body_lower:
+                violations.append(
+                    f"Claim {claim_id} ({status}) cannot use '{word}' in CER body"
+                )
+                break
+
+    # ── Check 2: BR consistency ──
+    br_ledger = state.get("benefit_risk_ledger") or []
+    for row in br_ledger:
+        balance = str(row.get("benefit_risk_balance", "")).lower()
+        if balance in ("unfavourable", "unfavorable", "not established", "inconclusive"):
+            favourable_words = ["favourable", "favorable", "positive benefit-risk",
+                               "benefit-risk is acceptable", "clearly favourable"]
+            for word in favourable_words:
+                if word in body_lower:
+                    violations.append(
+                        f"BR ledger says '{balance}' but body states '{word}'"
+                    )
+                    break
+
+    if violations:
+        return GateResult("G_CLAIM_TEXT", "FAIL", "; ".join(violations[:5]))
+    return GateResult("G_CLAIM_TEXT", "PASS", "Claim/BR/text consistency verified.")
+
+
 def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
     """Gate G39: Validate rendered CER body before allowing PASS_TO_DRAFT_DOCX.
 
-    Delegates to writer_remediation gates which check domain consistency,
-    metadata leakage, claim/BR contradictions, and body cleanliness in the
-    actual rendered markdown text — not just the structured state.
+    Checks the actual rendered markdown text for:
+    - Banned internal strings (tool names, debug traces, agent references)
+    - IFU placeholder text (unresolved extraction gaps)
+    - Writer quality self-check score (if available in state)
     """
-    # Writer remediation gates (domain, IFU, evidence, cleanliness, render boundary,
-    # claim/BR consistency) enforce quarantine in _node_export (artifacts.py).
-    # G39 records the quarantine decision as an audit gate; the enforcement gate
-    # is artifacts.py which has the complete post-annex CER text.
     cer_chapters = state.get("cer_chapter_drafts") or {}
     if not cer_chapters:
         return GateResult("G39", "PASS", "No CER chapters; final draft QA deferred.")
-    return GateResult("G39", "PASS", "Final draft semantic QA deferred to artifacts.py writer remediation gates.")
+
+    # ── Check 1: Banned internal strings in rendered body ──
+    _BANNED_RENDER_CHECK = [
+        "Claude", "DeerFlow", "MCP", "subagent_invocation_log",
+        "SKILL REFERENCE", "PLANNER AGENT", "IMPLEMENTER AGENT", "REVIEWER AGENT",
+        "workbuddy", "execution trace", "agent handoff", "delegation log",
+        "ALLOWED_USE_BLOCKED", "authoring run", "cer_authoring_v1",
+    ]
+    body_text = " ".join(str(v) for v in cer_chapters.values())
+    banned_hits = []
+    for banned in _BANNED_RENDER_CHECK:
+        if banned.lower() in body_text.lower():
+            banned_hits.append(banned)
+
+    # ── Check 2: IFU placeholder patterns in rendered body ──
+    _IFU_PLACEHOLDER_CHECK = [
+        "Not extracted from IFU", "IFU text not available",
+        "source text unavailable", "pending IFU confirmation",
+    ]
+    placeholder_hits = []
+    for pattern in _IFU_PLACEHOLDER_CHECK:
+        if pattern.lower() in body_text.lower():
+            placeholder_hits.append(pattern)
+
+    # ── Check 3: Writer quality self-check score ──
+    quality_report = state.get("writer_quality_report") or {}
+    quality_pct = quality_report.get("writer_quality_pct", 100)
+
+    # ── Check 4: Claim/BR/text consistency ──
+    claim_check = _gate_claim_text_consistency(state)
+    claim_failures = claim_check.message if claim_check.status == "FAIL" else ""
+
+    # ── Aggregate result ──
+    failures = []
+    if banned_hits:
+        failures.append(f"Banned internal strings in body: {banned_hits}")
+    if placeholder_hits:
+        failures.append(f"IFU placeholders in body: {placeholder_hits}")
+    if quality_pct < 70:
+        failures.append(f"Writer quality score too low: {quality_pct}%")
+    if claim_check.status == "FAIL":
+        failures.append(f"Claim/BR/text consistency: {claim_failures}")
+
+    if failures:
+        return GateResult("G39", "FAIL", "; ".join(failures))
+    return GateResult("G39", "PASS", f"Rendered body clean ({quality_pct}% quality, 0 banned strings, 0 placeholders).")
 
 
 def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:

@@ -2,19 +2,46 @@
   "injection_interfaces": {
     "slot": {
       "device_name": "{device_name}",
+      "device_class": "Class {device_class}",
       "sota_benchmark": "{benchmark_value} ({confidence})",
       "gspr_number": "GSPR {gspr_id}",
       "claim_text": "{claim_text}",
-      "evidence_summary": "{evidence_summary}"
+      "evidence_summary": "{evidence_count} records, {high_weight} high-weight, {medium_weight} medium-weight",
+      "alignment_status": "{supported} supported, {partial} partial, {unsupported} unsupported",
+      "gap_register": "{gap_count} open gaps ({gap_ids})",
+      "vigilance_summary": "{vig_count} database searches, {signal_count} relevant signals",
+      "br_profile": "{favorable} favorable, {uncertain} uncertain of {total} ledger entries"
     },
     "writer": {
       "chapter_template": "Write {chapter_name} using data from {input_data_spec}",
-      "evidence_paragraph": "Based on {evidence_count} sources, {device_name} {conclusion_wording}"
+      "evidence_paragraph": "Based on {evidence_count} sources ({weight_distribution}), {device_name} {conclusion_wording}",
+      "gspr_analysis": "Regarding {gspr_id} ({requirement_summary}), the available evidence includes {sources}. The analysis demonstrates that {reasoning}. Therefore, the device {compliance_judgment}.",
+      "benefit_risk_narrative": "The benefit-risk profile of {device_name} is assessed across {ledger_count} dimensions. {favorable_count} dimensions are favorable, {uncertain_count} uncertain. The overall profile is {overall_balance} with {uncertainty_count} residual uncertainties.",
+      "conclusion_guard": "Conclusion wording is constrained to {allowed_strength}. Prohibited wording: {prohibited_terms}. Basis: {guard_reason}.",
+      "sota_context": "The SOTA benchmark for {endpoint} is {benchmark_value} (confidence: {confidence}). {device_name} {comparison_result} this benchmark based on {evidence_basis}.",
+      "gap_statement": "Evidence gap for {claim_id}: {gap_description}. Impact: {impact_level}. Recommended PMCF measure: {pmcf_measure} with target timeline {timeline}."
     },
     "gap": {
-      "insufficient_evidence": "Evidence gap for {claim_id}: {gap_description}. Recommended: {pmcf_measure}",
-      "missing_endpoint": "No SOTA benchmark for {endpoint}. Suggested alternatives: {alternatives}"
+      "insufficient_evidence": "Evidence gap for {claim_id}: {gap_description}. Current evidence: {current_count} records ({current_weight}). Recommended: {pmcf_measure} within {timeline}.",
+      "missing_endpoint": "No SOTA benchmark available for {endpoint}. Suggested clinical alternatives: {alternatives}. If no alternative is clinically equivalent, flag as PMCF requirement.",
+      "missing_fulltext": "Full text not available for {evidence_count} records ({evidence_ids}). These records cannot support pivotal conclusions. Recommended: acquire full text or downgrade to supportive only.",
+      "follow_up_insufficient": "Available follow-up ({available_follow_up}) is inadequate for {device_class} device expected surveillance period ({expected_follow_up}). Gap: {gap_years} years. Recommended: PMCF study with minimum {required_follow_up} follow-up.",
+      "population_mismatch": "Study population ({study_population}) does not fully match IFU target population ({ifu_population}). Transferability requires documented justification. Without justification, evidence weight is downgraded.",
+      "sample_size_insufficient": "Sample size ({actual_n}) below threshold for {device_class} ({required_n}). Statistical power analysis required. If power is inadequate, evidence can only support background/risk context.",
+      "gspr_gap": "No clinical evidence mapped to {gspr_id} ({gspr_requirement}). This GSPR requirement must be addressed through {source_type} or flagged as a PMCF gap.",
+      "equivalence_gap": "Equivalence argument for {device_name} vs {equivalent_device} is incomplete. Missing: {missing_dimensions}. Until all three dimensions (technical, biological, clinical) are documented, equivalence cannot be claimed per MDCG 2020-5."
+    },
+    "nb_defense": {
+      "DO-001_precheck": "Pre-check: verify all annexes are populated with actual data, not placeholder tables. Search protocol must include PRISMA flow. Evidence tables must be complete.",
+      "GS-001_precheck": "Pre-check: verify every clinical data item in §4.7 is explicitly linked to a GSPR number. Create a GSPR-to-evidence cross-reference table.",
+      "LB-001_precheck": "Pre-check: cross-reference CER §2.1 device description against IFU text. Verify device name, intended purpose, contraindications, and technical specs match exactly.",
+      "EV-001_precheck": "Pre-check: verify literature appraisal methodology is documented with defined criteria. Each evidence item must have: study design, population, endpoint, results, quality score, limitations.",
+      "PM-001_precheck": "Pre-check: verify PMCF plan has: specific objectives, measurable endpoints, target sample size, timeline, and method for each identified gap.",
+      "EQ-001_precheck": "Pre-check: verify equivalence comparison covers all three MDCG 2020-5 dimensions (technical, biological, clinical). Each difference must have an impact assessment.",
+      "CL-001_precheck": "Pre-check: verify claim conclusions do not exceed evidence strength. Cross-reference claim strength against evidence weight, sample size, and follow-up adequacy."
     }
   },
-  "_note": "KA-06: Define injection interfaces (Slot/Writer/Gap). DeerFlow consumes read-only knowledge assets. Dynamic loading support. Knowledge update without restart."
+  "version": "V2.1",
+  "total_templates": 25,
+  "source": "Based on 64 real NB defect records (BSI 50, TUV SUD 14) across 11 projects, 5 engineer-reviewed CER reports, and MDR/MEDDEV/MDCG regulatory requirements."
 }

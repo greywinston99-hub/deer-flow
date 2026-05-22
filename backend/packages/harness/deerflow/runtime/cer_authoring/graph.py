@@ -31,6 +31,7 @@ from deerflow.runtime.cer_authoring.agent_runtime import (
     preload_gil_safe_native_modules,
     reviewer_result_from_invocation,
 )
+from deerflow.runtime.cer_authoring.writer_remediation.model_routing import build_provider_preflight
 from deerflow.runtime.cer_authoring.state import SharedAuthoringState
 
 _STAGE_AGENT = {
@@ -106,6 +107,7 @@ def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
     clean_state, run_scope_audit = isolate_initial_authoring_state(dict(state))
     build_authoring_subagent_configs(_team_mode(clean_state))
     prepared = pipeline.prepare_source_inventory(clean_state)
+    preflight = build_provider_preflight(_with_team_mode(clean_state, prepared))
     trace = _agent_trace(
         LEAD_AGENT_NAME,
         _with_team_mode(clean_state, prepared),
@@ -122,14 +124,32 @@ def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
                 "agent_team_mode": _team_mode(clean_state),
                 "run_scope_boundary": "generated state isolated before source intake",
                 "native_preload_status": native_preload_status,
+                "model_provider_preflight_status": preflight.get("status"),
+                "missing_provider_count": preflight.get("missing_provider_count"),
             }
         ],
+        "model_provider_preflight": preflight,
         **trace,
         **prepared,
     }
 
 
 def _node_input_gate(state: SharedAuthoringState) -> dict[str, Any]:
+    preflight = state.get("model_provider_preflight") or {}
+    if preflight.get("status") == "BLOCKED_PROVIDER_UNAVAILABLE":
+        missing = preflight.get("missing_providers") or {}
+        return {
+            "status": "provider_unavailable",
+            "final_gate_decision": "HUMAN_HOLD",
+            "input_gap_list": [
+                {
+                    "gap_id": "GAP-MODEL-PROVIDER",
+                    "required_input": "LLM provider credentials",
+                    "impact": "CER authoring cannot enter LLM subagent stages until routed model providers are configured.",
+                    "missing_providers": missing,
+                }
+            ],
+        }
     has_ifu = any(
         "ifu" in " ".join(str(item.get(key, "")) for key in ("document_type", "doc_type", "type", "filename", "path")).lower()
         and item.get("source_role") not in {"similar_device_ifu", "similar_or_benchmark_source", "unconfirmed_ifu"}
@@ -146,7 +166,7 @@ def _node_input_gate(state: SharedAuthoringState) -> dict[str, Any]:
 
 
 def _route_after_input_gate(state: SharedAuthoringState) -> str:
-    return "export" if state.get("status") == "input_required" else "device_profile"
+    return "export" if state.get("status") in {"input_required", "provider_unavailable"} else "device_profile"
 
 
 def _node_device_profile(state: SharedAuthoringState) -> dict[str, Any]:
@@ -632,6 +652,11 @@ def _route_after_pre_writer_readiness_gate(state: SharedAuthoringState) -> str:
     return str(report.get("next_node") or "cer_writing")
 
 
+def _route_after_gates(state: SharedAuthoringState) -> str:
+    """Route after final gate closure: gate_passed → export, otherwise → controlled_compromise."""
+    return "export" if state.get("status") == "gate_passed" else "controlled_compromise"
+
+
 def _spiral_round_from_state(state: dict[str, Any]) -> int:
     rounds = []
     for row in state.get("evidence_spiral_lineage") or []:
@@ -730,22 +755,39 @@ def _node_gates(state: SharedAuthoringState) -> dict[str, Any]:
 
 
 def _node_export(state: SharedAuthoringState) -> dict[str, Any]:
-    approval = interrupt({
-        "confirmation_point": "cer_draft_review",
-        "step": "export",
-        "priority": "HIGH",
-        "message": "CER draft is complete. Please review key sections before final export.",
-        "sections_to_review": ["Summary", "Conclusions", "GSPR Analysis"],
-        "action": "confirm_or_request_rewrite",
-    })
-    if isinstance(approval, dict) and approval.get("rewrite_sections"):
-        return {"human_review_feedback": approval, "status": "human_rewrite_requested"}
     artifact_root = state.get("artifact_root")
     if not artifact_root:
         return {"status": state.get("status") or "export_skipped_no_artifact_root"}
+    if state.get("final_gate_decision") != "HUMAN_HOLD" and state.get("status") not in {"input_required", "provider_unavailable", "gate_rework_required"}:
+        approval = interrupt({
+            "confirmation_point": "cer_draft_review",
+            "step": "export",
+            "priority": "HIGH",
+            "message": "CER draft is complete. Please review key sections before final export.",
+            "sections_to_review": ["Summary", "Conclusions", "GSPR Analysis"],
+            "action": "confirm_or_request_rewrite",
+        })
+        if isinstance(approval, dict) and approval.get("rewrite_sections"):
+            return {"human_review_feedback": approval, "status": "human_rewrite_requested"}
     export_state = {**dict(state), **pipeline.refresh_late_annexes(dict(state))}
     artifacts = write_authoring_artifacts(artifact_root, export_state)
     return {"artifacts": artifacts, "status": state.get("status") or "exported"}
+
+
+def _node_self_inspection(state: SharedAuthoringState) -> dict[str, Any]:
+    """Aggregate system self-inspection: executed nodes, gate decision, env skips, quality score."""
+    report = pipeline.build_self_inspection_report(dict(state))
+    return {
+        "self_inspection_report": report,
+        "status": "self_inspection_complete",
+        "lead_decisions": [
+            {
+                "stage": "self_inspection",
+                "decision": report["overall_assessment"],
+                "ready_for_export": report["ready_for_export"],
+            }
+        ],
+    }
 
 
 def _route_after_claim_sota_alignment(state: SharedAuthoringState) -> str:
@@ -798,6 +840,7 @@ def build_cer_authoring_graph():
     builder.add_node("nb_precheck", _node_nb_precheck)
     builder.add_node("workbook", _node_workbook)
     builder.add_node("gates", _node_gates)
+    builder.add_node("self_inspection", _node_self_inspection)
     builder.add_node("export", _node_export)
     builder.set_entry_point("initialize")
     builder.add_edge("initialize", "input_gate")
@@ -933,7 +976,15 @@ def build_cer_authoring_graph():
     builder.add_edge("human_style_review", "nb_precheck")
     builder.add_edge("nb_precheck", "workbook")
     builder.add_edge("workbook", "gates")
-    builder.add_edge("gates", "export")
+    builder.add_edge("gates", "self_inspection")
+    builder.add_conditional_edges(
+        "self_inspection",
+        _route_after_gates,
+        {
+            "export": "export",
+            "controlled_compromise": "controlled_compromise",
+        },
+    )
     builder.add_edge("export", END)
     builder.add_edge("controlled_compromise", END)
     return builder.compile()

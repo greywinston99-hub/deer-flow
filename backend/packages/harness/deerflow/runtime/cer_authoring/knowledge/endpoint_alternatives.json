@@ -18,5 +18,42 @@
   "blood_purification": [
     {"primary": "urea_reduction_ratio", "alternatives": ["Kt_V", "spKt_V", "eKt_V"], "equivalence": "mathematical", "confidence": 0.95},
     {"primary": "beta2_microglobulin_removal", "alternatives": ["middle_molecule_clearance", "large_solute_removal"], "equivalence": "clinical", "confidence": 0.80}
-  ]
+  ],
+  "cardiovascular_occluder": [
+    {"primary": "closure_success_rate", "alternatives": ["device_success", "procedural_success", "immediate_closure_rate"], "equivalence": "clinical", "confidence": 0.90},
+    {"primary": "residual_shunt_rate", "alternatives": ["follow_up_shunt_rate", "TTE_confirmed_closure"], "equivalence": "clinical", "confidence": 0.88},
+    {"primary": "device_thrombosis_rate", "alternatives": ["thromboembolic_event_rate", "TIA_stroke_rate"], "equivalence": "clinical", "confidence": 0.82}
+  ],
+  "ventricular_assist": [
+    {"primary": "survival_to_transplant", "alternatives": ["survival_to_30_days", "survival_to_discharge", "bridge_to_decision_success"], "equivalence": "clinical", "confidence": 0.85},
+    {"primary": "hemolysis_rate", "alternatives": ["LDH_level", "plasma_free_hemoglobin", "pump_thrombosis_rate"], "equivalence": "clinical", "confidence": 0.88},
+    {"primary": "neurological_event_rate", "alternatives": ["stroke_rate", "TIA_rate", "neurological_dysfunction_score"], "equivalence": "clinical", "confidence": 0.83}
+  ],
+  "microwave_ablation": [
+    {"primary": "complete_ablation_rate", "alternatives": ["technique_efficacy_rate", "tumor_necrosis_rate", "ablation_zone_adequacy"], "equivalence": "clinical", "confidence": 0.90},
+    {"primary": "local_tumor_progression", "alternatives": ["local_recurrence_rate", "ablation_site_recurrence"], "equivalence": "clinical", "confidence": 0.88},
+    {"primary": "complication_rate", "alternatives": ["major_complication_rate", "Clavien_Dindo_grade", "adverse_event_rate"], "equivalence": "clinical", "confidence": 0.85}
+  ],
+  "orthopedic_robotic": [
+    {"primary": "component_alignment_accuracy", "alternatives": ["mechanical_axis_deviation", "coronal_alignment_error", "outlier_rate"], "equivalence": "clinical", "confidence": 0.85},
+    {"primary": "revision_rate", "alternatives": ["implant_survival", "all_cause_revision", "aseptic_loosening_rate"], "equivalence": "clinical", "confidence": 0.90},
+    {"primary": "functional_outcome", "alternatives": ["KSS_score", "WOMAC_score", "ROM_improvement", "forgotten_joint_score"], "equivalence": "clinical", "confidence": 0.83}
+  ],
+  "diagnostic_imaging": [
+    {"primary": "diagnostic_accuracy", "alternatives": ["AUC", "sensitivity", "specificity", "PPV", "NPV"], "equivalence": "statistical", "confidence": 0.92},
+    {"primary": "lesion_detection_rate", "alternatives": ["per_patient_sensitivity", "per_lesion_sensitivity", "detection_yield"], "equivalence": "clinical", "confidence": 0.85},
+    {"primary": "workflow_time", "alternatives": ["door_to_report_time", "examination_duration", "throughput_rate"], "equivalence": "procedural", "confidence": 0.82}
+  ],
+  "emergency_defibrillation": [
+    {"primary": "shock_success_rate", "alternatives": ["ROSC_rate", "defibrillation_efficacy", "first_shock_success"], "equivalence": "clinical", "confidence": 0.90},
+    {"primary": "survival_to_discharge", "alternatives": ["survival_to_30_days", "CPC_score", "neurological_outcome"], "equivalence": "clinical", "confidence": 0.88},
+    {"primary": "time_to_shock", "alternatives": ["response_time", "AED_application_interval", "collapse_to_shock_time"], "equivalence": "procedural", "confidence": 0.85}
+  ],
+  "_meta": {
+    "total_domains": 11,
+    "total_endpoint_groups": 27,
+    "equivalence_types": ["clinical", "statistical", "mathematical", "procedural"],
+    "confidence_interpretation": ">0.90 = strong equivalence, 0.80-0.90 = acceptable with justification, <0.80 = requires additional validation",
+    "source": "5 engineer-reviewed CER reports + 11 real project NB review records, aligned with G42 ENDPOINT_REPLACEABLE pattern"
+  }
 }
