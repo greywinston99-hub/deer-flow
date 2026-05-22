@@ -3245,7 +3245,7 @@ def query_expansion(state: dict[str, Any]) -> dict[str, Any]:
         }
 
     current_round = _current_spiral_round(state)
-    next_round = min(current_round + 1, 3)
+    next_round = min(current_round + 1, 5)
     before_records = _deduplicate_literature_records(state.get("raw_literature_records") or [])
     profile = _spiral_expansion_profile(next_round)
     rework_reason = (state.get("evidence_sufficiency_gate_report") or {}).get("rework_reason") or "G42 requested evidence-pool expansion."
@@ -3268,7 +3268,7 @@ def query_expansion(state: dict[str, Any]) -> dict[str, Any]:
         "records_total": len(before_records),
         "screened_delta": 0,
         "appraised_delta": 0,
-        "sufficiency_after_round": "REWORK" if next_round < 3 else "PENDING_FINAL_ROUND",
+        "sufficiency_after_round": "REWORK" if next_round < 5 else "PENDING_FINAL_ROUND",
     }
     return {
         "spiral_round_id": next_round,
@@ -3826,19 +3826,22 @@ def _freeze_evidence_lineage_update(state: dict[str, Any], terminal_stage: str, 
 
 
 def _spiral_expansion_profile(round_id: int) -> dict[str, Any]:
-    if round_id == 2:
-        return {
-            "spiral_round_id": 2,
-            "strategy": "mesh_adjacent_database_citation_chasing",
+    profiles = {
+        2: {"strategy": "mesh_adjacent_database_citation_chasing",
             "query_delta": "Expand MeSH/synonyms, add adjacent database emphasis and citation-chasing seed terms.",
-            "additions": "MeSH expansion; adjacent databases; citation chasing",
-        }
-    return {
-        "spiral_round_id": 3,
-        "strategy": "grey_literature_registries_manufacturer_data",
-        "query_delta": "Escalate to grey literature, registries and manufacturer data requests for remaining claim-level gaps.",
-        "additions": "grey literature; registries; manufacturer data",
+            "additions": "MeSH expansion; adjacent databases; citation chasing"},
+        3: {"strategy": "grey_literature_registries_manufacturer_data",
+            "query_delta": "Escalate to grey literature, registries and manufacturer data requests for remaining claim-level gaps.",
+            "additions": "grey literature; registries; manufacturer data"},
+        4: {"strategy": "endpoint_substitution_clinical_equivalence_reroute",
+            "query_delta": "Substitute missing endpoints with clinically equivalent alternatives; reroute through equivalence device literature.",
+            "additions": "endpoint substitution; equivalent device literature; clinical equivalence rerouting"},
+        5: {"strategy": "pmcf_boundary_acceptance",
+            "query_delta": "Accept evidence boundary; document residual gaps for PMCF; finalize claim support at current evidence level.",
+            "additions": "PMCF gap documentation; residual risk acceptance; evidence boundary finalization"},
     }
+    p = profiles.get(round_id, profiles[5])
+    return {"spiral_round_id": round_id, **p}
 
 
 def _last_search_query(state: dict[str, Any]) -> str:
