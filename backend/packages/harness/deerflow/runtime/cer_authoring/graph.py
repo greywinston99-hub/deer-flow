@@ -584,15 +584,17 @@ def _node_equivalence_analysis(state: SharedAuthoringState) -> dict[str, Any]:
 
 def _node_risk_gspr_mapping(state: SharedAuthoringState) -> dict[str, Any]:
     generated = pipeline.map_risks_and_gspr(dict(state))
+    # Phase 6: Build risk-evidence matrix per 心擎 method
+    risk_evidence = pipeline._build_risk_evidence_mapping(dict(state))
     trace = _agent_trace(
         "authoring-risk-equivalence-gspr-agent",
         _with_team_mode(state, generated),
         "Review equivalence, vigilance/recall, risk trace and GSPR mapping outputs.",
     )
     if generated:
-        return {**_branch_stage("risk_gspr_mapping"), **trace, **generated}
+        return {**_branch_stage("risk_gspr_mapping"), **trace, **generated, "risk_evidence_matrix": risk_evidence}
     if state.get("risk_trace_matrix") and state.get("gspr_coverage"):
-        return _branch_stage("risk_gspr_mapping")
+        return {**_branch_stage("risk_gspr_mapping"), "risk_evidence_matrix": risk_evidence}
     return _branch_stage("risk_gspr_mapping", "rework_required", note="Risk trace matrix and GSPR coverage are required")
 
 
@@ -791,9 +793,11 @@ def _node_export(state: SharedAuthoringState) -> dict[str, Any]:
         })
         if isinstance(approval, dict) and approval.get("rewrite_sections"):
             return {"human_review_feedback": approval, "status": "human_rewrite_requested"}
-    export_state = {**dict(state), **pipeline.refresh_late_annexes(dict(state))}
+    # Phase 6: Generate IFU feedback report for closed loop
+    ifu_report = pipeline._build_ifu_feedback_report(dict(state))
+    export_state = {**dict(state), **pipeline.refresh_late_annexes(dict(state)), "ifu_feedback_report": ifu_report}
     artifacts = write_authoring_artifacts(artifact_root, export_state)
-    return {"artifacts": artifacts, "status": state.get("status") or "exported"}
+    return {"artifacts": artifacts, "ifu_feedback_report": ifu_report, "status": state.get("status") or "exported"}
 
 
 def _node_self_inspection(state: SharedAuthoringState) -> dict[str, Any]:

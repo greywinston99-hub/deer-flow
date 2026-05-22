@@ -7271,6 +7271,9 @@ def _build_structured_knowledge_context(state: dict[str, Any]) -> dict[str, Any]
                         "check_method": str(row.get(keys[3], "")) if len(keys) > 3 else "",
                     })
 
+    # Phase 6: GSPR depth config by device class
+    result["gspr_depth_config"] = _gspr_depth_config(state)
+
     return result
 
 
@@ -7709,6 +7712,145 @@ def _build_final_text_claim_support_map(state: dict[str, Any], cer_body_text: st
     return rows
 
 
+# ── Phase 6: IFU Bidirectional Feedback (engineer: 99% IFU lack clinical benefit) ──
+
+def _generate_ifu_feedback(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Generate IFU update suggestions from CER evidence analysis.
+
+    Per engineer feedback: CER should NOT just consume IFU → it should
+    feed BACK to IFU. Two patterns:
+    1. Clinical benefits found in evidence but missing from IFU → suggest addition
+    2. IFU claims with insufficient evidence → suggest scope narrowing
+    """
+    claims = state.get("claim_ledger") or []
+    profile = state.get("device_profile") or {}
+
+    suggestions = []
+    # Pattern 1: Missing clinical benefit claims in IFU
+    clinical_benefits = [c for c in claims if str(c.get("claim_type", "")).lower() in ("clinical_benefit", "performance")]
+    ifu_purpose = str(profile.get("intended_purpose", ""))
+    for cb in clinical_benefits[:10]:
+        cb_text = str(cb.get("claim_text", ""))
+        if cb_text and cb_text not in ifu_purpose:
+            suggestions.append({
+                "type": "add_clinical_benefit_to_ifu",
+                "claim_id": cb.get("claim_id", ""),
+                "suggested_ifu_text": f"Clinical benefit: {cb_text[:200]}",
+                "rationale": "Evidence supports this benefit but IFU does not state it as a clinical benefit.",
+            })
+
+    # Pattern 2: Scope narrowing for insufficiently supported claims
+    for claim in claims:
+        support = str(claim.get("support_status", "")).upper()
+        if support in ("INSUFFICIENT", "EVIDENCE_GAP", "NOT_SUPPORTED"):
+            suggestions.append({
+                "type": "narrow_ifu_claim_scope",
+                "claim_id": claim.get("claim_id", ""),
+                "current_ifu_text": str(claim.get("claim_text", ""))[:200],
+                "suggested_action": "Consider narrowing IFU claim scope or adding evidence-level qualification.",
+            })
+
+    return suggestions[:10]
+
+
+# ── Phase 6: GSPR Depth by Device Class (engineer: Class III逐条, IIb分组, IIa精简) ──
+
+_GSPR_DEPTH_BY_CLASS: dict[str, dict[str, str]] = {
+    "III": {"mode": "per_item", "description": "逐条分析每个GSPR条款, 五段式完整展开"},
+    "IIb": {"mode": "grouped", "description": "按临床主题分组(GSPR安全/GSPR性能/GSPR风险), 每组五段式"},
+    "IIa": {"mode": "summary", "description": "精简综述, 仅对高风险GSPR逐条展开"},
+    "I": {"mode": "summary", "description": "精简综述"},
+}
+
+
+def _gspr_depth_config(state: dict[str, Any]) -> dict[str, Any]:
+    """Return GSPR analysis depth based on device class (per engineer feedback)."""
+    profile = state.get("device_profile") or {}
+    device_class = str(profile.get("device_class") or _device_class(state) or "IIb")
+    for key in ["III", "IIb", "IIa", "I"]:
+        if key in device_class:
+            return dict(_GSPR_DEPTH_BY_CLASS[key])
+    return dict(_GSPR_DEPTH_BY_CLASS["IIb"])
+
+
+# ── Phase 6: Risk Matrix Mapping (engineer: 心擎 method: risk→evidence→MDCG→residual) ──
+
+def _build_risk_evidence_mapping(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Build risk-to-evidence mapping per 心擎 Risk Matrix method.
+
+    For each risk: find clinical evidence → assign MDCG level → assess residual risk.
+    """
+    risk_rows = state.get("risk_trace_matrix") or []
+    evidence = state.get("evidence_registry") or []
+    gspr = state.get("gspr_trace_matrix") or state.get("gspr_checklist") or []
+
+    mapping = []
+    _RISK_KEYWORDS = {
+        "infection", "bleeding", "perforation", "thrombosis", "failure",
+        "malfunction", "breakage", "migration", "occlusion", "allergic",
+        "toxic", "electrical", "thermal", "mechanical", "biological",
+        "embolism", "stenosis", "fracture", "leakage", "displacement",
+    }
+    for risk in risk_rows[:20]:
+        risk_id = str(risk.get("risk_id", ""))
+        risk_desc = str(risk.get("risk_description", risk.get("description", "")))[:120]
+
+        # Find related evidence by keyword
+        related_evidence = []
+        risk_kws = _RISK_KEYWORDS & set(risk_desc.lower().split())
+        for ev in evidence:
+            ev_text = str(ev.get("title", "")) + " " + str(ev.get("abstract", ""))[:200]
+            if risk_kws and any(kw in ev_text.lower() for kw in risk_kws):
+                related_evidence.append({
+                    "evidence_id": ev.get("evidence_id", ev.get("article_id", "")),
+                    "title": str(ev.get("title", ""))[:120],
+                    "mdcg_level": ev.get("mdcg_level", 8),
+                    "weight": ev.get("weight", "MEDIUM"),
+                })
+
+        # GSPR linkage
+        gspr_links = []
+        for g in gspr:
+            g_risk_ids = str(g.get("risk_ids", g.get("related_risks", "")))
+            if risk_id in g_risk_ids:
+                gspr_links.append(str(g.get("gspr_id", g.get("id", ""))))
+
+        mapping.append({
+            "risk_id": risk_id,
+            "risk_description": risk_desc,
+            "clinical_evidence": related_evidence[:5],
+            "gspr_coverage": gspr_links[:5],
+            "mdcg_highest_level": min((e["mdcg_level"] for e in related_evidence), default=8),
+            "residual_risk_assessment": (
+                "Acceptable with clinical evidence" if related_evidence
+                else "Requires PMCF or RMF review"
+            ),
+        })
+
+    return mapping
+
+
+# ── Phase 6: IFU Feedback Report (engineer: CER→IFU closed loop) ──
+
+def _build_ifu_feedback_report(state: dict[str, Any]) -> dict[str, Any]:
+    """Build IFU update recommendation report from CER findings."""
+    feedback = state.get("ifu_feedback_suggestions") or []
+    profile = state.get("device_profile") or {}
+
+    return {
+        "report_title": "IFU Update Recommendations (based on CER findings)",
+        "generated_from": "CER authoring run",
+        "device": profile.get("device_name", "Device Under Evaluation"),
+        "suggestions": feedback,
+        "summary": {
+            "total_suggestions": len(feedback),
+            "add_clinical_benefit": sum(1 for f in feedback if f.get("type") == "add_clinical_benefit_to_ifu"),
+            "narrow_scope": sum(1 for f in feedback if f.get("type") == "narrow_ifu_claim_scope"),
+        },
+        "disclaimer": "These suggestions are based on CER evidence analysis. Final IFU updates require manufacturer review and regulatory assessment.",
+    }
+
+
 def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
     writer_guard = _writer_invocation_guard(state)
     if not writer_guard.get("writer_invocation_allowed"):
@@ -7735,10 +7877,12 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
     writer_input_packet = _build_writer_input_packet(state)
     state = {**state, "writer_input_packet": writer_input_packet}
     lineage_freeze = _freeze_evidence_lineage_update(state, "cer_writing", "Writer completed after upstream evidence-sufficiency routing.")
+    # Phase 6: Generate IFU feedback from CER findings
+    ifu_feedback = _generate_ifu_feedback(state)
     if state.get("cer_chapter_drafts"):
         domain = _clinical_domain(state)
         sanitized = _sanitize_chapters_for_domain(dict(state["cer_chapter_drafts"]), domain)
-        return {"cer_chapter_drafts": sanitized, "writer_invocation_allowed": True, "writer_invocation_guard": writer_guard, "writer_input_packet": writer_input_packet, **ledger_updates, **synthesis_updates, **template_updates, **lineage_freeze}
+        return {"cer_chapter_drafts": sanitized, "writer_invocation_allowed": True, "writer_invocation_guard": writer_guard, "writer_input_packet": writer_input_packet, "ifu_feedback_suggestions": ifu_feedback, **ledger_updates, **synthesis_updates, **template_updates, **lineage_freeze}
     state = _english_report_state(state)
     profile = state.get("device_profile") or {}
     device = profile.get("device_name", "Device Under Evaluation")
@@ -7796,6 +7940,7 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
         "domain_contamination_report": _domain_contamination_report({**state, "cer_chapter_drafts": chapters}),
         "writer_quality_report": _writer_quality_self_check(chapters),
         "writer_input_packet": writer_input_packet,
+        "ifu_feedback_suggestions": ifu_feedback,
         **ledger_updates,
         **synthesis_updates,
         **template_updates,
@@ -10417,6 +10562,8 @@ def _score_evidence_registry(state: dict[str, Any], evidence_rows: list[dict[str
                 "score_confidence": confidence,
                 "score_limitations": limitations,
                 "factor_scores": factors,
+                "binary_inclusion": _binary_include_exclude(factors)[0],
+                "binary_exclusion_reasons": _binary_include_exclude(factors)[1],
                 "admissibility_level": admissibility["level"],
                 "admissibility_rationale": admissibility["rationale"],
                 "admissibility_condition_status": admissibility.get("condition_status", "not_applicable"),
@@ -10547,6 +10694,35 @@ def _ei_admissibility_condition_met(evidence: dict[str, Any], category: str) -> 
         ok = any(token in text for token in ("comparison", "improvement", "delta", "unchanged"))
         return ok, "previous-generation comparison rationale present" if ok else "previous-generation comparison rationale absent"
     return True, "conditional context accepted for background/risk use"
+
+
+# ── Phase 6: Binary Evidence Inclusion (engineer feedback: 层级筛选) ──
+
+_EVIDENCE_INCLUSION_THRESHOLDS = {
+    "F1_study_design": 3,
+    "F2_device_relationship": 3,
+    "F3_data_quality": 2,
+    "F4_fact_confidence": 2,
+    "F5_conflict_status": 2,
+    "F6_regulatory_admissibility": 3,
+}
+
+
+def _binary_include_exclude(factor_scores: dict[str, int]) -> tuple[bool, list[str]]:
+    """Engineer-recommended binary inclusion model (BL-2 fix).
+
+    Returns (included, exclusion_reasons).
+    Evidence passes ALL thresholds → included (weight=1.0, for sorting only).
+    Any threshold not met → excluded (weight=0).
+    """
+    failures = []
+    for factor, threshold in _EVIDENCE_INCLUSION_THRESHOLDS.items():
+        score = factor_scores.get(factor, 0)
+        if score < threshold:
+            failures.append(f"{factor}={score} (threshold={threshold})")
+    if failures:
+        return False, failures
+    return True, []
 
 
 def _ei_factor_scores(evidence: dict[str, Any], facts: list[dict[str, Any]], conflict_report: dict[str, Any], admissibility: dict[str, str]) -> dict[str, int]:
