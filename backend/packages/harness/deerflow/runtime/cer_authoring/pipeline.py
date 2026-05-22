@@ -7972,7 +7972,8 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
         "writer_input_packet": writer_input_packet,
         "ifu_feedback_suggestions": ifu_feedback,
         "argument_flow_report": _score_argument_flow(chapters),
-        "llm_refinement_applied": False,  # set True when DeerFlow LLM runtime available
+        "cross_chapter_review": _llm_cross_chapter_review({**state, "cer_chapter_drafts": chapters}),
+        "llm_refinement_applied": False,
         **ledger_updates,
         **synthesis_updates,
         **template_updates,
@@ -10939,6 +10940,45 @@ def _llm_refine_chapters(state: dict[str, Any]) -> dict[str, str]:
             refined[k] = v
 
     return refined
+
+
+# ── Round 2: Cross-Chapter LLM Review ──
+
+def _build_cross_chapter_review_task(state: dict[str, Any]) -> str:
+    """Build cross-chapter consistency review prompt."""
+    chapters = state.get("cer_chapter_drafts") or {}
+    sota = chapters.get("3 Clinical Background, Current Knowledge and SOTA", "")
+    conclusions = chapters.get("5 Conclusions", "")
+    gspr = chapters.get("4.7 GSPR Analysis", chapters.get("Annex H Risk, IFU, RMF, PMS/PMCF and GSPR Trace", ""))
+    summary = chapters.get("1 Summary", "")
+
+    return (
+        "Review these CER chapters for cross-chapter consistency:\n\n"
+        f"1. Claims in §5 Conclusions must match claims analyzed in §4.7 GSPR. "
+        f"Check: does every conclusion have a corresponding GSPR analysis?\n"
+        f"2. SOTA benchmarks in §3 must be referenced in §4.7. "
+        f"Check: are benchmark values from §3 used in GSPR compliance arguments?\n"
+        f"3. Evidence counts in §1 Summary must match Annex evidence counts.\n"
+        f"4. Device description in §2 must match the device evaluated in §4.\n"
+        f"5. No contradictory statements across chapters.\n\n"
+        f"§1 Summary ({len(summary.split())} words):\n{str(summary)[:800]}\n\n"
+        f"§3 SOTA excerpt:\n{str(sota)[:600]}\n\n"
+        f"§4.7 GSPR excerpt:\n{str(gspr)[:600]}\n\n"
+        f"§5 Conclusions ({len(conclusions.split())} words):\n{str(conclusions)[:800]}\n\n"
+        f"Output a structured review: list each inconsistency found (or 'No inconsistencies'), "
+        f"rate overall cross-chapter coherence (1-10), and suggest fixes."
+    )
+
+
+def _llm_cross_chapter_review(state: dict[str, Any]) -> dict[str, Any]:
+    """LLM reviews all chapters for cross-chapter consistency."""
+    try:
+        from deerflow.runtime.cer_authoring.graph import invoke_authoring_agent
+        task = _build_cross_chapter_review_task(state)
+        result = invoke_authoring_agent("authoring-qa-review-agent", state, task)
+        return {"cross_chapter_review": result, "reviewed_at": "post_writing"}
+    except Exception:
+        return {"cross_chapter_review": {"status": "llm_unavailable", "note": "Cross-chapter review requires DeerFlow LLM runtime"}}
 
 
 # ── Round 2: Argument Flow Scoring ──
