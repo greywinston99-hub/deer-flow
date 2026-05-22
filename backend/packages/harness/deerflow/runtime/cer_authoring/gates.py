@@ -1204,6 +1204,182 @@ def _check_writing_style(cer_chapters: dict[str, str]) -> list[str]:
     return violations[:8]
 
 
+# ── Equivalence Circular Reasoning Detection (engineer: 禁止自身数据声明等效) ──
+
+def _check_equivalence_circular_reasoning(state: dict[str, Any]) -> list[str]:
+    """Detect self-referential equivalence claims.
+
+    Engineer feedback: equivalence data MUST come from published literature
+    of similar devices, NOT from the device under evaluation's own data.
+    Using own data → circular reasoning (逻辑循环论证).
+    """
+    violations = []
+    equivalence = state.get("equivalence_3d_matrix") or state.get("equivalence_comparison") or []
+    profile = state.get("device_profile") or {}
+    device_name = str(profile.get("device_name", "")).lower()
+    manufacturer = str(profile.get("manufacturer", "")).lower()
+
+    for i, row in enumerate(equivalence):
+        if not isinstance(row, dict):
+            continue
+        # Check if equivalent device name matches subject device
+        eq_name = str(row.get("equivalent_device_name", row.get("equivalent_device", ""))).lower()
+        eq_manufacturer = str(row.get("equivalent_manufacturer", "")).lower()
+
+        if eq_name and device_name and eq_name == device_name:
+            violations.append(
+                f"Equivalence row {i}: Equivalent device '{eq_name}' matches subject device — circular reasoning"
+            )
+        if eq_manufacturer and manufacturer and eq_manufacturer == manufacturer:
+            violations.append(
+                f"Equivalence row {i}: Same manufacturer '{eq_manufacturer}' — potential self-referential data"
+            )
+
+    # Also check if equivalence references IFU/manufacturer data instead of published literature
+    eq_claimed = state.get("equivalence_strategy") == "legacy_mdd" or state.get("equivalence_claimed")
+    evidence_registry = state.get("evidence_registry") or []
+    if eq_claimed and equivalence:
+        pub_evidence = [e for e in evidence_registry
+                        if str(e.get("source_type", e.get("data_source_type", ""))).lower()
+                        in ("pubmed", "literature", "published", "clinical_study")]
+        if not pub_evidence and len(equivalence) > 0:
+            violations.append(
+                "Equivalence claimed but no published literature evidence found — "
+                "equivalence must be based on published data of similar devices"
+            )
+
+    return violations[:5]
+
+
+# ── Numerical Precision Validation (engineer CER_05: 单位/p值/CI/缺失处理) ──
+
+def _check_numerical_precision(cer_chapters: dict[str, str]) -> list[str]:
+    """Validate numerical precision in CER body per engineer requirements.
+
+    Rules from CER_05:
+    - All values must have units
+    - p-values must specify test method
+    - 95% CI must show both bounds
+    - Missing data must state handling method
+    """
+    import re
+    violations = []
+
+    body_text = " ".join(str(v) for v in cer_chapters.values())
+    if not body_text:
+        return []
+
+    # Pattern 1: Numbers without units (rough check)
+    # Look for patterns like "79.01" or "15-25" that should have units
+    bare_numbers = re.findall(r'(?<!\w)(\d{2,4}\.\d{2,4})(?!\s*(?:mm|cm|mg|mL|%|kg|min|hr|ms|mV|mA|°C|mmHg))', body_text)
+    if len(bare_numbers) > 10:
+        violations.append(
+            f"Numerical precision: {len(bare_numbers)} values without apparent units "
+            f"(e.g. {bare_numbers[0]}, {bare_numbers[1]}...). Per CER_05: all values must have units."
+        )
+
+    # Pattern 2: p-values without test method
+    p_values = re.findall(r'p\s*[<=>]\s*0\.\d+', body_text, re.IGNORECASE)
+    test_methods = re.findall(r'(t-test|Wilcoxon|log.rank|ANOVA|chi.square|Fisher|Mann.Whitney|Kruskal.Wallis)', body_text, re.IGNORECASE)
+    if p_values and len(test_methods) < len(p_values) * 0.5:
+        violations.append(
+            f"Numerical precision: {len(p_values)} p-values found but only {len(test_methods)} "
+            f"test methods specified. Per CER_05: each p-value must state test method."
+        )
+
+    # Pattern 3: CI without both bounds
+    ci_patterns = re.findall(r'95%\s*CI[:\s]*([^,.;]+)', body_text, re.IGNORECASE)
+    incomplete_ci = []
+    for ci in ci_patterns:
+        if "-" not in ci and "to" not in ci.lower():
+            incomplete_ci.append(ci.strip()[:40])
+    if incomplete_ci:
+        violations.append(
+            f"Numerical precision: {len(incomplete_ci)} CI statements without both lower and upper bounds "
+            f"(e.g. {incomplete_ci[0]}). Per CER_05: 95% CI must show both bounds."
+        )
+
+    return violations[:5]
+
+
+# ── Paragraph Logic Rules (engineer CER_03: 行文密码) ──
+
+_PARAGRAPH_RULES = {
+    "GSPR": {
+        "elements": ["条款引用", "证据摘要", "符合性声明", "差距分析", "交叉引用"],
+        "keywords": [["gspr", "clause", "article"], ["evidence", "data", "study"],
+                     ["complies", "meets", "satisfies"], ["gap", "missing", "insufficient"],
+                     ["section", "chapter", "cross-ref"]],
+        "min_elements": 3,
+    },
+    "Literature": {
+        "elements": ["研究设计", "样本量", "终点指标", "质量评价", "贡献度", "局限性"],
+        "keywords": [["design", "rct", "cohort", "case"], ["n=", "patients", "subjects", "sample"],
+                     ["endpoint", "outcome", "measured"], ["quality", "score", "appraisal"],
+                     ["contribution", "weight", "role"], ["limitation", "bias", "confound"]],
+        "min_elements": 4,
+    },
+    "Conclusions": {
+        "elements": ["总结陈述", "逐条结论", "后续建议"],
+        "keywords": [["conclude", "overall", "summary"], ["claim", "finding", "result"],
+                     ["recommend", "next", "future", "pmcf"]],
+        "min_elements": 2,
+    },
+}
+
+
+def _check_paragraph_logic(cer_chapters: dict[str, str]) -> list[str]:
+    """Verify paragraph structure follows 行文密码 (writing passwords).
+
+    Per CER_03 engineer feedback:
+    - GSPR paragraph: 5 required elements (条款引用/证据摘要/符合性声明/差距分析/交叉引用)
+    - Literature evaluation paragraph: 6 required elements
+    - Conclusions paragraph: 3 required elements
+    """
+    violations = []
+    for section_key, text in cer_chapters.items():
+        if not text or not isinstance(text, str):
+            continue
+        text_lower = text.lower()
+
+        # Only check sections with substantial content (>50 words)
+        if len(text.split()) < 50:
+            continue
+
+        # Determine which rules apply
+        is_gspr = any(kw in section_key for kw in ["GSPR", "4.7"])
+        is_literature = any(kw in section_key for kw in ["Literature", "4.4", "4.5", "Appraisal", "Screening"])
+        is_conclusions = any(kw in section_key for kw in ["Conclusion", "5 "])
+
+        rule = None
+        if is_gspr:
+            rule = _PARAGRAPH_RULES["GSPR"]
+        elif is_literature:
+            rule = _PARAGRAPH_RULES["Literature"]
+        elif is_conclusions:
+            rule = _PARAGRAPH_RULES["Conclusions"]
+        else:
+            continue
+
+        # Count element presence
+        found = 0
+        missing_elements = []
+        for i, keywords in enumerate(rule["keywords"]):
+            if any(kw in text_lower for kw in keywords):
+                found += 1
+            else:
+                missing_elements.append(rule["elements"][i])
+
+        if found < rule["min_elements"]:
+            violations.append(
+                f"{section_key}: Only {found}/{len(rule['elements'])} paragraph elements found "
+                f"(missing: {', '.join(missing_elements)}). "
+                f"Per CER_03: this section type requires {rule['min_elements']}+ elements."
+            )
+
+    return violations[:5]
+
+
 def _gate_claim_text_consistency(state: dict[str, Any]) -> GateResult:
     """Check rendered CER body for claim/BR/text consistency violations.
 
@@ -1389,6 +1565,18 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
     style_violations = _check_writing_style(cer_chapters)
     if style_violations:
         failures.append(f"Writing style: {'; '.join(style_violations[:5])}")
+    # ── Equivalence circular reasoning ──
+    eq_circular = _check_equivalence_circular_reasoning(state)
+    if eq_circular:
+        failures.append(f"Equivalence circular reasoning: {'; '.join(eq_circular[:3])}")
+    # ── Numerical precision ──
+    num_precision = _check_numerical_precision(cer_chapters)
+    if num_precision:
+        failures.append(f"Numerical precision: {'; '.join(num_precision[:3])}")
+    # ── Paragraph logic rules ──
+    para_logic = _check_paragraph_logic(cer_chapters)
+    if para_logic:
+        failures.append(f"Paragraph logic: {'; '.join(para_logic[:3])}")
     if claim_check.status == "FAIL":
         failures.append(f"Claim/BR/text consistency: {claim_failures}")
 
