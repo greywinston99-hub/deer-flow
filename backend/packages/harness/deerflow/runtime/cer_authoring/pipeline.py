@@ -7704,6 +7704,7 @@ def _build_writer_input_packet(state: dict[str, Any]) -> dict[str, Any]:
         "structured_knowledge_context": _build_structured_knowledge_context(state),
         "device_heuristics_context": _build_device_heuristics_context(state),
         "slot_template_context": _build_slot_template_context(state),
+        "remediation_templates": _load_knowledge_asset("remediation_playbook.json").get("playbook", {}),
         "nb_specific_context": _build_nb_specific_context(state),
         "knowledge_routing": _build_knowledge_routing_metadata(state),
         "equivalence_decision": _equivalence_three_step_decision(state),
@@ -7986,6 +7987,9 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
         "ifu_feedback_suggestions": ifu_feedback,
         "argument_flow_report": _score_argument_flow(chapters),
         "cross_chapter_review": _llm_cross_chapter_review({**state, "cer_chapter_drafts": chapters}),
+        "pmcf_template": _build_pmcf_template(state),
+        "br_quantitative_template": _build_br_quantitative_template(state),
+        "data_flow_validation": _validate_data_flows({**state, "cer_chapter_drafts": chapters}),
         "llm_refinement_applied": llm_refined,
         **ledger_updates,
         **synthesis_updates,
@@ -11028,6 +11032,72 @@ def _score_argument_flow(chapters: dict[str, str]) -> dict[str, Any]:
             else "Needs improvement — weak paragraph transitions, consider LLM refinement"
         ),
     }
+
+
+# ── Batch 1-4: PMCF Template + Data Flow Validation + BR Template ──
+
+def _build_pmcf_template(state: dict[str, Any]) -> dict[str, Any]:
+    """Generate PMCF plan template with specific objectives and timelines."""
+    gaps = state.get("gap_pmcf_recommendations") or state.get("input_gap_list") or []
+    profile = state.get("device_profile") or {}
+    device_class = str(profile.get("device_class", "IIb"))
+    return {
+        "pmcf_objectives": [f"Confirm {g.get('gap_id', f'GAP-{i}')}: {str(g.get('description', g.get('gap_description', '')))[:100]}" for i, g in enumerate(gaps[:5]) if g],
+        "pmcf_endpoints": ["Safety (adverse events)", "Performance (clinical success rate)", "Long-term durability"],
+        "suggested_sample_size": "Based on device Class " + device_class + " and endpoint variability",
+        "suggested_timeline": "12-24 months post-certification",
+        "pmcf_method": "Prospective registry / PMCF survey" if device_class in ("IIb", "IIa") else "Prospective clinical investigation",
+        "rmf_prerequisite_check": bool(state.get("rmf_registry") or state.get("risk_management_file")),
+        "disclaimer": "PMCF parameters must be finalized by manufacturer based on actual device risk profile and clinical data availability.",
+    }
+
+
+def _build_br_quantitative_template(state: dict[str, Any]) -> dict[str, Any]:
+    """Generate quantitative benefit-risk comparison template."""
+    br_ledger = state.get("benefit_risk_ledger") or []
+    evidence = state.get("evidence_registry") or []
+    template = {
+        "benefit_risk_framework": "ISO 14971 + MDR Annex XIV",
+        "benefits": [],
+        "risks": [],
+        "mdcg_weight_mapping": {
+            1: "Strongest — systematic review of RCTs",
+            2: "Strong — RCT",
+            3: "Moderate — non-randomized controlled",
+            4: "Moderate-Low — cohort/case-control",
+            6: "Low — descriptive study",
+            8: "Weak — pre-clinical/bench",
+        },
+    }
+    for row in br_ledger[:10]:
+        benefit = row.get("magnitude_of_benefit", row.get("benefit_description", ""))
+        risk = row.get("severity_of_risk", row.get("risk_description", ""))
+        if benefit:
+            template["benefits"].append({"description": str(benefit)[:120], "evidence_level": row.get("mdcg_level", 8)})
+        if risk:
+            template["risks"].append({"description": str(risk)[:120], "severity": row.get("severity_of_risk", "not assessed")})
+    return template
+
+
+def _validate_data_flows(state: dict[str, Any]) -> dict[str, Any]:
+    """Batch 2A: Complete 8-point data flow validation."""
+    chapters = state.get("cer_chapter_drafts") or {}
+    results = {}
+    checks = [
+        ("§2→§3", bool(state.get("device_profile")) and bool(state.get("sota_benchmark_matrix") or state.get("sota_clinical_context_table"))),
+        ("§3→§4", bool(state.get("sota_benchmark_matrix")) and bool(state.get("evidence_registry"))),
+        ("§4→§5", bool(state.get("evidence_registry")) and bool(chapters.get("5 Conclusions"))),
+        ("§4.6→§4.7", bool(state.get("vigilance_recall_registry")) and any("4.7" in k or "GSPR" in k for k in chapters)),
+        ("Annex→Body", any(f"Annex {c}" in " ".join(str(v) for v in chapters.values()) for c in "ABCDEFGHIJKLMNO")),
+        ("Claim→Evidence", not any(c.get("support_status") == "supported" and not c.get("evidence_ids") for c in (state.get("claim_evidence_matrix") or []))),
+        ("BR→Conclusion", bool(state.get("benefit_risk_ledger")) and "benefit" in str(chapters.get("5 Conclusions", "")).lower()),
+        ("SOTA→GSPR", "benchmark" in str(chapters.get("4.7 GSPR Analysis", chapters.get("Annex H Risk, IFU, RMF, PMS/PMCF and GSPR Trace", ""))).lower()),
+    ]
+    for name, passed in checks:
+        results[name] = "PASS" if passed else "FAIL"
+    results["overall"] = "PASS" if all(v == "PASS" for v in results.values()) else "FAIL"
+    results["failed_flows"] = [k for k, v in results.items() if v == "FAIL" and k != "overall"]
+    return {"data_flow_validation": results}
 
 
 # ── Phase 6: Binary Evidence Inclusion (engineer feedback: 层级筛选) ──
