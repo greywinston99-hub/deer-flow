@@ -1067,6 +1067,60 @@ def _g42_unique(values: list[str]) -> list[str]:
     return output
 
 
+# ── DP-aware helpers (Connection 4: defect_patterns → G39) ──────────────────
+
+def _load_defect_patterns() -> dict[str, Any]:
+    """Load defect_patterns.json and return patterns indexed by detection method and by id."""
+    import json
+    from pathlib import Path
+    dp_path = Path(__file__).parent / "knowledge" / "defect_patterns.json"
+    try:
+        dp = json.loads(dp_path.read_text())
+    except Exception:
+        return {"patterns": [], "by_detection": {}, "by_id": {}}
+    patterns = dp.get("patterns", [])
+    by_detection: dict[str, list[dict]] = {}
+    by_id: dict[str, dict] = {}
+    for p in patterns:
+        pid = p.get("id", "")
+        det = p.get("detection", "")
+        if pid:
+            by_id[pid] = p
+        if det:
+            by_detection.setdefault(det, []).append(p)
+    return {"patterns": patterns, "by_detection": by_detection, "by_id": by_id}
+
+
+def _check_annex_population(state: dict[str, Any]) -> str:
+    """DP-038: Check if annexes contain placeholder/unpopulated content."""
+    cer_chapters = state.get("cer_chapter_drafts") or {}
+    annex_keys = [k for k in cer_chapters if "Annex" in k or "annex" in k.lower()]
+    empty_annexes = []
+    for key in annex_keys:
+        content = str(cer_chapters.get(key, ""))
+        word_count = len(content.split())
+        if word_count < 20:
+            empty_annexes.append(key)
+    if empty_annexes:
+        return f"{len(empty_annexes)} annex(es) with <20 words: {empty_annexes[:3]}"
+    return ""
+
+
+def _check_citation_density(body_text: str) -> str:
+    """DP-036: Check if citation density is below threshold."""
+    words = body_text.split()
+    word_count = len(words)
+    if word_count < 100:
+        return ""
+    import re
+    ref_patterns = re.findall(r'\[\d+(?:,\s*\d+)*\]|\(\w+,\s*\d{4}\)', body_text)
+    ref_count = len(ref_patterns)
+    refs_per_1000 = (ref_count / word_count) * 1000
+    if refs_per_1000 < 2:
+        return f"{refs_per_1000:.1f} refs/1000 words (threshold: 2.0), {ref_count} refs in {word_count} words"
+    return ""
+
+
 def _gate_claim_text_consistency(state: dict[str, Any]) -> GateResult:
     """Check rendered CER body for claim/BR/text consistency violations.
 
@@ -1139,6 +1193,13 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
         "workbuddy", "execution trace", "agent handoff", "delegation log",
         "ALLOWED_USE_BLOCKED", "authoring run", "cer_authoring_v1",
     ]
+    # ── DP-aware text pattern checks (Connection 4) ──
+    dp_data = _load_defect_patterns()
+    _DP_FORBIDDEN_TERMS = [
+        "template residue", "placeholder text", "lorem ipsum",
+        "TODO", "FIXME", "INSERT_CONTENT_HERE",
+        "not extracted", "to be determined",
+    ]
     body_text = " ".join(str(v) for v in cer_chapters.values())
     banned_hits = []
     for banned in _BANNED_RENDER_CHECK:
@@ -1150,10 +1211,41 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
         "Not extracted from IFU", "IFU text not available",
         "source text unavailable", "pending IFU confirmation",
     ]
+    # DP-011: scanned_unreadable_ifu check
+    _DP_IFU_DEGRADED_CHECK = [
+        "scanned IFU", "unreadable IFU", "IFU quality degraded",
+        "OCR failed", "image-based IFU", "handwritten IFU",
+        "poor scan quality", "illegible",
+    ]
     placeholder_hits = []
     for pattern in _IFU_PLACEHOLDER_CHECK:
         if pattern.lower() in body_text.lower():
             placeholder_hits.append(pattern)
+
+    # ── DP-specific pattern hits ──
+    dp_forbidden_hits = []
+    for term in _DP_FORBIDDEN_TERMS:
+        if term.lower() in body_text.lower():
+            dp_forbidden_hits.append(term)
+    dp_ifu_degraded_hits = []
+    for term in _DP_IFU_DEGRADED_CHECK:
+        if term.lower() in body_text.lower():
+            dp_ifu_degraded_hits.append(term)
+
+    # ── DP-aware state checks ──
+    annex_check = _check_annex_population(state)
+    citation_check = _check_citation_density(body_text)
+
+    # ── Map hits to DP IDs ──
+    dp_matches = []
+    if dp_forbidden_hits:
+        dp_matches.append("DP-001/DP-002 (forbidden/banned terms in body)")
+    if dp_ifu_degraded_hits:
+        dp_matches.append("DP-011 (scanned/unreadable IFU detected)")
+    if annex_check:
+        dp_matches.append(f"DP-038 (unpopulated annexes: {annex_check})")
+    if citation_check:
+        dp_matches.append(f"DP-036 (citation density: {citation_check})")
 
     # ── Check 3: Writer quality self-check score ──
     quality_report = state.get("writer_quality_report") or {}
@@ -1169,6 +1261,14 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
         failures.append(f"Banned internal strings in body: {banned_hits}")
     if placeholder_hits:
         failures.append(f"IFU placeholders in body: {placeholder_hits}")
+    if dp_forbidden_hits:
+        failures.append(f"DP-001/DP-002 Forbidden terms in body: {dp_forbidden_hits[:5]}")
+    if dp_ifu_degraded_hits:
+        failures.append(f"DP-011 IFU quality indicators in body: {dp_ifu_degraded_hits[:5]}")
+    if annex_check:
+        failures.append(f"DP-038 Unpopulated annexes: {annex_check}")
+    if citation_check:
+        failures.append(f"DP-036 Citation density: {citation_check}")
     if quality_pct < 70:
         failures.append(f"Writer quality score too low: {quality_pct}%")
     if claim_check.status == "FAIL":
@@ -1183,7 +1283,6 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
             rp_path = Path(__file__).parent / "knowledge" / "remediation_playbook.json"
             rp = json.loads(rp_path.read_text())
             playbook = rp.get("playbook", {})
-            # Map failure types to playbook entries
             if banned_hits:
                 for entry_id, entry in playbook.items():
                     di = entry.get("deerflow_injection", {})
@@ -1192,7 +1291,6 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
                         if prefix:
                             remediation_hints.append(f"[{entry_id}] {prefix[:200]}")
             if placeholder_hits:
-                # DO-001 covers documentation/placeholder gaps
                 do001 = playbook.get("DO-001", {})
                 di = do001.get("deerflow_injection", {})
                 prefix = di.get("auto_prompt_prefix", "")
@@ -1200,9 +1298,20 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
                     remediation_hints.append(f"[DO-001] {prefix[:200]}")
         except Exception:
             pass
+        # ── DP-aware remediation: look up fix suggestions from defect_patterns ──
+        if dp_matches:
+            for dp_match in dp_matches:
+                dp_id = dp_match.split(" ")[0].split("/")[0]
+                dp_entry = dp_data.get("by_id", {}).get(dp_id, {})
+                dp_fix = dp_entry.get("fix", "")
+                dp_name = dp_entry.get("name", "")
+                if dp_fix:
+                    remediation_hints.append(f"[{dp_id}] {dp_name}: {dp_fix}")
         msg = "; ".join(failures)
         if remediation_hints:
-            msg += " | REMEDIATION: " + " | ".join(remediation_hints[:3])
+            msg += " | REMEDIATION: " + " | ".join(remediation_hints[:5])
+        if dp_matches:
+            msg += " | DP_MATCHES: " + "; ".join(dp_matches[:5])
         return GateResult("G39", "FAIL", msg)
     return GateResult("G39", "PASS", f"Rendered body clean ({quality_pct}% quality, 0 banned strings, 0 placeholders).")
 
@@ -1253,12 +1362,13 @@ def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:
         _gate_sota_seven_step_deduction(state),
         _gate_aggregate_benchmark_basis(state),
         _gate_sota_conclusion_strength_guard(state),
+        _gate_defect_state_consistency(state),
         _gate_final_draft_semantic_qa(state),
         evaluate_claim_sota_alignment_gate(state),
         evaluate_argument_quality_gate(state),
         evaluate_cep_exists_gate(state),
     ]
-    critical_gate_ids = {"G1b", "G1d", "G2", "G5", "G8", "G12", "G14", "G19", "G_ARG_01", "G_ARG_02", "G_CEP"}
+    critical_gate_ids = {"G1b", "G1d", "G2", "G5", "G8", "G12", "G14", "G19", "G_ARG_01", "G_ARG_02", "G_CEP", "G_DP_STATE"}
     critical_failures = [r for r in results if r.gate_id in critical_gate_ids and r.status != "PASS"]
     minor_failures = [r for r in results if r.gate_id not in critical_gate_ids and r.status != "PASS"]
     all_failed = critical_failures + minor_failures
@@ -1280,6 +1390,73 @@ def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:
         "critical_failures": len(critical_failures),
         "minor_failures": len(minor_failures),
     }
+
+
+def _gate_defect_state_consistency(state: dict[str, Any]) -> GateResult:
+    """Check state-level invariants matching DP detection methods (Connection 4).
+
+    Covers:
+    - DP-005: claim_without_sota
+    - DP-006: g42_insufficient
+    - DP-008: no_rmf_for_warning
+    - DP-015: gspr_without_evidence
+    - DP-014: missing_3d_comparison
+    - DP-016: pmcf_before_alternatives
+    - DP-012: pool_below_threshold
+    """
+    dp_data = _load_defect_patterns()
+    violations = []
+
+    # DP-005: claim_without_sota
+    claim_matrix = state.get("claim_evidence_matrix") or []
+    claims_without_sota = []
+    for row in claim_matrix:
+        sota_ids = row.get("sota_ids") or row.get("sota_benchmark_ids") or []
+        if not sota_ids:
+            claims_without_sota.append(str(row.get("claim_id", "?")))
+    if claims_without_sota:
+        violations.append(f"DP-005: {len(claims_without_sota)} claims without SOTA benchmark: {claims_without_sota[:5]}")
+
+    # DP-006: g42_insufficient
+    evidence_registry = state.get("evidence_registry") or []
+    ev_count = len(evidence_registry)
+    claim_count = len(claim_matrix)
+    if claim_count > 0 and ev_count == 0:
+        violations.append(f"DP-006: {claim_count} claims but 0 evidence records (G42 insufficient)")
+
+    # DP-008: no_rmf_for_warning
+    vigilance = state.get("vigilance_recall_registry") or []
+    rmf = state.get("rmf_registry") or state.get("risk_management_file") or []
+    if vigilance and not rmf:
+        violations.append(f"DP-008: {len(vigilance)} vigilance records but no RMF coverage")
+
+    # DP-015: gspr_without_evidence
+    gspr_checklist = state.get("gspr_checklist") or state.get("gspr_trace_matrix") or []
+    gspr_without_ev = sum(1 for g in gspr_checklist if not g.get("evidence_ids") and not g.get("clinical_evidence_refs"))
+    if gspr_without_ev > 0:
+        violations.append(f"DP-015: {gspr_without_ev}/{len(gspr_checklist)} GSPR items without evidence mapping")
+
+    # DP-014: missing_3d_comparison
+    equivalence = state.get("equivalence_3d_matrix") or state.get("equivalence_comparison") or []
+    equivalence_claimed = state.get("equivalence_strategy") == "legacy_mdd" or state.get("equivalence_claimed")
+    if equivalence_claimed and not equivalence:
+        violations.append("DP-014: Equivalence claimed but no 3D comparison data (technical/biological/clinical)")
+
+    # DP-016: pmcf_before_alternatives
+    pmcf = state.get("pmcf_gap_register") or []
+    alternatives_remaining = state.get("endpoint_alternatives_remaining") or 0
+    if pmcf and alternatives_remaining > 0:
+        violations.append(f"DP-016: PMCF triggered with {alternatives_remaining} endpoint alternatives still remaining")
+
+    # DP-012: pool_below_threshold
+    searched = len(state.get("search_run_registry") or [])
+    screened = len(state.get("screening_disposition") or [])
+    if searched > 0 and screened < 5:
+        violations.append(f"DP-012: Screening pool shallow ({screened} screened from {searched} searches, threshold: 5)")
+
+    if violations:
+        return GateResult("G_DP_STATE", "FAIL", "; ".join(violations[:7]))
+    return GateResult("G_DP_STATE", "PASS", f"State consistency verified against {len(dp_data.get('patterns', []))} DP patterns.")
 
 
 def _gate_ifu_exists(state: dict[str, Any]) -> GateResult:

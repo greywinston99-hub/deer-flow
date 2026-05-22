@@ -2619,16 +2619,35 @@ def _check_knowledge_file(filename: str) -> str:
     alt_call = f"_load_knowledge_asset('{filename}')"
     short_call = f'_load_knowledge_asset("{file_basename}")'
     if load_call in pipeline_src or alt_call in pipeline_src or short_call in pipeline_src:
-        # Check it's not only in _check_knowledge_file itself
+        # Exclude occurrences inside _check_knowledge_file and build_self_inspection_report
         check_fn_start = pipeline_src.index("def _check_knowledge_file")
-        if load_call in pipeline_src[:check_fn_start] or alt_call in pipeline_src[:check_fn_start]:
+        si_fn_start = pipeline_src.index("def build_self_inspection_report")
+        # RUNTIME_CONSUMED if called BEFORE _check_knowledge_file (phase 1-3 assets)
+        # OR called in business functions defined AFTER build_self_inspection_report (phase 4+)
+        before_check = (load_call in pipeline_src[:check_fn_start] or
+                        alt_call in pipeline_src[:check_fn_start] or
+                        short_call in pipeline_src[:check_fn_start])
+        after_si = (load_call in pipeline_src[si_fn_start + 2000:] or
+                    alt_call in pipeline_src[si_fn_start + 2000:] or
+                    short_call in pipeline_src[si_fn_start + 2000:])
+        if before_check or after_si:
             return "RUNTIME_CONSUMED"
+    # Special: device_kb/DEV-*_KB.json files loaded via f-string in _load_device_kb_context
+    # Pattern: _load_knowledge_asset(f"device_kb/{family}_KB.json")
+    if filename.startswith("device_kb/") and '_load_knowledge_asset(f"device_kb/' in pipeline_src:
+        return "RUNTIME_CONSUMED"
     # Check if referenced in agents.py skill prompts
     agents_path = Path(__file__).parent / "agents.py"
     if agents_path.exists():
         agents_src = agents_path.read_text()
         if file_basename in agents_src:
             return "PROMPT_REFERENCED"
+    # Check if consumed in gates.py (for assets like defect_patterns)
+    gates_path = Path(__file__).parent / "gates.py"
+    if gates_path.exists():
+        gates_src = gates_path.read_text()
+        if file_basename in gates_src:
+            return "RUNTIME_CONSUMED"
     return "RUNTIME_LOADED"
 
 
@@ -6790,6 +6809,351 @@ def _build_section_defense_context(state: dict[str, Any]) -> dict[str, Any]:
     return context
 
 
+# ── Connection 5: structured_knowledge_context (cer_04 + cer_05 → Writer) ─────
+
+def _build_structured_knowledge_context(state: dict[str, Any]) -> dict[str, Any]:
+    """Extract Writer-relevant templates from cer_04 and cer_05.
+
+    Returns:
+        summary_template: Summary六要素框架 for §1
+        gspr_template: GSPR五段式模板 for §4.7
+        wording_strength_map: 措辞强度匹配表 for §5 Conclusions
+        defect_root_causes: NB缺陷根因表 for Writer global awareness
+        table_type_mapping: 表格类型→CER章节映射
+        chapter_table_mapping: CER章节→核心表格类型
+        mandatory_fields: 必含字段检查表
+    """
+    import json
+    from pathlib import Path
+
+    result: dict[str, Any] = {
+        "_source": "cer_04_answers.json + cer_05_tables.json (AUDIT_ARCHIVE R5)",
+    }
+
+    # ── Load cer_04 structured content ──
+    cer04 = _load_knowledge_asset("cer_04_answers.json")
+    if cer04:
+        sc = cer04.get("structured_content", {})
+        sections = sc.get("sections", [])
+        tables = sc.get("tables", [])
+
+        # Extract Summary六要素框架
+        summary_sections = []
+        for s in sections:
+            title = str(s.get("title", ""))
+            if "六要素" in title or "Summary" in title:
+                summary_sections.append({"level": s.get("level"), "title": title})
+        if summary_sections:
+            result["summary_template"] = {
+                "framework": "六要素完整框架 (Six-Element Summary Framework)",
+                "elements": [
+                    "Device Identity", "Indication/Intended Purpose",
+                    "Evidence Base Overview", "Benefit-Risk Balance",
+                    "Uncertainties and Gaps", "Overall Conclusion",
+                ],
+                "source_sections": summary_sections[:6],
+            }
+
+        # Extract GSPR五段式模板
+        gspr_sections = []
+        for s in sections:
+            title = str(s.get("title", ""))
+            if "GSPR" in title or "五段式" in title or "五段" in title:
+                gspr_sections.append({"level": s.get("level"), "title": title})
+        if gspr_sections:
+            result["gspr_template"] = {
+                "framework": "五段式 GSPR 分析模板 (Five-Paragraph GSPR Template)",
+                "paragraphs": [
+                    "条款引用 (GSPR Clause Reference)",
+                    "证据摘要 (Evidence Summary)",
+                    "符合性声明 (Conformity Statement)",
+                    "差距分析 (Gap Analysis)",
+                    "交叉引用 (Cross-Reference to Other Sections)",
+                ],
+                "source_sections": gspr_sections[:6],
+            }
+
+        # Extract 措辞强度匹配表 (table 20)
+        wording_table = None
+        for t in tables:
+            headers = [str(h) for h in t.get("headers", [])]
+            if any("措辞" in h or "wording" in h.lower() for h in headers):
+                wording_table = t
+                break
+        if not wording_table and len(tables) > 20:
+            wording_table = tables[20]
+        if wording_table:
+            wording_map = {}
+            for row in wording_table.get("rows", []):
+                keys = list(row.keys())
+                if len(keys) >= 2:
+                    strength = str(row.get(keys[0], ""))
+                    rec = str(row.get(keys[1], ""))[:200] if len(keys) > 1 else ""
+                    avoid = str(row.get(keys[2], ""))[:200] if len(keys) > 2 else ""
+                    if strength:
+                        wording_map[strength] = {"recommended": rec, "avoid": avoid}
+            if wording_map:
+                result["wording_strength_map"] = wording_map
+
+        # Extract NB缺陷根因表
+        defect_tables = []
+        for t in tables:
+            headers = [str(h) for h in t.get("headers", [])]
+            if len(headers) >= 3 and "NB" in str(headers[0]) and "根因" in str(headers[1]):
+                defect_tables.append({
+                    "headers": headers,
+                    "row_count": len(t.get("rows", [])),
+                    "sample_rows": t.get("rows", [])[:2],
+                })
+        if defect_tables:
+            result["defect_root_causes"] = {
+                "description": "NB缺陷根因表: NB原话→根因→修复方案",
+                "table_count": len(defect_tables),
+                "tables": defect_tables[:3],
+            }
+
+    # ── Load cer_05 structured content ──
+    cer05 = _load_knowledge_asset("cer_05_tables.json")
+    if cer05:
+        sc5 = cer05.get("structured_content", {})
+        tables5 = sc5.get("tables", [])
+
+        # Extract 表格类型→CER章节映射 (table 2)
+        if len(tables5) > 2:
+            table_type_rows = tables5[2].get("rows", [])
+            if table_type_rows:
+                result["table_type_mapping"] = []
+                for row in table_type_rows[:7]:
+                    keys = list(row.keys())
+                    result["table_type_mapping"].append({
+                        "type": str(row.get(keys[0], "")) if keys else "",
+                        "cer_section": str(row.get(keys[1], "")) if len(keys) > 1 else "",
+                        "defect_count": str(row.get(keys[2], "")) if len(keys) > 2 else "",
+                        "risk_level": str(row.get(keys[3], "")) if len(keys) > 3 else "",
+                    })
+
+        # Extract CER章节→核心表格类型 (table 31)
+        if len(tables5) > 31:
+            chapter_table_rows = tables5[31].get("rows", [])
+            if chapter_table_rows:
+                result["chapter_table_mapping"] = []
+                for row in chapter_table_rows[:18]:
+                    keys = list(row.keys())
+                    result["chapter_table_mapping"].append({
+                        "chapter": str(row.get(keys[0], "")) if keys else "",
+                        "table_type": str(row.get(keys[1], "")) if len(keys) > 1 else "",
+                        "function": str(row.get(keys[2], "")) if len(keys) > 2 else "",
+                        "reference_direction": str(row.get(keys[3], "")) if len(keys) > 3 else "",
+                    })
+
+        # Extract 必含字段检查表 (table 34)
+        if len(tables5) > 34:
+            mandatory_rows = tables5[34].get("rows", [])
+            if mandatory_rows:
+                result["mandatory_fields"] = []
+                for row in mandatory_rows[:8]:
+                    keys = list(row.keys())
+                    result["mandatory_fields"].append({
+                        "table_type": str(row.get(keys[0], "")) if keys else "",
+                        "required_field_count": str(row.get(keys[1], "")) if len(keys) > 1 else "",
+                        "consequence_of_missing": str(row.get(keys[2], "")) if len(keys) > 2 else "",
+                        "check_method": str(row.get(keys[3], "")) if len(keys) > 3 else "",
+                    })
+
+    return result
+
+
+# ── Connection 6: nb_specific_context (nb_body_profiles → Writer) ─────────────
+
+def _build_nb_specific_context(state: dict[str, Any]) -> dict[str, Any]:
+    """Load NB profile and extract writer_guard_injection for current NB.
+
+    Uses _nb_body(state) to determine the current NB, normalizes the name,
+    and looks up the matching profile in nb_body_profiles.json.
+    Returns empty dict if NB is unknown or profiles can't be loaded.
+    """
+    nb_name = _nb_body(state)
+    if not nb_name or nb_name == "Unknown":
+        return {}
+
+    # Normalize NB name to match profile keys (BSI, TUV_SUD, DEKRA, IMQ, MEDCERT)
+    nb_normalized = nb_name.upper().replace(" ", "_").replace("Ü", "U")
+    nb_key_map = {
+        "BSI": "BSI",
+        "TUV_SUD": "TUV_SUD",
+        "DEKRA": "DEKRA",
+        "IMQ": "IMQ",
+        "MEDCERT": "MEDCERT",
+    }
+    profile_key = nb_key_map.get(nb_normalized, nb_normalized)
+
+    nb_data = _load_knowledge_asset("nb_body_profiles.json")
+    if not nb_data:
+        return {}
+
+    profiles = nb_data.get("profiles", {})
+    profile = profiles.get(profile_key, {})
+    if not profile:
+        # Try fuzzy match
+        for key in profiles:
+            if profile_key in key or key in profile_key:
+                profile = profiles[key]
+                profile_key = key
+                break
+
+    if not profile:
+        return {}
+
+    wgi = profile.get("writer_guard_injection", {})
+    prompt_prefix = wgi.get("prompt_prefix", "") if isinstance(wgi, dict) else ""
+
+    return {
+        "_source": "nb_body_profiles.json (AUDIT_ARCHIVE R7)",
+        "nb_body": profile_key,
+        "nb_full_name": profile.get("nb_body_full_name", nb_name),
+        "review_model": profile.get("review_model", ""),
+        "defect_focus_heatmap": profile.get("defect_focus_heatmap", {}),
+        "severity_profile": profile.get("severity_profile", {}),
+        "prompt_prefix": prompt_prefix,
+        "pre_check_rules": profile.get("deerflow_pre_check_rules", []),
+    }
+
+
+# ── Slot Templates Context (deerflow_injection/slot_templates.json → Writer) ──
+
+def _build_slot_template_context(state: dict[str, Any]) -> dict[str, Any]:
+    """Load slot_templates.json and extract injection interface templates.
+
+    25 templates for standardizing how data fields are presented in CER text:
+    device_name, device_class, sota_benchmark, gspr_number, claim_text,
+    evidence_summary, alignment_status, etc.
+    """
+    st = _load_knowledge_asset("deerflow_injection/slot_templates.json")
+    if not st:
+        return {}
+    interfaces = st.get("injection_interfaces", {})
+    result: dict[str, Any] = {
+        "_source": "deerflow_injection/slot_templates.json (25 templates)",
+        "_total_templates": st.get("total_templates", 0),
+    }
+    # Flatten all slot templates into key→template map
+    templates = {}
+    for component, slots in interfaces.items():
+        if isinstance(slots, dict):
+            for slot_name, template in slots.items():
+                templates[f"{component}.{slot_name}"] = template
+    result["templates"] = templates
+    return result
+
+
+# ── Device Heuristics Context (device_heuristics.json → Writer/gate awareness) ──
+
+def _build_device_heuristics_context(state: dict[str, Any]) -> dict[str, Any]:
+    """Load device_heuristics.json and extract writer-relevant rules.
+
+    Returns simplified heuristic map: {heuristic_id: {name, category, key_rules}}
+    for injection into writer_input_packet and gate logic.
+    """
+    dh = _load_knowledge_asset("device_heuristics.json")
+    if not dh:
+        return {}
+    heuristics = dh.get("heuristics", [])
+    if not heuristics:
+        return {}
+    result: dict[str, Any] = {
+        "_source": "device_heuristics.json (AUDIT_ARCHIVE R4)",
+        "_heuristic_count": len(heuristics),
+    }
+    # Extract key heuristics in compact form
+    h_map = {}
+    for h in heuristics:
+        hid = h.get("heuristic_id", "")
+        name = h.get("heuristic_name", "")
+        category = h.get("category", "")
+        desc = h.get("description", "")
+        rules = h.get("rules", h.get("decision_rules", []))
+        injection = h.get("injection_points", h.get("injection_config", []))
+        h_map[hid] = {
+            "name": name,
+            "category": category,
+            "description": desc[:300] if desc else "",
+            "rule_count": len(rules) if isinstance(rules, list) else 0,
+            "injection_points": [
+                ip.get("component", ip) if isinstance(ip, dict) else str(ip)
+                for ip in (injection if isinstance(injection, list) else [injection])
+            ][:5],
+        }
+    result["heuristics"] = h_map
+    return result
+
+
+# ── Connection 7: knowledge_routing (kai_index → routing metadata) ────────────
+
+def _build_knowledge_routing_metadata(state: dict[str, Any]) -> dict[str, Any]:
+    """Read kai_index and produce routing audit trail for current run.
+
+    Maps kai_index injection points to actual DeerFlow DAG nodes.
+    Does NOT change routing logic — provides audit metadata only.
+    """
+    kai = _load_knowledge_asset("kai_index.json")
+    if not kai:
+        return {}
+
+    profile = state.get("device_profile") or {}
+    domain = str(profile.get("clinical_domain") or _clinical_domain(state) or "")
+    nb_name = _nb_body(state)
+
+    injection_map = kai.get("deerflow_injection_map", {})
+    assets = kai.get("assets", {})
+    coverage = kai.get("coverage_matrix", {})
+
+    routing: dict[str, Any] = {
+        "_source": "kai_index.json (AUDIT_ARCHIVE R8)",
+        "total_injection_points": kai.get("metadata", {}).get("total_injection_points", 0),
+        "total_assets": kai.get("metadata", {}).get("total_cer_assets", 0),
+    }
+
+    # Count injection points by component
+    component_counts = {}
+    for component, entries in injection_map.items():
+        if isinstance(entries, list):
+            component_counts[component] = len(entries)
+        elif isinstance(entries, dict):
+            component_counts[component] = len(entries)
+    routing["injection_points_by_component"] = component_counts
+
+    # Map assets to their injection targets
+    asset_routing = []
+    for _category, asset_list in assets.items():
+        if isinstance(asset_list, list):
+            for asset in asset_list[:20]:
+                injection_pts = asset.get("injection_points", [])
+                deerflow_targets = asset.get("deerflow_target", [])
+                asset_routing.append({
+                    "asset_id": asset.get("asset_id", ""),
+                    "type": asset.get("type", ""),
+                    "targets": [ip.get("component", "") for ip in injection_pts]
+                              + list(deerflow_targets),
+                })
+    routing["asset_routing"] = asset_routing[:30]
+
+    # Coverage audit
+    if isinstance(coverage, dict):
+        routing["coverage_summary"] = {
+            "total_covered": coverage.get("total_covered", 0),
+            "total_gaps": coverage.get("total_gaps", 0),
+        }
+
+    # Current run context
+    routing["run_context"] = {
+        "domain": domain,
+        "nb_body": nb_name,
+        "device_class": str(profile.get("device_class", "")),
+    }
+
+    return routing
+
+
 def _build_writer_input_packet(state: dict[str, Any]) -> dict[str, Any]:
     """Assemble the Writer's input context for traceability and quarantine audit."""
     profile = state.get("device_profile") or {}
@@ -6857,6 +7221,11 @@ def _build_writer_input_packet(state: dict[str, Any]) -> dict[str, Any]:
         ],
         "writer_path_audit": _validate_writer_paths(state),
         "section_defense_context": _build_section_defense_context(state),
+        "structured_knowledge_context": _build_structured_knowledge_context(state),
+        "device_heuristics_context": _build_device_heuristics_context(state),
+        "slot_template_context": _build_slot_template_context(state),
+        "nb_specific_context": _build_nb_specific_context(state),
+        "knowledge_routing": _build_knowledge_routing_metadata(state),
     }
 
 
