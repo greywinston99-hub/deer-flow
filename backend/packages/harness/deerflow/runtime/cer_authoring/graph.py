@@ -108,6 +108,23 @@ def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
     build_authoring_subagent_configs(_team_mode(clean_state))
     prepared = pipeline.prepare_source_inventory(clean_state)
     preflight = build_provider_preflight(_with_team_mode(clean_state, prepared))
+    # ── BL-19: CER update mode detection ──
+    update_mode = str(clean_state.get("update_mode") or "new").lower()
+    previous_cer = clean_state.get("previous_cer") or clean_state.get("prior_cer_report") or {}
+    is_update = update_mode in ("update", "incremental", "periodic_update")
+    update_context = {}
+    if is_update and previous_cer:
+        update_context = {
+            "update_mode": update_mode,
+            "previous_cer_version": str(previous_cer.get("version") or previous_cer.get("report_date") or "unknown"),
+            "previous_cer_claims": len(previous_cer.get("claims") or previous_cer.get("claim_ledger") or []),
+            "new_evidence_count": len(clean_state.get("new_evidence_since_update") or []),
+            "changed_sections": previous_cer.get("changed_sections") or ["all"],
+        }
+    elif is_update:
+        update_context = {"update_mode": update_mode, "status": "previous_cer_not_provided"}
+    else:
+        update_context = {"update_mode": "new", "status": "fresh_cer_generation"}
     trace = _agent_trace(
         LEAD_AGENT_NAME,
         _with_team_mode(clean_state, prepared),
@@ -115,6 +132,7 @@ def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
     )
     return {
         "status": clean_state.get("status") or "authoring_initialized",
+        "update_context": update_context,
         "agent_team_mode": _team_mode(clean_state),
         "run_scope_audit": run_scope_audit,
         "lead_decisions": [

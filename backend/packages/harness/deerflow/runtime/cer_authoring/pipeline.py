@@ -1788,9 +1788,27 @@ def build_device_profile(state: dict[str, Any]) -> dict[str, Any]:
     }
     profile = _normalize_profile_for_domain(profile, locked_domain)
     profile = _english_profile(profile)
+    # ── BL-05: IFU structured field traceability ──
+    # Replace generic "Not extracted" with IFU section-aware placeholders
+    _IFU_SECTION_HINTS = {
+        "composition": "IFU §产品结构组成/结构及组成",
+        "working_principle": "IFU §工作原理",
+        "model_specifications": "IFU §型号规格",
+        "sterility": "IFU §灭菌方式/无菌屏障系统组成",
+        "shelf_life_storage": "IFU §使用期限/储存与运输",
+        "performance_summary": "IFU §产品性能",
+        "contraindications": "IFU §禁忌症",
+    }
     for field in ("model_specifications", "composition", "working_principle", "sterility", "shelf_life_storage", "performance_summary", "contraindications"):
         if not str(profile.get(field) or "").strip():
-            profile[field] = "Not extracted from IFU source text; refer to subject device IFU for details."
+            hint = _IFU_SECTION_HINTS.get(field, "IFU source text")
+            profile[field] = f"Requires confirmation from {hint}; refer to subject device IFU for details."
+    # Record structured extraction trace for audit
+    profile["ifu_structured_extraction"] = {
+        "fields_extracted": [f for f in _IFU_SECTION_HINTS if str(profile.get(f) or "").strip() and "Requires confirmation" not in str(profile.get(f))],
+        "fields_pending": [f for f in _IFU_SECTION_HINTS if not str(profile.get(f) or "").strip() or "Requires confirmation" in str(profile.get(f))],
+        "source_type": "IFU heading-based extraction",
+    }
     if profile.get("clinical_domain") and profile["clinical_domain"] != locked_domain:
         locked_domain = profile["clinical_domain"]
         profile["device_domain"] = locked_domain
@@ -2281,6 +2299,37 @@ def run_sota_search(state: dict[str, Any]) -> dict[str, Any]:
                 }
             )
             existing.add(claim_id)
+    # ── BL-09: SOTA/DUE flow differentiation ──
+    sota_raw = _raw_records_from_searches([{**r, "search_id": f"SEARCH-SOTA-{i:02d}"}
+        for i, r in enumerate(sota_searches, start=1)]) if sota_searches else []
+    due_raw = _raw_records_from_searches([{**r, "search_id": f"SEARCH-DUE-{i:02d}"}
+        for i, r in enumerate(due_searches, start=1)]) if due_searches else []
+    literature_flow_registry = [
+        {"flow": "SOTA_flow", "searches": len(sota_searches), "records": len(sota_raw),
+         "databases": list({r.get("database", "") for r in sota_searches if r.get("database")}),
+         "strategy": "wide_search_multi_db_sota_benchmark"},
+        {"flow": "DUE_flow", "searches": len(due_searches), "records": len(due_raw),
+         "databases": list({r.get("database", "") for r in due_searches if r.get("database")}),
+         "strategy": "narrow_search_device_focused_due_evidence"},
+    ]
+    # Separate DUE evidence registry from SOTA benchmarks
+    due_evidence_registry = [
+        {"record_id": rec.get("article_id", rec.get("pmid", "")),
+         "title": rec.get("title", ""),
+         "source_flow": "DUE_flow",
+         "search_id": rec.get("search_id", ""),
+        } for rec in due_raw[:50]
+    ]
+    # PICO strategy mapping from state
+    sota_pico = state.get("sota_pico_strategy") or []
+    due_pico = state.get("due_pico_strategy") or []
+    pico_strategy = {
+        "sota_pico_strategy": sota_pico[:12],
+        "due_pico_strategy": due_pico[:12],
+        "sota_wide": True,
+        "due_narrow": True,
+    }
+
     lsp_payload = _build_lsp_payload(state, registry, benchmarks, sota_query, due_query)
     spiral_lineage = _spiral_search_lineage_update(state, registry, raw)
     return {
@@ -2295,6 +2344,9 @@ def run_sota_search(state: dict[str, Any]) -> dict[str, Any]:
         "sota_benchmark_matrix": benchmarks,
         "mcp_call_log": mcp_log,
         "device_kb_context": kb_context,
+        "literature_flow_registry": literature_flow_registry,
+        "due_evidence_registry": due_evidence_registry,
+        "pico_strategy": pico_strategy,
         **lsp_payload,
     }
 
