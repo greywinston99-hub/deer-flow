@@ -19351,19 +19351,22 @@ def _chapter_scope(profile: dict[str, Any], state: dict[str, Any]) -> str:
     return "\n".join(
         [
             "## 2.1 Device Description",
-            "### 2.1.1 Basic Information",
+            "<!-- Type A 8-field standard: Device Name / Model-Variant / EMDN / Classification / Intended Purpose / Key Components / Accessories / Principle of Operation -->",
+            "### 2.1.1 Device Name and Classification",
             f"Device name: {profile.get('device_name')}. Manufacturer: {profile.get('manufacturer') or 'Evidence gap: manufacturer to be confirmed from source document control'}. Device type: {profile.get('device_type')}.",
-            f"Mode of action: {profile.get('mode_of_action')}. Anatomical site: {profile.get('anatomical_site')}. Intended user/environment: {profile.get('intended_user')} / {profile.get('intended_environment')}.",
-            "### 2.1.2 Device Variants",
+            f"Classification: {_device_class(state)} under MDR Annex VIII. EMDN Code: {profile.get('emdn_code') or profile.get('emdn') or 'To be confirmed from EUDAMED or manufacturer declaration.'}",
+            "### 2.1.2 Device Variants and Model Specifications",
             f"Model/specification scope extracted from IFU: {profile.get('model_specifications') or 'Evidence gap: model table requires source confirmation.'}",
-            "### 2.1.3 Principle of Operation",
+            "### 2.1.3 Key Components and Composition",
+            f"Composition: {composition_text[:300]}. Key components include materials, coatings, and sub-assemblies that contact patient tissue or affect device performance.",
+            "### 2.1.4 Principle of Operation",
             _peel_paragraph(
                 point=f"{profile.get('device_name', 'The device')} is a {profile.get('device_type', 'medical device')} whose clinical function is defined by its IFU-documented design and operating principle.",
                 evidence=f"Composition: {composition_text[:300]}. Working principle: {working_principle_text[:300]}. Performance characteristics: {performance_text[:300]}.",
                 evaluation=f"These characteristics determine the device's biological contact profile, sterilization requirements, mode of action, and the clinical performance endpoints against which the device is evaluated in §4.7. Any feature not confirmed from IFU source text remains an input gap rather than an accepted clinical claim.",
                 link="The technical features table below maps each characteristic to its clinical relevance and verification location in the CER."
             ),
-            "### 2.1.4 Accessories or Compatible Devices",
+            "### 2.1.5 Accessories and Compatible Devices",
             accessory_logic,
             f"Sterility and shelf-life controls extracted from IFU: {'; '.join(x for x in [profile.get('sterility'), profile.get('shelf_life_storage')] if x) or 'Evidence gap: sterility/shelf-life controls require confirmation.'}",
             "",
@@ -19694,6 +19697,20 @@ def _chapter_sota(state: dict[str, Any]) -> str:
             ),
         ]
     )
+    # ── Type G: Endpoint decision matrix consumption ──
+    endpoint_matrix = (state.get("writer_input_packet") or {}).get("endpoint_matrix", {})
+    ep_matrix = endpoint_matrix.get("endpoint_decision_matrix", {}) if endpoint_matrix else {}
+    if ep_matrix:
+        num_count = len(ep_matrix.get("numerical", []))
+        qual_count = len(ep_matrix.get("qualitative", []))
+        gap_count = len(ep_matrix.get("gap", []))
+        lines.append("")
+        lines.append("## 3.7 Endpoint Classification (Type G)")
+        lines.append(f"| Category | Count | Status |")
+        lines.append(f"| --- | --- | --- |")
+        lines.append(f"| Numerical endpoints (direct value extraction) | {num_count} | {'Available for quantitative benchmark' if num_count else 'Pending'} |")
+        lines.append(f"| Qualitative endpoints (descriptive only) | {qual_count} | {'Used as qualitative context' if qual_count else 'Pending'} |")
+        lines.append(f"| Gap endpoints (requires further extraction) | {gap_count} | {'Flagged for PMCF or endpoint substitution' if gap_count else 'None'} |")
     return "\n".join(lines)
 
 
