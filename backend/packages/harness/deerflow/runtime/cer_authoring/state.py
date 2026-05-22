@@ -104,7 +104,7 @@ class SharedAuthoringState(ThreadState):
     uploaded_files: NotRequired[list[dict[str, Any]]]
     target_keywords: NotRequired[list[str]]
     artifact_root: NotRequired[str | None]
-    status: NotRequired[str | None]
+    status: NotRequired[Annotated[str | None, lambda e, n: n if n else e]]
     final_gate_decision: NotRequired[str | None]
     agent_team_mode: NotRequired[str | None]
 

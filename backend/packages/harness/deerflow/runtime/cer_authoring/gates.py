@@ -1175,7 +1175,35 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
         failures.append(f"Claim/BR/text consistency: {claim_failures}")
 
     if failures:
-        return GateResult("G39", "FAIL", "; ".join(failures))
+        # ── Remediation: look up deerflow_injection from remediation_playbook ──
+        remediation_hints = []
+        try:
+            import json
+            from pathlib import Path
+            rp_path = Path(__file__).parent / "knowledge" / "remediation_playbook.json"
+            rp = json.loads(rp_path.read_text())
+            playbook = rp.get("playbook", {})
+            # Map failure types to playbook entries
+            if banned_hits:
+                for entry_id, entry in playbook.items():
+                    di = entry.get("deerflow_injection", {})
+                    if di.get("gap_action_trigger") == entry_id:
+                        prefix = di.get("auto_prompt_prefix", "")
+                        if prefix:
+                            remediation_hints.append(f"[{entry_id}] {prefix[:200]}")
+            if placeholder_hits:
+                # DO-001 covers documentation/placeholder gaps
+                do001 = playbook.get("DO-001", {})
+                di = do001.get("deerflow_injection", {})
+                prefix = di.get("auto_prompt_prefix", "")
+                if prefix:
+                    remediation_hints.append(f"[DO-001] {prefix[:200]}")
+        except Exception:
+            pass
+        msg = "; ".join(failures)
+        if remediation_hints:
+            msg += " | REMEDIATION: " + " | ".join(remediation_hints[:3])
+        return GateResult("G39", "FAIL", msg)
     return GateResult("G39", "PASS", f"Rendered body clean ({quality_pct}% quality, 0 banned strings, 0 placeholders).")
 
 
@@ -1589,10 +1617,14 @@ def _gate_appraisal_drives_weight(state: dict[str, Any]) -> GateResult:
         )
     # Check claim support matrix has weighted scores
     if matrix:
-        unweighted = [r for r in matrix if not r.get("weighted_support_score")]
+        if isinstance(matrix, dict):
+            matrix_rows = list(matrix.values())
+        else:
+            matrix_rows = matrix
+        unweighted = [r for r in matrix_rows if isinstance(r, dict) and not r.get("weighted_support_score")]
         low_pivotal = [
-            r for r in matrix
-            if r.get("best_evidence_score", 100) < 40
+            r for r in matrix_rows
+            if isinstance(r, dict) and r.get("best_evidence_score", 100) < 40
             and r.get("support_level") in ("MODERATE", "STRONG")
         ]
         if unweighted:
@@ -1673,9 +1705,15 @@ def _gate_conclusion_strength(state: dict[str, Any]) -> GateResult:
     if has_gap and any(term in draft for term in strong_terms):
         return GateResult("G12", "REWORK_REQUIRED", "Final conclusion strength exceeds evidence/gap status")
     # Check Oxford level -> conclusion consistency
-    constraints = state.get("writer_conclusion_constraints") or []
+    constraints = state.get("writer_conclusion_constraints") or {}
+    if isinstance(constraints, dict):
+        constraint_rows = list(constraints.values())
+    else:
+        constraint_rows = constraints
     violations = []
-    for c in constraints:
+    for c in constraint_rows:
+        if not isinstance(c, dict):
+            continue
         oxford = str(c.get("best_oxford_level") or "")
         allowed = OXFORD_CONCLUSION_MAP.get(oxford, "CAUTIOUS")
         actual = str(c.get("max_conclusion_strength") or "")
