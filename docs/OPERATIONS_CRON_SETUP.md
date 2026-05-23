@@ -30,16 +30,41 @@ The maintenance script exits with code 1 when:
 - Checkpoint DB maintenance fails
 - Feedback cleanup fails
 
-Use the exit code in your alerting pipeline:
+### Quick Test
 
 ```bash
-# Slack webhook example (add to cron wrapper script)
-if ! python backend/scripts/maintenance_cron.py --disk-threshold 80; then
-  curl -X POST "$SLACK_WEBHOOK_URL" \
-    -H 'Content-type: application/json' \
-    -d '{"text":"🚨 DeerFlow maintenance alert — check logs/maintenance_cron.log"}'
-fi
+# Preview the alert payload without sending
+bash scripts/test_slack_webhook.sh
+
+# Configure and test with your real Slack webhook
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+bash scripts/test_slack_webhook.sh
 ```
+
+### Persistent Configuration
+
+Add to your shell profile (`~/.bash_profile`, `~/.zshrc`, etc.):
+
+```bash
+# DeerFlow alerting
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
+export ALERT_EMAIL="ops@yourcompany.com"  # optional, requires `mail` command
+export DISK_THRESHOLD=80
+export KEEP_PER_THREAD=15
+```
+
+Then reload:
+```bash
+source ~/.zshrc  # or ~/.bash_profile
+```
+
+### Alert Payload Format
+
+The wrapper script sends a Slack message with:
+- **text**: Alert summary (disk alerts / maintenance failure)
+- **attachments.color**: `danger` (alert) or `good` (normal)
+- **fields**: Disk alerts count, checkpoints cleaned, report path
+- **footer**: "DeerFlow Maintenance" + timestamp
 
 ## Report Persistence
 
