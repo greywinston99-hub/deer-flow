@@ -564,6 +564,14 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
     depth_enriched = pipeline._enrich_evidence_with_depth({**dict(state), **(generated or {}), "evidence_registry": mdcg_enriched})
     evidence = depth_enriched or mdcg_enriched or generated.get("evidence_registry") or state.get("evidence_registry") or []
     appraisal = generated.get("article_appraisal") or state.get("article_appraisal") or []
+    # Route B: Auto-trigger Quick-Scan if pivotal evidence has depth issues
+    request_qs = False
+    for row in evidence:
+        if str(row.get("weight") or "").lower() == "pivotal":
+            depth = str(row.get("evidence_depth") or "").upper()
+            if depth and depth not in {"PRIMARY_VERBATIM", "PRIMARY_DERIVED"}:
+                request_qs = True
+                break
     approval = interrupt({
         "confirmation_point": "evidence_appraisal",
         "step": 11,
@@ -576,7 +584,11 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
     if isinstance(approval, dict) and approval.get("corrections"):
         generated["article_appraisal"] = approval["corrections"]
         generated["evidence_appraisal_human_confirmed"] = True
-    return {**_branch_stage("evidence_appraisal"), **generated} if generated else _branch_stage("evidence_appraisal")
+    result = {**_branch_stage("evidence_appraisal"), **generated} if generated else _branch_stage("evidence_appraisal")
+    if request_qs:
+        result["request_review_quick_scan"] = True
+        result["auto_quick_scan_trigger_node"] = "evidence_appraisal"
+    return result
 
 
 def _node_fulltext_basis_gate(state: SharedAuthoringState) -> dict[str, Any]:
@@ -731,7 +743,13 @@ def _node_claim_evidence_matrix(state: SharedAuthoringState) -> dict[str, Any]:
 
 
 def _node_claim_evidence_gate(state: SharedAuthoringState) -> dict[str, Any]:
-    return _hard_gate_update("claim_evidence_gate", state, evaluate_claim_evidence_gate(dict(state)))
+    report = evaluate_claim_evidence_gate(dict(state))
+    result = _hard_gate_update("claim_evidence_gate", state, report)
+    # Route B: Auto-trigger Quick-Scan on claim-evidence gate failure
+    if report.get("status") == "REWORK_REQUIRED":
+        result["request_review_quick_scan"] = True
+        result["auto_quick_scan_trigger_node"] = "claim_evidence_gate"
+    return result
 
 
 def _route_after_claim_evidence_gate(state: SharedAuthoringState) -> str:
