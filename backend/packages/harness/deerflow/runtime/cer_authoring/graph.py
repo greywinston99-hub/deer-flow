@@ -682,7 +682,10 @@ def _route_after_sota_endpoint_gate(state: SharedAuthoringState) -> str:
     from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
     if _current_spiral_round(state) >= 5:
         return "pre_g42_claim_evidence_candidate_linking"
-    return _hard_gate_graph_route(state.get("sota_endpoint_gate_report") or {}, pass_route="pre_g42_claim_evidence_candidate_linking")
+    route = _hard_gate_graph_route(state.get("sota_endpoint_gate_report") or {}, pass_route="pre_g42_claim_evidence_candidate_linking")
+    if route in ("endpoint_extraction", "sota_search", "evidence_appraisal"):
+        return "query_expansion"
+    return route
 
 
 def _node_pre_g42_claim_evidence_candidate_linking(state: SharedAuthoringState) -> dict[str, Any]:
@@ -727,10 +730,14 @@ def _route_after_evidence_sufficiency_gate(state: SharedAuthoringState) -> str:
     from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
     spiral_round = _current_spiral_round(state)
     if spiral_round >= 5:
-        return "claim_evidence_matrix"  # force forward, gaps go to PMCF
+        return "claim_evidence_matrix"
     if report.get("status") == "PASS":
         return "claim_evidence_matrix"
-    return str(report.get("next_node") or "sota_clinical_context")
+    # All rework routes MUST go through query_expansion to increment spiral round
+    next_node = str(report.get("next_node") or "")
+    if next_node in ("claim_decomposition", "sota_search", "evidence_appraisal", "endpoint_extraction"):
+        return "query_expansion"
+    return next_node or "query_expansion"
 
 
 def _node_query_expansion(state: SharedAuthoringState) -> dict[str, Any]:
@@ -798,7 +805,10 @@ def _route_after_claim_evidence_gate(state: SharedAuthoringState) -> str:
     from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
     if _current_spiral_round(state) >= 5:
         return "gap_pmcf"
-    return _hard_gate_graph_route(state.get("claim_evidence_gate_report") or {}, pass_route="gap_pmcf")
+    route = _hard_gate_graph_route(state.get("claim_evidence_gate_report") or {}, pass_route="gap_pmcf")
+    if route in ("claim_decomposition", "sota_search", "evidence_appraisal"):
+        return "query_expansion"
+    return route
 
 
 def _node_gap_pmcf(state: SharedAuthoringState) -> dict[str, Any]:
