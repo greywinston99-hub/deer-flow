@@ -151,7 +151,7 @@ def vacuum_db(conn: sqlite3.Connection, dry_run: bool = False) -> dict[str, Any]
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Checkpoint DB maintenance")
+    parser = argparse.ArgumentParser(description="Checkpoint DB + Review Feedback maintenance")
     parser.add_argument(
         "--db-path",
         type=Path,
@@ -173,6 +173,12 @@ def main() -> int:
         "--skip-vacuum",
         action="store_true",
         help="Skip VACUUM step",
+    )
+    parser.add_argument(
+        "--cleanup-feedback",
+        type=Path,
+        default=None,
+        help="P1-2: Also clean up expired review_feedback files in this directory",
     )
     parser.add_argument(
         "--output",
@@ -248,6 +254,25 @@ def main() -> int:
             report["after"]["writes_rows"],
             report["after"]["db_file_size_mb"],
         )
+
+    # P1-2: Optional feedback cleanup
+    if args.cleanup_feedback:
+        logger.info("Cleaning up expired feedback in %s...", args.cleanup_feedback)
+        try:
+            from deerflow.runtime.cer_review.feedback_writer import ReviewFeedbackWriter
+            fb_result = ReviewFeedbackWriter.cleanup_expired_feedback(
+                args.cleanup_feedback, dry_run=args.dry_run
+            )
+            report["feedback_cleanup"] = fb_result
+            logger.info(
+                "Feedback cleanup: %d removed, %d kept (dry_run=%s)",
+                len(fb_result.get("removed", [])),
+                len(fb_result.get("kept", [])),
+                args.dry_run,
+            )
+        except Exception as exc:
+            logger.warning("Feedback cleanup failed: %s", exc)
+            report["feedback_cleanup"] = {"error": str(exc)}
 
     report["completed_at"] = datetime.now(timezone.utc).isoformat()
 

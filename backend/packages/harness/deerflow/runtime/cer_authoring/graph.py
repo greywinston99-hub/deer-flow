@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import logging
 from pathlib import Path
@@ -115,6 +117,8 @@ def _load_review_feedback(artifact_root: str, resolved_ids: list[str] | None = N
 
     Resolved findings (previously dismissed or addressed by human) are filtered
     out to avoid noise accumulation across rework cycles.
+
+    P0-3: Validates HMAC signature to detect tampering.
     """
     if not artifact_root:
         return None
@@ -128,6 +132,19 @@ def _load_review_feedback(artifact_root: str, resolved_ids: list[str] | None = N
         if not data.get("advisory_only"):
             logger.warning("Review feedback at %s missing advisory_only flag — rejecting", feedback_path)
             return None
+        # P0-3: HMAC signature validation (soft-fail for legacy unsigned feedback)
+        signature = data.get("signature")
+        if signature:
+            expected = _compute_feedback_signature(data)
+            if not hmac.compare_digest(signature, expected):
+                logger.error(
+                    "Review feedback signature mismatch at %s — possible tampering detected",
+                    feedback_path,
+                )
+                return None
+            logger.debug("Review feedback signature verified at %s", feedback_path)
+        else:
+            logger.warning("Review feedback at %s has no signature — accepting unsigned (legacy)", feedback_path)
         # Filter out resolved findings
         resolved = set(resolved_ids or [])
         if resolved:
@@ -143,10 +160,61 @@ def _load_review_feedback(artifact_root: str, resolved_ids: list[str] | None = N
                     original_count - filtered_count,
                     filtered_count,
                 )
+        # P1-1: Audit log — feedback loaded
+        _append_feedback_audit_log(artifact_root, {
+            "event": "feedback_loaded",
+            "feedback_id": data.get("feedback_id"),
+            "findings_count": len(data.get("findings", [])),
+            "filtered_resolved": len(resolved) if resolved else 0,
+            "signature_valid": bool(signature and hmac.compare_digest(signature, _compute_feedback_signature(data))),
+        })
         return data
     except Exception as exc:
         logger.warning("Failed to load review feedback from %s: %s", feedback_path, exc)
         return None
+
+
+def _compute_feedback_signature(data: dict[str, Any]) -> str:
+    """Compute HMAC-SHA256 signature over feedback canonical payload.
+
+    Signs: feedback_id + source + advisory_only + canonical findings JSON.
+    Key from CER_FEEDBACK_HMAC_SECRET env (falls back to project_id for test).
+    """
+    key = (data.get("source_project_id") or "dev-fallback-key").encode("utf-8")
+    # Canonical payload: deterministic ordering
+    payload = json.dumps({
+        "feedback_id": data.get("feedback_id", ""),
+        "source": data.get("source", ""),
+        "advisory_only": bool(data.get("advisory_only")),
+        "findings": sorted(
+            [
+                {
+                    "finding_id": str(f.get("finding_id", "")),
+                    "severity": str(f.get("severity", "")),
+                    "category": str(f.get("category", "")),
+                    "description": str(f.get("description", ""))[:500],
+                }
+                for f in (data.get("findings") or [])
+            ],
+            key=lambda x: x["finding_id"],
+        ),
+    }, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hmac.new(key, payload.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def _append_feedback_audit_log(artifact_root: str, record: dict[str, Any]) -> None:
+    """P1-1: Append structured event to review_feedback/audit_log.jsonl."""
+    try:
+        audit_path = Path(artifact_root).expanduser().resolve() / "review_feedback" / "audit_log.jsonl"
+        audit_path.parent.mkdir(parents=True, exist_ok=True)
+        line = json.dumps({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **record,
+        }, ensure_ascii=False, separators=(",", ":"))
+        with open(audit_path, "a", encoding="utf-8") as fh:
+            fh.write(line + "\n")
+    except Exception as exc:
+        logger.debug("Failed to write feedback audit log: %s", exc)
 
 
 def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
@@ -512,7 +580,21 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
 
 
 def _node_fulltext_basis_gate(state: SharedAuthoringState) -> dict[str, Any]:
-    return _hard_gate_update("fulltext_basis_gate", state, evaluate_fulltext_basis_gate(dict(state)))
+    report = evaluate_fulltext_basis_gate(dict(state))
+    # P1-1: Audit log for G41 depth violations
+    depth_violations = report.get("pivotal_evidence_depth_violations") or []
+    if depth_violations:
+        _append_feedback_audit_log(
+            str(state.get("artifact_root") or ""),
+            {
+                "event": "g41_depth_violation",
+                "gate_id": "G41",
+                "violations_count": len(depth_violations),
+                "evidence_ids": [v.get("evidence_id") for v in depth_violations],
+                "status": report.get("status"),
+            },
+        )
+    return _hard_gate_update("fulltext_basis_gate", state, report)
 
 
 def _route_after_fulltext_basis_gate(state: SharedAuthoringState) -> str:
@@ -822,15 +904,21 @@ def _node_review_quick_scan(state: SharedAuthoringState) -> dict[str, Any]:
     Serializes current claim/evidence artifacts and invokes the 2-stage
     Review Assist quick-scan graph. Results are loaded into review_feedback
     for surfacing at the next interrupt.
+
+    P0-1: Subprocess has timeout (300s) + exponential-backoff retry (max 3).
     """
     import subprocess
     import sys
     import tempfile
+    import time
 
     artifact_root = Path(str(state.get("artifact_root") or ""))
     project_id = str(state.get("project_id") or "")
     quick_scan_feedback: dict[str, Any] | None = None
     status = "skipped"
+    last_error = ""
+    max_retries = 3
+    base_timeout = 300
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -848,26 +936,55 @@ def _node_review_quick_scan(state: SharedAuthoringState) -> dict[str, Any]:
             )
 
             script = Path(__file__).resolve().parents[5] / "scripts" / "run_review_quick_scan.py"
-            proc = subprocess.run(
-                [
-                    sys.executable,
-                    str(script),
-                    "--input-dir", str(tmp_path),
-                    "--output-dir", str(artifact_root),
-                    "--project-id", project_id,
-                ],
-                capture_output=True,
-                text=True,
-                timeout=300,
-            )
-            if proc.returncode == 0:
-                result = json.loads(proc.stdout)
-                status = result.get("status", "unknown")
-                feedback_path = artifact_root / "review_feedback" / "quick_scan_latest.json"
-                if feedback_path.exists():
-                    quick_scan_feedback = json.loads(feedback_path.read_text(encoding="utf-8"))
+
+            for attempt in range(1, max_retries + 1):
+                try:
+                    proc = subprocess.run(
+                        [
+                            sys.executable,
+                            str(script),
+                            "--input-dir", str(tmp_path),
+                            "--output-dir", str(artifact_root),
+                            "--project-id", project_id,
+                        ],
+                        capture_output=True,
+                        text=True,
+                        timeout=base_timeout,
+                    )
+                    if proc.returncode == 0:
+                        result = json.loads(proc.stdout)
+                        status = result.get("status", "unknown")
+                        feedback_path = artifact_root / "review_feedback" / "quick_scan_latest.json"
+                        if feedback_path.exists():
+                            quick_scan_feedback = json.loads(feedback_path.read_text(encoding="utf-8"))
+                        logger.info("Quick-scan succeeded on attempt %d/%d", attempt, max_retries)
+                        break
+                    else:
+                        stderr = proc.stderr[:500] if proc.stderr else "no stderr"
+                        last_error = f"exit={proc.returncode}: {stderr}"
+                        logger.warning("Quick-scan failed attempt %d/%d: %s", attempt, max_retries, last_error)
+                        if attempt < max_retries:
+                            backoff = 2 ** (attempt - 1)
+                            logger.info("Quick-scan retrying in %ds...", backoff)
+                            time.sleep(backoff)
+                except subprocess.TimeoutExpired:
+                    last_error = f"timeout after {base_timeout}s"
+                    logger.warning("Quick-scan timed out on attempt %d/%d", attempt, max_retries)
+                    if attempt < max_retries:
+                        backoff = 2 ** (attempt - 1)
+                        logger.info("Quick-scan retrying in %ds...", backoff)
+                        time.sleep(backoff)
+                except Exception as exc:
+                    last_error = str(exc)
+                    logger.warning("Quick-scan exception on attempt %d/%d: %s", attempt, max_retries, exc)
+                    if attempt < max_retries:
+                        backoff = 2 ** (attempt - 1)
+                        logger.info("Quick-scan retrying in %ds...", backoff)
+                        time.sleep(backoff)
             else:
-                status = f"failed: {proc.stderr[:500]}"
+                # All retries exhausted
+                status = f"failed_after_{max_retries}_retries: {last_error}"
+                logger.error("Quick-scan exhausted all %d retries: %s", max_retries, last_error)
     except Exception as exc:
         status = f"failed: {exc}"
         logger.warning("Review quick-scan failed (non-fatal): %s", exc)

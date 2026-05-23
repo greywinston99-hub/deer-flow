@@ -20,10 +20,18 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.0.0", "ruff>=0.14.11"]
+dev = ["pytest>=8.0.0", "pytest-xdist>=3.8.0", "ruff>=0.14.11"]
 
 [tool.uv.workspace]
 members = ["packages/harness"]
 
 [tool.uv.sources]
 deerflow-harness = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "e2e: End-to-end tests requiring full graph compilation",
+    "slow: Tests that take >30s",
+]
