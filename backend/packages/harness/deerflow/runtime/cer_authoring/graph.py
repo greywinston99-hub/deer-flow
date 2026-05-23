@@ -679,8 +679,7 @@ def _sota_endpoint_gate_report(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _route_after_sota_endpoint_gate(state: SharedAuthoringState) -> str:
-    from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
-    if _current_spiral_round(state) >= 5:
+    if _rework_count(state) >= 5:
         return "pre_g42_claim_evidence_candidate_linking"
     route = _hard_gate_graph_route(state.get("sota_endpoint_gate_report") or {}, pass_route="pre_g42_claim_evidence_candidate_linking")
     if route in ("endpoint_extraction", "sota_search", "evidence_appraisal"):
@@ -724,25 +723,30 @@ def _node_evidence_sufficiency_gate(state: SharedAuthoringState) -> dict[str, An
     }
 
 
+# ── Simple rework counter (incremented by route functions, resets on forward) ──
+
+def _rework_count(state: SharedAuthoringState) -> int:
+    return int(state.get("rework_gate_counter") or 0)
+
+
+def _inc_rework(state: SharedAuthoringState) -> dict[str, Any]:
+    return {"rework_gate_counter": _rework_count(state) + 1}
+
+
 def _route_after_evidence_sufficiency_gate(state: SharedAuthoringState) -> str:
     report = state.get("evidence_sufficiency_gate_report") or {}
-    # ── Spiral round guard: force PASS at round 5 (PMCF boundary acceptance) ──
-    from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
-    spiral_round = _current_spiral_round(state)
-    if spiral_round >= 5:
-        return "claim_evidence_matrix"
+    count = _rework_count(state)
+    if count >= 5:
+        return "claim_evidence_matrix"  # force forward
     if report.get("status") == "PASS":
         return "claim_evidence_matrix"
-    # All rework routes MUST go through query_expansion to increment spiral round
-    next_node = str(report.get("next_node") or "")
-    if next_node in ("claim_decomposition", "sota_search", "evidence_appraisal", "endpoint_extraction"):
-        return "query_expansion"
-    return next_node or "query_expansion"
+    # Increment counter for any rework route
+    return "query_expansion"
 
 
 def _node_query_expansion(state: SharedAuthoringState) -> dict[str, Any]:
     generated = pipeline.query_expansion(dict(state))
-    return {**_branch_stage("query_expansion"), **generated}
+    return {**_branch_stage("query_expansion"), **_inc_rework(state), **generated}
 
 
 def _node_claim_evidence_matrix(state: SharedAuthoringState) -> dict[str, Any]:
@@ -802,8 +806,7 @@ def _node_claim_evidence_gate(state: SharedAuthoringState) -> dict[str, Any]:
 
 
 def _route_after_claim_evidence_gate(state: SharedAuthoringState) -> str:
-    from deerflow.runtime.cer_authoring.pipeline import _current_spiral_round
-    if _current_spiral_round(state) >= 5:
+    if _rework_count(state) >= 5:
         return "gap_pmcf"
     route = _hard_gate_graph_route(state.get("claim_evidence_gate_report") or {}, pass_route="gap_pmcf")
     if route in ("claim_decomposition", "sota_search", "evidence_appraisal"):
