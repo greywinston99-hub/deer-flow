@@ -226,6 +226,7 @@ def invoke_authoring_agent(agent_name: str, state: dict[str, Any], task: str, *,
         resolve_agent_model,
         is_model_allowed_for_agent,
         missing_provider_env,
+        get_agent_provider_fallback_models,
         get_agent_task_type,
         record_resolution_trace,
         ROUTING_POLICY_V1,
@@ -242,6 +243,12 @@ def invoke_authoring_agent(agent_name: str, state: dict[str, Any], task: str, *,
     payload["routed_model"] = routed_model
     payload["task_type"] = task_type
     missing_env = missing_provider_env(routed_model)
+    fallback_models = [
+        fallback
+        for fallback in get_agent_provider_fallback_models(agent_name)
+        if fallback != routed_model and is_model_allowed_for_agent(agent_name, fallback)
+    ]
+    configured_fallbacks = [fallback for fallback in fallback_models if not missing_provider_env(fallback)]
     # Determine routing source for audit trail
     env_key = f"CER_AUTHORING_MODEL_{agent_name.upper().replace('-', '_')}"
     if os.getenv(env_key):
@@ -261,16 +268,19 @@ def invoke_authoring_agent(agent_name: str, state: dict[str, Any], task: str, *,
         "actual_resolved_model": routed_model,
         "route_source": route_source,
         "fallback_used": False,
-        "provider_status": "missing_env" if missing_env else "configured",
+        "provider_status": "primary_missing_fallback_configured" if missing_env and configured_fallbacks else "missing_env" if missing_env else "configured",
         "missing_env": missing_env,
+        "fallback_models": fallback_models,
+        "configured_fallback_models": configured_fallbacks,
         "model_invocation_success": False,
     })
-    if missing_env:
+    if missing_env and not configured_fallbacks:
         return {
             **payload,
             "status": "BLOCKED_PROVIDER_UNAVAILABLE",
             "error": f"Model '{routed_model}' is configured for '{agent_name}', but required environment variable(s) are missing: {', '.join(missing_env)}.",
             "missing_env": missing_env,
+            "fallback_models": fallback_models,
         }
     prompt = "\n".join(
         [
@@ -287,29 +297,149 @@ def invoke_authoring_agent(agent_name: str, state: dict[str, Any], task: str, *,
             "```",
         ]
     )
-    try:  # pragma: no cover - requires configured model provider
-        config = _strict_runtime_config(config, reviewer=reviewer)
-        executor = SubagentExecutor(
-            config=config,
-            tools=[],
-            parent_model=_authoring_parent_model(state),
-            sandbox_state=state.get("sandbox"),
-            thread_data=state.get("thread_data"),
-            thread_id=state.get("thread_id") or f"cer-authoring-{state.get('project_id') or 'run'}",
-            trace_id=f"cer-authoring-{agent_name}",
-        )
-        result = _execute_with_outer_timeout(executor, prompt, config.timeout_seconds + 10)
+
+    attempted_models: list[dict[str, Any]] = []
+    candidate_models = [routed_model, *fallback_models]
+    last_error = ""
+    for candidate_model in candidate_models:
+        candidate_missing_env = missing_provider_env(candidate_model)
+        if candidate_missing_env:
+            attempted_models.append(
+                {
+                    "model_name": candidate_model,
+                    "status": "SKIPPED_MISSING_ENV",
+                    "missing_env": candidate_missing_env,
+                }
+            )
+            last_error = f"Model '{candidate_model}' missing environment variable(s): {', '.join(candidate_missing_env)}"
+            continue
+        try:  # pragma: no cover - requires configured model provider
+            config_for_model = _strict_runtime_config(replace(config, model=candidate_model), reviewer=reviewer)
+            result = _execute_authoring_subagent(
+                SubagentExecutor=SubagentExecutor,
+                config=config_for_model,
+                prompt=prompt,
+                parent_model=_authoring_parent_model(state),
+                sandbox_state=state.get("sandbox"),
+                thread_data=state.get("thread_data"),
+                thread_id=state.get("thread_id") or f"cer-authoring-{state.get('project_id') or 'run'}",
+                trace_id=f"cer-authoring-{agent_name}",
+            )
+        except Exception as exc:  # pragma: no cover - requires configured model provider
+            attempted_models.append(
+                {
+                    "model_name": candidate_model,
+                    "status": "FAILED",
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+            )
+            last_error = f"{type(exc).__name__}: {exc}"
+            if _is_provider_failure(last_error):
+                continue
+            return {
+                **payload,
+                "status": "FAILED",
+                "error": last_error,
+                "actual_model_name": candidate_model,
+                "fallback_used": candidate_model != routed_model,
+                "model_attempts": attempted_models,
+            }
         status = result.status.value if hasattr(result.status, "value") else str(result.status)
         completed = result.status == SubagentStatus.COMPLETED
+        attempted_models.append(
+            {
+                "model_name": candidate_model,
+                "status": "COMPLETED" if completed else status,
+                "error": result.error or "",
+            }
+        )
+        last_error = result.error or result.result or f"subagent status={status}"
+        if completed:
+            # Guard: the error-handling middleware converts provider auth/quota/5xx
+            # errors into AIMessage text instead of raising, so the subagent may
+            # report COMPLETED with provider-failure content in result.result.
+            if _is_provider_failure(last_error) and candidate_model != candidate_models[-1]:
+                attempted_models[-1]["status"] = "FAILED_PROVIDER"
+                attempted_models[-1]["error"] = last_error
+                continue
+            return {
+                **payload,
+                "status": "COMPLETED",
+                "task_id": result.task_id,
+                "result": result.result or "",
+                "error": result.error or "",
+                "actual_model_name": candidate_model,
+                "fallback_used": candidate_model != routed_model,
+                "model_attempts": attempted_models,
+            }
+        if candidate_model != candidate_models[-1] and _is_provider_failure(last_error):
+            continue
         return {
             **payload,
-            "status": "COMPLETED" if completed else status,
+            "status": status,
             "task_id": result.task_id,
             "result": result.result or "",
             "error": result.error or "",
+            "actual_model_name": candidate_model,
+            "fallback_used": candidate_model != routed_model,
+            "model_attempts": attempted_models,
         }
-    except Exception as exc:  # pragma: no cover - requires configured model provider
-        return {**payload, "status": "FAILED", "error": f"{type(exc).__name__}: {exc}"}
+    return {
+        **payload,
+        "status": "BLOCKED_PROVIDER_UNAVAILABLE",
+        "error": last_error or "No configured model provider was available for this agent.",
+        "fallback_models": fallback_models,
+        "model_attempts": attempted_models,
+    }
+
+
+def _execute_authoring_subagent(
+    *,
+    SubagentExecutor: Any,
+    config: Any,
+    prompt: str,
+    parent_model: str | None,
+    sandbox_state: Any,
+    thread_data: Any,
+    thread_id: str,
+    trace_id: str,
+) -> Any:
+        executor = SubagentExecutor(
+            config=config,
+            tools=[],
+            parent_model=parent_model,
+            sandbox_state=sandbox_state,
+            thread_data=thread_data,
+            thread_id=thread_id,
+            trace_id=trace_id,
+        )
+        return _execute_with_outer_timeout(executor, prompt, config.timeout_seconds + 10)
+
+
+def _is_provider_failure(error_text: str) -> bool:
+    text = str(error_text or "").lower()
+    provider_markers = (
+        "401",
+        "403",
+        "unauthorized",
+        "authentication",
+        "auth",
+        "api key",
+        "x-api-key",
+        "invalid key",
+        "quota",
+        "rate limit",
+        "rate_limit",
+        "too many requests",
+        "unable to connect",
+        "connection",
+        "timeout",
+        "timed out",
+        "502",
+        "503",
+        "server-side",
+    )
+    return any(marker in text for marker in provider_markers)
 
 
 def _authoring_parent_model(state: dict[str, Any]) -> str | None:

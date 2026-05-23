@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import json
+import logging
 from pathlib import Path
 from typing import Any
 
 from langgraph.graph import END, StateGraph
+
+logger = logging.getLogger(__name__)
 from langgraph.types import interrupt
 
 from deerflow.runtime.cer_authoring.agents import (
@@ -103,11 +107,14 @@ def _virtual_review_rows(covered_by: str, status: str = "PASS") -> list[dict[str
     return [{"agent": name, "status": status, "covered_by": covered_by, "virtual_dimension": True} for name in VIRTUAL_REVIEW_DIMENSIONS]
 
 
-def _load_review_feedback(artifact_root: str) -> dict[str, Any] | None:
+def _load_review_feedback(artifact_root: str, resolved_ids: list[str] | None = None) -> dict[str, Any] | None:
     """Load advisory feedback from CER Review pipeline if present.
 
     Feedback is read-only and advisory-only. It does NOT trigger automatic
     rework — it is surfaced in human interrupt payloads for decision.
+
+    Resolved findings (previously dismissed or addressed by human) are filtered
+    out to avoid noise accumulation across rework cycles.
     """
     if not artifact_root:
         return None
@@ -121,6 +128,21 @@ def _load_review_feedback(artifact_root: str) -> dict[str, Any] | None:
         if not data.get("advisory_only"):
             logger.warning("Review feedback at %s missing advisory_only flag — rejecting", feedback_path)
             return None
+        # Filter out resolved findings
+        resolved = set(resolved_ids or [])
+        if resolved:
+            original_count = len(data.get("findings", []))
+            data["findings"] = [
+                f for f in data.get("findings", [])
+                if str(f.get("finding_id", "")) not in resolved
+            ]
+            filtered_count = len(data["findings"])
+            if original_count != filtered_count:
+                logger.info(
+                    "Filtered %d resolved findings from review feedback (%d remaining)",
+                    original_count - filtered_count,
+                    filtered_count,
+                )
         return data
     except Exception as exc:
         logger.warning("Failed to load review feedback from %s: %s", feedback_path, exc)
@@ -133,8 +155,11 @@ def _node_initialize(state: SharedAuthoringState) -> dict[str, Any]:
     build_authoring_subagent_configs(_team_mode(clean_state))
     prepared = pipeline.prepare_source_inventory(clean_state)
     preflight = build_provider_preflight(_with_team_mode(clean_state, prepared))
-    # ── Weak-coupling Layer 1: Load Review feedback ──
-    review_feedback = _load_review_feedback(str(clean_state.get("artifact_root") or ""))
+    # ── Weak-coupling Layer 1: Load Review feedback (filter resolved) ──
+    review_feedback = _load_review_feedback(
+        str(clean_state.get("artifact_root") or ""),
+        resolved_ids=clean_state.get("resolved_feedback_ids") or [],
+    )
     # ── BL-19: CER update mode detection ──
     update_mode = str(clean_state.get("update_mode") or "new").lower()
     previous_cer = clean_state.get("previous_cer") or clean_state.get("prior_cer_report") or {}
@@ -250,10 +275,14 @@ def _node_claim_decomposition(state: SharedAuthoringState) -> dict[str, Any]:
     claims = generated.get("claim_ledger") or state.get("claim_ledger") or []
     # ── Weak-coupling Layer 1: Surface Review feedback in interrupt ──
     review_feedback = state.get("review_feedback") or {}
-    relevant_feedback = [
-        f for f in review_feedback.get("findings", [])
-        if f.get("suggested_rework_node") in {None, "claim_decomposition", "device_profile"}
-    ]
+    _SEVERITY_ORDER = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "INFORMATIONAL": 4}
+    relevant_feedback = sorted(
+        [
+            f for f in review_feedback.get("findings", [])
+            if f.get("suggested_rework_node") in {None, "claim_decomposition", "device_profile"}
+        ],
+        key=lambda f: _SEVERITY_ORDER.get(str(f.get("severity", "")).upper(), 99),
+    )
     interrupt_payload: dict[str, Any] = {
         "confirmation_point": "claim_decomposition",
         "step": 4,
@@ -268,8 +297,18 @@ def _node_claim_decomposition(state: SharedAuthoringState) -> dict[str, Any]:
             "finding_count": len(relevant_feedback),
             "findings": relevant_feedback,
             "message": f"CER Review found {len(relevant_feedback)} findings relevant to claims. These are advisory — review and decide.",
+            "feedback_actions_schema": {
+                "description": "For each finding, indicate how it was handled",
+                "actions": ["adopted", "ignored", "partially_addressed"],
+                "example": [
+                    {"finding_id": "F-001", "action": "adopted", "note": "Corrected claim C-003 wording"},
+                    {"finding_id": "F-002", "action": "ignored", "note": "False positive — IFU already covers this"},
+                ],
+            },
         }
     approval = interrupt(interrupt_payload)
+    resolved_ids: list[str] = []
+    resolution_log: list[dict[str, Any]] = []
     if isinstance(approval, dict):
         if approval.get("corrections"):
             generated["claim_ledger"] = approval["corrections"]
@@ -277,7 +316,30 @@ def _node_claim_decomposition(state: SharedAuthoringState) -> dict[str, Any]:
             remaining = [c for c in claims if str(c.get("claim_id")) not in approval["deleted_claim_ids"]]
             generated["claim_ledger"] = remaining
         generated["claim_decomposition_human_confirmed"] = True
-    return {**_stage("claim_decomposition"), **trace, **generated} if generated else _stage("claim_decomposition")
+        # Track resolved feedback: if human explicitly acknowledged feedback, mark as resolved
+        if approval.get("resolved_feedback_ids"):
+            resolved_ids = [str(fid) for fid in approval["resolved_feedback_ids"]]
+        elif approval.get("feedback_action") == "dismiss_all":
+            resolved_ids = [str(f.get("finding_id", "")) for f in relevant_feedback if f.get("finding_id")]
+        # P0-1: Feedback effectiveness — capture detailed resolution actions
+        for action in approval.get("feedback_actions", []):
+            fid = str(action.get("finding_id", ""))
+            if fid:
+                resolved_ids.append(fid)
+                resolution_log.append({
+                    "finding_id": fid,
+                    "action": str(action.get("action", "resolved")),
+                    "note": str(action.get("note", ""))[:500],
+                    "node": "claim_decomposition",
+                    "resolved_at": datetime.now(timezone.utc).isoformat(),
+                })
+    return {
+        **_stage("claim_decomposition"),
+        **trace,
+        **generated,
+        "resolved_feedback_ids": resolved_ids,
+        "feedback_resolution_log": resolution_log,
+    } if generated else _stage("claim_decomposition")
 
 
 def _node_pico_derivation(state: SharedAuthoringState) -> dict[str, Any]:
@@ -747,8 +809,82 @@ def _node_pre_writer_readiness_gate(state: SharedAuthoringState) -> dict[str, An
 
 
 def _route_after_pre_writer_readiness_gate(state: SharedAuthoringState) -> str:
+    # P1-2: Bidirectional quick-scan — if Authoring requests mid-pipeline review
+    if state.get("request_review_quick_scan"):
+        return "review_quick_scan"
     report = state.get("pre_writer_readiness_report") or {}
     return str(report.get("next_node") or "cer_writing")
+
+
+def _node_review_quick_scan(state: SharedAuthoringState) -> dict[str, Any]:
+    """P1-2: Run lightweight Review Quick-Scan via subprocess.
+
+    Serializes current claim/evidence artifacts and invokes the 2-stage
+    Review Assist quick-scan graph. Results are loaded into review_feedback
+    for surfacing at the next interrupt.
+    """
+    import subprocess
+    import sys
+    import tempfile
+
+    artifact_root = Path(str(state.get("artifact_root") or ""))
+    project_id = str(state.get("project_id") or "")
+    quick_scan_feedback: dict[str, Any] | None = None
+    status = "skipped"
+
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            # Write lightweight input package
+            input_package = {
+                "project_id": project_id,
+                "claim_ledger": state.get("claim_ledger") or [],
+                "evidence_registry": state.get("evidence_registry") or [],
+                "device_profile": state.get("device_profile") or {},
+                "source_inventory": state.get("source_inventory") or [],
+            }
+            (tmp_path / "quick_scan_input.json").write_text(
+                json.dumps(input_package, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+
+            script = Path(__file__).resolve().parents[5] / "scripts" / "run_review_quick_scan.py"
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "--input-dir", str(tmp_path),
+                    "--output-dir", str(artifact_root),
+                    "--project-id", project_id,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=300,
+            )
+            if proc.returncode == 0:
+                result = json.loads(proc.stdout)
+                status = result.get("status", "unknown")
+                feedback_path = artifact_root / "review_feedback" / "quick_scan_latest.json"
+                if feedback_path.exists():
+                    quick_scan_feedback = json.loads(feedback_path.read_text(encoding="utf-8"))
+            else:
+                status = f"failed: {proc.stderr[:500]}"
+    except Exception as exc:
+        status = f"failed: {exc}"
+        logger.warning("Review quick-scan failed (non-fatal): %s", exc)
+
+    return {
+        **_stage("review_quick_scan"),
+        "review_quick_scan_status": status,
+        "review_quick_scan_feedback": quick_scan_feedback,
+        "lead_decisions": [
+            {
+                "stage": "review_quick_scan",
+                "decision": "triggered_mid_pipeline_review",
+                "status": status,
+                "findings_count": len(quick_scan_feedback.get("findings", [])) if quick_scan_feedback else 0,
+            }
+        ],
+    }
 
 
 def _route_after_gates(state: SharedAuthoringState) -> str:
@@ -1075,6 +1211,7 @@ def build_cer_authoring_graph(checkpointer=None):
             "controlled_compromise": "controlled_compromise",
         },
     )
+    builder.add_node("review_quick_scan", _node_review_quick_scan)
     builder.add_conditional_edges(
         "pre_writer_readiness_gate",
         _route_after_pre_writer_readiness_gate,
@@ -1087,8 +1224,11 @@ def build_cer_authoring_graph(checkpointer=None):
             "endpoint_extraction": "endpoint_extraction",
             "writer_synthesis": "writer_synthesis",
             "risk_gspr_mapping": "risk_gspr_mapping",
+            "review_quick_scan": "review_quick_scan",
         },
     )
+    # After quick-scan, route back to pre_writer_readiness_gate for re-evaluation
+    builder.add_edge("review_quick_scan", "pre_writer_readiness_gate")
     builder.add_edge("cer_writing", "human_style_review")
     builder.add_edge("human_style_review", "nb_precheck")
     builder.add_edge("nb_precheck", "workbook")

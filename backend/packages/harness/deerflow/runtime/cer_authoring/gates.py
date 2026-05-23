@@ -337,7 +337,12 @@ def evaluate_screening_depth_gate(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def evaluate_fulltext_basis_gate(state: dict[str, Any]) -> dict[str, Any]:
-    """G41: pivotal evidence should have available or partial full-text basis."""
+    """G41: pivotal evidence should have available or partial full-text basis.
+
+    v1.1-enhanced: Also checks evidence_depth classification for pivotal evidence.
+    Pivotal evidence must be PRIMARY_VERBATIM or PRIMARY_DERIVED.
+    SECONDARY_SUMMARY or MISSING_PRIMARY for pivotal evidence triggers REWORK.
+    """
 
     override = _hard_gate_override(state, "G41", "fulltext_basis_gate")
     if override:
@@ -350,19 +355,33 @@ def evaluate_fulltext_basis_gate(state: dict[str, Any]) -> dict[str, Any]:
         if str(row.get("weight") or row.get("contribution") or "").lower() == "pivotal"
     ]
     lacking = []
+    depth_violations = []
     for row in pivotal:
         status = _g42_full_text_status(row, {}, fulltext_by_evidence.get(str(row.get("evidence_id") or ""), {}))
         if status not in {"available", "partial"}:
             lacking.append(str(row.get("evidence_id") or "unknown"))
-    if lacking:
+        # Evidence depth check (weak-coupling layer 0)
+        depth = str(row.get("evidence_depth") or "").upper()
+        if depth and depth not in {"PRIMARY_VERBATIM", "PRIMARY_DERIVED"}:
+            depth_violations.append({
+                "evidence_id": str(row.get("evidence_id") or "unknown"),
+                "evidence_depth": depth,
+                "required": "PRIMARY_VERBATIM or PRIMARY_DERIVED",
+            })
+    if lacking or depth_violations:
+        details: dict[str, Any] = {}
+        if lacking:
+            details["pivotal_without_fulltext"] = ", ".join(lacking)
+        if depth_violations:
+            details["pivotal_evidence_depth_violations"] = depth_violations
         return _hard_gate_signal(
             "G41",
             "REWORK_REQUIRED",
-            "pivotal_full_text_unavailable",
+            "pivotal_full_text_unavailable" if lacking else "pivotal_evidence_depth_insufficient",
             state=state,
-            details={"pivotal_without_fulltext": ", ".join(lacking)},
+            details=details,
         )
-    return _hard_gate_signal("G41", "PASS", state=state, details={"pivotal_count": len(pivotal)})
+    return _hard_gate_signal("G41", "PASS", state=state, details={"pivotal_count": len(pivotal), "depth_check": "all_primary"})
 
 
 def evaluate_claim_evidence_gate(state: dict[str, Any]) -> dict[str, Any]:

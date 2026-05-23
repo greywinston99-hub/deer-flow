@@ -25,7 +25,24 @@ from deerflow.config.token_usage_config import TokenUsageConfig
 from deerflow.config.tool_config import ToolConfig, ToolGroupConfig
 from deerflow.config.tool_search_config import ToolSearchConfig, load_tool_search_config_from_dict
 
-load_dotenv()
+
+def _load_default_dotenv() -> None:
+    """Load DeerFlow dotenv files from deterministic locations.
+
+    `python-dotenv` searches from the current working directory by default. CER
+    authoring is often launched from VS Code, Claude Cowork, LangGraph, or a
+    script wrapper whose cwd may not be the repository root, so the model API
+    keys in the root `.env` can otherwise be missed.
+    """
+
+    backend_dir = Path(__file__).resolve().parents[4]
+    repo_root = backend_dir.parent
+    for path in (Path.cwd() / ".env", backend_dir / ".env", repo_root / ".env"):
+        if path.exists():
+            load_dotenv(path, override=False)
+
+
+_load_default_dotenv()
 
 logger = logging.getLogger(__name__)
 

@@ -2794,6 +2794,54 @@ def _enrich_evidence_with_mdcg(state: dict[str, Any]) -> list[dict[str, Any]]:
     return enriched
 
 
+def _enrich_evidence_with_depth(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Auto-classify evidence_depth for all evidence registry entries.
+
+    Maps appraisal_basis / full_text_status to the unified 4-level taxonomy:
+    PRIMARY_VERBATIM, PRIMARY_DERIVED, SECONDARY_SUMMARY, MISSING_PRIMARY.
+
+    This enables G41 gate to reject pivotal evidence with insufficient depth.
+    """
+    registry = state.get("evidence_registry") or []
+    enriched = []
+    for rec in registry:
+        rec_copy = dict(rec)
+        if rec_copy.get("evidence_depth"):
+            # Already set (e.g., by manual curation) — preserve it
+            enriched.append(rec_copy)
+            continue
+
+        basis = str(rec_copy.get("appraisal_basis") or rec_copy.get("full_text_status") or "").lower()
+        eid = str(rec_copy.get("evidence_id") or "")
+        source_type = str(rec_copy.get("source_type") or "").lower()
+
+        depth = "SECONDARY_SUMMARY"  # default fallback
+
+        if eid.startswith("e-gap-") or eid.startswith("E-GAP-"):
+            depth = "MISSING_PRIMARY"
+        elif basis in ("full_text_available", "full_text_source_document"):
+            depth = "PRIMARY_VERBATIM"
+        elif basis in ("source_full_text_or_extended_record_available",):
+            depth = "PRIMARY_DERIVED"
+        elif basis in ("extended_abstract_or_structured_summary", "abstract_or_bibliographic_only"):
+            depth = "SECONDARY_SUMMARY"
+        elif "full_text" in basis and "available" in basis:
+            depth = "PRIMARY_VERBATIM"
+        elif "source" in basis and "full_text" in basis:
+            depth = "PRIMARY_DERIVED"
+        elif "abstract" in basis:
+            depth = "SECONDARY_SUMMARY"
+
+        # Subject-device source documents are always primary verbatim
+        if "subject_device" in source_type or "manufacturer" in source_type:
+            if basis in ("full_text_available", "full_text_source_document", ""):
+                depth = "PRIMARY_VERBATIM"
+
+        rec_copy["evidence_depth"] = depth
+        enriched.append(rec_copy)
+    return enriched
+
+
 # ── P0-1: PRISMA Flow Diagram Generator ──
 
 def _generate_prisma_flow(state: dict[str, Any]) -> dict[str, Any]:

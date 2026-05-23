@@ -468,6 +468,20 @@ def sync_to_nocodb(project_id: str) -> dict[str, Any]:
     Returns:
         Dict with published_count, binding_status, errors
     """
+    # ── Hard Boundary: no_nocodb_writes ──────────────────────────────────────
+    if os.environ.get("CER_REVIEW_NO_NOCODB_WRITES") == "1":
+        logger.warning(
+            "NocoDB write blocked by hard boundary (CER_REVIEW_NO_NOCODB_WRITES=1). "
+            "Project %s assets will remain in local SQLite only.",
+            project_id,
+        )
+        return {
+            "published_count": 0,
+            "binding_status": "BLOCKED_BY_HARD_BOUNDARY",
+            "fallback": "sqlite",
+            "errors": [],
+        }
+    # ── End hard boundary ────────────────────────────────────────────────────
     status = get_binding_status()
     machine_root = KNOWLEDGE_STORE_ROOT / "machine_assets"
     nocodb_records: list[dict[str, Any]] = []

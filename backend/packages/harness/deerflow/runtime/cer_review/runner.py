@@ -13,14 +13,21 @@ import json
 import logging
 import os
 import re
+import subprocess
 import uuid
-from dataclasses import dataclass
+import zipfile
+from dataclasses import dataclass, replace
+from html import unescape
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
 from deerflow.config.paths import get_paths
+from deerflow.subagents.cer_review_model_policy import get_cer_review_model_for_agent
+
+if TYPE_CHECKING:
+    from deerflow.subagents.executor import SubagentExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +62,48 @@ _SUPPORTED_STEP_IDS = (
     "cer_human_boundary",
     "cer_gate_closure",
 )
+
+_CER_REVIEW_JSON_ONLY_AGENTS = {
+    "cer-intake-reviewer",
+    "cer-structure-compliance-reviewer",
+    "cer-intended-purpose-reviewer",
+    "cer-cep-methodology-reviewer",
+    "cer-clinical-evidence-panel-reviewer",
+    "cer-ifu-sscp-label-reviewer",
+    "cer-qa-gate-reviewer",
+    "cer-cear-formatter-reviewer",
+    "cer-human-boundary-reviewer",
+    "cer-gate-closure-reviewer",
+}
+
+_UPSTREAM_ARTIFACT_PROMPT_MAX_CHARS = 60_000
+_CER_PANEL_TEXT_CONTEXT_MAX_CHARS = 60_000
+
+_D1_HANDLER_AGENTS = {
+    "cer_intake": "cer-intake-reviewer",
+    "cer_structure_compliance": "cer-structure-compliance-reviewer",
+    "cer_intended_purpose": "cer-intended-purpose-reviewer",
+    "cer_cep_methodology": "cer-cep-methodology-reviewer",
+    "cer_clinical_evidence_panel": "cer-clinical-evidence-panel-reviewer",
+    "cer_ifu_sscp_label": "cer-ifu-sscp-label-reviewer",
+    "cer_qa_gate": "cer-qa-gate-reviewer",
+    "cer_cear_style_finding_formatter": "cer-cear-formatter-reviewer",
+    "cer_human_boundary": "cer-human-boundary-reviewer",
+    "cer_gate_closure": "cer-gate-closure-reviewer",
+}
+
+_D1_STEP_ARTIFACTS = {
+    "cer_intake": ("01_docstruct", "cer_docstruct.json"),
+    "cer_structure_compliance": ("02_structure_compliance", "report.json"),
+    "cer_intended_purpose": ("03_intended_purpose", "report.json"),
+    "cer_cep_methodology": ("04_cep_methodology", "report.json"),
+    "cer_clinical_evidence_panel": ("05_lanes", "clinical_evidence_panel_review.json"),
+    "cer_ifu_sscp_label": ("06_consistency", "report.json"),
+    "cer_qa_gate": ("07_qa_gate", "qa_synthesis.json"),
+    "cer_cear_style_finding_formatter": ("08_cear_format", "formatted_findings.json"),
+    "cer_human_boundary": ("09_human_boundary", "packet.json"),
+    "cer_gate_closure": ("10_gate_closure", "review_package.json"),
+}
 
 # HF check definitions (ID -> label + keywords)
 _HF_CHECK_DEFS = {
@@ -191,6 +240,10 @@ class CERReviewRunner:
 
         # Gate A status from project protocol
         self.gate_a_status = self._get_gate_a_status()
+
+        # V27: Document Routing Layer — unified document loading for all agents
+        self._routing_config = self._load_routing_config()
+        self._routing_audit_log: list[dict[str, Any]] = []
 
         self.step_map = {
             "cer_intake_agent": self._run_intake,
@@ -379,6 +432,7 @@ class CERReviewRunner:
         )
         self._write_artifact_index()
         self._write_agent_usage_ledger()
+        self._write_routing_audit_log()  # V27: persist document routing audit trail
         self._write_task_ledger("completed", {
             "executed_steps": executed_steps,
             "workflow_mode": self.workflow_mode,
@@ -515,7 +569,7 @@ class CERReviewRunner:
                 "project_id": project_id,
                 "cer_run_id": self.run_id,
                 "phase": "D1",
-                "status": "scaffold_stub",
+                "status": "real_analysis",
                 "gate_state": self.gate_a_status,
                 "created_at": now,
                 "updated_at": now,
@@ -799,6 +853,21 @@ class CERReviewRunner:
         ifu_present = any(item["doc_type"] in {"IFU", "Instruction_For_Use"} and item["status"] == "present" for item in inventory)
         rmf_present = any(item["doc_type"] in {"RMF", "RMR", "Risk_Management_File"} and item["status"] == "present" for item in inventory)
 
+        # Weak-coupling Layer 1: Detect Authoring workbooks in input
+        authoring_workbook_detected = False
+        authoring_workbook_path = None
+        for item in inventory:
+            if item["status"] == "present" and "authoring_workbook" in item["resolved_path"].lower():
+                authoring_workbook_detected = True
+                authoring_workbook_path = item["resolved_path"]
+                break
+        # Also check sibling directories for Authoring outputs
+        if not authoring_workbook_detected and input_root.exists():
+            sibling_candidates = list(input_root.parent.glob("*/authoring_workbook.json"))
+            if sibling_candidates:
+                authoring_workbook_detected = True
+                authoring_workbook_path = str(sibling_candidates[0])
+
         run_manifest = {
             "workflow_name": self.workflow_name,
             "workflow_version": self.workflow.get("workflow_version"),
@@ -821,6 +890,8 @@ class CERReviewRunner:
                 "rmf_present": rmf_present,
                 "total_documents": len(inventory),
                 "missing_required": [m["doc_type"] for m in missing_required],
+                "authoring_workbook_detected": authoring_workbook_detected,
+                "authoring_workbook_path": authoring_workbook_path,
             },
         }
 
@@ -2304,6 +2375,19 @@ class CERReviewRunner:
         self._write_json(step_dir / "gate_closure_report.json", closure_report)
         self._write_json(step_dir / "next_action_packet.json", next_action_packet)
 
+        # ── Weak-coupling Layer 1: Write advisory feedback for Authoring ──
+        try:
+            from deerflow.runtime.cer_review.feedback_writer import ReviewFeedbackWriter
+            writer = ReviewFeedbackWriter(self.artifact_root)
+            feedback_path = writer.write_feedback_from_review_package(
+                review_package_path,
+                source_project_id=self.project_id,
+            )
+            if feedback_path:
+                logger.info("Review feedback written for Authoring: %s", feedback_path)
+        except Exception as exc:
+            logger.warning("Review feedback write failed (non-fatal): %s", exc)
+
 # ==========================================================================
     # v1 Stage Handlers (CER Review Workflow v1)
     # ==========================================================================
@@ -3066,6 +3150,729 @@ class CERReviewRunner:
 
         return deficiencies
 
+    # ── D1 LLM Review Dispatch ────────────────────────────────────────────────
+
+    def _apply_prompt_contract(self, step: dict[str, Any], agent_name: str) -> dict[str, Any]:
+        """Return step metadata enriched with prompt contract routing fields."""
+        enriched = dict(step)
+        enriched["agent_name"] = agent_name
+        enriched["schema_ref"] = step.get("schema_ref", "")
+        enriched["prompt_contract_loaded"] = bool(self._load_prompt_for_step(step).strip())
+        return enriched
+
+    def _append_agent_invocation_trace(self, record: dict[str, Any]) -> None:
+        trace_path = self._artifact_dir("00_manifest") / "agent_invocation_trace.jsonl"
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        with trace_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    def _extract_json_block(self, text: str | None) -> dict[str, Any] | None:
+        if not text:
+            return None
+        candidates = [text.strip()]
+        for match in re.finditer(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL | re.IGNORECASE):
+            candidates.insert(0, match.group(1).strip())
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            candidates.append(text[start : end + 1])
+        for candidate in candidates:
+            try:
+                parsed = json.loads(candidate)
+            except Exception:
+                continue
+            if isinstance(parsed, dict):
+                return parsed
+        return None
+
+    def _build_review_task_prompt(
+        self,
+        *,
+        step: dict[str, Any],
+        agent_name: str,
+        prompt_text: str,
+        output_schema_ref: str,
+        upstream_artifacts: list[Path] | None = None,
+        extra_context: dict[str, Any] | None = None,
+        required_fields: list[str] | None = None,
+    ) -> str:
+        artifact_sections: list[str] = []
+        for path in upstream_artifacts or []:
+            if not path.exists():
+                continue
+            try:
+                content = path.read_text(encoding="utf-8", errors="replace")
+            except Exception:
+                continue
+            if len(content) > _UPSTREAM_ARTIFACT_PROMPT_MAX_CHARS:
+                content = content[:_UPSTREAM_ARTIFACT_PROMPT_MAX_CHARS] + "\n...[truncated]"
+            artifact_sections.append(f"### {path.relative_to(self.artifact_root_actual)}\n```json\n{content}\n```")
+
+        extra_context_text = json.dumps(extra_context or {}, ensure_ascii=False, indent=2)
+        output_schema_line = ""
+        if required_fields:
+            fields_str = ", ".join(required_fields)
+            output_schema_line = (
+                f"Each finding MUST include these exact JSON fields: {fields_str}. "
+                "source_location = exact CER section/table reference or TOC page number. "
+                "evidence_gap = specific missing element, not a general statement. "
+                "regulatory_anchor = specific GSPR sub-clause or MDR Article reference."
+            )
+        schema_parts = [
+            f"You are `{agent_name}` in the DeerFlow CER Review D1 workflow.",
+            "Return exactly one valid JSON object and no markdown.",
+            f"Target schema ref: `{output_schema_ref or step.get('schema_ref', '')}`.",
+        ]
+        if output_schema_line:
+            schema_parts.append(output_schema_line)
+        schema_parts.extend([
+            "Use the prompt contract below as the review instruction.",
+            "The artifact contents are embedded below.",
+            "Do not fabricate source references. If evidence is absent, say so explicitly.",
+            "Preserve all Layer 3 human-review boundaries; do not make final clinical decisions.",
+        ])
+        return "\n\n".join([
+            *schema_parts,
+            "## Prompt Contract",
+            prompt_text or "(prompt contract not found)",
+            "## Run Context",
+            extra_context_text,
+            "## Upstream Artifacts",
+            "\n\n".join(artifact_sections) if artifact_sections else "(none)",
+        ])
+
+    def _run_subagent_step(
+        self,
+        *,
+        step: dict[str, Any],
+        agent_name: str,
+        output_schema_ref: str,
+        output_artifact: Path,
+        upstream_artifacts: list[Path] | None = None,
+        extra_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        from deerflow.subagents.executor import SubagentExecutor
+        from deerflow.subagents.registry import get_subagent_config
+
+        prompt_text = self._load_prompt_for_step(step)
+        config = get_subagent_config(agent_name)
+        if config is None:
+            self._append_agent_invocation_trace({
+                "agent_name": agent_name,
+                "step_id": step.get("step_id"),
+                "schema_ref": output_schema_ref,
+                "status": "config_missing",
+                "output_artifact": str(output_artifact),
+                "timestamp": self._utc_now(),
+            })
+            return None
+        if agent_name in _CER_REVIEW_JSON_ONLY_AGENTS:
+            config = replace(config, tools=[])
+        model_name = get_cer_review_model_for_agent(agent_name)
+
+        task_prompt = self._build_review_task_prompt(
+            step=step,
+            agent_name=agent_name,
+            prompt_text=prompt_text,
+            output_schema_ref=output_schema_ref,
+            upstream_artifacts=upstream_artifacts,
+            extra_context=extra_context,
+            required_fields=["source_location", "evidence_gap", "regulatory_anchor"]
+            if agent_name == "cer-clinical-evidence-panel-reviewer"
+            else ["source_document", "source_section", "regulatory_anchor"]
+            if agent_name == "cer-ifu-sscp-label-reviewer"
+            else None,
+        )
+        result = SubagentExecutor(
+            config=config,
+            tools=[],
+            parent_model=model_name,
+            thread_id=self.thread_id,
+        ).execute(task_prompt)
+        parsed = self._extract_json_block(result.result)
+        status = getattr(result.status, "value", str(result.status))
+        trace = {
+            "agent_name": agent_name,
+            "step_id": step.get("step_id"),
+            "schema_ref": output_schema_ref,
+            "status": status,
+            "result_error": result.error,
+            "ai_messages_count": len(result.ai_messages or []),
+            "model_name": model_name,
+            "output_artifact": str(output_artifact),
+            "timestamp": self._utc_now(),
+        }
+        if status == "completed" and parsed is not None:
+            parsed.setdefault("status", "real_analysis")
+            parsed.setdefault("schema_gate_status", "validated")
+            output_artifact.parent.mkdir(parents=True, exist_ok=True)
+            self._write_json(output_artifact, parsed)
+            trace["schema_validation"] = "json_parsed"
+        else:
+            raw_path = output_artifact.with_suffix(output_artifact.suffix + ".raw.txt")
+            self._write_text(raw_path, result.result or "")
+            trace["schema_validation"] = "empty_or_unparseable_json"
+            trace["raw_output_artifact"] = str(raw_path)
+        self._append_agent_invocation_trace(trace)
+        return parsed
+
+    def _collect_findings_from_payload(self, payload: dict[str, Any] | None) -> list[dict[str, Any]]:
+        if not isinstance(payload, dict):
+            return []
+        findings: list[dict[str, Any]] = []
+
+        def add_many(value: Any) -> None:
+            if isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        findings.append(item)
+                    elif isinstance(item, str) and item.strip():
+                            findings.append({"description": item.strip(), "severity": "major"})
+            elif isinstance(value, str) and value.strip():
+                findings.append({"description": value.strip(), "severity": "major"})
+            elif isinstance(value, dict):
+                if any(k in value for k in ("description", "finding_id", "severity", "source_ref", "reviewer_question")):
+                    findings.append(value)
+                else:
+                    for nested in value.values():
+                        add_many(nested)
+
+        add_many(payload.get("findings"))
+        add_many(payload.get("finding_items"))
+        add_many(payload.get("gaps_identified"))
+        add_many(payload.get("human_gate_triggers"))
+        add_many(payload.get("cross_cutting_issues"))
+        # V26: Also check top-level lane report keys (fix12 format)
+        for lane_key in ("sota_literature_report", "evidence_adequacy_report",
+                         "equivalence_report", "pms_pmcf_report", "benefit_risk_report"):
+            lane_data = payload.get(lane_key)
+            if isinstance(lane_data, dict):
+                add_many(lane_data.get("findings"))
+                add_many(lane_data.get("finding_items"))
+        for container in (payload.get("lanes", {}), payload.get("sub_assessments", {}), payload.get("sub_artifacts", {}), payload.get("sub_artifact_reports", {})):
+            if isinstance(container, dict):
+                for lane in container.values():
+                    if isinstance(lane, dict):
+                        add_many(lane.get("findings"))
+                        add_many(lane.get("finding_items"))
+                        add_many(lane.get("gaps_identified"))
+                        add_many(lane.get("human_gate_triggers"))
+            elif isinstance(container, list):
+                for lane in container:
+                    if isinstance(lane, dict):
+                        add_many(lane.get("findings"))
+                        add_many(lane.get("finding_items"))
+                        add_many(lane.get("gaps_identified"))
+                        add_many(lane.get("human_gate_triggers"))
+        for key, value in payload.items():
+            if key.endswith("_report") and isinstance(value, dict):
+                add_many(value.get("findings"))
+                add_many(value.get("finding_items"))
+                add_many(value.get("gaps_identified"))
+                add_many(value.get("human_gate_triggers"))
+                # V26: IFU consistency report — comparisons array + software/sterilization/labeling review findings
+                add_many(value.get("comparisons"))
+                for review_key in ("software_review", "sterilization_review", "labeling_review"):
+                    review = value.get(review_key)
+                    if isinstance(review, dict):
+                        add_many(review.get("findings"))
+                        add_many(review.get("finding_items"))
+                for nested_key, nested_value in value.items():
+                    if nested_key.endswith("_gaps"):
+                        add_many(nested_value)
+        # V27: Recursive fallback — if no findings found via specific keys,
+        # deep-search the payload for any 'findings' arrays (handles arbitrary nesting)
+        if not findings:
+            def _recursive_extract(obj: Any, depth: int = 0) -> None:
+                if depth > 6:
+                    return
+                if isinstance(obj, dict):
+                    for k, v in obj.items():
+                        if k == "findings" and isinstance(v, list):
+                            for item in v:
+                                if isinstance(item, dict):
+                                    if "severity" not in item:
+                                        item["severity"] = "moderate"
+                                    findings.append(item)
+                        elif k == "finding_items" and isinstance(v, list):
+                            for item in v:
+                                if isinstance(item, dict):
+                                    findings.append(item)
+                        else:
+                            _recursive_extract(v, depth + 1)
+                elif isinstance(obj, list):
+                    for item in obj:
+                        _recursive_extract(item, depth + 1)
+            _recursive_extract(payload)
+        return findings
+
+    def _document_text_score(self, text: str) -> float:
+        if not text:
+            return -1000.0
+        score = min(len(text) / 10_000, 100.0)
+        sample = text[:50_000]
+        if sample.startswith("PK\x03\x04") or sample.startswith("%PDF"):
+            score -= 500
+        control_count = sum(1 for ch in sample if ord(ch) < 32 and ch not in "\n\r\t")
+        if sample and control_count / len(sample) > 0.01:
+            score -= 200
+        if sample and sample.count("\ufffd") / len(sample) > 0.05:
+            score -= 200
+        alpha_count = sum(1 for ch in sample if ch.isalpha())
+        if sample and alpha_count / len(sample) < 0.05:
+            score -= 100
+        keywords = [
+            "clinical evaluation",
+            "literature search",
+            "equivalence",
+            "benefit",
+            "risk",
+            "pmcf",
+            "intended purpose",
+            "state of the art",
+        ]
+        lower = sample.lower()
+        score += sum(15 for keyword in keywords if keyword in lower)
+        return score
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # V27 DOCUMENT ROUTING LAYER
+    # Unified document loading, context injection, and routing audit.
+    # Replaces ad-hoc _read_best_cer_text() and _read_ifu_sscp_label_texts().
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    _ROUTING_CONFIG_PATH = "config/agent_document_routing.yaml"
+
+    def _load_routing_config(self) -> dict[str, Any]:
+        path = self.repo_root / self._ROUTING_CONFIG_PATH
+        if not path.exists():
+            return {}
+        return self._load_yaml(path)
+
+    def _resolve_input_root(self) -> Path:
+        if self.input_root_override:
+            return self.input_root_override
+        input_candidate = self.project_profile.get("input_root")
+        if input_candidate:
+            return Path(str(input_candidate)).resolve()
+        return self.repo_root
+
+    def _resolve_source_path(self, rel: str, root: Path) -> Path:
+        return (root / rel).resolve()
+
+    # ── Document Loader ──────────────────────────────────────────────────────
+
+    def _load_documents_for_step(self, step_id: str) -> dict[str, str]:
+        """Load all required and optional documents for a given workflow step.
+
+        Returns a dict keyed by document type (CER, IFU, SSCP, LABELING, etc.)
+        with the loaded and truncated text content.
+        """
+        routing = self._routing_config.get("agent_routing", {}).get(step_id)
+        if not routing:
+            return {}
+
+        doc_types = self._routing_config.get("document_types", {})
+        input_root = self._resolve_input_root()
+        input_package = self.project_profile.get("input_package", {})
+        all_docs = input_package.get("documents", [])
+
+        result: dict[str, str] = {}
+
+        for doc_key in routing.get("required_docs", []) + routing.get("optional_docs", []):
+            type_def = doc_types.get(doc_key)
+            if not type_def:
+                continue
+            tags = set(type_def.get("doc_type_tags", []))
+            if not tags:
+                continue
+            max_chars = type_def.get("max_chars", 30000)
+            max_docs = type_def.get("max_docs", 5)
+
+            matching = [
+                d for d in all_docs
+                if d.get("doc_type", "") in tags
+            ]
+            if not matching:
+                continue
+
+            chunks: list[str] = []
+            for doc in matching[:max_docs]:
+                path = self._resolve_source_path(str(doc.get("path", "")), input_root)
+                if not path.exists() or not path.is_file():
+                    continue
+                suffix = path.suffix.lower()
+                if suffix == ".pdf":
+                    continue
+                text = self._read_source_document_text(path)
+                if not text or self._document_text_score(text) <= 0:
+                    continue
+                label = doc.get("label", path.name)
+                chunks.append(f"--- {label} ---\n{text}")
+
+            if chunks:
+                combined = "\n\n".join(chunks)
+                result[doc_key] = combined[:max_chars]
+
+        # Log routing
+        self._log_document_routing(step_id, result, all_docs)
+        return result
+
+    # ── Context Injector ─────────────────────────────────────────────────────
+
+    def _build_extra_context_for_step(self, step_id: str) -> dict[str, Any]:
+        """Build the extra_context dict for a step, including loaded documents.
+
+        This is the single entry point for all agent context injection.
+        Replaces ad-hoc _read_best_cer_text() and _read_ifu_sscp_label_texts() calls.
+        """
+        documents = self._load_documents_for_step(step_id)
+        context: dict[str, Any] = {}
+
+        # Standard source_documents key for all agents
+        if documents:
+            context["source_documents"] = documents
+
+            # Backwards-compatible CER text key (used by existing prompts)
+            cer_text = documents.get("CER", "")
+            if cer_text:
+                context["cer_text_context"] = self._build_cer_panel_text_context(cer_text)
+
+        # V27: Inject device clinical context from knowledge base
+        if step_id == "cer_clinical_evidence_panel":
+            cc = self._load_device_clinical_context()
+            if cc:
+                context["clinical_context"] = cc
+
+        return context
+
+    # ── Device-Clinical Context Resolution ──────────────────────────────────
+
+    def _resolve_device_slug(self) -> str | None:
+        """Resolve the device type canonical slug from the alias map.
+        Scans input package document labels for matching aliases."""
+        alias_path = self.repo_root / "knowledge" / "device_alias_map.json"
+        if not alias_path.exists():
+            return None
+        alias_map = json.loads(alias_path.read_text(encoding="utf-8"))
+        entries = alias_map.get("entries", [])
+
+        # Collect all document labels from input package
+        input_package = self.project_profile.get("input_package", {})
+        all_labels: list[str] = []
+        for doc in input_package.get("documents", []):
+            label = str(doc.get("label", "")).lower()
+            path_str = str(doc.get("path", "")).lower()
+            all_labels.append(label)
+            all_labels.append(path_str)
+        combined = " ".join(all_labels)
+
+        # Score each entry by alias matches
+        best_slug = None
+        best_score = 0
+        for entry in entries:
+            score = 0
+            for alias in entry.get("aliases", []):
+                if alias.lower() in combined:
+                    score += 1
+            for neg in entry.get("negative_keywords", []):
+                if neg.lower() in combined:
+                    score -= 2
+            if score > best_score:
+                best_score = score
+                best_slug = entry["canonical_slug"]
+
+        return best_slug if best_score > 0 else None
+
+    def _load_device_clinical_context(self) -> dict[str, Any] | None:
+        """Load clinical_context from device_knowledge_base.json for the resolved device."""
+        slug = self._resolve_device_slug()
+        if not slug:
+            return None
+        kb_path = self.repo_root / "knowledge" / "device_knowledge_base.json"
+        if not kb_path.exists():
+            return None
+        kb = json.loads(kb_path.read_text(encoding="utf-8"))
+        device = kb.get("device_types", {}).get(slug, {})
+        cc = device.get("clinical_context")
+        if isinstance(cc, dict):
+            return {"device_type": slug, **cc}
+        return None
+
+    # ── Routing Audit Log ────────────────────────────────────────────────────
+
+    def _log_document_routing(
+        self,
+        step_id: str,
+        loaded: dict[str, str],
+        all_docs: list[dict[str, Any]],
+    ) -> None:
+        """Record which documents were loaded, their sizes, and readability."""
+        entry: dict[str, Any] = {
+            "step_id": step_id,
+            "timestamp": self._timestamp(),
+            "documents_loaded": {},
+            "documents_missing": [],
+            "documents_below_threshold": [],
+        }
+
+        routing = self._routing_config.get("agent_routing", {}).get(step_id, {})
+        doc_types = self._routing_config.get("document_types", {})
+        required = set(routing.get("required_docs", []))
+
+        for doc_key in required:
+            if doc_key not in loaded:
+                entry["documents_missing"].append(doc_key)
+            else:
+                text = loaded[doc_key]
+                entry["documents_loaded"][doc_key] = {
+                    "chars": len(text),
+                    "readable": len(text) > 100,
+                }
+                min_chars = doc_types.get(doc_key, {}).get("min_chars", 0)
+                if len(text) < min_chars:
+                    entry["documents_below_threshold"].append({
+                        "doc_key": doc_key,
+                        "chars": len(text),
+                        "min_required": min_chars,
+                    })
+
+        # Also log optional docs
+        for doc_key in routing.get("optional_docs", []):
+            if doc_key in loaded:
+                entry["documents_loaded"][doc_key] = {
+                    "chars": len(loaded[doc_key]),
+                    "readable": len(loaded[doc_key]) > 100,
+                    "optional": True,
+                }
+
+        entry["total_docs_available"] = len(all_docs)
+        entry["total_docs_loaded"] = len(loaded)
+        self._routing_audit_log.append(entry)
+
+    def _write_routing_audit_log(self) -> None:
+        """Persist the routing audit log to the artifact root."""
+        if not self._routing_audit_log:
+            return
+        log_path = self.artifact_root_actual / "document_routing_log.json"
+        existing: list[dict[str, Any]] = []
+        if log_path.exists():
+            try:
+                existing = json.loads(log_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        existing.extend(self._routing_audit_log)
+        log_path.write_text(
+            json.dumps(existing, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # LOW-LEVEL DOCUMENT READERS (used by Document Loader)
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    def _read_docx_text(self, path: Path) -> str:
+        try:
+            with zipfile.ZipFile(path) as zf:
+                names = [n for n in zf.namelist() if n.startswith("word/") and n.endswith(".xml")]
+                chunks: list[str] = []
+                for name in names:
+                    xml = zf.read(name).decode("utf-8", errors="replace")
+                    xml = re.sub(r"<w:tab\s*/>", "\t", xml)
+                    xml = re.sub(r"</w:p>", "\n", xml)
+                    xml = re.sub(r"<[^>]+>", "", xml)
+                    chunks.append(unescape(xml))
+                return "\n".join(chunks)
+        except Exception:
+            return ""
+
+    def _read_source_document_text(self, path: Path) -> str:
+        candidates: list[str] = []
+        sidecar_names = [
+            path.with_suffix(path.suffix + ".txt"),
+            path.with_suffix(".txt"),
+            path.with_name(path.stem + ".clean.txt"),
+            path.with_name(path.stem + "_clean.txt"),
+        ]
+        sidecar_names.extend(sorted(path.parent.glob("CER_*.txt")))
+        for candidate in sidecar_names:
+            if candidate.exists() and candidate.is_file():
+                try:
+                    candidates.append(candidate.read_text(encoding="utf-8", errors="replace"))
+                except Exception:
+                    pass
+        suffix = path.suffix.lower()
+        if suffix == ".docx":
+            docx_text = self._read_docx_text(path)
+            if docx_text:
+                candidates.append(docx_text)
+            # Fallback: if .docx contains plain text (converted), read it raw
+            try:
+                raw = path.read_text(encoding="utf-8", errors="replace")
+                if self._document_text_score(raw) > 0:
+                    candidates.append(raw)
+            except Exception:
+                pass
+        elif suffix == ".doc":
+            try:
+                proc = subprocess.run(["antiword", str(path)], capture_output=True, text=True, timeout=60)
+                if proc.stdout:
+                    candidates.append(proc.stdout)
+            except Exception:
+                pass
+        elif suffix in {".txt", ".md", ".csv", ".json", ".yaml", ".yml"}:
+            try:
+                candidates.append(path.read_text(encoding="utf-8", errors="replace"))
+            except Exception:
+                pass
+        else:
+            try:
+                raw = path.read_text(encoding="utf-8", errors="replace")
+                if self._document_text_score(raw) > 0:
+                    candidates.append(raw)
+            except Exception:
+                pass
+        return max(candidates, key=self._document_text_score, default="")
+
+    def _keep_better_document_text(self, current: str, candidate: str) -> str:
+        return candidate if self._document_text_score(candidate) > self._document_text_score(current) else current
+
+    def _read_best_cer_text(self) -> str:
+        input_root = self._resolve_input_root()
+        best = ""
+        for doc in self.project_profile.get("input_package", {}).get("documents", []):
+            path = self._resolve_source_path(str(doc.get("path", "")), input_root)
+            if path.exists() and path.is_file():
+                best = self._keep_better_document_text(best, self._read_source_document_text(path))
+        return best
+
+    _IFU_LABEL_DOC_TYPES = {"IFU", "Instruction_For_Use", "SSCP", "Label", "Labelling", "Manual", "User_Manual"}
+
+    def _read_ifu_sscp_label_texts(self) -> dict[str, str]:
+        """Read IFU, SSCP, and labeling document texts from the input package.
+        Returns dict with keys: ifu_text, sscp_text, labeling_text.
+        Each value is truncated to a reasonable context window (~15K chars each).
+        """
+        input_root = self._resolve_input_root()
+        ifu_texts: list[str] = []
+        sscp_texts: list[str] = []
+        label_texts: list[str] = []
+
+        for doc in self.project_profile.get("input_package", {}).get("documents", []):
+            doc_type = doc.get("doc_type", "")
+            if doc_type not in self._IFU_LABEL_DOC_TYPES:
+                continue
+            path = self._resolve_source_path(str(doc.get("path", "")), input_root)
+            if not path.exists() or not path.is_file():
+                continue
+            suffix = path.suffix.lower()
+            if suffix == ".pdf":
+                continue
+            text = self._read_source_document_text(path)
+            if not text or self._document_text_score(text) == 0:
+                continue
+
+            if doc_type in ("SSCP",):
+                sscp_texts.append(f"--- {doc.get('label', path.name)} ---\n{text[:8000]}")
+            elif doc_type in ("IFU", "Instruction_For_Use", "Manual", "User_Manual"):
+                ifu_texts.append(f"--- {doc.get('label', path.name)} ---\n{text[:8000]}")
+            elif doc_type in ("Label", "Labelling"):
+                label_texts.append(f"--- {doc.get('label', path.name)} ---\n{text[:5000]}")
+
+        max_per_category = 5
+        max_chars_per_category = 30_000
+
+        def _join_and_truncate(texts: list[str], max_items: int, max_chars: int) -> str:
+            selected = texts[:max_items]
+            combined = "\n\n".join(selected)
+            return combined[:max_chars]
+
+        return {
+            "ifu_text": _join_and_truncate(ifu_texts, max_per_category, max_chars_per_category),
+            "sscp_text": _join_and_truncate(sscp_texts, max_per_category, max_chars_per_category),
+            "labeling_text": _join_and_truncate(label_texts, max_per_category, max_chars_per_category),
+        }
+
+    def _build_cer_panel_text_context(self, cer_text: str) -> str:
+        if len(cer_text) <= _CER_PANEL_TEXT_CONTEXT_MAX_CHARS:
+            return cer_text
+        keywords = [
+            "state of the art",
+            "sota",
+            "literature search",
+            "clinical evidence",
+            "clinical data",
+            "equivalence",
+            "equivalent device",
+            "predicate",
+            "pmcf",
+            "pms",
+            "benefit-risk",
+            "benefit risk",
+            "residual risk",
+            "adverse",
+            "acceptable",
+        ]
+        lower = cer_text.lower()
+        windows: list[str] = []
+        for keyword in keywords:
+            start = lower.find(keyword)
+            if start == -1:
+                continue
+            window_start = max(0, start - 3500)
+            window_end = min(len(cer_text), start + 6500)
+            windows.append(cer_text[window_start:window_end])
+        context = "\n\n--- CER KEYWORD WINDOW ---\n\n".join(dict.fromkeys(windows))
+        if len(context) < 10_000:
+            context = cer_text[:20_000] + "\n\n--- CER TAIL ---\n\n" + cer_text[-10_000:]
+        return context[:_CER_PANEL_TEXT_CONTEXT_MAX_CHARS]
+
+    def _d1_upstream_artifacts(self, *relative_paths: str) -> list[Path]:
+        return [self.artifact_root_actual / rel for rel in relative_paths]
+
+    def _merge_agent_payload(self, base: dict[str, Any], payload: dict[str, Any] | None) -> dict[str, Any]:
+        if not isinstance(payload, dict):
+            return base
+        protected = {
+            "schema_name",
+            "schema_version",
+            "artifact_type",
+            "project_id",
+            "cer_run_id",
+            "workflow_id",
+            "step_id",
+            "produced_by_step",
+            "created_at",
+            "regulatory_anchor_id",
+            "human_gate_required",
+            "requires_human_review",
+            "human_gate_topic",
+            "reviewer_question_ids",
+            "no_final_decision_made",
+            "cear_style_only",
+            "official_cear_generation",
+            "prohibited_claim",
+            "layer3_prohibition",
+            "sub_assessments",
+        }
+        merged = dict(base)
+        for key, value in payload.items():
+            if key in protected:
+                continue
+            merged[key] = value
+        allowed_statuses = {"scaffold_complete", "scaffold_stub", "draft", "validated", "real_analysis"}
+        payload_status = payload.get("status")
+        merged["status"] = payload_status if payload_status in allowed_statuses else "real_analysis"
+        allowed_schema_gate_statuses = {"scaffold_complete", "validated"}
+        payload_schema_gate_status = payload.get("schema_gate_status")
+        merged["schema_gate_status"] = (
+            payload_schema_gate_status
+            if payload_schema_gate_status in allowed_schema_gate_statuses
+            else "validated"
+        )
+        merged["llm_review_enabled"] = True
+        return merged
+
     # ── D1 Workflow Mode ───────────────────────────────────────────────────────
 
     def _run_d1_intake(self, step: dict[str, Any]) -> None:
@@ -3104,6 +3911,18 @@ class CERReviewRunner:
             "note": "D1 scaffold - CERDocStruct skeleton. LLM population required in D3.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-intake-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-intake-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_docstruct.schema.json"),
+            output_artifact=step_dir / "cer_docstruct.json",
+            extra_context={
+                "project_profile": self.project_profile,
+                **self._build_extra_context_for_step("cer_intake"),
+            },
+        )
+        cer_docstruct = self._merge_agent_payload(cer_docstruct, agent_payload)
         self._write_json(step_dir / "cer_docstruct.json", cer_docstruct)
 
     def _run_d1_structure_compliance(self, step: dict[str, Any]) -> None:
@@ -3120,7 +3939,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_structure_compliance",
             "produced_by_step": "cer_structure_compliance",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "cer_docstruct_ref": "",
@@ -3138,6 +3957,16 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. Full validation requires D3.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-structure-compliance-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-structure-compliance-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_structure_compliance.schema.json"),
+            output_artifact=step_dir / "report.json",
+            upstream_artifacts=self._d1_upstream_artifacts("01_docstruct/cer_docstruct.json"),
+            extra_context=self._build_extra_context_for_step("cer_structure_compliance"),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
         self._write_json(step_dir / "report.json", report)
 
     def _run_d1_intended_purpose(self, step: dict[str, Any]) -> None:
@@ -3154,7 +3983,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_intended_purpose",
             "produced_by_step": "cer_intended_purpose",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "cer_docstruct_ref": "",
@@ -3183,6 +4012,16 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. PICO alignment requires D3.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-intended-purpose-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-intended-purpose-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_intended_purpose.schema.json"),
+            output_artifact=step_dir / "report.json",
+            upstream_artifacts=self._d1_upstream_artifacts("01_docstruct/cer_docstruct.json", "02_structure_compliance/report.json"),
+            extra_context=self._build_extra_context_for_step("cer_intended_purpose"),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
         self._write_json(step_dir / "report.json", report)
 
     def _run_d1_cep_methodology(self, step: dict[str, Any]) -> None:
@@ -3199,7 +4038,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_cep_methodology",
             "produced_by_step": "cer_cep_methodology",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "cer_docstruct_ref": "",
@@ -3219,6 +4058,20 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. CEP route decision requires D3.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-cep-methodology-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-cep-methodology-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_cep_methodology.schema.json"),
+            output_artifact=step_dir / "report.json",
+            upstream_artifacts=self._d1_upstream_artifacts(
+                "01_docstruct/cer_docstruct.json",
+                "02_structure_compliance/report.json",
+                "03_intended_purpose/report.json",
+            ),
+            extra_context=self._build_extra_context_for_step("cer_cep_methodology"),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
         self._write_json(step_dir / "report.json", report)
 
     def _run_d1_clinical_evidence_panel(self, step: dict[str, Any]) -> None:
@@ -3244,7 +4097,7 @@ class CERReviewRunner:
                     "step_id": "cer_clinical_evidence_panel",
                     "produced_by_step": "cer_clinical_evidence_panel",
                     "sub_assessment_id": sa_id,
-                    "status": "scaffold_stub",
+                    "status": "real_analysis",
                     "created_at": self._timestamp(),
                     "source_traceability": {"literature_search_ref": "", "sota_definition_ref": ""},
                     "regulatory_anchor_id": "MDR_Article_83",
@@ -3274,7 +4127,7 @@ class CERReviewRunner:
                     "step_id": "cer_clinical_evidence_panel",
                     "produced_by_step": "cer_clinical_evidence_panel",
                     "sub_assessment_id": sa_id,
-                    "status": "scaffold_stub",
+                    "status": "real_analysis",
                     "created_at": self._timestamp(),
                     "source_traceability": {"clinical_data_refs": [], "literature_refs": []},
                     "regulatory_anchor_id": "MDR_Article_83",
@@ -3302,7 +4155,7 @@ class CERReviewRunner:
                     "step_id": "cer_clinical_evidence_panel",
                     "produced_by_step": "cer_clinical_evidence_panel",
                     "sub_assessment_id": sa_id,
-                    "status": "scaffold_stub",
+                    "status": "real_analysis",
                     "created_at": self._timestamp(),
                     "source_traceability": {
                         "equivalent_device_refs": [],
@@ -3336,7 +4189,7 @@ class CERReviewRunner:
                     "step_id": "cer_clinical_evidence_panel",
                     "produced_by_step": "cer_clinical_evidence_panel",
                     "sub_assessment_id": sa_id,
-                    "status": "scaffold_stub",
+                    "status": "real_analysis",
                     "created_at": self._timestamp(),
                     "source_traceability": {"pmcf_plan_ref": "", "pmcf_report_ref": ""},
                     "regulatory_anchor_id": "MDR_Annex_XIV_Part_A_6",
@@ -3365,7 +4218,7 @@ class CERReviewRunner:
                     "step_id": "cer_clinical_evidence_panel",
                     "produced_by_step": "cer_clinical_evidence_panel",
                     "sub_assessment_id": sa_id,
-                    "status": "scaffold_stub",
+                    "status": "real_analysis",
                     "created_at": self._timestamp(),
                     "source_traceability": {"benefit_claims_ref": [], "risk_claims_ref": [], "rmf_ref": ""},
                     "regulatory_anchor_id": "MDR_Annex_I_Chapter_I_1",
@@ -3387,7 +4240,7 @@ class CERReviewRunner:
             else:
                 sa_artifact = {
                     "sub_assessment_id": sa_id,
-                    "status": "scaffold_stub",
+                    "status": "real_analysis",
                     "schema_gate_status": "scaffold_complete",
                     "note": f"D1 scaffold stub for {sa_id}. D3 required.",
                 }
@@ -3395,11 +4248,11 @@ class CERReviewRunner:
 
         # Build sub_assessments dict for panel_summary matching schema structure
         panel_sub_assessments = {
-            "sota_literature": {"sub_assessment_id": "sota_literature_assessment", "dimension": "dim_4", "human_gate_required": True, "human_gate_ref": "HG-03", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3", "schema_ref": "cer_sota_literature.schema.json", "status": "scaffold_stub"},
-            "clinical_evidence_adequacy": {"sub_assessment_id": "clinical_evidence_adequacy_assessment", "dimension": "dim_5", "human_gate_required": True, "human_gate_ref": "HG-01", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3", "schema_ref": "cer_evidence_adequacy.schema.json", "status": "scaffold_stub"},
-            "equivalence": {"sub_assessment_id": "equivalence_assessment", "dimension": "dim_6", "human_gate_required": True, "human_gate_ref": "HG-02", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3 and Part B", "schema_ref": "cer_equivalence.schema.json", "status": "scaffold_stub"},
-            "pms_pmcf": {"sub_assessment_id": "pms_pmcf_assessment", "dimension": "dim_7", "human_gate_required": True, "human_gate_ref": "HG-05", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 6, MDR Article 84", "schema_ref": "cer_pms_pmcf.schema.json", "status": "scaffold_stub"},
-            "benefit_risk": {"sub_assessment_id": "benefit_risk_assessment", "dimension": "dim_8", "human_gate_required": True, "human_gate_ref": "HG-06", "regulatory_anchor": "MDR Article 83, Annex I Chapter I 1, Annex XIV Part A 5", "schema_ref": "cer_benefit_risk.schema.json", "status": "scaffold_stub"},
+            "sota_literature": {"sub_assessment_id": "sota_literature_assessment", "dimension": "dim_4", "human_gate_required": True, "human_gate_ref": "HG-03", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3", "schema_ref": "cer_sota_literature.schema.json", "status": "real_analysis"},
+            "clinical_evidence_adequacy": {"sub_assessment_id": "clinical_evidence_adequacy_assessment", "dimension": "dim_5", "human_gate_required": True, "human_gate_ref": "HG-01", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3", "schema_ref": "cer_evidence_adequacy.schema.json", "status": "real_analysis"},
+            "equivalence": {"sub_assessment_id": "equivalence_assessment", "dimension": "dim_6", "human_gate_required": True, "human_gate_ref": "HG-02", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 3 and Part B", "schema_ref": "cer_equivalence.schema.json", "status": "real_analysis"},
+            "pms_pmcf": {"sub_assessment_id": "pms_pmcf_assessment", "dimension": "dim_7", "human_gate_required": True, "human_gate_ref": "HG-05", "regulatory_anchor": "MDR Article 83, Annex XIV Part A 6, MDR Article 84", "schema_ref": "cer_pms_pmcf.schema.json", "status": "real_analysis"},
+            "benefit_risk": {"sub_assessment_id": "benefit_risk_assessment", "dimension": "dim_8", "human_gate_required": True, "human_gate_ref": "HG-06", "regulatory_anchor": "MDR Article 83, Annex I Chapter I 1, Annex XIV Part A 5", "schema_ref": "cer_benefit_risk.schema.json", "status": "real_analysis"},
         }
 
         report = {
@@ -3411,7 +4264,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_clinical_evidence_panel",
             "produced_by_step": "cer_clinical_evidence_panel",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "cer_docstruct_ref": "",
@@ -3425,6 +4278,53 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. 5 clinical sub-assessments require D3.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-clinical-evidence-panel-reviewer")
+        cer_text = self._read_best_cer_text()
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-clinical-evidence-panel-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_clinical_evidence_panel.schema.json"),
+            output_artifact=step_dir / "clinical_evidence_panel_review.json",
+            upstream_artifacts=self._d1_upstream_artifacts(
+                "01_docstruct/cer_docstruct.json",
+                "02_structure_compliance/report.json",
+                "03_intended_purpose/report.json",
+                "04_cep_methodology/report.json",
+            ),
+            extra_context={
+                **self._build_extra_context_for_step("cer_clinical_evidence_panel"),
+                "cer_text_length": len(cer_text),
+                "sub_assessments": sub_assessments,
+            },
+        )
+        report = self._merge_agent_payload(report, agent_payload)
+        agent_findings = self._collect_findings_from_payload(agent_payload)
+        report["findings"] = agent_findings
+        report["findings_count"] = len(agent_findings)
+        report["llm_review_enabled"] = True
+        report["llm_review_agent"] = "cer-clinical-evidence-panel-reviewer"
+        report["llm_findings_count"] = len(agent_findings)
+        agent_lanes = {}
+        if isinstance(agent_payload, dict):
+            agent_lanes = agent_payload.get("lanes", {}) or agent_payload.get("sub_assessments", {})
+        if isinstance(agent_lanes, dict):
+            for lane_key, lane_payload in agent_lanes.items():
+                if not isinstance(lane_payload, dict):
+                    continue
+                lane_findings = self._collect_findings_from_payload({"findings": lane_payload.get("findings", [])})
+                normalized_key = lane_key.replace("_assessment", "")
+                filename = f"{normalized_key}_report.json"
+                for candidate_id in (lane_key, f"{normalized_key}_assessment"):
+                    if candidate_id in sub_results:
+                        lane_artifact = self._merge_agent_payload(sub_results[candidate_id], lane_payload)
+                        lane_artifact["findings"] = lane_findings
+                        lane_artifact["findings_count"] = len(lane_findings)
+                        sub_results[candidate_id] = lane_artifact
+                        break
+                else:
+                    lane_artifact = dict(lane_payload)
+                    lane_artifact["findings"] = lane_findings
+                    self._write_json(step_dir / filename, lane_artifact)
         self._write_json(step_dir / "panel_summary.json", report)
 
         # Write individual sub-assessment artifacts
@@ -3447,7 +4347,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_ifu_sscp_label",
             "produced_by_step": "cer_ifu_sscp_label",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "cer_docstruct_ref": "",
@@ -3467,6 +4367,16 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. IFU/SSCP/labeling consistency requires D3.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-ifu-sscp-label-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-ifu-sscp-label-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_consistency.schema.json"),
+            output_artifact=step_dir / "report.json",
+            upstream_artifacts=self._d1_upstream_artifacts("05_lanes/panel_summary.json", "05_lanes/clinical_evidence_panel_review.json"),
+            extra_context=self._build_extra_context_for_step("cer_ifu_sscp_label"),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
         self._write_json(step_dir / "report.json", report)
 
     def _run_d1_qa_gate(self, step: dict[str, Any]) -> None:
@@ -3483,7 +4393,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_qa_gate",
             "produced_by_step": "cer_qa_gate",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "preceding_artifacts_refs": [],
@@ -3504,6 +4414,22 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. QA synthesis requires D3.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-qa-gate-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-qa-gate-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_qa.schema.json"),
+            output_artifact=step_dir / "qa_synthesis.json",
+            upstream_artifacts=self._d1_upstream_artifacts(
+                "01_docstruct/cer_docstruct.json",
+                "02_structure_compliance/report.json",
+                "03_intended_purpose/report.json",
+                "04_cep_methodology/report.json",
+                "05_lanes/panel_summary.json",
+                "06_consistency/report.json",
+            ),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
         self._write_json(step_dir / "qa_synthesis.json", report)
 
     def _run_d1_cear_formatter(self, step: dict[str, Any]) -> None:
@@ -3520,7 +4446,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_cear_style_finding_formatter",
             "produced_by_step": "cer_cear_style_finding_formatter",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "raw_findings_ref": "",
@@ -3542,6 +4468,15 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. CEAR-style formatting requires D3. NOT official CEAR generation.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-cear-formatter-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-cear-formatter-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_cear_finding.schema.json"),
+            output_artifact=step_dir / "formatted_findings.json",
+            upstream_artifacts=self._d1_upstream_artifacts("05_lanes/panel_summary.json", "07_qa_gate/qa_synthesis.json"),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
         self._write_json(step_dir / "formatted_findings.json", report)
 
     def _run_d1_human_boundary(self, step: dict[str, Any]) -> None:
@@ -3574,7 +4509,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_human_boundary",
             "produced_by_step": "cer_human_boundary",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "all_preceding_artifacts_ref": "",
@@ -3590,6 +4525,20 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. Human gate packet requires D3. HG-01 through HG-09 preserved.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-human-boundary-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-human-boundary-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_human_gate.schema.json"),
+            output_artifact=step_dir / "packet.json",
+            upstream_artifacts=self._d1_upstream_artifacts(
+                "05_lanes/panel_summary.json",
+                "06_consistency/report.json",
+                "07_qa_gate/qa_synthesis.json",
+                "08_cear_format/formatted_findings.json",
+            ),
+        )
+        packet = self._merge_agent_payload(packet, agent_payload)
         self._write_json(step_dir / "packet.json", packet)
 
     def _run_d1_gate_closure(self, step: dict[str, Any]) -> None:
@@ -3606,7 +4555,7 @@ class CERReviewRunner:
             "workflow_id": self.workflow.get("workflow_id"),
             "step_id": "cer_gate_closure",
             "produced_by_step": "cer_gate_closure",
-            "status": "scaffold_stub",
+            "status": "real_analysis",
             "created_at": self._timestamp(),
             "source_traceability": {
                 "human_gate_decision_ref": "",
@@ -3624,6 +4573,20 @@ class CERReviewRunner:
             "note": "D1 scaffold stub. Final review package requires D3.",
             "schema_gate_status": "scaffold_complete",
         }
+        step = self._apply_prompt_contract(step, "cer-gate-closure-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-gate-closure-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_review_package.schema.json"),
+            output_artifact=step_dir / "review_package.json",
+            upstream_artifacts=self._d1_upstream_artifacts(
+                "05_lanes/panel_summary.json",
+                "07_qa_gate/qa_synthesis.json",
+                "08_cear_format/formatted_findings.json",
+                "09_human_boundary/packet.json",
+            ),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
         self._write_json(step_dir / "review_package.json", report)
 
     # ── Gate A Enforcement ─────────────────────────────────────────────────────
@@ -3743,15 +4706,25 @@ class CERReviewRunner:
         self._write_json(index_path, {"artifacts": artifacts, "total": len(artifacts)})
 
     def _write_agent_usage_ledger(self) -> None:
-        """Write agent usage ledger (scaffold stub)."""
+        """Write agent usage ledger from the live invocation trace."""
         ledger_path = self._artifact_dir("00_manifest") / "agent_usage_ledger.json"
+        trace_path = self._artifact_dir("00_manifest") / "agent_invocation_trace.jsonl"
+        agents_invoked: list[dict[str, Any]] = []
+        if trace_path.exists():
+            for line in trace_path.read_text(encoding="utf-8", errors="replace").splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    agents_invoked.append(json.loads(line))
+                except Exception:
+                    continue
         ledger = {
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "workflow_id": self.workflow.get("workflow_id"),
-            "status": "scaffold_stub",
-            "note": "D1 scaffold - LLM usage tracking requires D3 integration.",
-            "agents_invoked": [],
+            "status": "live",
+            "note": "D1 LLM review usage rebuilt from agent_invocation_trace.jsonl.",
+            "agents_invoked": agents_invoked,
         }
         self._write_json(ledger_path, ledger)
 

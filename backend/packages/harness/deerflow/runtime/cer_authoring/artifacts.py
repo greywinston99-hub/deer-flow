@@ -185,6 +185,58 @@ CLAIM_LEDGER_V2_FIELDS = {
 }
 
 
+def _build_feedback_effectiveness_report(state: dict[str, Any]) -> dict[str, Any]:
+    """Build feedback effectiveness report from resolution log.
+
+    Aggregates human actions on Review feedback to measure:
+    - Adoption rate (adopted / total)
+    - Ignore rate (ignored / total)
+    - Category-level false positive signals
+    """
+    log = state.get("feedback_resolution_log") or []
+    review_feedback = state.get("review_feedback") or {}
+    all_findings = review_feedback.get("findings", [])
+
+    total_findings = len(all_findings)
+    resolved_count = len(log)
+
+    action_counts: dict[str, int] = {}
+    category_action_counts: dict[str, dict[str, int]] = {}
+    for entry in log:
+        action = entry.get("action", "unknown")
+        action_counts[action] = action_counts.get(action, 0) + 1
+        # Look up category from original finding
+        fid = entry.get("finding_id", "")
+        finding = next((f for f in all_findings if str(f.get("finding_id")) == fid), {})
+        category = finding.get("category", "unknown")
+        if category not in category_action_counts:
+            category_action_counts[category] = {}
+        category_action_counts[category][action] = category_action_counts[category].get(action, 0) + 1
+
+    # Identify potential false-positive categories (>50% ignored)
+    false_positive_categories = [
+        {"category": cat, "ignore_rate": round(counts.get("ignored", 0) / sum(counts.values()), 2), "total": sum(counts.values())}
+        for cat, counts in category_action_counts.items()
+        if sum(counts.values()) > 0 and counts.get("ignored", 0) / sum(counts.values()) > 0.5
+    ]
+
+    return {
+        "schema_name": "feedback_effectiveness_report_v1",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "summary": {
+            "total_findings_received": total_findings,
+            "total_findings_resolved": resolved_count,
+            "adoption_rate": round(action_counts.get("adopted", 0) / resolved_count, 2) if resolved_count else 0.0,
+            "ignore_rate": round(action_counts.get("ignored", 0) / resolved_count, 2) if resolved_count else 0.0,
+            "partial_rate": round(action_counts.get("partially_addressed", 0) / resolved_count, 2) if resolved_count else 0.0,
+        },
+        "action_counts": action_counts,
+        "category_breakdown": category_action_counts,
+        "false_positive_signals": false_positive_categories,
+        "resolution_log": log,
+    }
+
+
 def build_authoring_workbook(state: dict[str, Any]) -> dict[str, Any]:
     state = {**state, **build_phase0_contracts(state)}
     keys = [
@@ -424,6 +476,8 @@ def write_authoring_artifacts(artifact_root: str | Path, state: dict[str, Any]) 
     }
     # Add writer gate results to payloads
     payloads["writer_remediation_gate_results.json"] = writer_gate_results
+    # P0-1: Feedback effectiveness report
+    payloads["feedback_effectiveness_report.json"] = _build_feedback_effectiveness_report(state)
     # Add remediated QA gate report (Gate 5)
     payloads["writer_remediation_qa_report.json"] = evaluate_remediated_qa_gate(
         cer_markdown,

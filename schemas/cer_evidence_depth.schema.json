@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "cer_evidence_depth.schema.json",
+  "title": "CER Evidence Depth Classification",
+  "description": "Unified evidence depth taxonomy shared between CER Review and CER Authoring pipelines. Aligned with cer_review_assist_sandbox_v2_0 evidence_depth_policy.",
+  "type": "object",
+  "required": ["evidence_depth", "evidence_confidence"],
+  "properties": {
+    "evidence_depth": {
+      "type": "string",
+      "enum": ["PRIMARY_VERBATIM", "PRIMARY_DERIVED", "SECONDARY_SUMMARY", "MISSING_PRIMARY"],
+      "description": "Depth of evidence relative to original source document"
+    },
+    "evidence_confidence": {
+      "type": "string",
+      "enum": ["DIRECT", "INDIRECT", "HEARSAY"],
+      "description": "Confidence classification of the evidence chain"
+    },
+    "severity_cap": {
+      "type": "string",
+      "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL"],
+      "description": "Maximum allowable severity for this evidence depth"
+    },
+    "source_anchor": {
+      "type": "string",
+      "description": "Path or reference to the primary source document"
+    },
+    "verbatim_excerpt": {
+      "type": "string",
+      "description": "Required for PRIMARY_VERBATIM — exact text from source"
+    },
+    "verification_note": {
+      "type": "string",
+      "description": "For SECONDARY_SUMMARY: 'Verify against primary source at [path]'"
+    }
+  },
+  "definitions": {
+    "severity_caps": {
+      "type": "object",
+      "properties": {
+        "PRIMARY_VERBATIM": { "const": "CRITICAL" },
+        "PRIMARY_DERIVED": { "const": "HIGH" },
+        "SECONDARY_SUMMARY": { "const": "MEDIUM" },
+        "MISSING_PRIMARY": { "const": "LOW" }
+      }
+    }
+  }
+}

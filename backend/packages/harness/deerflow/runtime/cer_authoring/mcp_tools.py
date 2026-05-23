@@ -37,6 +37,100 @@ _SERVER_FILES = {
     "doc-proc": KIMI_MCP_ROOT / "doc-proc" / "server.py",
 }
 
+# P1-1: MCP version compatibility matrix
+# Format: {"server_name": {"min_version": "x.y.z", "max_version": "x.y.z"}}
+_MCP_COMPATIBILITY: dict[str, dict[str, str]] = {
+    "cer-kb": {"min_version": "1.0.0", "max_version": "99.99.99"},
+    "nb-check": {"min_version": "1.0.0", "max_version": "99.99.99"},
+    "doc-proc": {"min_version": "1.0.0", "max_version": "99.99.99"},
+}
+
+
+class MCPVersionMismatchError(RuntimeError):
+    """Raised when an MCP server version is outside the compatibility matrix."""
+    pass
+
+
+def _parse_version(v: str) -> tuple[int, int, int]:
+    """Parse 'x.y.z' into (x, y, z)."""
+    parts = v.strip().split(".")
+    return (int(parts[0]) if len(parts) > 0 else 0,
+            int(parts[1]) if len(parts) > 1 else 0,
+            int(parts[2]) if len(parts) > 2 else 0)
+
+
+def _version_in_range(version: str, min_v: str, max_v: str) -> bool:
+    v = _parse_version(version)
+    lo = _parse_version(min_v)
+    hi = _parse_version(max_v)
+    return lo <= v <= hi
+
+
+def get_mcp_server_version(server: str) -> str | None:
+    """Extract __version__ from an MCP server Python file.
+
+    Uses regex parsing (not execution) for safety — avoids side effects
+    from running the server module directly.
+    """
+    server_file = _SERVER_FILES.get(server)
+    if not server_file or not server_file.exists():
+        return None
+    try:
+        content = server_file.read_text(encoding="utf-8")
+        # Match __version__ = "x.y.z" or __version__ = 'x.y.z'
+        match = __import__("re").search(
+            r'^\s*__version__\s*=\s*["\']([^"\']+)["\']',
+            content,
+            __import__("re").MULTILINE,
+        )
+        return match.group(1) if match else None
+    except Exception:
+        return None
+
+
+def check_mcp_server_versions(raise_on_mismatch: bool = False) -> dict[str, dict[str, Any]]:
+    """Health-check all MCP servers for version compatibility.
+
+    Returns a dict per server:
+      {"version": "x.y.z", "compatible": True/False, "min": "...", "max": "..."}
+
+    NOTE: MCP servers outside this repo may not define __version__.
+    Missing version triggers a warning, not a hard error, to avoid
+    breaking existing deployments while encouraging version adoption.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    report: dict[str, dict[str, Any]] = {}
+    mismatches: list[str] = []
+    for server, constraints in _MCP_COMPATIBILITY.items():
+        version = get_mcp_server_version(server)
+        if version is None:
+            report[server] = {
+                "version": None,
+                "compatible": True,  # Soft-fail: no version = assume compatible
+                "warning": "server_not_found_or_no_version",
+            }
+            logger.warning(
+                "MCP server '%s' has no __version__. Consider adding __version__ to %s for safety.",
+                server,
+                _SERVER_FILES.get(server),
+            )
+            continue
+        compatible = _version_in_range(version, constraints["min_version"], constraints["max_version"])
+        report[server] = {
+            "version": version,
+            "compatible": compatible,
+            "min_version": constraints["min_version"],
+            "max_version": constraints["max_version"],
+        }
+        if not compatible:
+            mismatches.append(
+                f"{server}: version {version} outside range [{constraints['min_version']}, {constraints['max_version']}]"
+            )
+    if mismatches and raise_on_mismatch:
+        raise MCPVersionMismatchError("MCP version mismatch: " + "; ".join(mismatches))
+    return report
+
 
 # ── PDF Reading Tool ──
 
@@ -76,7 +170,7 @@ def read_pdf(file_path: str, max_pages: int = 50) -> dict[str, Any]:
     return result
 
 
-def call_tool(server: str, tool: str, arguments: dict[str, Any] | None = None, timeout: int | None = None) -> dict[str, Any]:
+def call_tool(server: str, tool: str, arguments: dict[str, Any] | None = None, timeout: int | None = None, skip_version_check: bool = False) -> dict[str, Any]:
     """Call an authoring MCP tool and return a structured result.
 
     Results include a small `_mcp` envelope so downstream gates can prove that a
@@ -91,6 +185,18 @@ def call_tool(server: str, tool: str, arguments: dict[str, Any] | None = None, t
     server_file = _SERVER_FILES.get(server)
     if not server_file or not server_file.exists():
         return _error(server, tool, arguments, "server_unavailable", f"MCP server file not found: {server_file}", started)
+    # P1-1: Optional version check on first call per process
+    if not skip_version_check and server in _MCP_COMPATIBILITY:
+        version = get_mcp_server_version(server)
+        constraints = _MCP_COMPATIBILITY[server]
+        if version and not _version_in_range(version, constraints["min_version"], constraints["max_version"]):
+            return _error(
+                server, tool, arguments, "version_mismatch",
+                f"MCP server {server} version {version} is outside compatible range "
+                f"[{constraints['min_version']}, {constraints['max_version']}]. "
+                f"Use skip_version_check=True to bypass or update _MCP_COMPATIBILITY.",
+                started,
+            )
     request = {
         "jsonrpc": "2.0",
         "id": 1,

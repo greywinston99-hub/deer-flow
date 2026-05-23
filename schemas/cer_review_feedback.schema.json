@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "cer_review_feedback.schema.json",
+  "title": "CER Review Feedback to Authoring",
+  "description": "Structured feedback from CER Review Assist pipeline to CER Authoring pipeline. Advisory-only — does not trigger automatic rework.",
+  "type": "object",
+  "required": ["feedback_id", "source", "advisory_only", "findings"],
+  "properties": {
+    "feedback_id": {
+      "type": "string",
+      "pattern": "^RF-[0-9]{14}$"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["cer_review_assist_sandbox_v2_0", "cer_review_v1", "manual"]
+    },
+    "source_project_id": {
+      "type": "string",
+      "description": "Review project ID that generated this feedback"
+    },
+    "advisory_only": {
+      "type": "boolean",
+      "const": true,
+      "description": "Must be true. Review feedback never triggers automatic rework."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["finding_id", "severity", "evidence_depth", "category", "description"],
+        "properties": {
+          "finding_id": { "type": "string" },
+          "severity": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL"]
+          },
+          "evidence_depth": {
+            "type": "string",
+            "enum": ["PRIMARY_VERBATIM", "PRIMARY_DERIVED", "SECONDARY_SUMMARY", "MISSING_PRIMARY"]
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "cross_doc_inconsistency",
+              "regulatory_boundary_violation",
+              "evidence_quality_gap",
+              "claim_evidence_mismatch",
+              "terminology_non_standard",
+              "format_degradation",
+              "missing_evidence",
+              "orphan_requirement",
+              "metadata_inconsistency"
+            ]
+          },
+          "target_claim_id": { "type": ["string", "null"] },
+          "target_evidence_id": { "type": ["string", "null"] },
+          "description": { "type": "string", "maxLength": 2000 },
+          "source_artifact": {
+            "type": "string",
+            "description": "Path to the Review artifact that contains the full analysis"
+          },
+          "suggested_rework_node": {
+            "type": ["string", "null"],
+            "enum": [
+              null,
+              "device_profile",
+              "claim_decomposition",
+              "sota_search",
+              "evidence_appraisal",
+              "writer_synthesis",
+              "risk_gspr_mapping",
+              "cer_writing"
+            ],
+            "description": "Suggested Authoring node to review. Advisory only — human decides."
+          },
+          "rationale": { "type": "string" }
+        }
+      }
+    },
+    "prohibited_actions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Actions that must NOT be taken automatically based on this feedback",
+      "default": [
+        "auto_modify_claim_ledger",
+        "auto_delete_evidence",
+        "trigger_rework_without_human_confirm",
+        "override_gate_decision"
+      ]
+    }
+  }
+}
