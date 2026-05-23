@@ -36,6 +36,7 @@ from app.gateway.routers import (
     agents,
     artifacts,
     assistants_compat,
+    cer_authoring_stream,
     cer_available_source_workflow,
     cer_integration,
     cer_intake,
@@ -269,6 +270,7 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
     app.include_router(cer_knowledge_assets.router)
     app.include_router(cer_integration.router)
     app.include_router(cer_available_source_workflow.router)
+    app.include_router(cer_authoring_stream.router)
     app.include_router(cer_source_package_intake_bridge.router)
 
     @app.get("/health", tags=["health"])

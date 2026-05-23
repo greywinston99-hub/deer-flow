@@ -572,6 +572,8 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
             if depth and depth not in {"PRIMARY_VERBATIM", "PRIMARY_DERIVED"}:
                 request_qs = True
                 break
+    # Part 4: Build evidence lineage graph
+    lineage_result = _build_evidence_lineage(state, generated)
     approval = interrupt({
         "confirmation_point": "evidence_appraisal",
         "step": 11,
@@ -588,6 +590,9 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
     if request_qs:
         result["request_review_quick_scan"] = True
         result["auto_quick_scan_trigger_node"] = "evidence_appraisal"
+    if lineage_result:
+        result["evidence_lineage"] = lineage_result.get("lineage")
+        result["evidence_chain_breaks"] = lineage_result.get("breaks")
     return result
 
 
@@ -735,11 +740,48 @@ def _node_query_expansion(state: SharedAuthoringState) -> dict[str, Any]:
 
 def _node_claim_evidence_matrix(state: SharedAuthoringState) -> dict[str, Any]:
     generated = pipeline.build_claim_evidence_benefit_risk_ledgers(dict(state))
+    # Part 4: Rebuild lineage with claim-evidence links
+    lineage_result = _build_evidence_lineage(state, generated)
     if generated:
-        return {**_branch_stage("claim_evidence_matrix"), **generated}
-    if state.get("claim_evidence_matrix"):
-        return _branch_stage("claim_evidence_matrix")
-    return _branch_stage("claim_evidence_matrix", "rework_required", note="Claim-evidence matrix is required before G43")
+        result = {**_branch_stage("claim_evidence_matrix"), **generated}
+    elif state.get("claim_evidence_matrix"):
+        result = _branch_stage("claim_evidence_matrix")
+    else:
+        result = _branch_stage("claim_evidence_matrix", "rework_required", note="Claim-evidence matrix is required before G43")
+    if lineage_result:
+        result["evidence_lineage"] = lineage_result.get("lineage")
+        result["evidence_chain_breaks"] = lineage_result.get("breaks")
+    return result
+
+
+def _build_evidence_lineage(state: SharedAuthoringState, generated: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Part 4: Build evidence lineage graph from current state.
+
+    Returns lineage export + chain breaks. Does not block on errors.
+    """
+    try:
+        from deerflow.runtime.cer_authoring.evidence_lineage import EvidenceLineageGraph
+        from pathlib import Path
+
+        artifact_root = str(state.get("artifact_root") or "")
+        if not artifact_root:
+            return None
+
+        db_path = Path(artifact_root).expanduser().resolve() / "evidence_lineage.db"
+        graph = EvidenceLineageGraph(db_path=db_path)
+        graph.load()
+
+        merged_state = {**dict(state), **(generated or {})}
+        graph.build_from_state(merged_state)
+        graph.save()
+
+        return {
+            "lineage": graph.export_for_audit(),
+            "breaks": graph.detect_chain_breaks(),
+        }
+    except Exception as exc:
+        logger.warning("Evidence lineage build failed (non-fatal): %s", exc)
+        return None
 
 
 def _node_claim_evidence_gate(state: SharedAuthoringState) -> dict[str, Any]:

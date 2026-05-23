@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCERAuth, cerReviewFetch } from "@/core/cer_auth";
+import { AuthoringStreamPanel } from "@/components/cer/authoring-stream-panel";
+import { EvidenceLineageGraph } from "@/components/cer/evidence-lineage-graph";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -442,6 +444,8 @@ export default function RunDetailPage() {
                   Follow-ups {runDetail.followups_open > 0 && `(${runDetail.followups_open})`}
                 </TabsTrigger>
                 <TabsTrigger value="backflows">Backflows</TabsTrigger>
+                <TabsTrigger value="lineage">Lineage</TabsTrigger>
+                <TabsTrigger value="live-stream">Live Stream</TabsTrigger>
               </TabsList>
 
               {/* Overview */}
@@ -859,6 +863,16 @@ export default function RunDetailPage() {
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* Live Stream */}
+              <TabsContent value="live-stream">
+                <AuthoringStreamPanel threadId={selectedRunId} />
+              </TabsContent>
+
+              {/* Evidence Lineage */}
+              <TabsContent value="lineage">
+                <EvidenceLineageGraph projectId={projectId} />
               </TabsContent>
 
               {/* Backflows */}

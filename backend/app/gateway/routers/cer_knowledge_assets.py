@@ -25,6 +25,7 @@ from app.gateway.routers.cer_nocodb_binding import (
     get_binding_status,
     query_approved_reusable_assets,
 )
+from deerflow.runtime.cer_authoring.evidence_lineage import EvidenceLineageGraph
 
 logger = logging.getLogger(__name__)
 
@@ -279,3 +280,35 @@ async def get_reusable_assets(
         source=source,
         warnings=warnings,
     )
+
+
+# ── Part 4: Evidence Lineage endpoints ────────────────────────────────────────
+
+@router.get("/lineage/{project_id}")
+async def get_evidence_lineage(project_id: str) -> dict[str, Any]:
+    """Return evidence lineage graph for a project."""
+    from pathlib import Path
+    artifact_root = Path("artifacts/cer") / project_id
+    db_path = artifact_root / "evidence_lineage.db"
+    if not db_path.exists():
+        return {"status": "not_found", "project_id": project_id}
+    graph = EvidenceLineageGraph(db_path=db_path)
+    graph.load(project_id=project_id)
+    return graph.export_for_audit()
+
+
+@router.get("/lineage/{project_id}/breaks")
+async def get_evidence_lineage_breaks(project_id: str) -> dict[str, Any]:
+    """Return detected chain breaks for a project."""
+    from pathlib import Path
+    artifact_root = Path("artifacts/cer") / project_id
+    db_path = artifact_root / "evidence_lineage.db"
+    if not db_path.exists():
+        return {"status": "not_found", "project_id": project_id, "breaks": []}
+    graph = EvidenceLineageGraph(db_path=db_path)
+    graph.load(project_id=project_id)
+    return {
+        "project_id": project_id,
+        "break_count": len(graph.detect_chain_breaks()),
+        "breaks": graph.detect_chain_breaks(),
+    }

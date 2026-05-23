@@ -230,6 +230,8 @@ class SharedAuthoringState(ThreadState):
     article_appraisal: Annotated[list[dict[str, Any]], merge_records]
     evidence_registry: Annotated[list[dict[str, Any]], merge_records]
     evidence_depth_taxonomy: Annotated[dict[str, Any], merge_dict]
+    evidence_lineage: NotRequired[dict[str, Any] | None]
+    evidence_chain_breaks: NotRequired[list[dict[str, Any]] | None]
     endpoint_extraction: Annotated[list[dict[str, Any]], merge_records]
     sota_benchmark_matrix: Annotated[list[dict[str, Any]], merge_records]
     equivalence_matrix: Annotated[list[dict[str, Any]], merge_records]
