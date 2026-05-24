@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +40,27 @@ from deerflow.runtime.cer_authoring.agent_runtime import (
     preload_gil_safe_native_modules,
     reviewer_result_from_invocation,
 )
+
+# ── Event Bus hybrid architecture imports ──
+_EVENT_BUS_ENABLED = os.getenv("CER_AUTHORING_ENABLE_EVENT_BUS", "0") == "1"
+if _EVENT_BUS_ENABLED:
+    from deerflow.runtime.cer_authoring.event_bus import (
+        EventBus,
+        EventType,
+        Event,
+        get_event_bus,
+        publish_batches,
+        wait_for_batches,
+        merge_batch_evidence,
+        merge_batch_sota_results,
+        merge_batch_vigilance_results,
+        chunk_list,
+    )
+    from deerflow.runtime.cer_authoring.workers import (
+        EvidenceAppraisalWorker,
+        SotaSearchWorker,
+        VigilanceSearchWorker,
+    )
 from deerflow.runtime.cer_authoring.writer_remediation.model_routing import build_provider_preflight
 from deerflow.runtime.cer_authoring.state import SharedAuthoringState
 
@@ -433,7 +456,16 @@ def _node_sota_search(state: SharedAuthoringState) -> dict[str, Any]:
     if ifw_warning_only:
         return {**_stage("sota_search"), "search_skipped_ifu_warning": True,
                 "search_skip_reason": "All claims are IFU warning/contraindication type — evidence sourced from RMF/GSPR, not PubMed"}
-    generated = pipeline.run_sota_search(dict(state))
+    # ── Event Bus parallel path (feature-flagged) ──
+    generated = None
+    if _event_bus_available():
+        try:
+            generated = _run_sota_search_event_bus(dict(state))
+            logger.info("sota_search completed via Event Bus")
+        except Exception as exc:
+            logger.warning("Event Bus sota_search failed, falling back to serial: %s", exc)
+    if generated is None:
+        generated = pipeline.run_sota_search(dict(state))
     trace = _agent_trace(
         "authoring-methodology-sota-agent",
         _with_team_mode(state, generated),
@@ -555,7 +587,16 @@ def _route_after_screening_depth_gate(state: SharedAuthoringState) -> str:
 
 
 def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
-    generated = pipeline.appraise_evidence(dict(state))
+    # ── Event Bus parallel path (feature-flagged) ──
+    generated = None
+    if _event_bus_available():
+        try:
+            generated = _run_evidence_appraisal_event_bus(dict(state))
+            logger.info("evidence_appraisal completed via Event Bus")
+        except Exception as exc:
+            logger.warning("Event Bus evidence_appraisal failed, falling back to serial: %s", exc)
+    if generated is None:
+        generated = pipeline.appraise_evidence(dict(state))
     if not generated and not state.get("evidence_registry"):
         return _branch_stage("evidence_appraisal", "rework_required", note="Evidence Registry is required")
     # P0-4: Enrich evidence with MDCG 2020-6 levels
@@ -698,8 +739,10 @@ def _node_pre_g42_claim_evidence_candidate_linking(state: SharedAuthoringState) 
 
 def _node_evidence_sufficiency_gate(state: SharedAuthoringState) -> dict[str, Any]:
     report = pipeline.evaluate_evidence_sufficiency_gate(dict(state))
+    counter_update = _inc_rework(state) if report.get("status") != "PASS" else {}
     return {
         **_branch_stage("evidence_sufficiency_gate"),
+        **counter_update,
         "evidence_sufficiency_gate_report": report,
         "gate_routing_trace": [
             {
@@ -861,7 +904,16 @@ def _node_device_profile_iteration(state: SharedAuthoringState) -> dict[str, Any
 
 
 def _node_vigilance_search(state: SharedAuthoringState) -> dict[str, Any]:
-    generated = pipeline.run_vigilance_search(dict(state))
+    # ── Event Bus parallel path (feature-flagged) ──
+    generated = None
+    if _event_bus_available():
+        try:
+            generated = _run_vigilance_search_event_bus(dict(state))
+            logger.info("vigilance_search completed via Event Bus")
+        except Exception as exc:
+            logger.warning("Event Bus vigilance_search failed, falling back to serial: %s", exc)
+    if generated is None:
+        generated = pipeline.run_vigilance_search(dict(state))
     if generated:
         return {**_branch_stage("vigilance_search"), **generated}
     if state.get("vigilance_recall_registry"):
@@ -1075,6 +1127,307 @@ def _node_review_quick_scan(state: SharedAuthoringState) -> dict[str, Any]:
             }
         ],
     }
+
+
+# ── Event Bus hybrid architecture: coordinator helpers ──
+
+def _event_bus_available() -> bool:
+    """Check if Event Bus is enabled and imports succeeded."""
+    return _EVENT_BUS_ENABLED and "get_event_bus" in globals()
+
+
+def _run_evidence_appraisal_event_bus(state: dict[str, Any]) -> dict[str, Any]:
+    """Event Bus coordinator for evidence_appraisal node.
+
+    Uses asyncio.run() since LangGraph sync nodes execute in ThreadPoolExecutor
+    threads which have no running event loop.
+    """
+    return asyncio.run(_async_evidence_appraisal_coordinator(state))
+
+
+async def _async_evidence_appraisal_coordinator(state: dict[str, Any]) -> dict[str, Any]:
+    """Async coordinator: publish batches → wait → merge → enrich."""
+    bus = get_event_bus()
+    await bus.start()
+
+    # Start workers
+    workers = [EvidenceAppraisalWorker(f"appraiser-{i}") for i in range(3)]
+    for w in workers:
+        await w.start(bus)
+
+    try:
+        # Get articles from state
+        articles = _get_articles_for_appraisal(state)
+        if not articles:
+            # No articles to appraise — return empty but valid
+            return {"evidence_registry": [], "article_appraisal": [], "mcp_log": []}
+
+        # Build lightweight state snapshot for workers
+        state_snapshot = {
+            "device_profile": state.get("device_profile"),
+            "claim_ledger": state.get("claim_ledger"),
+        }
+
+        # Publish batches
+        batch_size = max(1, len(articles) // 3)
+        batches = chunk_list(articles, batch_size)
+        event_ids = await publish_batches(
+            bus=bus,
+            event_type=EventType.EVIDENCE_BATCH_REQUESTED,
+            items=batches,
+            batch_size=1,  # each batch is already a list
+            correlation_id=state.get("thread_id", ""),
+            stage_id="evidence_appraisal",
+            spiral_round=_spiral_round_from_state(state),
+            payload_builder=lambda batch_id, batch: {
+                "batch_id": batch_id,
+                "articles": batch[0] if batch else [],
+                "state_snapshot": state_snapshot,
+            },
+        )
+
+        # Wait for completions with progress callback
+        def _on_progress(completed: int, total: int) -> None:
+            logger.info("Evidence appraisal progress: %d/%d batches", completed, total)
+
+        results = await wait_for_batches(
+            bus=bus,
+            completion_event_type=EventType.EVIDENCE_BATCH_COMPLETED,
+            expected_batch_count=len(batches),
+            correlation_id=state.get("thread_id", ""),
+            stage_id="evidence_appraisal",
+            timeout=300.0,
+            on_progress=_on_progress,
+        )
+
+        # Merge results
+        merged = merge_batch_evidence(results)
+
+        return merged
+
+    finally:
+        for w in workers:
+            await w.stop()
+        await bus.stop()
+
+
+def _get_articles_for_appraisal(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Extract articles eligible for appraisal from state.
+
+    Mirrors the article extraction logic in pipeline.appraise_evidence.
+    """
+    screening_rows = state.get("screening_disposition") or []
+    eligible_pmids = [
+        str(row.get("pmid"))
+        for row in screening_rows
+        if row.get("pmid")
+        and row.get("full_text_decision") == "include_for_appraisal"
+        and row.get("retrieval_domain_status") != "RETRIEVAL_DOMAIN_MISMATCH_REWORK_REQUIRED"
+    ]
+    pmids = eligible_pmids or [
+        record.get("pmid") for record in state.get("raw_literature_records") or [] if record.get("pmid")
+    ]
+
+    # Simplified: return raw records as articles
+    articles = []
+    for record in state.get("raw_literature_records") or []:
+        if not record.get("pmid"):
+            continue
+        if eligible_pmids and str(record.get("pmid")) not in eligible_pmids:
+            continue
+        articles.append({
+            "pmid": record.get("pmid"),
+            "title": record.get("title", ""),
+            "abstract": record.get("abstract", ""),
+            "study_design": record.get("study_design", "unknown"),
+            "oxford_level": record.get("oxford_level", "not extracted"),
+            "sample_size": record.get("sample_size", "not available"),
+            "follow_up": record.get("follow_up", "not available"),
+            "full_text_status": record.get("full_text_status", "abstract_only"),
+        })
+    return articles
+
+
+def _run_vigilance_search_event_bus(state: dict[str, Any]) -> dict[str, Any]:
+    """Event Bus coordinator for vigilance_search node."""
+    return asyncio.run(_async_vigilance_search_coordinator(state))
+
+
+async def _async_vigilance_search_coordinator(state: dict[str, Any]) -> dict[str, Any]:
+    """Async coordinator: publish vigilance search → wait → merge."""
+    bus = get_event_bus()
+    await bus.start()
+
+    worker = VigilanceSearchWorker("vigilance-worker-0")
+    await worker.start(bus)
+
+    try:
+        profile = state.get("device_profile") or {}
+        terms = profile.get("device_name", "") or profile.get("generic_name", "") or ""
+
+        # Publish single vigilance search event
+        event = Event(
+            event_type=EventType.VIGILANCE_SEARCH_REQUESTED,
+            payload={"search_terms": terms},
+            correlation_id=state.get("thread_id", ""),
+            stage_id="vigilance_search",
+            spiral_round=_spiral_round_from_state(state),
+        )
+        await bus.publish(event)
+
+        # Wait for completion
+        results = await wait_for_batches(
+            bus=bus,
+            completion_event_type=EventType.VIGILANCE_SEARCH_COMPLETED,
+            expected_batch_count=1,
+            correlation_id=state.get("thread_id", ""),
+            stage_id="vigilance_search",
+            timeout=120.0,
+        )
+
+        if results:
+            return merge_batch_vigilance_results(results)
+        return {}
+
+    finally:
+        await worker.stop()
+        await bus.stop()
+
+
+def _run_sota_search_event_bus(state: dict[str, Any]) -> dict[str, Any]:
+    """Event Bus coordinator for sota_search node.
+
+    For sota_search, the Event Bus parallelizes the external database
+    search calls within pipeline.run_sota_search. The search plan generation
+    and benchmark matrix construction remain in the coordinator.
+    """
+    return asyncio.run(_async_sota_search_coordinator(state))
+
+
+async def _async_sota_search_coordinator(state: dict[str, Any]) -> dict[str, Any]:
+    """Async coordinator: generate search plan → publish per-row → wait → merge."""
+    bus = get_event_bus()
+    await bus.start()
+
+    workers = [SotaSearchWorker(f"sota-worker-{i}") for i in range(4)]
+    for w in workers:
+        await w.start(bus)
+
+    try:
+        profile = state.get("device_profile") or {}
+        search_plan = pipeline._phase7_search_plan(profile, state)
+
+        if not search_plan:
+            return {"search_run_registry": [], "raw_literature_records": [], "mcp_log": []}
+
+        # Publish one event per search plan row
+        event_ids = await publish_batches(
+            bus=bus,
+            event_type=EventType.SOTA_SEARCH_REQUESTED,
+            items=search_plan,
+            batch_size=1,
+            correlation_id=state.get("thread_id", ""),
+            stage_id="sota_search",
+            spiral_round=_spiral_round_from_state(state),
+            payload_builder=lambda batch_id, batch: {
+                "batch_id": batch_id,
+                "search_plan_row": batch[0] if batch else {},
+                "device_profile": profile,
+                "state_snapshot": {k: v for k, v in state.items() if k in ("device_profile", "claim_ledger")},
+            },
+        )
+
+        results = await wait_for_batches(
+            bus=bus,
+            completion_event_type=EventType.SOTA_SEARCH_COMPLETED,
+            expected_batch_count=len(search_plan),
+            correlation_id=state.get("thread_id", ""),
+            stage_id="sota_search",
+            timeout=180.0,
+        )
+
+        merged = merge_batch_sota_results(results)
+
+        # Build benchmark matrix (same as serial path)
+        domain = pipeline._clinical_domain(state)
+        if domain == "cardiac_pfa":
+            benchmarks = _build_cardiac_pfa_benchmarks(merged.get("search_run_registry", []))
+        elif domain == "urology_nephroscope":
+            benchmarks = _build_urology_benchmarks(merged.get("search_run_registry", []))
+        else:
+            benchmarks = []
+
+        return {
+            **merged,
+            "sota_benchmark_matrix": benchmarks,
+        }
+
+    finally:
+        for w in workers:
+            await w.stop()
+        await bus.stop()
+
+
+def _build_cardiac_pfa_benchmarks(search_runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Build SOTA benchmarks for cardiac PFA domain."""
+    sources = ", ".join(r.get("search_id", "") for r in search_runs if r.get("objective") == "SOTA")
+    return [
+        {
+            "benchmark_id": "BM-01",
+            "endpoint": "Acute ablation / pulmonary vein isolation success",
+            "clinical_significance": "Primary procedural performance evidence for PFA use in the IFU-defined EP workflow.",
+            "sota_source": sources,
+            "sota_value_range": "Quantitative threshold to be finalized from full-text endpoint extraction; qualitative benchmark uses established AF ablation acute-success expectations.",
+            "acceptance_criterion": "Result should be clinically consistent with accepted AF ablation SOTA after endpoint definition and follow-up are matched.",
+            "corresponding_claim_id": "C-01",
+            "corresponding_gspr": "GSPR 1, 6",
+            "used_in_4_7": True,
+            "conclusion": "Cardiac ablation performance benchmark established as authoring input.",
+        },
+        {
+            "benchmark_id": "BM-02",
+            "endpoint": "Freedom from recurrent atrial arrhythmia at defined follow-up",
+            "clinical_significance": "Key clinical benefit/durability endpoint where the IFU or clinical strategy claims rhythm-control benefit.",
+            "sota_source": sources,
+            "sota_value_range": "Rates to be extracted from included PFA/RF/cryo literature and clinical datasets.",
+            "acceptance_criterion": "Follow-up outcome should be interpretable against SOTA comparator evidence with matching AF type and endpoint definition.",
+            "corresponding_claim_id": "C-01",
+            "corresponding_gspr": "GSPR 1, 6",
+            "used_in_4_7": True,
+            "conclusion": "Durability benchmark established as authoring input.",
+        },
+        {
+            "benchmark_id": "BM-03",
+            "endpoint": "Device/procedure-related serious adverse events",
+            "clinical_significance": "Defines whether cardiac ablation safety and side-effects remain clinically acceptable.",
+            "sota_source": sources,
+            "sota_value_range": "Rates to be extracted from included literature, clinical datasets and vigilance sources.",
+            "acceptance_criterion": "Observed serious adverse events should be within accepted ablation SOTA after IFU/RMF controls.",
+            "corresponding_claim_id": "C-02",
+            "corresponding_gspr": "GSPR 1, 2, 8",
+            "used_in_4_7": True,
+            "conclusion": "Safety benchmark established as authoring input.",
+        },
+    ]
+
+
+def _build_urology_benchmarks(search_runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Build SOTA benchmarks for urology nephroscope domain."""
+    sources = ", ".join(r.get("search_id", "") for r in search_runs if r.get("objective") == "SOTA")
+    return [
+        {
+            "benchmark_id": "BM-01",
+            "endpoint": "Stone-free rate after single procedure",
+            "clinical_significance": "Primary performance endpoint for urological endoscopic stone procedures.",
+            "sota_source": sources,
+            "sota_value_range": "To be extracted from included urological endoscopy literature.",
+            "acceptance_criterion": "Stone-free rates should be clinically consistent with accepted SOTA for comparable endoscopic devices.",
+            "corresponding_claim_id": "C-01",
+            "corresponding_gspr": "GSPR 1, 6",
+            "used_in_4_7": True,
+            "conclusion": "Stone-free benchmark established as authoring input.",
+        },
+    ]
 
 
 def _route_after_gates(state: SharedAuthoringState) -> str:
