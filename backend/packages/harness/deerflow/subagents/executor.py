@@ -374,23 +374,40 @@ class SubagentExecutor:
         # errors are handled within _aexecute() and returned as FAILED status.
         #
         # Python 3.12+: asyncio.Queue is strictly bound to its creation loop.
-        # When LangGraph/LangChain internally creates Queues during model calls,
-        # they become invalid on the next execute() which creates a new loop.
-        # Workaround: create a fresh loop explicitly and set it as current.
+        # httpx connections schedule callbacks on the loop that fire during
+        # garbage collection AFTER loop.close(). Workaround: drain pending
+        # callbacks before closing, and suppress RuntimeError during cleanup.
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
                 return loop.run_until_complete(self._aexecute(task, result_holder))
             finally:
-                loop.close()
+                # Drain pending callbacks before closing (prevents "Event loop is closed")
+                try:
+                    loop.run_until_complete(asyncio.sleep(0.1))
+                except Exception:
+                    pass
+                try:
+                    loop.close()
+                except RuntimeError:
+                    pass  # httpx cleanup may have already partially closed the loop
         except RuntimeError as re:
             if "event loop" in str(re).lower() or "queue" in str(re).lower():
-                # Queue bound to old loop — retry once with a completely clean loop
-                logger.warning(f"[trace={self.trace_id}] Event loop conflict detected, retrying: {re}")
+                logger.warning(f"[trace={self.trace_id}] Event loop conflict, retrying: {re}")
                 loop2 = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop2)
                 try:
+                    return loop2.run_until_complete(self._aexecute(task, result_holder))
+                finally:
+                    try:
+                        loop2.run_until_complete(asyncio.sleep(0.1))
+                    except Exception:
+                        pass
+                    try:
+                        loop2.close()
+                    except RuntimeError:
+                        pass
                     return loop2.run_until_complete(self._aexecute(task, result_holder))
                 finally:
                     loop2.close()

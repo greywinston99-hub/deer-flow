@@ -97,15 +97,6 @@ def _auto_confirm_loop(graph, state, config, args) -> int:
                 print(f"[CCD] ⏸️  Interrupt #{iteration + 1} at '{node}' — auto-confirming...",
                       file=sys.stderr)
                 state = Command(resume={"confirmed": True, "action": "confirm"})
-                # Clean up event loop to avoid "Queue bound to different event loop" in Python 3.12+
-                try:
-                    loop = asyncio.get_event_loop()
-                    if loop.is_running():
-                        pass  # can't close a running loop
-                    else:
-                        loop.close()
-                except RuntimeError:
-                    pass
                 continue
             tb = traceback.format_exc()
             print(f"[CCD] Fatal error: {err_msg[:200]}", file=sys.stderr)
