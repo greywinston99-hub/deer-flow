@@ -135,6 +135,20 @@ def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
         pass
 
 
+def _shutdown_loop(loop: asyncio.AbstractEventLoop) -> None:
+    """Full loop shutdown: cancel tasks, shutdown generators and executor, close."""
+    _cancel_all_tasks(loop)
+    try:
+        loop.run_until_complete(loop.shutdown_asyncgens())
+    except Exception:
+        pass
+    try:
+        loop.run_until_complete(loop.shutdown_default_executor())
+    except Exception:
+        pass
+    _force_close_loop(loop)
+
+
 def _force_close_loop(loop: asyncio.AbstractEventLoop) -> None:
     """Close loop safely, suppressing cleanup errors from httpx/libraries."""
     try:
@@ -145,6 +159,12 @@ def _force_close_loop(loop: asyncio.AbstractEventLoop) -> None:
         loop.close()
     except RuntimeError:
         pass
+
+
+def _is_retryable_loop_runtime_error(exc: RuntimeError) -> bool:
+    """Check if a RuntimeError is a retryable event-loop/queue conflict."""
+    msg = str(exc).lower()
+    return any(kw in msg for kw in ("event loop", "queue", "closed", "bound"))
 
 
 class SubagentExecutor:
@@ -175,7 +195,7 @@ class SubagentExecutor:
         self.parent_model = parent_model
         self.sandbox_state = sandbox_state
         self.thread_data = thread_data
-        self.thread_id = thread_id
+        self.thread_id = thread_id or f"standalone-{uuid.uuid4().hex[:12]}"
         # Generate trace_id if not provided (for top-level calls)
         self.trace_id = trace_id or str(uuid.uuid4())[:8]
 
@@ -390,27 +410,30 @@ class SubagentExecutor:
         """
         import gc
 
+        loop = None
         for attempt in range(2):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
                 result = loop.run_until_complete(self._aexecute(task, result_holder))
-                # Graceful shutdown: cancel all pending tasks, let them finish
-                _cancel_all_tasks(loop)
+                _shutdown_loop(loop)
                 return result
             except RuntimeError as e:
-                if "event loop" in str(e).lower() or "queue" in str(e).lower():
+                if _is_retryable_loop_runtime_error(e):
                     logger.warning(f"[trace={self.trace_id}] loop conflict (attempt {attempt+1}): {e}")
+                    _shutdown_loop(loop)
                     if attempt == 0:
-                        _force_close_loop(loop)
                         gc.collect()
                         continue
                 raise
             except Exception:
-                _force_close_loop(loop)
+                _shutdown_loop(loop)
                 raise
-            finally:
-                _force_close_loop(loop)
+        # Unbind thread-local event loop after all attempts
+        try:
+            asyncio.set_event_loop(None)
+        except Exception:
+            pass
         # All attempts exhausted — return FAILED result
         fail_result = result_holder or SubagentResult(
             task_id=str(uuid.uuid4())[:8],
