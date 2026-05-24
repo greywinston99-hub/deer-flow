@@ -122,6 +122,31 @@ def _get_model_name(config: SubagentConfig, parent_model: str | None) -> str | N
     return config.model
 
 
+def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
+    """Cancel all pending tasks on the loop to prevent late callbacks."""
+    pending = asyncio.all_tasks(loop)
+    if not pending:
+        return
+    for task in pending:
+        task.cancel()
+    try:
+        loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+    except Exception:
+        pass
+
+
+def _force_close_loop(loop: asyncio.AbstractEventLoop) -> None:
+    """Close loop safely, suppressing cleanup errors from httpx/libraries."""
+    try:
+        loop.run_until_complete(asyncio.sleep(0.05))
+    except Exception:
+        pass
+    try:
+        loop.close()
+    except RuntimeError:
+        pass
+
+
 class SubagentExecutor:
     """Executor for running subagents."""
 
@@ -363,70 +388,39 @@ class SubagentExecutor:
         Returns:
             SubagentResult with the execution result.
         """
-        # Run the async execution in a new event loop
-        # This is necessary because:
-        # 1. We may have async-only tools (like MCP tools)
-        # 2. We're running inside a ThreadPoolExecutor which doesn't have an event loop
-        #
-        # Note: _aexecute() catches all exceptions internally, so this outer
-        # try-except only handles asyncio.run() failures (e.g., if called from
-        # an async context where an event loop already exists). Subagent execution
-        # errors are handled within _aexecute() and returned as FAILED status.
-        #
-        # Python 3.12+: asyncio.Queue is strictly bound to its creation loop.
-        # httpx connections schedule callbacks on the loop that fire during
-        # garbage collection AFTER loop.close(). Workaround: drain pending
-        # callbacks before closing, and suppress RuntimeError during cleanup.
-        try:
+        import gc
+
+        for attempt in range(2):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                return loop.run_until_complete(self._aexecute(task, result_holder))
+                result = loop.run_until_complete(self._aexecute(task, result_holder))
+                # Graceful shutdown: cancel all pending tasks, let them finish
+                _cancel_all_tasks(loop)
+                return result
+            except RuntimeError as e:
+                if "event loop" in str(e).lower() or "queue" in str(e).lower():
+                    logger.warning(f"[trace={self.trace_id}] loop conflict (attempt {attempt+1}): {e}")
+                    if attempt == 0:
+                        _force_close_loop(loop)
+                        gc.collect()
+                        continue
+                raise
+            except Exception:
+                _force_close_loop(loop)
+                raise
             finally:
-                # Drain pending callbacks before closing (prevents "Event loop is closed")
-                try:
-                    loop.run_until_complete(asyncio.sleep(0.1))
-                except Exception:
-                    pass
-                try:
-                    loop.close()
-                except RuntimeError:
-                    pass  # httpx cleanup may have already partially closed the loop
-        except RuntimeError as re:
-            if "event loop" in str(re).lower() or "queue" in str(re).lower():
-                logger.warning(f"[trace={self.trace_id}] Event loop conflict, retrying: {re}")
-                loop2 = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop2)
-                try:
-                    return loop2.run_until_complete(self._aexecute(task, result_holder))
-                finally:
-                    try:
-                        loop2.run_until_complete(asyncio.sleep(0.1))
-                    except Exception:
-                        pass
-                    try:
-                        loop2.close()
-                    except RuntimeError:
-                        pass
-                    return loop2.run_until_complete(self._aexecute(task, result_holder))
-                finally:
-                    loop2.close()
-            raise
-        except Exception as e:
-            logger.exception(f"[trace={self.trace_id}] Subagent {self.config.name} execution failed")
-            # Create a result with error if we don't have one
-            if result_holder is not None:
-                result = result_holder
-            else:
-                result = SubagentResult(
-                    task_id=str(uuid.uuid4())[:8],
-                    trace_id=self.trace_id,
-                    status=SubagentStatus.FAILED,
-                )
-            result.status = SubagentStatus.FAILED
-            result.error = str(e)
-            result.completed_at = datetime.now()
-            return result
+                _force_close_loop(loop)
+        # All attempts exhausted — return FAILED result
+        fail_result = result_holder or SubagentResult(
+            task_id=str(uuid.uuid4())[:8],
+            trace_id=self.trace_id,
+            status=SubagentStatus.FAILED,
+        )
+        fail_result.status = SubagentStatus.FAILED
+        fail_result.error = "Subagent execution failed after 2 event loop attempts"
+        fail_result.completed_at = datetime.now()
+        return fail_result
 
     def execute_async(self, task: str, task_id: str | None = None) -> str:
         """Start a task execution in the background.
