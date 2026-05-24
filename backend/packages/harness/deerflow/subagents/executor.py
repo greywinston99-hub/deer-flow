@@ -16,6 +16,8 @@ from langchain.tools import BaseTool
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
+MAX_CONCURRENT_SUBAGENTS = 3
+
 from deerflow.agents.thread_state import SandboxState, ThreadDataState, ThreadState
 from deerflow.models import create_chat_model
 from deerflow.subagents.config import SubagentConfig
@@ -370,8 +372,29 @@ class SubagentExecutor:
         # try-except only handles asyncio.run() failures (e.g., if called from
         # an async context where an event loop already exists). Subagent execution
         # errors are handled within _aexecute() and returned as FAILED status.
+        #
+        # Python 3.12+: asyncio.Queue is strictly bound to its creation loop.
+        # When LangGraph/LangChain internally creates Queues during model calls,
+        # they become invalid on the next execute() which creates a new loop.
+        # Workaround: create a fresh loop explicitly and set it as current.
         try:
-            return asyncio.run(self._aexecute(task, result_holder))
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                return loop.run_until_complete(self._aexecute(task, result_holder))
+            finally:
+                loop.close()
+        except RuntimeError as re:
+            if "event loop" in str(re).lower() or "queue" in str(re).lower():
+                # Queue bound to old loop — retry once with a completely clean loop
+                logger.warning(f"[trace={self.trace_id}] Event loop conflict detected, retrying: {re}")
+                loop2 = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop2)
+                try:
+                    return loop2.run_until_complete(self._aexecute(task, result_holder))
+                finally:
+                    loop2.close()
+            raise
         except Exception as e:
             logger.exception(f"[trace={self.trace_id}] Subagent {self.config.name} execution failed")
             # Create a result with error if we don't have one
@@ -451,9 +474,6 @@ class SubagentExecutor:
 
         _scheduler_pool.submit(run_task)
         return task_id
-
-
-MAX_CONCURRENT_SUBAGENTS = 3
 
 
 def get_background_task_result(task_id: str) -> SubagentResult | None:
