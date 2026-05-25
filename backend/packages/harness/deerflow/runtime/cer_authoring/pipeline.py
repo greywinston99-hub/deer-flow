@@ -7964,7 +7964,7 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
     if state.get("cer_chapter_drafts"):
         domain = _clinical_domain(state)
         sanitized = _sanitize_chapters_for_domain(dict(state["cer_chapter_drafts"]), domain)
-        return {"cer_chapter_drafts": sanitized, "writer_invocation_allowed": True, "writer_invocation_guard": writer_guard, "writer_input_packet": writer_input_packet, "ifu_feedback_suggestions": ifu_feedback, **ledger_updates, **synthesis_updates, **template_updates, **lineage_freeze}
+        return {"cer_chapter_drafts": sanitized, "writer_invocation_allowed": True, "writer_invocation_guard": writer_guard, "writer_input_packet": writer_input_packet, "ifu_feedback_suggestions": ifu_feedback, "ifu_working_document_status": _build_ifu_working_document_status(state), "ifu_cer_alignment_ledger": _build_ifu_cer_alignment_ledger(state), "sota_benchmark_reasoning_trace": _build_sota_benchmark_reasoning_trace(state), **ledger_updates, **synthesis_updates, **template_updates, **lineage_freeze}
     state = _english_report_state(state)
     profile = state.get("device_profile") or {}
     device = profile.get("device_name", "Device Under Evaluation")
@@ -8036,6 +8036,12 @@ def write_cer_chapters(state: dict[str, Any]) -> dict[str, Any]:
         "writer_quality_report": _writer_quality_self_check(chapters),
         "writer_input_packet": writer_input_packet,
         "ifu_feedback_suggestions": ifu_feedback,
+        "ifu_working_document_status": _build_ifu_working_document_status(state),
+        "ifu_cer_alignment_ledger": _build_ifu_cer_alignment_ledger(state),
+        "ifu_update_recommendation_ledger": _build_ifu_update_recommendation_ledger({**state, "ifu_feedback_suggestions": ifu_feedback}),
+        "sota_benchmark_reasoning_trace": _build_sota_benchmark_reasoning_trace(state),
+        "sota_endpoint_selection_ledger": _build_sota_endpoint_selection_ledger(state),
+        "sota_benchmark_to_claim_alignment": _build_sota_benchmark_to_claim_alignment(state),
         "argument_flow_report": _score_argument_flow(chapters),
         "cross_chapter_review": _llm_cross_chapter_review({**state, "cer_chapter_drafts": chapters}),
         "pmcf_template": _build_pmcf_template(state),
@@ -11159,6 +11165,216 @@ def _validate_data_flows(state: dict[str, Any]) -> dict[str, Any]:
     results["overall"] = "PASS" if all(v == "PASS" for v in results.values()) else "FAIL"
     results["failed_flows"] = [k for k, v in results.items() if v == "FAIL" and k != "overall"]
     return {"data_flow_validation": results}
+
+
+# ── Step 2: IFU & SOTA Reasoning Upgrade — 6 Artifact Generators ──
+
+def _build_ifu_working_document_status(state: dict[str, Any]) -> dict[str, Any]:
+    """A2: IFU Working Document Status — per-field maturity tracking."""
+    profile = state.get("device_profile") or {}
+    extraction = profile.get("ifu_structured_extraction") or {}
+    fields_data = []
+    _FIELD_LIST = [
+        ("intended_purpose", "medium"),
+        ("clinical_benefit", "none"),
+        ("composition", "medium"),
+        ("working_principle", "medium"),
+        ("model_specifications", "medium"),
+        ("contraindications", "high"),
+        ("sterility", "medium"),
+        ("shelf_life_storage", "medium"),
+        ("performance_summary", "low"),
+        ("intended_user", "medium"),
+        ("intended_environment", "medium"),
+        ("anatomical_site", "medium"),
+    ]
+    extracted = set(extraction.get("fields_extracted", []))
+    pending = set(extraction.get("fields_pending", []))
+    for field_name, confidence in _FIELD_LIST:
+        value = str(profile.get(field_name, ""))
+        in_ifu = field_name in extracted
+        needs = field_name in pending
+        # Determine maturity
+        if not value or "Requires confirmation" in value or "Evidence gap" in value:
+            maturity = "DRAFT"
+            needs = True
+        elif in_ifu and not needs:
+            maturity = "WORKING"
+        elif in_ifu:
+            maturity = "WORKING"
+        else:
+            maturity = "DRAFT"
+        fields_data.append({
+            "field_name": field_name,
+            "extracted_value": value[:200],
+            "source_location": f"IFU §{field_name}" if in_ifu else "",
+            "confidence": confidence,
+            "maturity_status": maturity,
+            "evidence_dependency": [],
+            "needs_update": needs,
+            "reason": "Requires IFU extraction confirmation" if needs else "",
+        })
+    statuses = [f["maturity_status"] for f in fields_data]
+    return {
+        "artifact_id": "IFU_WORKING_DOCUMENT_STATUS",
+        "version": "1.0",
+        "generated_at": _timestamp(),
+        "fields": fields_data,
+        "summary": {
+            "total_fields": len(fields_data),
+            "DRAFT": statuses.count("DRAFT"),
+            "WORKING": statuses.count("WORKING"),
+            "CONFIRMED": statuses.count("CONFIRMED"),
+            "needs_update_count": sum(1 for f in fields_data if f["needs_update"]),
+        },
+    }
+
+
+def _build_ifu_cer_alignment_ledger(state: dict[str, Any]) -> dict[str, Any]:
+    """A3: IFU-CER Alignment Ledger — IFU statements vs CER evidence."""
+    claims = state.get("claim_ledger") or []
+    profile = state.get("device_profile") or {}
+    evidence = state.get("evidence_registry") or []
+    alignments = []
+    for claim in claims:
+        claim_text = str(claim.get("claim_text", ""))
+        claim_id = str(claim.get("claim_id", ""))
+        support = str(claim.get("support_status", "")).upper()
+        ev_ids = claim.get("evidence_ids") or claim.get("allowed_evidence_ids") or []
+        # Match to IFU field
+        ifu_field = "clinical_benefit" if claim.get("claim_type") == "clinical_benefit" else (
+            "contraindications" if claim.get("claim_type") in ("warning_contraindication", "ifu_warning") else "intended_purpose"
+        )
+        # Determine alignment
+        if support in ("SUPPORTED", "FULLY_SUPPORTED") and ev_ids:
+            status = "aligned"
+        elif support in ("INSUFFICIENT", "EVIDENCE_GAP", "NOT_SUPPORTED"):
+            status = "overclaimed_in_ifu" if claim_text else "missing_in_ifu"
+        elif support in ("PARTIALLY_SUPPORTED", "PARTIAL") and ev_ids:
+            status = "aligned"
+        else:
+            status = "needs_human_review"
+        alignments.append({
+            "ifu_statement": claim_text[:200],
+            "ifu_field": ifu_field,
+            "matched_cer_claim_id": claim_id,
+            "matched_evidence_ids": ev_ids[:10],
+            "alignment_status": status,
+            "detail": f"Claim {claim_id}: {support} with {len(ev_ids)} evidence records.",
+        })
+    return {"artifact_id": "IFU_CER_ALIGNMENT_LEDGER", "version": "1.0", "alignments": alignments}
+
+
+def _build_ifu_update_recommendation_ledger(state: dict[str, Any]) -> dict[str, Any]:
+    """A4: IFU Update Recommendation Ledger — formal IFU revision proposals."""
+    feedback = state.get("ifu_feedback_suggestions") or []
+    claims = state.get("claim_ledger") or []
+    evidence = state.get("evidence_registry") or []
+    recs = []
+    for fb in feedback:
+        fb_type = fb.get("type", "")
+        claim_id = fb.get("claim_id", "")
+        claim = next((c for c in claims if str(c.get("claim_id")) == claim_id), {})
+        ev_ids = claim.get("evidence_ids") or []
+        ev_summary = [f"{eid}" for eid in ev_ids[:5]]
+        recs.append({
+            "rec_id": f"IFU-REC-{len(recs)+1:03d}",
+            "recommendation_type": fb_type,
+            "ifu_field": "clinical_benefit" if "benefit" in fb_type else "performance_claim",
+            "current_wording": str(claim.get("claim_text", ""))[:200],
+            "recommended_wording": fb.get("suggested_ifu_text", fb.get("suggested_action", ""))[:300],
+            "evidence_basis": ev_summary,
+            "risk_basis": "Based on CER evidence analysis.",
+            "human_decision_required": True,
+        })
+    return {"artifact_id": "IFU_UPDATE_RECOMMENDATION_LEDGER", "version": "1.0", "recommendations": recs}
+
+
+def _build_sota_benchmark_reasoning_trace(state: dict[str, Any]) -> dict[str, Any]:
+    """B2: SOTA Benchmark Reasoning Trace — full deduction chain per endpoint."""
+    benchmarks = state.get("sota_benchmark_matrix") or []
+    evidence = state.get("evidence_registry") or []
+    endpoints = []
+    for bm in benchmarks:
+        ep = {
+            "endpoint_id": bm.get("benchmark_id", ""),
+            "endpoint": bm.get("endpoint", ""),
+            "clinical_question": f"What is the SOTA benchmark for {bm.get('endpoint', '')}?",
+            "why_this_endpoint": bm.get("clinical_significance", ""),
+            "endpoint_type": "effectiveness" if "performance" in str(bm.get("clinical_significance", "")).lower() else "safety",
+            "source_articles": [
+                {"article_id": e.get("evidence_id", e.get("article_id", "")),
+                 "title": str(e.get("title", ""))[:120],
+                 "mdcg_level": e.get("mdcg_level", 8)}
+                for e in evidence[:10]
+            ],
+            "benchmark_value": str(bm.get("benchmark_value", bm.get("sota_value_range", ""))),
+            "benchmark_type": "quantitative" if any(c.isdigit() for c in str(bm.get("benchmark_value", ""))) else "qualitative",
+            "benchmark_range": str(bm.get("sota_value_range", "")),
+            "synthesis_method": bm.get("synthesis_method", "To be determined after full-text endpoint extraction"),
+            "sample_size": bm.get("sample_size", 0),
+            "confidence": bm.get("benchmark_confidence", "low"),
+            "uncertainty": "",
+            "heterogeneity": "",
+            "limitations": "",
+            "subject_device_alignment": "pending",
+            "subject_device_value": "",
+            "allowed_conclusion_strength": bm.get("allowed_conclusion_strength", "CAUTIOUS"),
+            "forbidden_wording": ["demonstrates", "proves", "confirms"],
+            "recommended_wording": bm.get("conclusion", ""),
+            "avoid_wording": ["demonstrates", "proves", "confirms", "establishes"],
+        }
+        endpoints.append(ep)
+    return {"artifact_id": "SOTA_BENCHMARK_REASONING_TRACE", "version": "1.0", "endpoints": endpoints}
+
+
+def _build_sota_endpoint_selection_ledger(state: dict[str, Any]) -> dict[str, Any]:
+    """B3: SOTA Endpoint Selection Ledger — why each endpoint was selected/rejected."""
+    benchmarks = state.get("sota_benchmark_matrix") or []
+    claims = state.get("claim_ledger") or []
+    selections = []
+    for bm in benchmarks:
+        endpoint = bm.get("endpoint", "")
+        selections.append({
+            "endpoint": endpoint,
+            "clinical_relevance": bm.get("clinical_significance", "")[:200],
+            "regulatory_relevance": f"GSPR {bm.get('corresponding_gspr', '1, 6')}",
+            "claim_linkage": [bm.get("corresponding_claim_id", "")],
+            "risk_linkage": [],
+            "evidence_availability": f"{len(state.get('evidence_registry') or [])} records in registry",
+            "selected": True,
+            "reason": f"Included as SOTA benchmark for {endpoint[:60]}.",
+        })
+    return {"artifact_id": "SOTA_ENDPOINT_SELECTION_LEDGER", "version": "1.0", "selections": selections}
+
+
+def _build_sota_benchmark_to_claim_alignment(state: dict[str, Any]) -> dict[str, Any]:
+    """B4: SOTA Benchmark-to-Claim Alignment — what each benchmark supports."""
+    claims = state.get("claim_ledger") or []
+    benchmarks = state.get("sota_benchmark_matrix") or []
+    alignments = []
+    for claim in claims:
+        claim_id = str(claim.get("claim_id", ""))
+        support = str(claim.get("support_status", "")).upper()
+        for bm in benchmarks[:5]:
+            bm_claim = bm.get("corresponding_claim_id", "")
+            if bm_claim and claim_id in str(bm_claim):
+                status = "supports" if support in ("SUPPORTED", "FULLY_SUPPORTED") else (
+                    "partially_supports" if support in ("PARTIALLY_SUPPORTED", "PARTIAL") else "contextual_only"
+                )
+                alignments.append({
+                    "claim_id": claim_id,
+                    "benchmark_endpoint_id": bm.get("benchmark_id", ""),
+                    "alignment_status": status,
+                    "reason": f"Claim {claim_id} ({support}) linked to benchmark {bm.get('endpoint', '')}",
+                    "allowed_wording": "MODERATE" if status == "supports" else "CAUTIOUS",
+                })
+    return {"artifact_id": "SOTA_BENCHMARK_TO_CLAIM_ALIGNMENT", "version": "1.0", "alignments": alignments}
+
+
+def _timestamp() -> str:
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 # ── Phase 6: Binary Evidence Inclusion (engineer feedback: 层级筛选) ──

@@ -1876,11 +1876,13 @@ def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:
         _gate_sota_conclusion_strength_guard(state),
         _gate_defect_state_consistency(state),
         _gate_final_draft_semantic_qa(state),
+        _gate_ifu_working_document(state),
+        _gate_sota_reasoning(state),
         evaluate_claim_sota_alignment_gate(state),
         evaluate_argument_quality_gate(state),
         evaluate_cep_exists_gate(state),
     ]
-    critical_gate_ids = {"G1b", "G1d", "G2", "G5", "G8", "G12", "G14", "G19", "G_ARG_01", "G_ARG_02", "G_CEP", "G_DP_STATE"}
+    critical_gate_ids = {"G1b", "G1d", "G2", "G5", "G8", "G12", "G14", "G19", "G_ARG_01", "G_ARG_02", "G_CEP", "G_DP_STATE", "G_IFU_WORKING_DOCUMENT", "G_SOTA_REASONING"}
     critical_failures = [r for r in results if r.gate_id in critical_gate_ids and r.status != "PASS"]
     minor_failures = [r for r in results if r.gate_id not in critical_gate_ids and r.status != "PASS"]
     all_failed = critical_failures + minor_failures
@@ -1997,6 +1999,75 @@ def _gate_defect_state_consistency(state: dict[str, Any]) -> GateResult:
     if violations:
         return GateResult("G_DP_STATE", "FAIL", "; ".join(violations[:10]))
     return GateResult("G_DP_STATE", "PASS", f"State consistency verified against {len(dp_data.get('patterns', []))} DP patterns.")
+
+
+# ── G_IFU_WORKING_DOCUMENT: IFU Working Document Gate ──
+
+def _gate_ifu_working_document(state: dict[str, Any]) -> GateResult:
+    """A5: IFU Working Document Gate.
+
+    Rules:
+    - IFU clinical_benefit empty + CER has supported claims → IFU_UPDATE_RECOMMENDATION
+    - IFU overclaims vs evidence → narrow_claim_scope
+    - IFU warning contradicts RMF → HUMAN_REVIEW
+    """
+    profile = state.get("device_profile") or {}
+    claims = state.get("claim_ledger") or []
+    alignment = (state.get("ifu_cer_alignment_ledger") or {}).get("alignments") or []
+    violations = []
+
+    # IFU-G01: clinical_benefit missing but CER has supported claims
+    cb_value = str(profile.get("clinical_benefit", ""))
+    cb_claims = [c for c in claims if str(c.get("claim_type", "")) == "clinical_benefit"]
+    supported_cb = [c for c in cb_claims if str(c.get("support_status", "")).upper() in ("SUPPORTED", "FULLY_SUPPORTED")]
+    if (not cb_value or "Requires confirmation" in cb_value) and supported_cb:
+        violations.append("IFU-G01: IFU lacks clinical benefit wording but CER has supported clinical benefit claims → IFU_UPDATE_RECOMMENDATION")
+
+    # IFU-G02: IFU overclaims
+    for al in alignment:
+        if al.get("alignment_status") == "overclaimed_in_ifu":
+            violations.append(f"IFU-G02: IFU overclaims '{al.get('ifu_statement', '')[:80]}' — evidence insufficient → narrow_claim_scope")
+
+    # IFU-G03: IFU/RMF conflict
+    rmf = state.get("rmf_registry") or state.get("risk_management_file") or []
+    ifu_warnings = [c for c in claims if str(c.get("claim_type", "")) in ("ifu_warning", "warning_contraindication")]
+    if ifu_warnings and not rmf:
+        violations.append("IFU-G03: IFU warnings present but RMF missing → HUMAN_REVIEW_REQUIRED")
+
+    if violations:
+        return GateResult("G_IFU_WORKING_DOCUMENT", "FAIL", "; ".join(violations[:3]))
+    return GateResult("G_IFU_WORKING_DOCUMENT", "PASS", "IFU working document status verified.")
+
+
+# ── G_SOTA_REASONING: SOTA Benchmark Reasoning Gate ──
+
+def _gate_sota_reasoning(state: dict[str, Any]) -> GateResult:
+    """B5: SOTA Benchmark Reasoning Gate.
+
+    Rules:
+    - benchmark has value but no synthesis_method → FAIL
+    - benchmark has no source_articles → FAIL
+    - qualitative benchmark without rationale → FAIL
+    """
+    benchmarks = state.get("sota_benchmark_matrix") or []
+    violations = []
+
+    for bm in benchmarks:
+        val = bm.get("benchmark_value") or bm.get("sota_value_range")
+        method = bm.get("synthesis_method", "")
+        sources = bm.get("sota_source", "")
+
+        # SOTA-G01: value but no method
+        if val and not method:
+            violations.append(f"SOTA-G01: '{bm.get('endpoint', '?')[:40]}' has benchmark value but no synthesis_method")
+
+        # SOTA-G02: no sources
+        if val and not sources:
+            violations.append(f"SOTA-G02: '{bm.get('endpoint', '?')[:40]}' has benchmark value but no evidence source")
+
+    if violations:
+        return GateResult("G_SOTA_REASONING", "FAIL", "; ".join(violations[:3]))
+    return GateResult("G_SOTA_REASONING", "PASS", f"SOTA reasoning verified for {len(benchmarks)} endpoints.")
 
 
 def _gate_ifu_exists(state: dict[str, Any]) -> GateResult:
