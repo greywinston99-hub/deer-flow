@@ -243,6 +243,19 @@ def evaluate_pre_writer_readiness_gate(state: dict[str, Any]) -> dict[str, Any]:
                 "source_gate_ids": override.get("source_gate_ids") or "",
             }
         )
+    # ── IFU Pre-Writer Check: overclaimed/missing → BLOCKED before Writer ──
+    ifu_alignment = state.get("ifu_cer_alignment_ledger") or {}
+    ifu_alignments = ifu_alignment.get("alignments", [])
+    overclaimed = [a for a in ifu_alignments if a.get("alignment_status") in ("overclaimed_in_ifu", "unsupported_by_evidence")]
+    if overclaimed:
+        rows.append({
+            "condition_name": "IFU_ALIGNMENT",
+            "status": "BLOCKED",
+            "message": f"IFU has {len(overclaimed)} overclaimed/unsupported statements vs CER evidence. Human review required before Writer.",
+            "upstream_route": "claim_decomposition",
+            "failure_pattern": "ifu_overclaimed",
+            "source_gate_ids": "G_IFU_WORKING_DOCUMENT",
+        })
     blocked = [row for row in rows if row["status"] == "BLOCKED"]
     rework = [row for row in rows if row["status"] == "REWORK_REQUIRED"]
     route_condition = _pre_writer_route_condition(blocked or rework)

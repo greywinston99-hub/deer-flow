@@ -686,7 +686,11 @@ def _node_endpoint_extraction(state: SharedAuthoringState) -> dict[str, Any]:
 
 def _node_sota_endpoint_gate(state: SharedAuthoringState) -> dict[str, Any]:
     report = _sota_endpoint_gate_report(dict(state))
-    return _hard_gate_update("sota_endpoint_gate", state, report)
+    result = _hard_gate_update("sota_endpoint_gate", state, report)
+    # Increment rework counter on REWORK_REQUIRED to enable spiral convergence
+    if report.get("status") == "REWORK_REQUIRED":
+        result["rework_gate_counter"] = _rework_count(state) + 1
+    return result
 
 
 def _sota_endpoint_gate_report(state: dict[str, Any]) -> dict[str, Any]:
@@ -720,9 +724,12 @@ def _sota_endpoint_gate_report(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _route_after_sota_endpoint_gate(state: SharedAuthoringState) -> str:
-    if _rework_count(state) >= 5:
+    report = state.get("sota_endpoint_gate_report") or {}
+    failure = str(report.get("failure_pattern") or "")
+    # Intelligent spiral convergence: only continue if evidence pool can still grow
+    if not _should_continue_spiral(state, failure_pattern=failure, max_rounds=3):
         return "pre_g42_claim_evidence_candidate_linking"
-    route = _hard_gate_graph_route(state.get("sota_endpoint_gate_report") or {}, pass_route="pre_g42_claim_evidence_candidate_linking")
+    route = _hard_gate_graph_route(report, pass_route="pre_g42_claim_evidence_candidate_linking")
     if route in ("endpoint_extraction", "sota_search", "evidence_appraisal"):
         return "query_expansion"
     return route
@@ -778,12 +785,13 @@ def _inc_rework(state: SharedAuthoringState) -> dict[str, Any]:
 
 def _route_after_evidence_sufficiency_gate(state: SharedAuthoringState) -> str:
     report = state.get("evidence_sufficiency_gate_report") or {}
-    count = _rework_count(state)
-    if count >= 5:
-        return "claim_evidence_matrix"  # force forward
+    failure = str(report.get("failure_pattern") or "")
+    # Intelligent spiral convergence
+    if not _should_continue_spiral(state, failure_pattern=failure, max_rounds=5):
+        # Max spiral reached → controlled compromise (human decision, not silent forward)
+        return "controlled_compromise"
     if report.get("status") == "PASS":
         return "claim_evidence_matrix"
-    # Increment counter for any rework route
     return "query_expansion"
 
 
@@ -845,13 +853,18 @@ def _node_claim_evidence_gate(state: SharedAuthoringState) -> dict[str, Any]:
     if report.get("status") == "REWORK_REQUIRED":
         result["request_review_quick_scan"] = True
         result["auto_quick_scan_trigger_node"] = "claim_evidence_gate"
+        # Increment rework counter to enable spiral convergence
+        result["rework_gate_counter"] = _rework_count(state) + 1
     return result
 
 
 def _route_after_claim_evidence_gate(state: SharedAuthoringState) -> str:
-    if _rework_count(state) >= 5:
+    report = state.get("claim_evidence_gate_report") or {}
+    failure = str(report.get("failure_pattern") or "")
+    # Intelligent spiral convergence
+    if not _should_continue_spiral(state, failure_pattern=failure, max_rounds=3):
         return "gap_pmcf"
-    route = _hard_gate_graph_route(state.get("claim_evidence_gate_report") or {}, pass_route="gap_pmcf")
+    route = _hard_gate_graph_route(report, pass_route="gap_pmcf")
     if route in ("claim_decomposition", "sota_search", "evidence_appraisal"):
         return "query_expansion"
     return route
@@ -1432,7 +1445,11 @@ def _build_urology_benchmarks(search_runs: list[dict[str, Any]]) -> list[dict[st
 
 def _route_after_gates(state: SharedAuthoringState) -> str:
     """Route after final gate closure: gate_passed → export, otherwise → controlled_compromise."""
-    return "export" if state.get("status") == "gate_passed" else "controlled_compromise"
+    decision = state.get("final_gate_decision")
+    status = state.get("status")
+    if status == "gate_passed" or decision == "HUMAN_HOLD":
+        return "export"
+    return "controlled_compromise"
 
 
 def _spiral_round_from_state(state: dict[str, Any]) -> int:
@@ -1450,9 +1467,93 @@ def _spiral_round_from_state(state: dict[str, Any]) -> int:
     return max(rounds or [1])
 
 
+def _should_continue_spiral(state: SharedAuthoringState, *,
+                            failure_pattern: str = "",
+                            max_rounds: int = 3,
+                            min_record_growth_pct: float = 15.0) -> bool:
+    """Intelligent spiral convergence detection.
+
+    Returns True if the next spiral round is likely to yield meaningful
+    improvement; False if the evidence pool has saturated.
+
+    Criteria:
+    1. Max rounds: never exceed 3 spiral iterations (hard ceiling).
+    2. Record growth: if the last round added < 15% new records vs prior,
+       the search strategy has likely saturated.
+    3. Failure pattern: if the gate did NOT fail due to "insufficient pool"
+       (e.g. endpoint extraction quality issue), more searching won't help.
+    4. Query delta: if the expanded query is identical to the previous round,
+       no new territory is being explored.
+    """
+    spiral = _spiral_round_from_state(state)
+    if spiral >= max_rounds:
+        return False
+
+    # Failure pattern analysis — if failure is NOT pool-related, more searching won't help
+    pool_related_patterns = {
+        "no_benchmark_derivable_from_pool",
+        "insufficient_pool",
+        "insufficient_evidence",
+        "low_retrieval_yield",
+    }
+    if failure_pattern and failure_pattern not in pool_related_patterns:
+        return False
+
+    lineage = state.get("evidence_spiral_lineage") or []
+    if len(lineage) < 2:
+        # First rework with pool-related failure — give it one more shot
+        return True
+
+    # Compare last two rounds for record growth
+    try:
+        last = lineage[-1]
+        prev = lineage[-2]
+        prev_total = int(prev.get("records_total") or 0)
+        last_total = int(last.get("records_total") or 0)
+        if prev_total > 0:
+            growth_pct = ((last_total - prev_total) / prev_total) * 100
+            if growth_pct < min_record_growth_pct:
+                return False
+    except Exception:
+        pass
+
+    # Check query delta — identical query means no new search territory
+    try:
+        last = lineage[-1]
+        prev = lineage[-2]
+        if last.get("query_delta") == prev.get("query_delta"):
+            return False
+    except Exception:
+        pass
+
+    # Failure pattern analysis
+    # If failure is NOT about insufficient evidence pool, more searches won't help
+    pool_related_patterns = {
+        "no_benchmark_derivable_from_pool",
+        "insufficient_pool",
+        "insufficient_evidence",
+        "low_retrieval_yield",
+    }
+    if failure_pattern and failure_pattern not in pool_related_patterns:
+        return False
+
+    return True
+
+
 def _node_controlled_compromise(state: SharedAuthoringState) -> dict[str, Any]:
     report = state.get("pre_writer_readiness_report") or {}
     packet = pipeline.build_controlled_compromise_report(dict(state))
+    # Even on controlled_compromise, write partial artifacts so the accumulated
+    # evidence and analysis are not lost.
+    artifact_root = state.get("artifact_root")
+    artifacts: list[str] = []
+    if artifact_root:
+        try:
+            ifu_report = pipeline._build_ifu_feedback_report(dict(state))
+            export_state = {**dict(state), **pipeline.refresh_late_annexes(dict(state)), "ifu_feedback_report": ifu_report}
+            artifacts = write_authoring_artifacts(artifact_root, export_state)
+        except Exception as exc:
+            logger.warning("Artifact write failed during controlled_compromise (non-fatal): %s", exc)
     return {
         **_stage("controlled_compromise", "blocked"),
         **packet,
@@ -1465,6 +1566,7 @@ def _node_controlled_compromise(state: SharedAuthoringState) -> dict[str, Any]:
             }
         ],
         "status": "controlled_compromise",
+        "artifacts": artifacts,
     }
 
 
