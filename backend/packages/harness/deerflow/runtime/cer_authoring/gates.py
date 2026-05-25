@@ -233,6 +233,17 @@ def evaluate_pre_writer_readiness_gate(state: dict[str, Any]) -> dict[str, Any]:
             status = "REWORK_REQUIRED"
         if status not in {"PASS", "REWORK_REQUIRED", "BLOCKED"}:
             status = "REWORK_REQUIRED"
+        # Downgrade BLOCKED to REWORK_REQUIRED for placeholder sub-conditions
+        # that lack dedicated evaluation logic, so Writer is not permanently
+        # deadlocked while upstream retrieval/evidence issues are being resolved.
+        # claim_evidence and retrieval_completeness are the only conditions
+        # documented as "intentionally placeholders" without real sub-condition
+        # checking — all others have or will have dedicated gate logic.
+        _PLACEHOLDER_ONLY_CONDITIONS = {"claim_evidence", "retrieval_completeness"}
+        if status == "BLOCKED" and condition in _PLACEHOLDER_ONLY_CONDITIONS:
+            status = "REWORK_REQUIRED"
+            if not override.get("upstream_route"):
+                override["upstream_route"] = PRE_WRITER_REWORK_ROUTES.get(condition, "sota_search")
         rows.append(
             {
                 "condition_name": condition,
@@ -1865,6 +1876,7 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
 
 def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:
     results = [
+        _gate_mdr_annex_xiv(state),
         _gate_ifu_exists(state),
         _gate_prewriting_tables(state),
         _gate_device_profile_complete(state),
@@ -1917,7 +1929,7 @@ def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:
         evaluate_argument_quality_gate(state),
         evaluate_cep_exists_gate(state),
     ]
-    critical_gate_ids = {"G1b", "G1d", "G2", "G5", "G8", "G12", "G14", "G19", "G_ARG_01", "G_ARG_02", "G_CEP", "G_DP_STATE", "G_IFU_WORKING_DOCUMENT", "G_SOTA_REASONING"}
+    critical_gate_ids = {"G1b", "G1d", "G2", "G5", "G8", "G12", "G14", "G19", "G_ARG_01", "G_ARG_02", "G_CEP", "G_DP_STATE", "G_IFU_WORKING_DOCUMENT", "G_SOTA_REASONING", "G_MDR_ANNEX_XIV"}
     critical_failures = [r for r in results if r.gate_id in critical_gate_ids and r.status != "PASS"]
     minor_failures = [r for r in results if r.gate_id not in critical_gate_ids and r.status != "PASS"]
     all_failed = critical_failures + minor_failures
@@ -2103,6 +2115,32 @@ def _gate_sota_reasoning(state: dict[str, Any]) -> GateResult:
     if violations:
         return GateResult("G_SOTA_REASONING", "FAIL", "; ".join(violations[:3]))
     return GateResult("G_SOTA_REASONING", "PASS", f"SOTA reasoning verified for {len(benchmarks)} endpoints.")
+
+
+# ── G_MDR_ANNEX_XIV: MDR Annex XIV Compliance ──
+
+_MDR_ANNEX_XIV_CHECKS = {
+    "A1a": {"clause": "Annex XIV §1(a)", "requirement": "Device description", "check": lambda s: bool((s.get("device_profile") or {}).get("device_name"))},
+    "A1b": {"clause": "Annex XIV §1(b)", "requirement": "Intended purpose", "check": lambda s: bool((s.get("device_profile") or {}).get("intended_purpose"))},
+    "A2": {"clause": "Annex XIV §2", "requirement": "Clinical data assessed", "check": lambda s: len(s.get("evidence_registry") or []) > 0},
+    "A4": {"clause": "Annex XIV §4", "requirement": "Literature search protocol", "check": lambda s: len(s.get("search_run_registry") or []) > 0},
+    "A5": {"clause": "Annex XIV §5", "requirement": "PRISMA/literature results", "check": lambda s: bool(s.get("prisma_flow_data") or s.get("prisma_flow"))},
+    "A6": {"clause": "Annex XIV §6", "requirement": "Evidence appraisal", "check": lambda s: len(s.get("evidence_registry") or []) > 0},
+    "A7": {"clause": "Annex XIV §7", "requirement": "GSPR analysis", "check": lambda s: bool(s.get("claim_evidence_matrix") or s.get("gspr_coverage"))},
+    "A8": {"clause": "Annex XIV §8", "requirement": "Conclusions written", "check": lambda s: bool((s.get("cer_chapter_drafts") or {}).get("5 Conclusions"))},
+    "A9": {"clause": "Annex XIV §9", "requirement": "Evaluator qualification", "check": lambda s: bool((s.get("cer_chapter_drafts") or {}).get("7 Evaluator Qualification"))},
+    "A10": {"clause": "Annex XIV §10", "requirement": "Dates and signatures", "check": lambda s: bool((s.get("cer_chapter_drafts") or {}).get("9 Dates and Signatures"))},
+}
+
+
+def _gate_mdr_annex_xiv(state: dict[str, Any]) -> GateResult:
+    violations = []
+    for cid, c in _MDR_ANNEX_XIV_CHECKS.items():
+        if not c["check"](state):
+            violations.append(f"{c['clause']}: {c['requirement']}")
+    if violations:
+        return GateResult("G_MDR_ANNEX_XIV", "FAIL", "; ".join(violations[:5]))
+    return GateResult("G_MDR_ANNEX_XIV", "PASS", f"MDR Annex XIV: {len(_MDR_ANNEX_XIV_CHECKS)}/{len(_MDR_ANNEX_XIV_CHECKS)} met.")
 
 
 def _gate_ifu_exists(state: dict[str, Any]) -> GateResult:
