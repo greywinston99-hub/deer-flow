@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="5">
+<title>CER Pipeline Dashboard</title>
+<style>
+  body { font-family: -apple-system, monospace; background: #1a1a2e; color: #e0e0e0; padding: 20px; }
+  .card { background: #16213e; border-radius: 8px; padding: 20px; margin: 10px 0; max-width: 500px; }
+  .label { color: #888; font-size: 12px; }
+  .value { color: #4fc3f7; font-size: 24px; font-weight: bold; }
+  .row { display: flex; justify-content: space-between; align-items: center; }
+  .bar { height: 6px; background: #333; border-radius: 3px; margin: 8px 0; }
+  .bar-fill { height: 6px; background: #4fc3f7; border-radius: 3px; transition: width 1s; }
+  .error { color: #ef5350; }
+  h1 { font-size: 18px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #333; }
+  td:first-child { color: #888; }
+</style>
+</head>
+<body>
+<h1>CER Pipeline Dashboard</h1>
+<div id="app">Loading...</div>
+<script>
+async function load() {
+  try {
+    const resp = await fetch('dashboard.json', {cache: 'no-store'});
+    if (!resp.ok) throw new Error('not found');
+    const d = await resp.json();
+    const status = d.status === 'running' ? '🟢' : '🔴';
+    render(d, status);
+  } catch {
+    document.getElementById('app').innerHTML = '<p class="error">No dashboard.json found in this directory. Pipeline may not be running.</p><p>Place this HTML in your artifact_root directory alongside dashboard.json.</p>';
+  }
+}
+
+function render(d, status) {
+  document.getElementById('app').innerHTML = `
+    <div class="card">
+      ${status} <b>${d.project_id || 'Unknown'}</b><br>
+      <span class="label">Elapsed: ${d.elapsed || '0s'} | Memory: ${d.memory_mb || 0}MB</span>
+    </div>
+    <div class="card">
+      <span class="label">Current Node</span><br>
+      <span class="value">${d.current_node || 'starting'}</span>
+      <span class="label"> (${d.node_elapsed || '0s'})</span>
+      <div class="row" style="margin-top:8px">
+        <span class="label">Next: ${(d.next_nodes || []).join(' → ') || '🏁 DONE'}</span>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <tr><td>📚 Searched</td><td><b>${d.literature_searched || 0}</b></td></tr>
+        <tr><td>🔍 Screened</td><td><b>${d.literature_screened || 0}</b></td></tr>
+        <tr><td>✅ Included</td><td><b>${d.literature_included || 0}</b></td></tr>
+        <tr><td>📝 Claims</td><td><b>${d.claims || 0}</b></td></tr>
+        <tr><td>🎯 Endpoints</td><td><b>${d.sota_endpoints || 0}</b></td></tr>
+        <tr><td>🔄 Spiral</td><td><b>Round ${d.spiral_round || 0}/5</b></td></tr>
+      </table>
+    </div>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>

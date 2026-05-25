@@ -52,7 +52,8 @@ def main() -> int:
     # Detect review_package.json
     review_package_candidates = [
         review_root / "06_review_package" / "review_package.json",
-        review_root / "10_gate_closure" / "review_package.json",
+        review_root / "10_gate_closure" / "review_package.json",  # V27 legacy
+        review_root / "11_gate_closure" / "review_package.json",  # V28.2+
     ]
     review_package_path = next((p for p in review_package_candidates if p.exists()), None)
 

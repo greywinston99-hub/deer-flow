@@ -58,6 +58,12 @@ def main() -> int:
     artifact_root = Path(args.artifact_root).expanduser().resolve()
     artifact_root.mkdir(parents=True, exist_ok=True)
 
+    # ── 1: Log cleanup — archive logs older than 24h ──
+    _cleanup_old_logs(artifact_root)
+
+    # ── 2: Pre-flight checks ──
+    _preflight_checks(input_root, artifact_root)
+
     cp_ctx = None
     checkpointer = None
     try:
@@ -249,7 +255,13 @@ def _auto_confirm_loop(graph, state, config, args) -> int:
         summary["auto_confirm"] = True
         summary["interrupts_handled"] = len(interrupted_at)
         summary["interrupted_nodes"] = interrupted_at
+        summary["node_timing"] = _node_timing_report(interrupted_at)
         print(json.dumps(summary, ensure_ascii=False, indent=2))
+        # 3: macOS notification
+        status = result.get("final_gate_decision", "completed")
+        _notify("CER Pipeline Done", f"{args.project_id}: {status}")
+        # 5: VACUUM checkpoint
+        _vacuum_checkpoint(args.project_id)
         return 0 if result.get("final_gate_decision") == "PASS_TO_DRAFT_DOCX" else 2
 
     print(f"[CCD] Max auto-interrupts ({args.max_interrupts}) reached.", file=sys.stderr)
@@ -413,6 +425,78 @@ def _extract_node_from_error(err_msg: str, exc: Exception | None = None) -> str:
         if keyword in err_msg.lower():
             return keyword
     return "unknown"
+
+
+# ── Productivity helpers (1-6) ──────────────────────────────────────────
+
+def _cleanup_old_logs(artifact_root: Path) -> None:
+    """Archive logs older than 24h to .archive/. Keeps last 5 logs."""
+    log_files = sorted(artifact_root.glob("*.log"), key=lambda p: p.stat().st_mtime)
+    if len(log_files) <= 5:
+        return
+    archive_dir = artifact_root / ".archive"
+    archive_dir.mkdir(exist_ok=True)
+    cutoff = time.time() - 86400
+    for lf in log_files[:-5]:
+        if lf.stat().st_mtime < cutoff:
+            lf.rename(archive_dir / lf.name)
+
+
+def _preflight_checks(input_root: Path, artifact_root: Path) -> None:
+    """Check project readiness before pipeline start."""
+    ok = True
+    ifu_dir = input_root / "01_IFU_REQUIRED"
+    if not ifu_dir.exists() or not list(ifu_dir.glob("*")):
+        print("[PREFLIGHT] ⚠️  No IFU files found", file=sys.stderr)
+        ok = False
+    # Check disk space (>1GB free)
+    try:
+        import shutil
+        free = shutil.disk_usage(artifact_root).free / (1024**3)
+        if free < 1:
+            print(f"[PREFLIGHT] ⚠️  Low disk space: {free:.1f}GB free", file=sys.stderr)
+            ok = False
+    except Exception:
+        pass
+    if ok:
+        print(f"[PREFLIGHT] ✅ Ready — IFU found, disk OK", file=sys.stderr)
+
+
+def _notify(title: str, message: str) -> None:
+    """macOS notification when pipeline completes."""
+    try:
+        subprocess.run([
+            "osascript", "-e",
+            f'display notification "{message}" with title "{title}"'
+        ], timeout=5)
+    except Exception:
+        pass
+
+
+def _vacuum_checkpoint(project_id: str) -> None:
+    """VACUUM SQLite checkpoint after successful run."""
+    db_path = Path("checkpoints.db")
+    if not db_path.exists():
+        return
+    try:
+        import sqlite3
+        conn = sqlite3.connect(str(db_path))
+        conn.execute("VACUUM")
+        conn.close()
+    except Exception:
+        pass
+
+
+def _node_timing_report(interrupted_nodes: list[str]) -> str:
+    """Build per-node timing summary."""
+    from collections import Counter
+    counts = Counter(interrupted_nodes)
+    lines = ["## Node Timing"]
+    lines.append("| Node | Count |")
+    lines.append("| --- | --- |")
+    for node, count in counts.most_common():
+        lines.append(f"| {node} | {count} |")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
