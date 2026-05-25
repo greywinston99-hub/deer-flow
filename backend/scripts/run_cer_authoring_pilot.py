@@ -17,6 +17,21 @@ from pathlib import Path
 os.environ.setdefault("CER_AUTHORING_STRICT_V7", "1")
 os.environ.setdefault("CER_AUTHORING_ENABLE_LLM_AGENTS", "1")
 
+# Suppress httpx event-loop-closed cleanup noise (Python 3.12 + httpx + langgraph).
+# This patches BaseEventLoop.call_exception_handler to drop known-cosmetic
+# "Event loop is closed" RuntimeErrors from httpx.AsyncClient.aclose() cleanup.
+_asyncio_call_exc_original = asyncio.base_events.BaseEventLoop.call_exception_handler
+
+
+def _noisy_cleanup_filter(self: asyncio.base_events.BaseEventLoop, context: dict) -> None:
+    exc = context.get("exception")
+    if isinstance(exc, RuntimeError) and "Event loop is closed" in str(exc):
+        return
+    _asyncio_call_exc_original(self, context)
+
+
+asyncio.base_events.BaseEventLoop.call_exception_handler = _noisy_cleanup_filter
+
 from deerflow.runtime.cer_authoring.graph import build_cer_authoring_graph
 from langgraph.types import Command
 
@@ -147,6 +162,88 @@ def _auto_confirm_loop(graph, state, config, args) -> int:
 
 # ── Single invoke (production HC-pause mode) ──────────────────────────────────
 
+def _write_human_gate_file(artifact_root: str, node: str, info: dict) -> str:
+    """Write HC gate data to a markdown file for VS Code / terminal review."""
+    gate_dir = Path(artifact_root) / ".human_gate"
+    gate_dir.mkdir(parents=True, exist_ok=True)
+    gate_file = gate_dir / f"{node}.md"
+    lines = [
+        f"# ⏸️ Human Gate: {node}",
+        "",
+        f"**Priority**: {info.get('priority', '?')}",
+        f"**Step**: {info.get('step', '?')}",
+        f"**Message**: {info.get('message', 'N/A')}",
+        "",
+        "---",
+        "",
+    ]
+    # Render device_profile data as table
+    device_profile = info.get("device_profile")
+    if device_profile and isinstance(device_profile, dict):
+        lines.append("## Device Profile")
+        lines.append("| Field | Value |")
+        lines.append("| --- | --- |")
+        for k, v in device_profile.items():
+            if k != "profile_source_ids":
+                lines.append(f"| {k} | {str(v)[:200]} |")
+        lines.append("")
+    # Render claim_ledger
+    claim_ledger = info.get("claim_ledger")
+    if claim_ledger and isinstance(claim_ledger, list):
+        lines.append(f"## Claim Ledger ({len(claim_ledger)} claims)")
+        lines.append("| ID | Type | Text |")
+        lines.append("| --- | --- | --- |")
+        for c in claim_ledger[:20]:
+            lines.append(f"| {c.get('claim_id', '?')} | {c.get('claim_type', '?')} | {str(c.get('claim_text', ''))[:120]} |")
+        lines.append("")
+    # Render search runs
+    search_runs = info.get("search_runs")
+    if search_runs and isinstance(search_runs, list):
+        lines.append(f"## Search Strategy ({len(search_runs)} searches)")
+        lines.append("| DB | Terms |")
+        lines.append("| --- | --- |")
+        for s in search_runs[:10]:
+            lines.append(f"| {s.get('database', '?')} | {str(s.get('search_terms', ''))[:150]} |")
+        lines.append("")
+    # Render evidence sample
+    evidence_count = info.get("evidence_count")
+    appraisal_sample = info.get("appraisal_sample")
+    if evidence_count:
+        lines.append(f"## Evidence Appraisal ({evidence_count} records)")
+        if appraisal_sample:
+            lines.append("| Evidence ID | Score | Weight |")
+            lines.append("| --- | --- | --- |")
+            for a in appraisal_sample[:10]:
+                lines.append(f"| {a.get('evidence_id', '?')} | {a.get('score', '?')} | {a.get('weight', '?')} |")
+        lines.append("")
+    # Render endpoints
+    endpoint_count = info.get("endpoint_count")
+    sample_endpoints = info.get("sample_endpoints")
+    if endpoint_count:
+        lines.append(f"## Endpoints ({endpoint_count} extracted)")
+        if sample_endpoints:
+            lines.append("| ID | Endpoint | Source |")
+            lines.append("| --- | --- | --- |")
+            for ep in sample_endpoints[:10]:
+                lines.append(f"| {ep.get('endpoint_id', '?')} | {str(ep.get('endpoint', ''))[:100]} | {ep.get('source_article', '?')} |")
+        lines.append("")
+    # Render sections to review (export gate)
+    sections = info.get("sections_to_review")
+    if sections:
+        lines.append("## Sections to Review")
+        for s in sections:
+            lines.append(f"- {s}")
+        lines.append("")
+    # Footer
+    lines.append("---")
+    lines.append("")
+    lines.append("**To continue**: run the same command with `--resume`")
+    lines.append(f"**File**: `{gate_file}`")
+    content = "\n".join(lines)
+    gate_file.write_text(content, encoding="utf-8")
+    return str(gate_file)
+
+
 def _single_invoke(graph, state, config) -> int:
     try:
         result = graph.invoke(state, config)
@@ -157,13 +254,18 @@ def _single_invoke(graph, state, config) -> int:
         err_msg = str(e)
         if "GraphInterrupt" in type(e).__name__:
             interrupt_info = _extract_interrupt_info(err_msg, e)
+            node = interrupt_info.get('node', 'unknown')
+            message = interrupt_info.get('message', 'N/A')
+            # Write gate data to file for VS Code review
+            artifact_root = interrupt_info.get('artifact_root', str(Path.cwd() / "02_CER_OUTPUT"))
+            gate_file = _write_human_gate_file(artifact_root, node, interrupt_info)
             print(json.dumps(interrupt_info, ensure_ascii=False, indent=2))
             print(f"\n{'='*60}", file=sys.stderr)
             print(f"[CCD] ⏸️  PIPELINE PAUSED — HUMAN CONFIRMATION REQUIRED", file=sys.stderr)
-            print(f"[CCD] Node: {interrupt_info.get('node', 'unknown')}", file=sys.stderr)
-            print(f"[CCD] Message: {interrupt_info.get('message', 'N/A')[:200]}", file=sys.stderr)
-            print(f"[CCD] Action: Review the above. To continue, run the same command with --resume",
-                  file=sys.stderr)
+            print(f"[CCD] Node: {node}", file=sys.stderr)
+            print(f"[CCD] Message: {message[:200]}", file=sys.stderr)
+            print(f"[CCD] Review: {gate_file}", file=sys.stderr)
+            print(f"[CCD] Action: To continue, run the same command with --resume", file=sys.stderr)
             print(f"{'='*60}", file=sys.stderr)
             return 10
         summary = {"error": err_msg[:300], "status": "fatal_error"}
