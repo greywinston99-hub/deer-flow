@@ -1566,6 +1566,7 @@ def _node_controlled_compromise(state: SharedAuthoringState) -> dict[str, Any]:
             }
         ],
         "status": "controlled_compromise",
+        "controlled_compromise_active": True,  # Writer: use CAUTIOUS wording, gaps → PMCF
         "artifacts": artifacts,
     }
 
@@ -1888,5 +1889,5 @@ def build_cer_authoring_graph(checkpointer=None):
         },
     )
     builder.add_edge("export", END)
-    builder.add_edge("controlled_compromise", END)
+    builder.add_edge("controlled_compromise", "cer_writing")
     return builder.compile(checkpointer=checkpointer)
