@@ -243,10 +243,13 @@ def evaluate_pre_writer_readiness_gate(state: dict[str, Any]) -> dict[str, Any]:
                 "source_gate_ids": override.get("source_gate_ids") or "",
             }
         )
-    # ── IFU Pre-Writer Check: overclaimed/missing → BLOCKED before Writer ──
+    # ── IFU Pre-Writer Check: granular by alignment_status ──
     ifu_alignment = state.get("ifu_cer_alignment_ledger") or {}
     ifu_alignments = ifu_alignment.get("alignments", [])
     overclaimed = [a for a in ifu_alignments if a.get("alignment_status") in ("overclaimed_in_ifu", "unsupported_by_evidence")]
+    missing = [a for a in ifu_alignments if a.get("alignment_status") == "missing_in_ifu"]
+    needs_review = [a for a in ifu_alignments if a.get("alignment_status") == "needs_human_review"]
+    # overclaimed/unsupported → BLOCKED (IFU says more than evidence supports)
     if overclaimed:
         rows.append({
             "condition_name": "IFU_ALIGNMENT",
@@ -254,6 +257,25 @@ def evaluate_pre_writer_readiness_gate(state: dict[str, Any]) -> dict[str, Any]:
             "message": f"IFU has {len(overclaimed)} overclaimed/unsupported statements vs CER evidence. Human review required before Writer.",
             "upstream_route": "claim_decomposition",
             "failure_pattern": "ifu_overclaimed",
+            "source_gate_ids": "G_IFU_WORKING_DOCUMENT",
+        })
+    # missing_in_ifu → recommendation only, does NOT block CER (IFU update after CER is fine)
+    if missing:
+        rows.append({
+            "condition_name": "IFU_ALIGNMENT",
+            "status": "PASS",
+            "message": f"IFU lacks wording for {len(missing)} CER-supported claims. IFU_UPDATE_RECOMMENDATION generated — does not block CER.",
+            "upstream_route": "",
+            "failure_pattern": "ifu_missing_benefit",
+            "source_gate_ids": "G_IFU_WORKING_DOCUMENT",
+        })
+    if needs_review:
+        rows.append({
+            "condition_name": "IFU_ALIGNMENT",
+            "status": "PASS",
+            "message": f"IFU has {len(needs_review)} claims needing human review. Does not block CER.",
+            "upstream_route": "",
+            "failure_pattern": "ifu_needs_human_review",
             "source_gate_ids": "G_IFU_WORKING_DOCUMENT",
         })
     blocked = [row for row in rows if row["status"] == "BLOCKED"]
