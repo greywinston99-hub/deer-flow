@@ -16,7 +16,7 @@ from typing import Any
 
 # -- Default parent model (used when no per-agent override) ------------------
 
-DEFAULT_PARENT_MODEL = "kimi-k2.6-code"
+DEFAULT_PARENT_MODEL = "kimi-k2.6"
 
 AGENT_NAME_ALIASES = {
     "cer-writer": "authoring-cer-writer-agent",
@@ -42,14 +42,16 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
     "cer-authoring-lead-agent": {
         "role": "lead / controller agent",
         "task_type": "controller_triage",
-        "default_model": "kimi-k2.6-code",
+        "default_model": "kimi-k2.6",
+        "provider_fallback_models": ["kimi-k2.6-api"],
         "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
         "rationale": "Stable 1+6 lead/controller routing only. It does not write CER prose or perform final clinical reasoning.",
     },
     "authoring-intake-profile-claim-agent": {
         "role": "intake / device profile / IFU structured extraction / structured claim-fact intake",
         "task_type": "extraction_structuring",
-        "default_model": "kimi-k2.6-code",
+        "default_model": "kimi-k2.6",
+        "provider_fallback_models": ["kimi-k2.6-api"],
         "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
         "rationale": "Owns intake, source inventory, device profile, IFU extraction, claim ledger and structured facts. Kimi Code is the fixed model for this structured chain.",
     },
@@ -57,6 +59,7 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
         "role": "SOTA reasoning / methodology / endpoint benchmark reasoning",
         "task_type": "evidence_reasoning",
         "default_model": "deepseek-v4-pro",
+        "provider_fallback_models": ["kimi-k2.6-api"],
         "forbidden_models": ["kimi-k2.6-code", *MINIMAX_FORBIDDEN_MODELS],
         "rationale": "Owns SOTA, methodology and benchmark reasoning. This is a clinical reasoning chain and is fixed to DeepSeek V4 Pro.",
     },
@@ -64,6 +67,7 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
         "role": "evidence appraisal / endpoint extraction / claim support reasoning",
         "task_type": "evidence_reasoning",
         "default_model": "deepseek-v4-pro",
+        "provider_fallback_models": ["kimi-k2.6-api"],
         "forbidden_models": ["kimi-k2.6-code", *MINIMAX_FORBIDDEN_MODELS],
         "rationale": "Owns retrieval screening, citation verification, evidence appraisal, endpoint interpretation and claim support. Physical stable agent includes reasoning, so it is fixed to DeepSeek V4 Pro.",
     },
@@ -71,6 +75,7 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
         "role": "risk / equivalence / GSPR / benefit-risk / PMCF reasoning",
         "task_type": "risk_equivalence",
         "default_model": "deepseek-v4-pro",
+        "provider_fallback_models": ["kimi-k2.6-api"],
         "structured_comparability_model": "kimi-k2.6-code",
         "clinical_reasoning_model": "deepseek-v4-pro",
         "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
@@ -79,20 +84,22 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
     "risk-equivalence-gspr": {
         "role": "risk / equivalence / GSPR structured extraction lane",
         "task_type": "risk_equivalence",
-        "default_model": "kimi-k2.6-code",
+        "default_model": "kimi-k2.6",
+        "provider_fallback_models": ["kimi-k2.6-api"],
         "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
         "rationale": "Compatibility short-name lane used by routing tests and structured extraction dispatch; full physical authoring-risk-equivalence-gspr-agent remains DeepSeek for clinical reasoning.",
     },
     "authoring-cer-writer-agent": {
         "role": "CER writer agent",
         "task_type": "cer_writer",
-        "default_model": "deepseek-v4-pro",
+        "default_model": "kimi-k2.6",
         "requires_ab_test": True,
         "ab_status": "pending",
-        "candidate_a": "deepseek-v4-pro",
-        "candidate_b": "kimi-k2.6",
+        "candidate_a": "kimi-k2.6",
+        "candidate_b": "deepseek-v4-pro",
+        "provider_fallback_models": ["kimi-k2.6-api", "deepseek-v4-pro"],
         "forbidden_models": ["kimi-k2.6-code", *MINIMAX_FORBIDDEN_MODELS],
-        "rationale": "CER body writing requires evidence fidelity, medical writing quality and final claim support. Fixed to DeepSeek V4 Pro.",
+        "rationale": "CER body writing requires evidence fidelity and medical writing quality. Default: Kimi k2.6 (faster, more stable). DeepSeek V4 Pro available as fallback/AB candidate.",
     },
     "authoring-qa-review-agent": {
         "role": "QA / reviewer agent",
@@ -102,6 +109,7 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
         "ab_status": "pending",
         "candidate_a": "deepseek-v4-pro",
         "candidate_b": "kimi-k2.6",
+        "provider_fallback_models": ["kimi-k2.6-api"],
         "forbidden_models": ["kimi-k2.6-code", *MINIMAX_FORBIDDEN_MODELS],
         "rationale": "Integrated QA review requires detection sensitivity across methodology, evidence, SOTA, equivalence, risk/GSPR and NB precheck. Fixed to DeepSeek V4 Pro.",
     },
@@ -124,15 +132,15 @@ MODEL_BOUNDARIES: dict[str, dict[str, Any]] = {
     },
     "kimi-k2.6": {
         "label": "Kimi API candidate",
-        "allowed_for": ["cer_writer", "qa_reviewer"],
+        "allowed_for": ["controller_triage", "extraction_structuring", "evidence_reasoning", "risk_equivalence", "cer_writer", "qa_reviewer"],
         "forbidden_for": [],
-        "notes": "Retained only as a future Writer/QA replacement candidate. Not a stable-1plus6 default.",
+        "notes": "Kimi API may be used as a provider fallback or explicit override when Kimi Code or DeepSeek providers fail.",
     },
     "kimi-k2.6-api": {
         "label": "Kimi API candidate",
-        "allowed_for": ["cer_writer", "qa_reviewer"],
+        "allowed_for": ["controller_triage", "extraction_structuring", "evidence_reasoning", "risk_equivalence", "cer_writer", "qa_reviewer"],
         "forbidden_for": [],
-        "notes": "Retained only as a future Writer/QA replacement candidate. Not a stable-1plus6 default.",
+        "notes": "Kimi API may be used as a provider fallback or explicit override when Kimi Code or DeepSeek providers fail.",
     },
     "kimi-api": {
         "label": "Kimi API legacy alias",
@@ -251,6 +259,13 @@ def get_agent_routing_info(agent_name: str) -> dict[str, Any] | None:
     return ROUTING_POLICY_V1.get(_canonical_agent_name(agent_name))
 
 
+def get_agent_provider_fallback_models(agent_name: str) -> list[str]:
+    """Return configured provider fallback models for an agent."""
+
+    policy = get_agent_routing_info(agent_name) or {}
+    return list(policy.get("provider_fallback_models") or [])
+
+
 def get_model_boundaries(model_name: str) -> dict[str, Any] | None:
     """Return the usage boundary rules for a model."""
     return MODEL_BOUNDARIES.get(model_name)
@@ -277,14 +292,30 @@ def build_provider_preflight(state: dict[str, Any] | None = None) -> dict[str, A
     missing: dict[str, list[str]] = {}
     for agent_name, model_name in agent_models.items():
         missing_env = missing_provider_env(model_name)
+        fallback_models = [
+            fallback
+            for fallback in get_agent_provider_fallback_models(agent_name)
+            if is_model_allowed_for_agent(agent_name, fallback)
+        ]
+        configured_fallbacks = [
+            fallback for fallback in fallback_models if not missing_provider_env(fallback)
+        ]
         if missing_env:
-            missing[agent_name] = missing_env
+            if configured_fallbacks:
+                provider_status = "primary_missing_fallback_configured"
+            else:
+                missing[agent_name] = missing_env
+                provider_status = "missing_env"
+        else:
+            provider_status = "configured"
         checks.append(
             {
                 "agent_name": agent_name,
                 "model_name": model_name,
-                "provider_status": "missing_env" if missing_env else "configured",
+                "provider_status": provider_status,
                 "missing_env": missing_env,
+                "fallback_models": fallback_models,
+                "configured_fallback_models": configured_fallbacks,
             }
         )
     return {
