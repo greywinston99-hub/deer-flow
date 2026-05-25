@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 import os
 import re
 import subprocess
 import sys
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -24,11 +26,19 @@ from pathlib import Path
 from typing import Any
 
 from deerflow.mcp import cer_public_evidence_server as public_evidence
+from deerflow.utils.network import force_direct_api_network
+
+logger = logging.getLogger(__name__)
+
+force_direct_api_network()
+_DIRECT_URL_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 KIMI_CODE_ROOT = Path(os.getenv("CER_AUTHORING_KIMI_CODE_ROOT", "/Users/winstonwei/Documents/KIMI CODE"))
 KIMI_MCP_ROOT = KIMI_CODE_ROOT / "mcp-servers"
 KIMI_PYTHON = os.getenv("CER_AUTHORING_KIMI_PYTHON", "python3")
 MCP_TIMEOUT_SECONDS = int(os.getenv("CER_AUTHORING_MCP_TIMEOUT_SECONDS", "90"))
+_MCP_POOL_ENABLED = os.getenv("CER_AUTHORING_ENABLE_MCP_POOL", "0") == "1"
+_CIRCUIT_BREAKER_ENABLED = os.getenv("CER_AUTHORING_ENABLE_CIRCUIT_BREAKER", "1") == "1"
 NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 
 _SERVER_FILES = {
@@ -170,16 +180,24 @@ def read_pdf(file_path: str, max_pages: int = 50) -> dict[str, Any]:
     return result
 
 
-def call_tool(server: str, tool: str, arguments: dict[str, Any] | None = None, timeout: int | None = None, skip_version_check: bool = False) -> dict[str, Any]:
-    """Call an authoring MCP tool and return a structured result.
+def _call_tool_inner(
+    server: str,
+    tool: str,
+    arguments: dict[str, Any],
+    timeout: int | None,
+    skip_version_check: bool,
+    started: float,
+) -> dict[str, Any]:
+    """Core MCP tool call logic (pool → subprocess → public)."""
 
-    Results include a small `_mcp` envelope so downstream gates can prove that a
-    tool was actually invoked and can distinguish source failures from empty
-    search results.
-    """
+    # ── Phase 4: MCP Process Pool (feature-flagged) ──
+    if _MCP_POOL_ENABLED and server in _SERVER_FILES:
+        try:
+            from deerflow.runtime.cer_authoring.mcp_pool import mcp_pool_call
+            return mcp_pool_call(server, tool, arguments, timeout)
+        except Exception as exc:
+            logger.warning("MCP pool call failed for %s/%s: %s — falling back to subprocess", server, tool, exc)
 
-    arguments = arguments or {}
-    started = time.time()
     if server == "cer-public-evidence":
         return _call_public_tool(tool, arguments, started)
     server_file = _SERVER_FILES.get(server)
@@ -232,6 +250,119 @@ def call_tool(server: str, tool: str, arguments: dict[str, Any] | None = None, t
     if not isinstance(payload, dict):
         payload = {"status": "ok", "value": payload}
     return _with_meta(payload, server, tool, arguments, started, stderr=stderr.strip())
+
+
+# ── Document Reading with Table Preservation ──
+
+def read_document(file_path: str, max_pages: int = 50) -> dict[str, Any]:
+    """Read document (PDF/DOCX) and extract text + tables with structure.
+
+    Uses pdfplumber for table extraction (superior to pymupdf for tables).
+    Falls back to pymupdf for text-only extraction.
+    """
+    ext = Path(file_path).suffix.lower()
+    result: dict[str, Any] = {"file_path": file_path, "text": "", "pages": 0, "tables": [], "metadata": {}}
+    if ext == ".pdf":
+        try:
+            import pdfplumber
+            with pdfplumber.open(file_path) as pdf:
+                all_text = []
+                for i, page in enumerate(pdf.pages):
+                    if i >= max_pages:
+                        break
+                    all_text.append(page.extract_text() or "")
+                    page_tables = page.extract_tables()
+                    for t in page_tables:
+                        if t:
+                            result["tables"].append({"page": i + 1, "rows": t})
+                result["text"] = "\n\n".join(all_text)
+                result["pages"] = len(all_text)
+                result["metadata"] = dict(pdf.metadata or {})
+        except Exception:
+            return read_pdf(file_path, max_pages)
+    elif ext in (".docx", ".doc"):
+        try:
+            from docx import Document
+            doc = Document(file_path)
+            all_text = [p.text for p in doc.paragraphs if p.text.strip()]
+            result["text"] = "\n".join(all_text)
+            result["pages"] = 1
+            for table in doc.tables:
+                rows = [[cell.text for cell in row.cells] for row in table.rows]
+                result["tables"].append({"rows": rows})
+        except Exception:
+            result["error"] = "python-docx unavailable"
+    else:
+        result["text"] = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    return result
+
+
+def call_tool(server: str, tool: str, arguments: dict[str, Any] | None = None, timeout: int | None = None, skip_version_check: bool = False) -> dict[str, Any]:
+    """Call an authoring MCP tool and return a structured result.
+
+    Results include a small `_mcp` envelope so downstream gates can prove that a
+    tool was actually invoked and can distinguish source failures from empty
+    search results.
+
+    If CER_AUTHORING_ENABLE_MCP_POOL=1, subprocess-based servers (nb-check,
+    cer-kb, doc-proc) will use a reusable process pool instead of spawning
+    a new subprocess for every call.
+
+    If CER_AUTHORING_ENABLE_CIRCUIT_BREAKER=1, calls are protected by a
+    per-server circuit breaker that rejects calls after consecutive failures.
+    """
+
+    arguments = arguments or {}
+    started = time.time()
+
+    def _track(status: str) -> None:
+        try:
+            from deerflow.runtime.cer_authoring.event_bus.metrics import metrics_collector
+            duration_ms = (time.time() - started) * 1000
+            metrics_collector.inc(
+                "mcp_pool.calls_total",
+                labels={"server": server, "status": status},
+            )
+            metrics_collector.observe(
+                "mcp_pool.call_duration_ms",
+                duration_ms,
+                labels={"server": server, "status": status},
+            )
+        except Exception:
+            pass
+
+    if _CIRCUIT_BREAKER_ENABLED and server not in ("cer-public-evidence",):
+        try:
+            from deerflow.runtime.cer_authoring.circuit_breaker import (
+                get_circuit_breaker,
+                CircuitBreakerOpenError,
+            )
+
+            breaker = get_circuit_breaker(
+                name=f"mcp-{server}",
+                failure_threshold=3,
+                cooldown_seconds=10.0,
+            )
+            result = breaker.call(
+                _call_tool_inner, server, tool, arguments, timeout, skip_version_check, started
+            )
+            status = result.get("status", result.get("_mcp", {}).get("status", "ok"))
+            _track(status)
+            return result
+        except CircuitBreakerOpenError as exc:
+            logger.warning("Circuit breaker open for %s: %s", server, exc)
+            _track("circuit_breaker_open")
+            return _error(
+                server, tool, arguments,
+                "circuit_breaker_open",
+                f"MCP server {server} is temporarily unavailable due to recent failures. Retry after {exc.remaining_seconds:.0f}s.",
+                started,
+            )
+
+    result = _call_tool_inner(server, tool, arguments, timeout, skip_version_check, started)
+    status = result.get("status", result.get("_mcp", {}).get("status", "ok"))
+    _track(status)
+    return result
 
 
 def call_public(tool: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -372,16 +503,135 @@ def _summarize_result(result: dict[str, Any]) -> str:
     return str(result.get("status", "ok"))
 
 
+_EXTERNAL_API_RETRY_ENABLED = os.getenv("CER_AUTHORING_ENABLE_API_RETRY", "1") == "1"
+_EXTERNAL_API_MAX_RETRIES = int(os.getenv("CER_AUTHORING_API_MAX_RETRIES", "5"))
+_EXTERNAL_API_RETRY_BACKOFF = float(os.getenv("CER_AUTHORING_API_RETRY_BACKOFF", "2.0"))
+_CIRCUIT_BREAKER_THRESHOLD = int(os.getenv("CER_AUTHORING_CIRCUIT_BREAKER_THRESHOLD", "3"))
+# host → consecutive failure count; cleared on first success for that host
+_circuit_state: dict[str, int] = {}
+
+
+def _host(url: str) -> str:
+    return urllib.parse.urlparse(url).hostname or url
+
+
+def _circuit_trip(url: str) -> bool:
+    """Return True if circuit is open for this host (skip request)."""
+    h = _host(url)
+    count = _circuit_state.get(h, 0)
+    if count >= _CIRCUIT_BREAKER_THRESHOLD:
+        logger.warning("Circuit OPEN for %s (%d consecutive failures) — skipping", h, count)
+        return True
+    return False
+
+
+def _circuit_record(url: str, success: bool) -> None:
+    h = _host(url)
+    if success:
+        if h in _circuit_state:
+            _circuit_state.pop(h)
+    else:
+        _circuit_state[h] = _circuit_state.get(h, 0) + 1
+
+# Rate-limit guard: limit concurrent external API requests to avoid 429s
+_api_semaphore = threading.Semaphore(int(os.getenv("CER_AUTHORING_API_MAX_CONCURRENT", "2")))
+
+
+def _retry_with_backoff(
+    func: Callable[..., Any],
+    max_retries: int = _EXTERNAL_API_MAX_RETRIES,
+    backoff_base: float = _EXTERNAL_API_RETRY_BACKOFF,
+    label: str = "",
+    *args: Any,
+    **kwargs: Any,
+) -> Any:
+    """Execute func with exponential backoff retry on transient failures.
+
+    Retries on URLError, HTTPError, and TimeoutError.
+    """
+    import urllib.error
+
+    last_exc: Exception | None = None
+    for attempt in range(max_retries + 1):
+        try:
+            return func(*args, **kwargs)
+        except urllib.error.HTTPError as exc:
+            # Retry on 5xx or 429 (rate limited)
+            if attempt < max_retries and (exc.code >= 500 or exc.code == 429):
+                wait = backoff_base ** attempt
+                logger.warning(
+                    "External API %s attempt %d/%d failed with HTTP %d, retrying in %.1fs...",
+                    label,
+                    attempt + 1,
+                    max_retries + 1,
+                    exc.code,
+                    wait,
+                )
+                time.sleep(wait)
+                last_exc = exc
+                continue
+            raise
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            if attempt < max_retries:
+                wait = backoff_base ** attempt
+                logger.warning(
+                    "External API %s attempt %d/%d failed (%s), retrying in %.1fs...",
+                    label,
+                    attempt + 1,
+                    max_retries + 1,
+                    exc.__class__.__name__,
+                    wait,
+                )
+                time.sleep(wait)
+                last_exc = exc
+                continue
+            raise
+    # Should never reach here, but just in case
+    raise last_exc or RuntimeError("Retry exhausted")
+
+
 def _adapter_fetch_json(url: str, timeout: int = 20) -> dict[str, Any]:
+    if _circuit_trip(url):
+        raise urllib.error.URLError(f"Circuit open for {_host(url)} — skipping request")
     req = urllib.request.Request(url, headers={"User-Agent": "DeerFlow-CER-Clinical-Source-Adapters/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8", errors="replace"))
+
+    def _fetch() -> dict[str, Any]:
+        with _api_semaphore:
+            with _DIRECT_URL_OPENER.open(req, timeout=timeout) as response:
+                return json.loads(response.read().decode("utf-8", errors="replace"))
+
+    try:
+        if _EXTERNAL_API_RETRY_ENABLED:
+            result = _retry_with_backoff(_fetch, label=url)
+        else:
+            result = _fetch()
+        _circuit_record(url, success=True)
+        return result
+    except Exception:
+        _circuit_record(url, success=False)
+        raise
 
 
 def _adapter_fetch_text(url: str, timeout: int = 20) -> str:
+    if _circuit_trip(url):
+        raise urllib.error.URLError(f"Circuit open for {_host(url)} — skipping request")
     req = urllib.request.Request(url, headers={"User-Agent": "DeerFlow-CER-Clinical-Source-Adapters/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as response:
-        return response.read().decode("utf-8", errors="replace")
+
+    def _fetch() -> str:
+        with _api_semaphore:
+            with _DIRECT_URL_OPENER.open(req, timeout=timeout) as response:
+                return response.read().decode("utf-8", errors="replace")
+
+    try:
+        if _EXTERNAL_API_RETRY_ENABLED:
+            result = _retry_with_backoff(_fetch, label=url)
+        else:
+            result = _fetch()
+        _circuit_record(url, success=True)
+        return result
+    except Exception:
+        _circuit_record(url, success=False)
+        raise
 
 
 def _ncbi_url(endpoint: str, params: dict[str, Any]) -> str:
