@@ -58,6 +58,7 @@ def create_chat_model(name: str | None = None, thinking_enabled: bool = False, *
             "when_thinking_enabled",
             "thinking",
             "supports_vision",
+            "supports_tool_calls",
             "hidden",
         },
     )

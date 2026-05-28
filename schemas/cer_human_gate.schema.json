@@ -13,7 +13,7 @@
     "workflow_id": {"type": "string", "const": "cer_review_workflow_v1"},
     "step_id": {"type": "string", "const": "cer_human_boundary"},
     "produced_by_step": {"type": "string", "const": "cer_human_boundary"},
-    "status": {"type": "string", "enum": ["scaffold_complete", "scaffold_stub", "draft", "validated"]},
+    "status": {"type": "string", "enum": ["scaffold_complete", "scaffold_stub", "draft", "validated", "real_analysis"]},
     "created_at": {"type": "string"},
     "source_traceability": {
       "type": "object",

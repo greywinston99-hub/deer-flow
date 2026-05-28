@@ -21,6 +21,31 @@ mode: cer_review
 # 10 ordered steps mapping to canonical prompt stubs
 ordered_steps:
 
+  # ── Step 0 (Pre-flight) ──────────────────────────────────────────────────
+  - step_id: cer_admin_precheck
+    step_number: 0
+    handler_name: _run_admin_precheck
+    prompt_contract: prompts/cer/canonical/cer_admin_precheck_agent.md
+    input_contract:
+      required_inputs:
+        - project_profile
+        - input_package
+    output_contract:
+      output_type: admin_precheck_report
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/00_admin_precheck/admin_precheck_report.json
+      schema_ref: cer_admin_precheck.schema.json
+    artifact_dir: "00_admin_precheck"
+    schema_ref: cer_admin_precheck.schema.json
+    blocking_on_failure: true
+    human_gate_policy: report_only
+    description: >
+      V28.4 — Pre-flight administrative completeness check.  Runs BEFORE
+      intake.  Validates document inventory, date/signature presence,
+      certificate traceability, version consistency, and language
+      completeness.  BLOCKING — if this step fails, the pipeline stops.
+      Supplements deterministic admin_pre_check.py regex checks with
+      LLM reading comprehension for ambiguous cases.
+
   # ── Step 1 ──────────────────────────────────────────────────────────────
   - step_id: cer_intake
     step_number: 1
@@ -283,9 +308,37 @@ ordered_steps:
       Maps to D0A Review Dimension: CONCLUSION (dim_11).
       Regulatory anchor: MDR Article 83, MDCG 2020-13.
 
-  # ── Step 10 ──────────────────────────────────────────────────────────────
-  - step_id: cer_gate_closure
+  # ── V28 NEW: Step 10 — QMS Review ─────────────────────────────────────
+  - step_id: cer_qms_review
     step_number: 10
+    handler_name: _run_qms_review
+    prompt_contract: prompts/cer/canonical/cer_qms_review_agent.md
+    input_contract:
+      required_inputs:
+        - QMS_documentation
+        - project_profile
+        - all_preceding_artifacts
+      optional_inputs:
+        - audit_reports
+        - ncr_records
+    output_contract:
+      output_type: qms_review_findings
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/10_qms_review/qms_findings.json
+      schema_ref: cer_qms_review.schema.json
+    artifact_dir: "10_qms_review"
+    schema_ref: cer_qms_review.schema.json
+    blocking_on_failure: false
+    human_gate_policy: none
+    description: >
+      V28 NEW — Reviews QMS documentation completeness against ISO 13485:2016.
+      Covers §4 (QMS), §5 (Management), §6 (Resources), §7 (Product Realization
+      including Design Control §7.3 and Process Validation §7.5), §8 (Measurement).
+      Addresses NB QMS audit NCRs that CEP/IFU agents do not cover.
+      Regulatory anchor: ISO 13485:2016, MDR Annex IX §2.1, MDR Article 15 (PRRC).
+
+  # ── Step 11 (was Step 10) ────────────────────────────────────────────────
+  - step_id: cer_gate_closure
+    step_number: 11
     handler_name: _run_gate_closure
     prompt_contract: prompts/cer/canonical/cer_gate_closure_agent.md
     input_contract:
@@ -296,9 +349,9 @@ ordered_steps:
       optional_inputs: []
     output_contract:
       output_type: review_package
-      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/10_gate_closure/review_package.json
+      artifact_path: artifacts/cer/{project_id}/cer_review/{cer_run_id}/11_gate_closure/review_package.json
       schema_ref: cer_review_package.schema.json
-    artifact_dir: "10_gate_closure"
+    artifact_dir: "11_gate_closure"
     schema_ref: cer_review_package.schema.json
     blocking_on_failure: true
     human_gate_policy: required
@@ -403,7 +456,7 @@ schema_refs:
 # ─────────────────────────────────────────────────────────────────────────────
 design_notes:
   - workflow_id: cer_review_workflow_v1
-  - step_count: 10
+  - step_count: 11
   - human_gate_count: 9
   - sub_assessment_count: 5 (within Step 5)
   - design_basis: >

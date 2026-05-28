@@ -51,6 +51,7 @@ _SUPPORTED_STEP_IDS = (
     "cer_review_package_agent_v1",
     "cer_gate_closure_agent_v1",
     # D1 ordered_steps
+    "cer_admin_precheck",
     "cer_intake",
     "cer_structure_compliance",
     "cer_intended_purpose",
@@ -60,6 +61,7 @@ _SUPPORTED_STEP_IDS = (
     "cer_qa_gate",
     "cer_cear_style_finding_formatter",
     "cer_human_boundary",
+    "cer_qms_review",
     "cer_gate_closure",
 )
 
@@ -93,6 +95,7 @@ _D1_HANDLER_AGENTS = {
 }
 
 _D1_STEP_ARTIFACTS = {
+    "cer_admin_precheck": ("00_admin_precheck", "admin_precheck_report.json"),
     "cer_intake": ("01_docstruct", "cer_docstruct.json"),
     "cer_structure_compliance": ("02_structure_compliance", "report.json"),
     "cer_intended_purpose": ("03_intended_purpose", "report.json"),
@@ -102,7 +105,8 @@ _D1_STEP_ARTIFACTS = {
     "cer_qa_gate": ("07_qa_gate", "qa_synthesis.json"),
     "cer_cear_style_finding_formatter": ("08_cear_format", "formatted_findings.json"),
     "cer_human_boundary": ("09_human_boundary", "packet.json"),
-    "cer_gate_closure": ("10_gate_closure", "review_package.json"),
+    "cer_qms_review": ("10_qms_review", "qms_findings.json"),
+    "cer_gate_closure": ("11_gate_closure", "review_package.json"),
 }
 
 # HF check definitions (ID -> label + keywords)
@@ -212,6 +216,7 @@ class CERReviewRunner:
 
         self.workflow = self._load_yaml(self.workflow_path)
         self.project_profile = self._load_yaml(self.project_profile_path)
+        self.project_id = str(self.project_profile.get("project_id") or "unknown")
 
         self.run_id = run_id_override or self._make_run_id()
         self.workflow_name = str(self.workflow.get("workflow_name", "cer_review_v0"))
@@ -225,7 +230,7 @@ class CERReviewRunner:
             artifact_root_template = self.project_profile.get("artifact_policy", {}).get("artifact_root", "/tmp/cer_review/${run_id}")
         self.artifact_root_virtual = self._render_template(str(artifact_root_template))
         if artifact_root_override:
-            self.artifact_root_actual = Path(artifact_root_override).resolve()
+            self.artifact_root_actual = Path(self._render_template(str(artifact_root_override))).resolve()
         else:
             # Try virtual path resolution first, fall back to direct path
             try:
@@ -234,6 +239,7 @@ class CERReviewRunner:
                 # D1 workflow: use artifact_root directly if it's an absolute path
                 self.artifact_root_actual = Path(self.artifact_root_virtual.replace("${run_id}", self.run_id))
         self.artifact_root_actual.mkdir(parents=True, exist_ok=True)
+        self.artifact_root = self.artifact_root_actual
 
         # Load project protocol if present (for Gate A enforcement)
         self.project_protocol = self._load_project_protocol()
@@ -265,6 +271,7 @@ class CERReviewRunner:
             "cer_review_package_agent_v1": self._run_review_package_v1,
             "cer_gate_closure_agent_v1": self._run_gate_closure_v1,
             # D1 ordered_steps
+            "cer_admin_precheck": self._run_d1_admin_precheck,
             "cer_intake": self._run_d1_intake,
             "cer_structure_compliance": self._run_d1_structure_compliance,
             "cer_intended_purpose": self._run_d1_intended_purpose,
@@ -274,6 +281,7 @@ class CERReviewRunner:
             "cer_qa_gate": self._run_d1_qa_gate,
             "cer_cear_style_finding_formatter": self._run_d1_cear_formatter,
             "cer_human_boundary": self._run_d1_human_boundary,
+            "cer_qms_review": self._run_d1_qms_review,
             "cer_gate_closure": self._run_d1_gate_closure,
         }
 
@@ -319,6 +327,7 @@ class CERReviewRunner:
                     "reason": reason,
                     "final_status": "FORMAL_REVIEW_BLOCKED_GATE_A_NOT_ACCEPTED",
                 })
+                self._write_final_synthesis(executed_steps=[])
                 self._write_artifact_index()
                 self._write_agent_usage_ledger()
                 logger.warning("Formal review blocked by Gate A: %s", reason)
@@ -352,6 +361,7 @@ class CERReviewRunner:
             self._write_run_context(mode=mode)
             self._run_gate_closure({})
             executed_steps = ["cer_gate_closure_agent"]
+            self._write_final_synthesis(executed_steps=executed_steps)
             self._write_artifact_index()
             self._write_agent_usage_ledger()
             return CERRunResult(
@@ -418,6 +428,7 @@ class CERReviewRunner:
                 )
 
         # Write run manifest and ledger artifacts
+        self._write_final_synthesis(executed_steps=executed_steps)
         self._write_json(
             self._artifact_path("00_manifest", "run_summary.json"),
             {
@@ -582,6 +593,7 @@ class CERReviewRunner:
         # Write cer_section_assessments (one per D1 step)
         section_records = []
         d1_steps = [
+            ("cer_admin_precheck", "00_admin_precheck/admin_precheck_report.json"),
             ("cer_intake", "01_docstruct/cer_docstruct.json"),
             ("cer_structure_compliance", "02_structure_compliance/report.json"),
             ("cer_intended_purpose", "03_intended_purpose/report.json"),
@@ -591,7 +603,8 @@ class CERReviewRunner:
             ("cer_qa_gate", "07_qa_gate/qa_synthesis.json"),
             ("cer_cear_style_finding_formatter", "08_cear_format/formatted_findings.json"),
             ("cer_human_boundary", "09_human_boundary/packet.json"),
-            ("cer_gate_closure", "10_gate_closure/review_package.json"),
+            ("cer_qms_review", "10_qms_review/qms_findings.json"),
+            ("cer_gate_closure", "11_gate_closure/review_package.json"),
         ]
         for i, (section_id, artifact_path) in enumerate(d1_steps, start=1):
             section_records.append({
@@ -750,6 +763,7 @@ class CERReviewRunner:
 
         # Map artifact paths to schema files (for D1 ordered_steps)
         artifact_schema_map = [
+            ("00_admin_precheck", "admin_precheck_report.json", "cer_admin_precheck.schema.json"),
             ("01_docstruct", "cer_docstruct.json", "cer_docstruct.schema.json"),
             ("02_structure_compliance", "report.json", "cer_structure_compliance.schema.json"),
             ("03_intended_purpose", "report.json", "cer_intended_purpose.schema.json"),
@@ -764,7 +778,8 @@ class CERReviewRunner:
             ("07_qa_gate", "qa_synthesis.json", "cer_qa.schema.json"),
             ("08_cear_format", "formatted_findings.json", "cer_cear_finding.schema.json"),
             ("09_human_boundary", "packet.json", "cer_human_gate.schema.json"),
-            ("10_gate_closure", "review_package.json", "cer_review_package.schema.json"),
+            ("10_qms_review", "qms_findings.json", "cer_qms_review.schema.json"),
+            ("11_gate_closure", "review_package.json", "cer_review_package.schema.json"),
         ]
 
         failures: dict[str, str] = {}
@@ -3544,6 +3559,12 @@ class CERReviewRunner:
             if cc:
                 context["clinical_context"] = cc
 
+        # V28.3: Inject NB defect pattern awareness for CEP and QMS agents
+        if step_id in ("cer_clinical_evidence_panel", "cer_qms_review"):
+            dp = self._load_nb_defect_patterns()
+            if dp:
+                context["nb_defect_patterns"] = dp
+
         return context
 
     # ── Device-Clinical Context Resolution ──────────────────────────────────
@@ -3598,6 +3619,21 @@ class CERReviewRunner:
         if isinstance(cc, dict):
             return {"device_type": slug, **cc}
         return None
+
+    def _load_nb_defect_patterns(self) -> dict[str, Any] | None:
+        """Load NB defect pattern registry from knowledge/nb_defect_patterns.json.
+
+        V28.3: Provides 11 known defect types (DO-001 through DT-001) with
+        detection rules, severity, CER sections, and sample quotes.  Injected into
+        CEP and QMS agent context to make findings defect-aware.
+        """
+        kb_path = self.repo_root / "knowledge" / "nb_defect_patterns.json"
+        if not kb_path.exists():
+            return None
+        try:
+            return json.loads(kb_path.read_text(encoding="utf-8"))
+        except Exception:
+            return None
 
     # ── Routing Audit Log ────────────────────────────────────────────────────
 
@@ -3874,6 +3910,47 @@ class CERReviewRunner:
         return merged
 
     # ── D1 Workflow Mode ───────────────────────────────────────────────────────
+
+    def _run_d1_admin_precheck(self, step: dict[str, Any]) -> None:
+        """D1 Step 0: cer_admin_precheck — pre-flight admin gate (V28.4)."""
+        step_dir = self._artifact_dir("00_admin_precheck")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_admin_precheck",
+            "schema_version": "v1",
+            "artifact_type": "admin_precheck_report",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_admin_precheck",
+            "produced_by_step": "cer_admin_precheck",
+            "status": "real_analysis",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "input_package_ref": "",
+                "document_inventory_ref": "",
+            },
+            "regulatory_anchor_id": "MDR_Annex_II_III",
+            "human_gate_required": False,
+            "checks_performed": [],
+            "check_results": {},
+            "blocking_issues": [],
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "V28.4 pre-flight admin gate. BLOCKING — pipeline stops if checks fail.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        step = self._apply_prompt_contract(step, "cer-admin-precheck-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-admin-precheck-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_admin_precheck.schema.json"),
+            output_artifact=step_dir / "admin_precheck_report.json",
+            upstream_artifacts=None,
+            extra_context=self._build_extra_context_for_step("cer_admin_precheck"),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
+        self._write_json(step_dir / "admin_precheck_report.json", report)
 
     def _run_d1_intake(self, step: dict[str, Any]) -> None:
         """D1 Step 1: cer_intake - produces CERDocStruct."""
@@ -4541,9 +4618,54 @@ class CERReviewRunner:
         packet = self._merge_agent_payload(packet, agent_payload)
         self._write_json(step_dir / "packet.json", packet)
 
+    def _run_d1_qms_review(self, step: dict[str, Any]) -> None:
+        """D1 Step 10: cer_qms_review — ISO 13485 QMS documentation review."""
+        step_dir = self._artifact_dir("10_qms_review")
+        prompt_text = self._load_prompt_for_step(step)
+        project_id = self.project_profile.get("project_id", "unknown")
+        report = {
+            "schema_name": "cer_qms_review",
+            "schema_version": "v1",
+            "artifact_type": "qms_review_findings",
+            "project_id": project_id,
+            "cer_run_id": self.run_id,
+            "workflow_id": self.workflow.get("workflow_id"),
+            "step_id": "cer_qms_review",
+            "produced_by_step": "cer_qms_review",
+            "status": "real_analysis",
+            "created_at": self._timestamp(),
+            "source_traceability": {
+                "cer_docstruct_ref": "",
+                "qms_documentation_ref": "",
+                "all_preceding_artifacts_ref": [],
+            },
+            "regulatory_anchor_id": "ISO_13485_2016",
+            "human_gate_required": False,
+            "qms_findings": [],
+            "iso_13485_sections_covered": ["§4", "§5", "§6", "§7", "§8"],
+            "prompt_contract_loaded": bool(prompt_text.strip()),
+            "note": "V28.2 QMS review. Covers ISO 13485 §4-§8: process validation, design control, purchasing, production, measurement.",
+            "schema_gate_status": "scaffold_complete",
+        }
+        step = self._apply_prompt_contract(step, "cer-qms-reviewer")
+        agent_payload = self._run_subagent_step(
+            step=step,
+            agent_name="cer-qms-reviewer",
+            output_schema_ref=step.get("schema_ref", "cer_qms_review.schema.json"),
+            output_artifact=step_dir / "qms_findings.json",
+            upstream_artifacts=self._d1_upstream_artifacts(
+                "05_lanes/panel_summary.json",
+                "06_consistency/report.json",
+                "09_human_boundary/packet.json",
+            ),
+            extra_context=self._build_extra_context_for_step("cer_qms_review"),
+        )
+        report = self._merge_agent_payload(report, agent_payload)
+        self._write_json(step_dir / "qms_findings.json", report)
+
     def _run_d1_gate_closure(self, step: dict[str, Any]) -> None:
-        """D1 Step 10: cer_gate_closure."""
-        step_dir = self._artifact_dir("10_gate_closure")
+        """D1 Step 11: cer_gate_closure."""
+        step_dir = self._artifact_dir("11_gate_closure")
         prompt_text = self._load_prompt_for_step(step)
         project_id = self.project_profile.get("project_id", "unknown")
         report = {
@@ -4728,6 +4850,155 @@ class CERReviewRunner:
         }
         self._write_json(ledger_path, ledger)
 
+    def _write_final_synthesis(self, *, executed_steps: list[str]) -> dict[str, Any]:
+        """Write a deterministic final synthesis from persisted review artifacts."""
+        severity_counts = {"critical": 0, "major": 0, "moderate": 0, "minor": 0, "info": 0}
+        artifact_refs: list[str] = []
+        key_findings: list[dict[str, Any]] = []
+        for path in sorted(self.artifact_root_actual.rglob("*.json")):
+            rel = path.relative_to(self.artifact_root_actual)
+            if (
+                str(rel) == "final_synthesis.json"
+                or str(rel).startswith("00_manifest/")
+                or str(rel).startswith("12_final_synthesis/")
+            ):
+                continue
+            artifact_refs.append(str(rel))
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            for finding in self._iter_review_findings(payload):
+                sev = str(finding.get("severity") or finding.get("priority") or "info").lower()
+                if sev not in severity_counts:
+                    sev = "info"
+                severity_counts[sev] += 1
+                if sev in {"critical", "major"} and len(key_findings) < 25:
+                    key_findings.append({
+                        "severity": sev,
+                        "finding_id": finding.get("finding_id") or finding.get("id") or "",
+                        "description": finding.get("description") or finding.get("evidence_gap") or finding.get("message") or "",
+                        "source": str(rel),
+                    })
+        blocked_context = self._authoring_blocked_context()
+        if blocked_context:
+            severity_counts["critical"] += 1
+            key_findings.insert(0, blocked_context)
+        if severity_counts["critical"] > 0:
+            decision = "REWORK_REQUIRED"
+        elif severity_counts["major"] > 3:
+            decision = "REWORK_REQUIRED"
+        elif severity_counts["major"] > 0:
+            decision = "PASS_WITH_CONTROLLED_GAPS"
+        else:
+            decision = "PASS"
+        synthesis = {
+            "schema": "cer_review_final_synthesis_v1",
+            "run_id": self.run_id,
+            "thread_id": self.thread_id,
+            "mode": self.run_mode,
+            "workflow_name": self.workflow_name,
+            "executed_steps": executed_steps,
+            "decision": decision,
+            "severity_counts": severity_counts,
+            "critical": severity_counts["critical"],
+            "major": severity_counts["major"],
+            "artifact_refs": artifact_refs,
+            "key_findings": key_findings,
+            "authoring_blocked_context": blocked_context or {},
+            "note": "Deterministic synthesis over persisted CER Review artifacts; human clinical judgment remains required for Layer 3 conclusions.",
+        }
+        self._write_json(self._artifact_path("12_final_synthesis", "final_synthesis.json"), synthesis)
+        self._write_json(self.artifact_root_actual / "final_synthesis.json", synthesis)
+        return synthesis
+
+    def _authoring_blocked_context(self) -> dict[str, Any]:
+        """Detect terminal Authoring holds in the review input package."""
+        root_path = (
+            self.project_profile.get("input_package", {}).get("root_path")
+            or self.project_profile.get("input_root")
+            or ""
+        )
+        if not root_path:
+            return {}
+        root = Path(str(root_path)).expanduser()
+        if not root.exists():
+            return {}
+
+        def _read_json(name: str) -> dict[str, Any]:
+            path = root / name
+            if not path.exists():
+                return {}
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                return payload if isinstance(payload, dict) else {}
+            except Exception:
+                return {}
+
+        final_gate = _read_json("final_gate_closure_report.json")
+        source_preflight = _read_json("source_preflight_gate_report.json")
+        blocker = _read_json("blocker_report.json")
+        compromise = _read_json("controlled_compromise_manifest.json")
+        writer_packet = _read_json("writer_input_packet.json")
+        packet_source_status = (
+            (writer_packet.get("approved_facts") or {}).get("source_preflight_status")
+            if isinstance(writer_packet.get("approved_facts"), dict)
+            else None
+        )
+        is_blocked = (
+            final_gate.get("decision") == "HUMAN_HOLD"
+            or source_preflight.get("status") == "BLOCKED"
+            or blocker.get("status") == "BLOCKED"
+            or compromise.get("terminal_status")
+            or packet_source_status == "BLOCKED"
+        )
+        if not is_blocked:
+            return {}
+        issue_count = (
+            blocker.get("blocking_issue_count")
+            or len(source_preflight.get("blocking_issues") or [])
+            or len(compromise.get("blocked_conditions") or [])
+        )
+        return {
+            "severity": "critical",
+            "finding_id": "AUTHORING_TERMINAL_HOLD",
+            "description": (
+                "Authoring output is a terminal hold / source-preflight-blocked package, "
+                "not a release-ready CER. Closure-only review cannot pass this package."
+            ),
+            "source": str(root),
+            "authoring_final_gate_decision": final_gate.get("decision"),
+            "source_preflight_status": source_preflight.get("status") or packet_source_status,
+            "blocker_count": issue_count,
+        }
+
+    def _iter_review_findings(self, payload: Any) -> list[dict[str, Any]]:
+        findings: list[dict[str, Any]] = []
+        if isinstance(payload, dict):
+            for key in ("findings", "cross_cutting_findings", "blocking_issues", "qms_findings"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    findings.extend([row for row in value if isinstance(row, dict)])
+            summary = payload.get("summary") or payload.get("panel_summary")
+            if isinstance(summary, dict):
+                for sev in ("critical", "major", "moderate", "minor", "info"):
+                    count = summary.get(sev) or summary.get(f"{sev}_findings_count")
+                    try:
+                        for idx in range(int(count or 0)):
+                            findings.append({"severity": sev, "finding_id": f"summary-{sev}-{idx+1}", "description": "Count imported from summary"})
+                    except Exception:
+                        pass
+            direct_keys = {"findings", "cross_cutting_findings", "blocking_issues", "qms_findings", "summary", "panel_summary"}
+            for key, value in payload.items():
+                if key in direct_keys:
+                    continue
+                if isinstance(value, (dict, list)):
+                    findings.extend(self._iter_review_findings(value))
+        elif isinstance(payload, list):
+            for item in payload:
+                findings.extend(self._iter_review_findings(item))
+        return findings
+
     @staticmethod
     def _utc_now() -> str:
         from datetime import datetime, timezone
@@ -4814,7 +5085,7 @@ class CERReviewRunner:
         return self._artifact_dir(step_prefix) / filename
 
     def _render_template(self, template: str) -> str:
-        return template.replace("${run_id}", self.run_id)
+        return template.replace("${run_id}", self.run_id).replace("{run_id}", self.run_id)
 
     def _make_thread_id(self) -> str:
         return f"cer-{uuid.uuid4().hex[:8]}"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 import os
 from typing import Any
@@ -45,30 +46,41 @@ G42_FAILURE_REPAIR_ROUTES = {
     "ENDPOINT_GAP": "endpoint_extraction",
     "PDF_GAP": "evidence_appraisal",
     "OCR_GAP": "evidence_appraisal",
-    "SOURCE_TYPE_REQUIREMENT_NOT_MET": "risk_gspr_mapping",
+    # ── Spiral-convergent routing: patterns that indicate "not enough evidence of
+    # the right kind" all route to query_expansion → sota_search, which is the
+    # only repair node capable of actually adding new evidence.  Each spiral round
+    # expands the search query and increments spiral_round_id.  After 3 rounds
+    # without sufficiency the gate escalates to BLOCKED → controlled_compromise.
+    "SOURCE_TYPE_REQUIREMENT_NOT_MET": "query_expansion",
     "ALLOWED_USE_BLOCKED": "claim_decomposition",
-    "MISSING_DATA_BLOCKING": "evidence_appraisal",
-    "CLAIM_SOURCE_MISMATCH": "risk_gspr_mapping",
+    "MISSING_DATA_BLOCKING": "query_expansion",
+    "CLAIM_SOURCE_MISMATCH": "query_expansion",
     "CLAIM_TYPE_MISCLASSIFICATION": "claim_decomposition",
     "CLAIM_OVERREACH": "claim_evidence_matrix",
     "SEMANTIC_SUPPORT_NOT_ESTABLISHED": "pre_g42_claim_evidence_candidate_linking",
-    "SOURCE_TYPE_INAPPROPRIATE": "risk_gspr_mapping",
+    "SOURCE_TYPE_INAPPROPRIATE": "query_expansion",
     "EVIDENCE_TRULY_INSUFFICIENT": "query_expansion",
 }
 G42_FAILURE_PRIORITY = (
-    "SOURCE_TYPE_REQUIREMENT_NOT_MET",
-    "ALLOWED_USE_BLOCKED",
-    "MISSING_DATA_BLOCKING",
+    # Patterns with dedicated repair nodes — address first if present
     "LINKING_GAP",
-    "CLAIM_TYPE_MISCLASSIFICATION",
-    "CLAIM_SOURCE_MISMATCH",
-    "SOURCE_TYPE_INAPPROPRIATE",
     "ENDPOINT_GAP",
     "PDF_GAP",
     "OCR_GAP",
     "SEMANTIC_SUPPORT_NOT_ESTABLISHED",
+    "CLAIM_TYPE_MISCLASSIFICATION",
     "CLAIM_OVERREACH",
+    # Evidence-insufficiency patterns — all route to query_expansion → sota_search
+    # to add new evidence each spiral round; 3-round hard cap prevents infinite loop
+    "ALLOWED_USE_BLOCKED",
+    "MISSING_DATA_BLOCKING",
+    "CLAIM_SOURCE_MISMATCH",
+    "SOURCE_TYPE_INAPPROPRIATE",
     "EVIDENCE_TRULY_INSUFFICIENT",
+    # Source document gaps (IFU/RMF/GSPR missing) — handled last because they
+    # require manufacturer documents, not literature search, and should not
+    # block the evidence spiral for literature-based claims
+    "SOURCE_TYPE_REQUIREMENT_NOT_MET",
 )
 PRE_WRITER_UPSTREAM_PRIORITY = (
     "identity",
@@ -254,6 +266,46 @@ def evaluate_pre_writer_readiness_gate(state: dict[str, Any]) -> dict[str, Any]:
                 "source_gate_ids": override.get("source_gate_ids") or "",
             }
         )
+    source_preflight = state.get("source_preflight_gate_report") or {}
+    if source_preflight.get("status") == "BLOCKED":
+        rows.append({
+            "condition_name": "source_preflight",
+            "status": "BLOCKED",
+            "message": "Source preflight has blocking source-package issues.",
+            "upstream_route": "initialize",
+            "failure_pattern": "source_preflight_blocked",
+            "source_gate_ids": "SOURCE_PREFLIGHT",
+        })
+    classification = state.get("classification_consistency_report") or {}
+    if classification.get("status") == "BLOCKED":
+        rows.append({
+            "condition_name": "classification",
+            "status": "BLOCKED",
+            "message": "Device classification conflict must be resolved before Writer.",
+            "upstream_route": "device_profile",
+            "failure_pattern": "classification_conflict",
+            "source_gate_ids": "CLASSIFICATION_CONSISTENCY_GATE",
+        })
+    cep_gate = evaluate_cep_exists_gate(state)
+    if cep_gate.status != "PASS":
+        rows.append({
+            "condition_name": "CEP",
+            "status": "BLOCKED" if cep_gate.status in {"FAIL", "BLOCKED"} else "REWORK_REQUIRED",
+            "message": cep_gate.message,
+            "upstream_route": "methodology_review",
+            "failure_pattern": cep_gate.failure_pattern or "cep_incomplete",
+            "source_gate_ids": "G_CEP",
+        })
+    br_matrix = state.get("benefit_risk_closure_matrix") or {}
+    if br_matrix.get("closure_status") == "NOT_CONCLUDABLE":
+        rows.append({
+            "condition_name": "BR",
+            "status": "BLOCKED",
+            "message": "Benefit-risk closure matrix is not concludable; Writer may only create controlled-draft limitations.",
+            "upstream_route": "risk_gspr_mapping",
+            "failure_pattern": "benefit_risk_not_concludable",
+            "source_gate_ids": "BR_CLOSURE_GATE",
+        })
     # ── IFU Pre-Writer Check: granular by alignment_status ──
     ifu_alignment = state.get("ifu_cer_alignment_ledger") or {}
     ifu_alignments = ifu_alignment.get("alignments", [])
@@ -288,6 +340,77 @@ def evaluate_pre_writer_readiness_gate(state: dict[str, Any]) -> dict[str, Any]:
             "upstream_route": "",
             "failure_pattern": "ifu_needs_human_review",
             "source_gate_ids": "G_IFU_WORKING_DOCUMENT",
+        })
+    # ── WS2-WS7 Pre-Writer Checks ──
+    ws_prisma = _gate_ws4_prisma_reproducibility(state)
+    if ws_prisma.status != "PASS":
+        rows.append({
+            "condition_name": "WS4_PRISMA",
+            "status": "BLOCKED" if ws_prisma.status == "BLOCKED" else "REWORK_REQUIRED",
+            "message": ws_prisma.message,
+            "upstream_route": "sota_search",
+            "failure_pattern": ws_prisma.failure_pattern or "prisma_not_reproducible",
+            "source_gate_ids": "WS4_PRISMA_REPRODUCIBILITY",
+        })
+    ws_equiv = _gate_ws7_equivalence_route(state)
+    if ws_equiv.status != "PASS":
+        rows.append({
+            "condition_name": "WS7_EQUIVALENCE",
+            "status": ws_equiv.status,
+            "message": ws_equiv.message,
+            "upstream_route": "equivalence_analysis",
+            "failure_pattern": ws_equiv.failure_pattern or "false_equivalence_closure",
+            "source_gate_ids": "WS7_EQUIVALENCE_ROUTE",
+        })
+    ws_overclaim = _gate_ws2_ifu_overclaim(state)
+    if ws_overclaim.status != "PASS":
+        rows.append({
+            "condition_name": "WS2_IFU_OVERCLAIM",
+            "status": ws_overclaim.status,
+            "message": ws_overclaim.message,
+            "upstream_route": "claim_decomposition",
+            "failure_pattern": ws_overclaim.failure_pattern or "ifu_overclaim",
+            "source_gate_ids": "WS2_IFU_OVERCLAIM",
+        })
+    ws_eligibility = _gate_ws3_final_body_claim_eligibility(state)
+    if ws_eligibility.status != "PASS":
+        rows.append({
+            "condition_name": "WS3_CLAIM_ELIGIBILITY",
+            "status": ws_eligibility.status,
+            "message": ws_eligibility.message,
+            "upstream_route": "claim_decomposition",
+            "failure_pattern": ws_eligibility.failure_pattern or "ineligible_claim",
+            "source_gate_ids": "WS3_CLAIM_ELIGIBILITY",
+        })
+    ws_ceiling = _gate_ws5_evidence_level_ceiling(state)
+    if ws_ceiling.status != "PASS":
+        rows.append({
+            "condition_name": "WS5_EVIDENCE_CEILING",
+            "status": ws_ceiling.status,
+            "message": ws_ceiling.message,
+            "upstream_route": "evidence_appraisal",
+            "failure_pattern": ws_ceiling.failure_pattern or "evidence_ceiling_violation",
+            "source_gate_ids": "WS5_EVIDENCE_LEVEL_CEILING",
+        })
+    ws_endpoint = _gate_ws6_endpoint_homogeneity(state)
+    if ws_endpoint.status != "PASS":
+        rows.append({
+            "condition_name": "WS6_ENDPOINT_HOMOGENEITY",
+            "status": ws_endpoint.status,
+            "message": ws_endpoint.message,
+            "upstream_route": "endpoint_extraction",
+            "failure_pattern": ws_endpoint.failure_pattern or "endpoint_heterogeneity",
+            "source_gate_ids": "WS6_ENDPOINT_HOMOGENEITY",
+        })
+    ws_rmf = _gate_ws9_rmf_ifu_warning_linkage(state)
+    if ws_rmf.status != "PASS":
+        rows.append({
+            "condition_name": "WS9_RMF_LINKAGE",
+            "status": ws_rmf.status,
+            "message": ws_rmf.message,
+            "upstream_route": "risk_gspr_mapping",
+            "failure_pattern": ws_rmf.failure_pattern or "rmf_ifu_unlinked",
+            "source_gate_ids": "WS9_RMF_IFU_LINKAGE",
         })
     blocked = [row for row in rows if row["status"] == "BLOCKED"]
     rework = [row for row in rows if row["status"] == "REWORK_REQUIRED"]
@@ -462,7 +585,21 @@ def evaluate_br_justified_gate(state: dict[str, Any]) -> dict[str, Any]:
         return _hard_gate_signal("G44", override.get("status", "PASS"), override.get("failure_pattern", override.get("message", "")), override=override, state=state)
     templateish = []
     for row in state.get("benefit_risk_ledger") or []:
-        blob = " ".join(str(row.get(key) or "") for key in ("benefit_evidence_basis", "risk_evidence_basis", "balance_rationale", "rationale", "supporting_evidence_ids", "sota_ids", "key_risk_ids"))
+        blob = " ".join(
+            str(row.get(key) or "")
+            for key in (
+                "benefit_evidence_basis",
+                "risk_evidence_basis",
+                "benefit_basis",
+                "risk_basis",
+                "balance_rationale",
+                "rationale",
+                "supporting_evidence_ids",
+                "sota_ids",
+                "key_risk_ids",
+                "evidence_strength",
+            )
+        )
         lower = blob.lower()
         has_basis = any(token in lower for token in ("e-", "evid", "pmid", "sota", "risk", "rmf", "benchmark", "claim", "limited", "uncertainty"))
         if not has_basis or "template" in lower:
@@ -695,7 +832,31 @@ def evaluate_cep_exists_gate(state: dict[str, Any]) -> dict[str, Any]:
         return GateResult(
             "G_CEP", "REWORK_REQUIRED", "Clinical Evaluation Plan not generated"
         )
-    return GateResult("G_CEP", "PASS", "CEP document exists")
+    required = {
+        "device_name": cep.get("device_name"),
+        "device_class": cep.get("device_class"),
+        "scope": cep.get("scope"),
+        "literature_search_protocol": cep.get("literature_search_protocol"),
+        "appraisal_method": cep.get("appraisal_method"),
+        "sota_methodology": cep.get("sota_methodology"),
+        "claim_support_method": cep.get("claim_support_method"),
+        "benefit_risk_method": cep.get("benefit_risk_method"),
+        "pms_pmcf_update_plan": cep.get("pms_pmcf_update_plan"),
+    }
+    missing = [name for name, value in required.items() if not value]
+    protocol = cep.get("literature_search_protocol") or {}
+    if isinstance(protocol, dict):
+        for name in ("databases", "exclusion_criteria", "inclusion_criteria"):
+            if not protocol.get(name):
+                missing.append(f"literature_search_protocol.{name}")
+    if missing:
+        return GateResult(
+            "G_CEP",
+            "REWORK_REQUIRED",
+            f"Clinical Evaluation Plan incomplete: {', '.join(missing[:8])}",
+            failure_pattern="cep_methodology_incomplete",
+        )
+    return GateResult("G_CEP", "PASS", "CEP document exists and methodology fields are complete")
 
 
 def _evidence_sufficiency_override_result(state: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
@@ -1876,6 +2037,9 @@ def _gate_final_draft_semantic_qa(state: dict[str, Any]) -> GateResult:
 
 def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:
     results = [
+        _gate_source_preflight(state),
+        _gate_classification_consistency(state),
+        _gate_document_control(state),
         _gate_mdr_annex_xiv(state),
         _gate_ifu_exists(state),
         _gate_prewriting_tables(state),
@@ -1928,8 +2092,35 @@ def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:
         evaluate_claim_sota_alignment_gate(state),
         evaluate_argument_quality_gate(state),
         evaluate_cep_exists_gate(state),
+        # ── WS2-WS10 integrated gates ──
+        _gate_ws2_ifu_iteration_closure(state),
+        _gate_ws2_ifu_overclaim(state),
+        _gate_ws3_claim_taxonomy(state),
+        _gate_ws3_final_body_claim_eligibility(state),
+        _gate_ws4_prisma_reproducibility(state),
+        _gate_ws5_evidence_level_ceiling(state),
+        _gate_ws6_endpoint_homogeneity(state),
+        _gate_ws7_equivalence_route(state),
+        _gate_ws8_benefit_risk_body_section(state),
+        _gate_ws9_rmf_ifu_warning_linkage(state),
+        _gate_ws10_submission_cleanliness(state),
+        _gate_ws10_conclusion_completeness(state),
+        _gate_ws10_body_annex_boundary(state),
     ]
-    critical_gate_ids = {"G1b", "G1d", "G2", "G5", "G8", "G12", "G14", "G19", "G_ARG_01", "G_ARG_02", "G_CEP", "G_DP_STATE", "G_IFU_WORKING_DOCUMENT", "G_SOTA_REASONING", "G_MDR_ANNEX_XIV"}
+    critical_gate_ids = {
+        "SOURCE_PREFLIGHT", "CLASSIFICATION_CONSISTENCY_GATE", "G1b", "G1d", "G2", "G5", "G8",
+        "G12", "G14", "G19", "G_ARG_01", "G_ARG_02", "G_CEP", "G_DP_STATE",
+        "G_IFU_WORKING_DOCUMENT", "G_SOTA_REASONING", "G_MDR_ANNEX_XIV",
+        # ── WS critical gate IDs ──
+        "WS2_IFU_OVERCLAIM",
+        "WS3_CLAIM_ELIGIBILITY",
+        "WS4_PRISMA_REPRODUCIBILITY",
+        "WS5_EVIDENCE_LEVEL_CEILING",
+        "WS7_EQUIVALENCE_ROUTE",
+        "WS8_BR_BODY_SECTION",
+        "WS9_RMF_IFU_LINKAGE",
+        "WS10_SUBMISSION_CLEANLINESS",
+    }
     critical_failures = [r for r in results if r.gate_id in critical_gate_ids and r.status != "PASS"]
     minor_failures = [r for r in results if r.gate_id not in critical_gate_ids and r.status != "PASS"]
     all_failed = critical_failures + minor_failures
@@ -1951,6 +2142,72 @@ def run_authoring_gates(state: dict[str, Any]) -> dict[str, Any]:
         "critical_failures": len(critical_failures),
         "minor_failures": len(minor_failures),
     }
+
+
+def _gate_source_preflight(state: dict[str, Any]) -> GateResult:
+    report = state.get("source_preflight_gate_report") or {}
+    status = str(report.get("status") or "PASS")
+    if status == "BLOCKED":
+        issues = report.get("blocking_issues") or []
+        return GateResult(
+            "SOURCE_PREFLIGHT",
+            "BLOCKED",
+            f"Source preflight blocked authoring: {len(issues)} issue(s)",
+            failure_pattern="source_preflight_blocked",
+            upstream_node_to_reroute="initialize",
+            blocked_reason="Controlled source package must be repaired before CER authoring.",
+            reroute_context={"blocking_issues": issues[:5]},
+        )
+    if status == "REWORK_REQUIRED":
+        return GateResult(
+            "SOURCE_PREFLIGHT",
+            "REWORK_REQUIRED",
+            "Source preflight has controlled gaps that must remain visible in the CER.",
+            failure_pattern="source_preflight_controlled_gaps",
+            reroute_context={"controlled_gaps": (report.get("controlled_gaps") or [])[:5]},
+        )
+    return GateResult("SOURCE_PREFLIGHT", "PASS", "Source preflight passed.")
+
+
+def _gate_classification_consistency(state: dict[str, Any]) -> GateResult:
+    report = state.get("classification_consistency_report") or {}
+    status = str(report.get("status") or "PASS")
+    if status == "BLOCKED":
+        return GateResult(
+            "CLASSIFICATION_CONSISTENCY_GATE",
+            "BLOCKED",
+            f"Conflicting device classifications: {report.get('classification_signals')}",
+            failure_pattern="classification_conflict",
+            upstream_node_to_reroute="device_profile",
+            blocked_reason="Resolve MDR classification before Writer.",
+            reroute_context={"classification_report": report},
+        )
+    if status == "CONTROLLED_GAP":
+        return GateResult(
+            "CLASSIFICATION_CONSISTENCY_GATE",
+            "REWORK_REQUIRED",
+            "Device classification is not locked and must remain a controlled draft gap.",
+            failure_pattern="classification_unconfirmed",
+        )
+    return GateResult("CLASSIFICATION_CONSISTENCY_GATE", "PASS", "Device classification is locked or no conflict was detected.")
+
+
+def _gate_document_control(state: dict[str, Any]) -> GateResult:
+    profile = state.get("device_profile") or {}
+    lock = state.get("source_lock_report") or {}
+    gaps = []
+    if not str(profile.get("manufacturer") or "").strip() or "not extracted" in str(profile.get("manufacturer") or "").lower():
+        gaps.append("manufacturer identity")
+    if not (state.get("document_control_metadata") or {}).get("document_id") and not lock.get("primary_ifu_source_ids"):
+        gaps.append("document ID/source control")
+    if gaps:
+        return GateResult(
+            "DOC_CONTROL_GATE",
+            "REWORK_REQUIRED",
+            f"Document-control metadata remains incomplete: {', '.join(gaps)}",
+            failure_pattern="document_control_controlled_gap",
+        )
+    return GateResult("DOC_CONTROL_GATE", "PASS", "Document-control metadata is present or controlled by source lock.")
 
 
 def _gate_defect_state_consistency(state: dict[str, Any]) -> GateResult:
@@ -3229,3 +3486,283 @@ def _has_document_type(state: dict[str, Any], needle: str) -> bool:
         if needle.lower() in combined:
             return True
     return False
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WS2-WS10 Gates — return GateResult for main authoring gate aggregation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _gate_ws2_ifu_iteration_closure(state: dict[str, Any]) -> GateResult:
+    """WS2: IFU iteration loop must be closed or explicitly pending manufacturer."""
+    from deerflow.runtime.cer_authoring.ifu_iteration import build_ifu_iteration_ledger
+
+    ledger = build_ifu_iteration_ledger(state)
+    open_blockers = ledger["ifu_iteration_decision_ledger"].get("open_blockers", [])
+    if open_blockers:
+        return GateResult(
+            "WS2_IFU_ITERATION_CLOSURE",
+            "BLOCKED",
+            f"IFU iteration loop has {len(open_blockers)} open blockers: {open_blockers}",
+            failure_pattern="ifu_iteration_open_blockers",
+            blocked_reason="IFU iteration ledger must be closed before writer invocation.",
+            reroute_context={"open_blockers": open_blockers, "ledger": ledger},
+        )
+    return GateResult("WS2_IFU_ITERATION_CLOSURE", "PASS", "IFU iteration loop is closed.")
+
+
+def _gate_ws2_ifu_overclaim(state: dict[str, Any]) -> GateResult:
+    """WS2: IFU overclaim with unsupported evidence blocks writer."""
+    from deerflow.runtime.cer_authoring.ifu_iteration import build_ifu_iteration_ledger
+
+    ledger = build_ifu_iteration_ledger(state)
+    has_overclaim = ledger["ifu_iteration_decision_ledger"].get("has_overclaim", False)
+    if has_overclaim:
+        return GateResult(
+            "WS2_IFU_OVERCLAIM",
+            "BLOCKED",
+            "IFU contains claims with unsupported evidence — writer blocked.",
+            failure_pattern="ifu_overclaim_unsupported_evidence",
+            blocked_reason="IFU overclaim must be resolved before CER writing.",
+            upstream_node_to_reroute="claim_decomposition",
+        )
+    return GateResult("WS2_IFU_OVERCLAIM", "PASS", "No IFU overclaim detected.")
+
+
+def _gate_ws3_claim_taxonomy(state: dict[str, Any]) -> GateResult:
+    """WS3: Claim taxonomy must classify all claims correctly."""
+    from deerflow.runtime.cer_authoring.claim_taxonomy import build_claim_taxonomy_decision_table
+
+    claims = state.get("claim_ledger") or []
+    taxonomy = build_claim_taxonomy_decision_table(claims)
+    unsupported = [r for r in taxonomy["claim_taxonomy_decision_table"] if not r["final_body_allowed"]]
+    if unsupported:
+        return GateResult(
+            "WS3_CLAIM_TAXONOMY",
+            "REWORK_REQUIRED",
+            f"{len(unsupported)} claims are not eligible for final body.",
+            failure_pattern="unsupported_claim_in_body",
+            reroute_context={"unsupported_claims": [r["claim_id"] for r in unsupported]},
+        )
+    return GateResult("WS3_CLAIM_TAXONOMY", "PASS", f"All {len(claims)} claims classified and eligible.")
+
+
+def _gate_ws3_final_body_claim_eligibility(state: dict[str, Any]) -> GateResult:
+    """WS3: Background-only or to_be_verified claims must not enter final body."""
+    from deerflow.runtime.cer_authoring.claim_taxonomy import build_claim_taxonomy_decision_table
+
+    claims = state.get("claim_ledger") or []
+    taxonomy = build_claim_taxonomy_decision_table(claims)
+    ineligible = [r for r in taxonomy["claim_taxonomy_decision_table"] if not r["final_body_allowed"]]
+    if ineligible:
+        return GateResult(
+            "WS3_CLAIM_ELIGIBILITY",
+            "BLOCKED",
+            f"{len(ineligible)} claims ineligible for final body text.",
+            failure_pattern="ineligible_claim_in_final_body",
+            blocked_reason="Remove or downgrade ineligible claims before final release.",
+        )
+    return GateResult("WS3_CLAIM_ELIGIBILITY", "PASS", "All claims eligible for final body.")
+
+
+def _gate_ws4_prisma_reproducibility(state: dict[str, Any]) -> GateResult:
+    """WS4: PRISMA must be reproducible for submission-grade SOTA."""
+    from deerflow.runtime.cer_authoring.prisma_reproducibility import build_prisma_reproducibility_audit
+
+    prisma_data = state.get("prisma_flow_data") or {}
+    search_runs = state.get("search_run_registry") or state.get("literature_flow_registry") or []
+    screening = state.get("screening_disposition") or state.get("pmid_screening_and_exclusion_table") or []
+    audit = build_prisma_reproducibility_audit(prisma_data, search_runs, screening)
+
+    if audit["submission_grade_sota_blocked"]:
+        return GateResult(
+            "WS4_PRISMA_REPRODUCIBILITY",
+            "BLOCKED",
+            f"PRISMA not reproducible: {audit['major_failures']} major, {audit['critical_failures']} critical failures.",
+            failure_pattern="prisma_not_reproducible",
+            blocked_reason="Unreproducible PRISMA blocks submission-grade SOTA conclusions.",
+            reroute_context={"audit": audit},
+        )
+    if audit["status"] == "FAIL":
+        return GateResult(
+            "WS4_PRISMA_REPRODUCIBILITY",
+            "REWORK_REQUIRED",
+            f"PRISMA audit has warnings: {len(audit['warnings'])} issues.",
+            failure_pattern="prisma_reproducibility_warnings",
+        )
+    return GateResult("WS4_PRISMA_REPRODUCIBILITY", "PASS", "PRISMA flow is reproducible.")
+
+
+def _gate_ws5_evidence_level_ceiling(state: dict[str, Any]) -> GateResult:
+    """WS5: Writer wording must not exceed evidence-level ceiling."""
+    from deerflow.runtime.cer_authoring.evidence_level_matrix import build_evidence_level_summary_matrix
+
+    evidence_registry = state.get("evidence_registry") or state.get("evidence_source_inventory") or []
+    claims = state.get("claim_ledger") or []
+    matrix = build_evidence_level_summary_matrix(evidence_registry, claims)
+    overall_ceiling = matrix["summary"]["overall_ceiling"]
+    has_strong_claims = any(
+        str(c.get("support_status") or c.get("support_level") or "").upper() == "STRONG"
+        for c in claims
+    )
+    ceiling_violation = has_strong_claims and overall_ceiling in {"MODERATE", "CAUTIOUS", "INSUFFICIENT"}
+
+    if ceiling_violation:
+        return GateResult(
+            "WS5_EVIDENCE_LEVEL_CEILING",
+            "BLOCKED",
+            f"Evidence ceiling is {overall_ceiling} but claims assert STRONG support.",
+            failure_pattern="evidence_ceiling_violation",
+            blocked_reason="Writer wording exceeds evidence-level ceiling.",
+            reroute_context={"ceiling": overall_ceiling, "matrix": matrix},
+        )
+    return GateResult("WS5_EVIDENCE_LEVEL_CEILING", "PASS", f"Evidence ceiling ({overall_ceiling}) supports claim wording.")
+
+
+def _gate_ws6_endpoint_homogeneity(state: dict[str, Any]) -> GateResult:
+    """WS6: Heterogeneous endpoints must downgrade conclusion or become PMCF objectives."""
+    from deerflow.runtime.cer_authoring.endpoint_homogeneity import build_endpoint_homogeneity_matrix
+
+    endpoints = state.get("endpoint_extraction") or state.get("endpoint_registry") or []
+    benchmarks = state.get("sota_benchmark_matrix") or state.get("sota_endpoint_derivation_table") or []
+    matrix = build_endpoint_homogeneity_matrix(endpoints, benchmarks)
+
+    if matrix["summary"]["conclusion_downgrade_required"]:
+        return GateResult(
+            "WS6_ENDPOINT_HOMOGENEITY",
+            "REWORK_REQUIRED",
+            f"{matrix['summary']['heterogeneous_count']} endpoint families are heterogeneous — conclusion must be downgraded.",
+            failure_pattern="endpoint_heterogeneity_downgrade",
+            reroute_context={"downgraded_families": matrix["summary"]["downgraded_families"]},
+        )
+    return GateResult("WS6_ENDPOINT_HOMOGENEITY", "PASS", "All endpoint families are homogeneous for benchmark derivation.")
+
+
+def _gate_ws7_equivalence_route(state: dict[str, Any]) -> GateResult:
+    """WS7: Equivalence route must be locked before evidence writing."""
+    from deerflow.runtime.cer_authoring.equivalence_route_lock import build_equivalence_route_lock
+
+    lock = build_equivalence_route_lock(state)
+    false_closure = (
+        lock["decision"] == "full_equivalence_claimed"
+        and not lock["equivalence_closed"]
+    )
+    if false_closure:
+        return GateResult(
+            "WS7_EQUIVALENCE_ROUTE",
+            "BLOCKED",
+            "False equivalence closure: equivalence claimed but matrices incomplete.",
+            failure_pattern="false_equivalence_closure",
+            blocked_reason="Equivalence cannot be claimed without complete technical/biological/clinical matrices.",
+            reroute_context={"lock": lock},
+        )
+    return GateResult("WS7_EQUIVALENCE_ROUTE", "PASS", f"Equivalence route: {lock['decision']}.")
+
+
+def _gate_ws8_benefit_risk_body_section(state: dict[str, Any], cer_body_text: str = "") -> GateResult:
+    """WS8: CER body must have dedicated benefit-risk analysis section."""
+    from deerflow.runtime.cer_authoring.benefit_risk_section import build_benefit_risk_body_section
+
+    br = build_benefit_risk_body_section(state, cer_body_text or state.get("_cer_body_text", ""))
+    if not br["benefit_risk_body_section"]["section_present"]:
+        return GateResult(
+            "WS8_BR_BODY_SECTION",
+            "BLOCKED",
+            "CER body is missing dedicated §4.8 Benefit-Risk Analysis section.",
+            failure_pattern="missing_benefit_risk_body_section",
+            blocked_reason="Benefit-risk must be a dedicated body section, not annex-only.",
+        )
+    if not br["unqualified_favourable_allowed"]:
+        return GateResult(
+            "WS8_BR_BODY_SECTION",
+            "REWORK_REQUIRED",
+            f"Benefit-risk section present but missing elements: {br['missing_elements']}",
+            failure_pattern="benefit_risk_incomplete",
+        )
+    return GateResult("WS8_BR_BODY_SECTION", "PASS", "Benefit-risk body section is complete with required elements.")
+
+
+def _gate_ws9_rmf_ifu_warning_linkage(state: dict[str, Any]) -> GateResult:
+    """WS9: IFU warnings must map to RMF hazard IDs."""
+    from deerflow.runtime.cer_authoring.rmf_crosswalk import build_rmf_deep_linkage
+
+    linkage = build_rmf_deep_linkage(state)
+    gate_status = linkage["gate_status"]
+
+    if gate_status == "FAIL_MISSING_RMF_SOURCE":
+        return GateResult(
+            "WS9_RMF_IFU_LINKAGE",
+            "REWORK_REQUIRED",
+            "RMF source is missing — IFU warnings cannot be linked to hazard trace.",
+            failure_pattern="missing_rmf_source",
+        )
+    if gate_status == "FAIL_UNLINKED_WARNINGS":
+        return GateResult(
+            "WS9_RMF_IFU_LINKAGE",
+            "BLOCKED",
+            f"{linkage['ifu_warning_rmf_crosswalk']['unlinked_count']} IFU warnings have no RMF hazard linkage.",
+            failure_pattern="ifu_warning_unlinked_to_rmf",
+            blocked_reason="IFU warnings without RMF linkage block unqualified benefit-risk conclusion.",
+            reroute_context={"linkage": linkage},
+        )
+    return GateResult("WS9_RMF_IFU_LINKAGE", "PASS", "All IFU warnings have RMF hazard linkage.")
+
+
+def _gate_ws10_submission_cleanliness(state: dict[str, Any], cer_body_text: str = "") -> GateResult:
+    """WS10: DOCX body must be free of banned strings, CJK, placeholders."""
+    from deerflow.runtime.cer_authoring.writer_remediation.writer_gates import (
+        BANNED_INTERNAL_STRINGS,
+        IFU_PLACEHOLDER_PATTERNS,
+    )
+    body = cer_body_text or state.get("_cer_body_text", "")
+    banned_hits = [s for s in BANNED_INTERNAL_STRINGS if s.lower() in body.lower()]
+    placeholder_hits = [p for p in IFU_PLACEHOLDER_PATTERNS if p.lower() in body.lower()]
+    cjk_pattern = re.compile(r"[㐀-鿿　-〿＀-￯]")
+    cjk_hits = cjk_pattern.findall(body)
+
+    if banned_hits or placeholder_hits or cjk_hits:
+        return GateResult(
+            "WS10_SUBMISSION_CLEANLINESS",
+            "BLOCKED",
+            f"Body contains banned strings ({len(banned_hits)}), placeholders ({len(placeholder_hits)}), or CJK ({len(cjk_hits)}).",
+            failure_pattern="submission_cleanliness_failure",
+            blocked_reason="Raw JSON, internal trace, CJK, or placeholders must not enter DOCX body.",
+            reroute_context={"banned": banned_hits, "placeholders": placeholder_hits, "cjk_count": len(cjk_hits)},
+        )
+    return GateResult("WS10_SUBMISSION_CLEANLINESS", "PASS", "Body text is clean of banned strings, CJK, and placeholders.")
+
+
+def _gate_ws10_conclusion_completeness(state: dict[str, Any], cer_body_text: str = "") -> GateResult:
+    """WS10: Conclusion must include safety, performance, benefit-risk, PMS/PMCF, limitations."""
+    from deerflow.runtime.cer_authoring.regulatory_style import build_regulatory_style_fingerprint
+
+    body = cer_body_text or state.get("_cer_body_text", "")
+    fingerprint = build_regulatory_style_fingerprint(body)
+    conclusion_check = fingerprint.get("conclusion", {})
+
+    if conclusion_check.get("status") == "FAIL_WITH_GAPS":
+        return GateResult(
+            "WS10_CONCLUSION_COMPLETENESS",
+            "REWORK_REQUIRED",
+            f"Conclusion missing elements: {conclusion_check.get('missing', [])}",
+            failure_pattern="conclusion_incomplete",
+        )
+    return GateResult("WS10_CONCLUSION_COMPLETENESS", "PASS", "Conclusion includes all required sub-conclusions.")
+
+
+def _gate_ws10_body_annex_boundary(state: dict[str, Any], cer_body_text: str = "") -> GateResult:
+    """WS10: Annex tables must support, not replace, body reasoning."""
+    from deerflow.runtime.cer_authoring.regulatory_style import build_regulatory_style_fingerprint
+
+    body = cer_body_text or state.get("_cer_body_text", "")
+    fingerprint = build_regulatory_style_fingerprint(body)
+    boundary = fingerprint.get("body_annex_boundary", {})
+
+    if boundary.get("body_only_references_without_narrative"):
+        return GateResult(
+            "WS10_BODY_ANNEX_BOUNDARY",
+            "REWORK_REQUIRED",
+            "Body references annex tables without standalone narrative reasoning.",
+            failure_pattern="annex_replacing_body_narrative",
+        )
+    return GateResult("WS10_BODY_ANNEX_BOUNDARY", "PASS", "Body/annex boundary respected.")

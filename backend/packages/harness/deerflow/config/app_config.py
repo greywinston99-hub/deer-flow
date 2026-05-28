@@ -24,6 +24,7 @@ from deerflow.config.title_config import TitleConfig, load_title_config_from_dic
 from deerflow.config.token_usage_config import TokenUsageConfig
 from deerflow.config.tool_config import ToolConfig, ToolGroupConfig
 from deerflow.config.tool_search_config import ToolSearchConfig, load_tool_search_config_from_dict
+from deerflow.utils.network import force_direct_api_network
 
 
 def _load_default_dotenv() -> None:
@@ -42,7 +43,20 @@ def _load_default_dotenv() -> None:
             load_dotenv(path, override=False)
 
 
+def _force_direct_api_network() -> None:
+    """Keep DeerFlow model/API calls off system or shell proxy settings.
+
+    Claude Code and DeerFlow API providers should connect directly to their
+    upstream endpoints.  Some launch paths inherit Clash/Clash Pro proxy
+    variables from shells or GUI apps; clear them at process bootstrap unless a
+    developer explicitly opts out with DEERFLOW_ALLOW_PROXY=1.
+    """
+
+    force_direct_api_network()
+
+
 _load_default_dotenv()
+_force_direct_api_network()
 
 logger = logging.getLogger(__name__)
 

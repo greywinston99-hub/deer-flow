@@ -1,8 +1,35 @@
 """Thread-safe network utilities."""
 
+import os
 import socket
 import threading
+import urllib.request
 from contextlib import contextmanager
+
+
+def force_direct_api_network() -> None:
+    """Force model/API clients to bypass shell and macOS system proxies.
+
+    Python's urllib can read macOS system proxy settings even when HTTP_PROXY is
+    absent. Installing an empty ProxyHandler prevents Clash/Clash Pro system
+    proxy settings from being used by DeerFlow network calls. Set
+    DEERFLOW_ALLOW_PROXY=1 only for explicit debugging.
+    """
+
+    if os.getenv("DEERFLOW_ALLOW_PROXY", "").strip() == "1":
+        return
+    for key in (
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "ALL_PROXY",
+        "http_proxy",
+        "https_proxy",
+        "all_proxy",
+    ):
+        os.environ.pop(key, None)
+    os.environ["NO_PROXY"] = "*"
+    os.environ["no_proxy"] = "*"
+    urllib.request.install_opener(urllib.request.build_opener(urllib.request.ProxyHandler({})))
 
 
 class PortAllocator:

@@ -9094,6 +9094,11 @@ def build_claim_evidence_benefit_risk_ledgers(state: dict[str, Any]) -> dict[str
     writer_evidence_trace = _writer_evidence_consumption_trace_rows({**state, "allowed_use_matrix": allowed_use})
     existing_guard = state.get("sota_conclusion_strength_guard") or []
     section_trace = _cer_section_trace_map_rows(state, matrix, benefit_risk, writer_guard)
+    # Generate IFU artifacts here (before pre-writer gate) so that
+    # evaluate_pre_writer_readiness_gate can read ifu_cer_alignment_ledger
+    # and detect overclaimed/unsupported IFU statements before Writer runs.
+    ifu_working = _build_ifu_working_document_status(state)
+    ifu_alignment = _build_ifu_cer_alignment_ledger(state)
     return {
         **boundary_updates,
         **alignment_updates,
@@ -9104,6 +9109,8 @@ def build_claim_evidence_benefit_risk_ledgers(state: dict[str, Any]) -> dict[str
         "writer_evidence_consumption_trace": writer_evidence_trace,
         "sota_conclusion_strength_guard": [*existing_guard, *writer_guard],
         "cer_section_trace_map": section_trace,
+        "ifu_working_document_status": ifu_working,
+        "ifu_cer_alignment_ledger": ifu_alignment,
     }
 
 

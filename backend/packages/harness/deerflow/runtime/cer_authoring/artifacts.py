@@ -30,6 +30,14 @@ OUTPUT_FILES = [
     "cer_section_trace_map_schema.xlsx",
     "gate_to_upstream_repair_map.xlsx",
     "calibration_event_log.xlsx",
+    "source_lock_report.json",
+    "manufacturer_intake_report.json",
+    "ifu_fact_table.json",
+    "source_preflight_gate_report.json",
+    "classification_consistency_report.json",
+    "device_classification_lock.json",
+    "blocker_report.json",
+    "controlled_compromise_manifest.json",
     "source_inventory.xlsx",
     "document_parsing_lineage.csv",
     "clinical_evidence_fact_table.xlsx",
@@ -133,6 +141,10 @@ OUTPUT_FILES = [
     "vigilance_recall_registry.xlsx",
     "vigilance_event_statistics.xlsx",
     "risk_gspr_trace_matrix.xlsx",
+    "rmf_hazard_trace.json",
+    "ifu_warning_rmf_crosswalk.json",
+    "benefit_risk_closure_matrix.json",
+    "pmcf_plan_control_matrix.json",
     "pmcf_boundary_decision_log.xlsx",
     "marketing_pms_customer_questionnaire.xlsx",
     "CER_draft.md",
@@ -148,6 +160,17 @@ OUTPUT_FILES = [
     "evidence_count_funnel.json",
     "final_text_claim_support_map.json",
     "writer_input_packet.json",
+    # WS1-WS10 new artifacts
+    "engineer_feedback_coverage_report.json",
+    "ifu_iteration_decision_ledger.json",
+    "ifu_claim_scope_delta_matrix.xlsx",
+    "claim_taxonomy_decision_table.xlsx",
+    "claim_evidence_route_matrix.xlsx",
+    "prisma_reproducibility_audit.json",
+    "evidence_level_summary_matrix.xlsx",
+    "endpoint_homogeneity_matrix.xlsx",
+    "equivalence_route_lock.json",
+    "regulatory_style_fingerprint_report.json",
 ]
 
 # V2: Standard table field definitions aligned with 262 real CER tables (CER_05_TABLES)
@@ -408,6 +431,15 @@ def build_authoring_workbook(state: dict[str, Any]) -> dict[str, Any]:
 # These are merged into their respective state keys during workbook construction.
 
 def write_authoring_artifacts(artifact_root: str | Path, state: dict[str, Any]) -> list[str]:
+    # Fail early if docx dependency is missing, before producing incomplete outputs.
+    try:
+        from docx import Document  # noqa: F401
+    except ImportError as exc:
+        raise ImportError(
+            "python-docx is not installed. DOCX artifacts cannot be written. "
+            "Install it with: pip install python-docx"
+        ) from exc
+
     root = Path(artifact_root)
     root.mkdir(parents=True, exist_ok=True)
     state = _with_provisional_ei_outputs(state)
@@ -450,6 +482,14 @@ def write_authoring_artifacts(artifact_root: str | Path, state: dict[str, Any]) 
         "authoring_workbook.json": workbook,
         "calibration_case_schema.json": state.get("calibration_case_schema") or {},
         "authoring_baseline_freeze_manifest.json": state.get("authoring_baseline_freeze_manifest") or {},
+        "source_lock_report.json": state.get("source_lock_report") or {},
+        "manufacturer_intake_report.json": state.get("manufacturer_intake_report") or {},
+        "ifu_fact_table.json": state.get("ifu_fact_table") or {},
+        "source_preflight_gate_report.json": state.get("source_preflight_gate_report") or {},
+        "classification_consistency_report.json": state.get("classification_consistency_report") or {},
+        "device_classification_lock.json": state.get("device_classification_lock") or {},
+        "blocker_report.json": _build_blocker_report(state),
+        "controlled_compromise_manifest.json": state.get("controlled_compromise_manifest") or state.get("compromise_manifest") or {},
         "device_profile.json": device_profile,
         "literature_search_protocol_profile.json": state.get("literature_search_protocol_profile") or {},
         "search_run_registry.json": state.get("search_run_registry") or [],
@@ -463,6 +503,10 @@ def write_authoring_artifacts(artifact_root: str | Path, state: dict[str, Any]) 
         "claim_support_matrix.json": claim_support_matrix,
         "writer_conclusion_constraints.json": state.get("writer_conclusion_constraints") or {},
         "benefit_risk_conclusion.json": state.get("benefit_risk_conclusion") or {},
+        "benefit_risk_closure_matrix.json": state.get("benefit_risk_closure_matrix") or {},
+        "rmf_hazard_trace.json": state.get("rmf_hazard_trace") or {},
+        "ifu_warning_rmf_crosswalk.json": state.get("ifu_warning_rmf_crosswalk") or {},
+        "pmcf_plan_control_matrix.json": state.get("pmcf_plan_control_matrix") or {},
         "human_review_packet.json": _compact_human_review_packet_payload(state.get("human_review_packet") or []),
         "human_review_packet_filtering_summary.json": state.get("human_review_packet_filtering_summary") or {},
         "ei_gate_signals.json": state.get("ei_gate_signals") or {},
@@ -507,6 +551,113 @@ def write_authoring_artifacts(artifact_root: str | Path, state: dict[str, Any]) 
     wip = state.get("writer_input_packet") or _pipeline._build_writer_input_packet(state)
     payloads["writer_input_packet.json"] = wip if wip else {}
 
+    # ── WS1-WS10 Artifact Export ──
+    from deerflow.runtime.cer_authoring.engineer_feedback_coverage import build_engineer_feedback_coverage_report
+    from deerflow.runtime.cer_authoring.ifu_iteration import build_ifu_iteration_ledger
+    from deerflow.runtime.cer_authoring.claim_taxonomy import build_claim_taxonomy_decision_table
+    from deerflow.runtime.cer_authoring.prisma_reproducibility import build_prisma_reproducibility_audit
+    from deerflow.runtime.cer_authoring.evidence_level_matrix import build_evidence_level_summary_matrix
+    from deerflow.runtime.cer_authoring.endpoint_homogeneity import build_endpoint_homogeneity_matrix
+    from deerflow.runtime.cer_authoring.equivalence_route_lock import build_equivalence_route_lock
+    from deerflow.runtime.cer_authoring.benefit_risk_section import build_benefit_risk_body_section
+    from deerflow.runtime.cer_authoring.regulatory_style import build_regulatory_style_fingerprint
+    from deerflow.runtime.cer_authoring.rmf_crosswalk import build_rmf_deep_linkage
+
+    # WS1: Engineer feedback coverage
+    coverage_report = build_engineer_feedback_coverage_report(state)
+    payloads["engineer_feedback_coverage_report.json"] = coverage_report
+
+    # WS2: IFU iteration ledger + claim scope delta
+    ifu_ledger = build_ifu_iteration_ledger(state)
+    payloads["ifu_iteration_decision_ledger.json"] = ifu_ledger
+    payloads["ifu_claim_scope_delta_matrix.xlsx"] = ifu_ledger.get("ifu_claim_scope_delta_matrix", {})
+
+    # WS3: Claim taxonomy
+    claims_for_taxonomy = state.get("claim_ledger") or []
+    taxonomy = build_claim_taxonomy_decision_table(claims_for_taxonomy)
+    payloads["claim_taxonomy_decision_table.xlsx"] = taxonomy.get("claim_taxonomy_decision_table", [])
+    payloads["claim_evidence_route_matrix.xlsx"] = taxonomy.get("claim_evidence_route_matrix", [])
+
+    # WS4: PRISMA reproducibility
+    prisma_data = state.get("prisma_flow_data") or {}
+    search_runs = state.get("search_run_registry") or state.get("literature_flow_registry") or []
+    screening = state.get("screening_disposition") or state.get("pmid_screening_and_exclusion_table") or []
+    prisma_audit = build_prisma_reproducibility_audit(prisma_data, search_runs, screening)
+    payloads["prisma_reproducibility_audit.json"] = prisma_audit
+
+    # WS5: Evidence level summary
+    evidence_registry = state.get("evidence_registry") or state.get("evidence_source_inventory") or []
+    evidence_matrix = build_evidence_level_summary_matrix(evidence_registry, claims_for_taxonomy)
+    payloads["evidence_level_summary_matrix.xlsx"] = evidence_matrix.get("rows", [])
+
+    # WS6: Endpoint homogeneity
+    endpoints = state.get("endpoint_extraction") or state.get("endpoint_registry") or []
+    benchmarks = state.get("sota_benchmark_matrix") or state.get("sota_endpoint_derivation_table") or []
+    ep_matrix = build_endpoint_homogeneity_matrix(endpoints, benchmarks)
+    payloads["endpoint_homogeneity_matrix.xlsx"] = ep_matrix.get("rows", [])
+
+    # WS7: Equivalence route lock
+    eq_lock = build_equivalence_route_lock(state)
+    payloads["equivalence_route_lock.json"] = eq_lock
+
+    # WS8/WS9: Enhanced benefit-risk + RMF deep linkage
+    br_section = build_benefit_risk_body_section(state, cer_markdown)
+    payloads["benefit_risk_closure_matrix.json"] = br_section
+    rmf_linkage = build_rmf_deep_linkage(state)
+    payloads["rmf_hazard_trace.json"] = rmf_linkage.get("rmf_hazard_trace", {})
+    payloads["ifu_warning_rmf_crosswalk.json"] = rmf_linkage.get("ifu_warning_rmf_crosswalk", {})
+
+    # WS10: Regulatory style fingerprint
+    style_fp = build_regulatory_style_fingerprint(cer_markdown)
+    payloads["regulatory_style_fingerprint_report.json"] = style_fp
+
+    # Update FINAL_DRAFT_QA_REPORT with WS gate results included
+    ws_cleanliness_gate = None
+    try:
+        from deerflow.runtime.cer_authoring import gates as _gates_mod
+        ws_cleanliness_gate = _gates_mod._gate_ws10_submission_cleanliness(state, cer_markdown)
+    except Exception:
+        pass
+    payloads["FINAL_DRAFT_QA_REPORT.json"] = {
+        "schema": "final_draft_qa_report_v1",
+        "overall_status": writer_gate_results.get("overall_status"),
+        "quarantined": quarantined,
+        "gates": writer_gate_results.get("gates", {}),
+        "context_contamination_trace": context_trace,
+        "ws_gates": {
+            "ws1_coverage": coverage_report.get("summary", {}),
+            "ws4_prisma": prisma_audit.get("status"),
+            "ws5_evidence_ceiling": evidence_matrix.get("summary", {}).get("overall_ceiling"),
+            "ws6_endpoint_homogeneity": "PASS" if ep_matrix.get("summary", {}).get("benchmark_derivation_safe") else "DOWNGRADE_REQUIRED",
+            "ws7_equivalence": eq_lock.get("decision"),
+            "ws8_br_body_section": br_section.get("benefit_risk_body_section", {}).get("section_present"),
+            "ws9_rmf_linkage": rmf_linkage.get("gate_status"),
+            "ws10_style_fingerprint": style_fp.get("overall_status"),
+        },
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+
+    # Update final_gate_closure_report with WS gate results
+    qa_gate_report_for_final = state.get("qa_gate_report") or qa_report
+    payloads["final_gate_closure_report.json"] = {
+        "schema_name": "cer_authoring_final_gate_closure_report",
+        "decision": state.get("final_gate_decision") or qa_gate_report_for_final.get("decision", "REWORK_REQUIRED"),
+        "qa_gate_report": qa_gate_report_for_final,
+        "ws_gate_summary": {
+            "ws1_coverage_absorption": coverage_report.get("summary", {}).get("absorption_rate"),
+            "ws1_p0_gaps": coverage_report.get("summary", {}).get("p0_gap_count", 0),
+            "ws2_ifu_overclaim": "PASS" if not ifu_ledger.get("ifu_iteration_decision_ledger", {}).get("has_overclaim") else "BLOCKED",
+            "ws3_unsupported_claims": len([r for r in taxonomy.get("claim_taxonomy_decision_table", []) if not r.get("final_body_allowed")]),
+            "ws4_prisma_reproducible": prisma_audit.get("status") == "PASS",
+            "ws5_evidence_ceiling": evidence_matrix.get("summary", {}).get("overall_ceiling"),
+            "ws6_endpoint_heterogeneous": ep_matrix.get("summary", {}).get("heterogeneous_count", 0),
+            "ws7_equivalence_decision": eq_lock.get("decision"),
+            "ws8_br_section_present": br_section.get("benefit_risk_body_section", {}).get("section_present"),
+            "ws9_rmf_warnings_unlinked": rmf_linkage.get("ifu_warning_rmf_crosswalk", {}).get("unlinked_count", 0),
+            "ws10_style_status": style_fp.get("overall_status"),
+        },
+    }
+
     for filename in OUTPUT_FILES:
         path = root / filename
         if filename in ("CER_draft.md", "CER_draft.docx") and quarantined:
@@ -514,7 +665,11 @@ def write_authoring_artifacts(artifact_root: str | Path, state: dict[str, Any]) 
             written.append(f"{path} [QUARANTINED — not written to release]")
             continue
         if filename.endswith(".xlsx"):
-            _write_xlsx_artifact(path, filename, state, workbook)
+            # WS XLSX artifacts come from payloads; others from state mapping
+            if filename in payloads:
+                _write_xlsx_from_payload(path, payloads[filename])
+            else:
+                _write_xlsx_artifact(path, filename, state, workbook)
         elif filename.endswith(".csv"):
             _write_csv_artifact(path, filename, state, workbook)
         elif filename.endswith(".docx"):
@@ -591,6 +746,43 @@ def write_authoring_artifacts(artifact_root: str | Path, state: dict[str, Any]) 
         written.append(f"WORKBOOK_SKIPPED: {e}")
 
     return written
+
+
+def _build_blocker_report(state: dict[str, Any]) -> dict[str, Any]:
+    """Build a compact, export-facing blocker report for terminal holds."""
+    source_report = state.get("source_preflight_gate_report") or {}
+    readiness = state.get("pre_writer_readiness_report") or {}
+    compromise = state.get("controlled_compromise_manifest") or state.get("compromise_manifest") or {}
+    blocking_issues = list(source_report.get("blocking_issues") or [])
+    blocking_issues.extend(readiness.get("failing_sub_conditions") or [])
+    controlled_gaps = list(source_report.get("controlled_gaps") or [])
+    controlled_gaps.extend(state.get("input_gap_list") or [])
+    status = (
+        "BLOCKED"
+        if source_report.get("status") == "BLOCKED"
+        or readiness.get("status") == "BLOCKED"
+        or state.get("final_gate_decision") == "HUMAN_HOLD"
+        else "PASS"
+    )
+    return {
+        "schema": "cer_authoring_blocker_report_v1",
+        "project_id": state.get("project_id"),
+        "status": status,
+        "writer_invoked": bool(compromise.get("writer_invoked", False) if compromise else state.get("cer_chapter_drafts")),
+        "source_preflight_status": source_report.get("status"),
+        "pre_writer_readiness_status": readiness.get("status"),
+        "final_gate_decision": state.get("final_gate_decision"),
+        "blocking_issue_count": len(blocking_issues),
+        "controlled_gap_count": len(controlled_gaps),
+        "blocking_issues": blocking_issues,
+        "controlled_gaps": controlled_gaps,
+        "recommended_next_action": (
+            "Resolve critical source/package blockers before rerunning CER authoring."
+            if status == "BLOCKED"
+            else "No terminal blocker recorded."
+        ),
+        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
 
 
 def _with_provisional_ei_outputs(state: dict[str, Any]) -> dict[str, Any]:
@@ -868,6 +1060,39 @@ def _render_retrieval_domain_grounding_report(state: dict[str, Any]) -> str:
         f"- Retrieval-domain mismatches: {len(mismatches)}\n\n"
         "This report is generated from `evidence_source_trace_matrix`; every pivotal/supportive evidence item must have query provenance and domain-grounding approval before writer consumption.\n"
     )
+
+
+def _write_xlsx_from_payload(path: Path, data: Any) -> None:
+    """Write an XLSX file from a list-of-dicts payload (WS1-WS10 artifacts)."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+
+    if not isinstance(data, list) or not data:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Data"
+        ws.append(["No rows available — pipeline may not have reached this stage."])
+        wb.save(str(path))
+        return
+    if not isinstance(data[0], dict):
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Data"
+        ws.append(["value"])
+        for row in data[:1000]:
+            ws.append([str(row)])
+        wb.save(str(path))
+        return
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Data"
+    headers = list(data[0].keys())
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+    for row in data[:5000]:
+        ws.append([str(row.get(h, "")) for h in headers])
+    wb.save(str(path))
 
 
 def _write_xlsx_artifact(path: Path, filename: str, state: dict[str, Any], workbook: dict[str, Any]) -> None:

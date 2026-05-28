@@ -12,6 +12,8 @@ from __future__ import annotations
 # Map from device_profile.json `device_domain` field values to matrix domain keys.
 DEVICE_DOMAIN_TO_MATRIX_DOMAIN: dict[str, str] = {
     "cardiac_tissue_stabilizer": "cardiac_tissue_stabilizer",
+    "contrast_imaging_bubble_study_system": "contrast_imaging_bubble_study_system",
+    "plasma_surgical_equipment": "ent_rf_plasma_surgical_equipment",
     "plasma_surgical_electrode": "orthopedic_rf_plasma_electrode",
     "orthopedic_rf_plasma_electrode": "orthopedic_rf_plasma_electrode",
     "medical_imaging_software": "medical_imaging_software",
@@ -23,6 +25,47 @@ DEVICE_DOMAIN_TO_MATRIX_DOMAIN: dict[str, str] = {
 
 
 DOMAIN_TERM_MATRIX: dict[str, dict] = {
+    "contrast_imaging_bubble_study_system": {
+        "label": "Bubble Study Ultrasound Contrast Imaging System",
+        "description": (
+            "Automated agitated-saline preparation/injection system with single-use contrast "
+            "injection tubing for c-TTE/c-TCD bubble-study assessment of right-to-left shunt/PFO."
+        ),
+        "required_terms": [
+            "bubble study", "agitated saline", "right-to-left shunt", "RLS",
+            "patent foramen ovale", "PFO", "contrast echocardiography",
+            "contrast-enhanced transcranial Doppler", "c-TTE", "c-TCD",
+            "diagnostic concordance", "Disposable Contrast Injection Tubing Set",
+        ],
+        "allowed_terms": [
+            "manual agitated saline", "transthoracic echocardiography",
+            "transcranial Doppler", "Valsalva maneuver", "intravenous injection",
+            "positive detection concordance", "negative detection concordance",
+            "semi-quantitative grading", "device success rate", "diagnostic success rate",
+            "air embolism", "injection-site reaction", "hemodynamic instability",
+        ],
+        "forbidden_terms": [
+            "pulsed field ablation", "PFA ablation", "radiofrequency ablation",
+            "catheter ablation", "pulmonary vein isolation", "atrial fibrillation ablation",
+            "plasma surgical equipment", "coblation", "ENT surgery", "arthroscopy",
+            "ureteroscope", "ureteral access sheath", "renal pelvis", "urolithiasis",
+            "cardiac tissue stabilizer", "CABG", "off-pump coronary artery bypass",
+        ],
+        "ambiguous_terms": [
+            "contrast", "cardiac", "injection", "diagnostic system",
+        ],
+        "exception_contexts": [
+            "excluded", "not applicable", "differs from", "unlike", "in contrast to",
+        ],
+        "section_scope": [
+            "SUMMARY", "DEVICE DESCRIPTION", "INTENDED PURPOSE",
+            "CLINICAL BACKGROUND", "DEVICE UNDER EVALUATION", "CONCLUSIONS",
+            "1.", "2.1", "2.2", "3.1", "3.2", "3.3", "3.4", "3.5",
+            "3.6", "3.7", "3.8", "4.1", "4.2", "4.3", "4.4", "4.5",
+            "4.6", "4.7", "5.",
+        ],
+        "annex_excluded": True,
+    },
     "cardiac_tissue_stabilizer": {
         "label": "Cardiac Tissue Stabilizer",
         "description": (
@@ -92,6 +135,49 @@ DOMAIN_TERM_MATRIX: dict[str, dict] = {
         ],
         "ambiguous_terms": [
             "ablation", "resection", "electrode",
+        ],
+        "exception_contexts": [
+            "excluded", "not applicable", "differs from", "unlike", "in contrast to",
+        ],
+        "section_scope": [
+            "SUMMARY", "DEVICE DESCRIPTION", "INTENDED PURPOSE",
+            "CLINICAL BACKGROUND", "DEVICE UNDER EVALUATION", "CONCLUSIONS",
+            "1.", "2.1", "2.2", "3.1", "3.2", "3.3", "3.4", "3.5",
+            "3.6", "3.7", "3.8", "4.1", "4.2", "4.3", "4.4", "4.5",
+            "4.6", "4.7", "5.",
+        ],
+        "annex_excluded": True,
+    },
+    "ent_rf_plasma_surgical_equipment": {
+        "label": "ENT RF Plasma Surgical Equipment",
+        "description": (
+            "等离子手术设备/等离子射频治疗仪。主机提供射频能量，配合一次性"
+            "射频等离子手术电极在生理盐水环境下用于耳鼻喉软组织切割、消融、"
+            "凝固和止血。不涉及泌尿系统、心脏介入或输尿管导引鞘。"
+        ),
+        "required_terms": [
+            "radiofrequency", "RF", "plasma", "surgical equipment",
+            "main unit", "generator", "compatible electrode", "ENT",
+            "otolaryngology", "soft tissue", "cutting", "resection",
+            "ablation", "coagulation", "hemostasis", "saline",
+        ],
+        "allowed_terms": [
+            "plasma surgical equipment", "radiofrequency plasma surgical equipment",
+            "footswitch", "drip-control valve", "power cord",
+            "single-use radiofrequency plasma surgical electrode",
+            "accessory", "electrical safety", "EMC", "usability",
+            "upper airway", "tonsil", "nasal", "laryngeal", "mucosa",
+        ],
+        "forbidden_terms": [
+            "ureteral access sheath", "ureteroscope", "urolithiasis",
+            "urinary tract", "renal insufficiency", "stone burden",
+            "endourology", "cardiac ablation", "PADN", "pulmonary artery",
+            "atrial fibrillation", "pulmonary vein", "catheter ablation",
+            "guidewire", "endoscopic access sheath", "UAS",
+            "hydrophilic coating", "sheath assembly", "dilator",
+        ],
+        "ambiguous_terms": [
+            "ablation", "resection", "electrode", "endoscope",
         ],
         "exception_contexts": [
             "excluded", "not applicable", "differs from", "unlike", "in contrast to",

@@ -45,13 +45,16 @@ POSTGRES_CONN_REQUIRED = "checkpointer.connection_string is required for the pos
 
 
 @contextlib.contextmanager
-def _sync_checkpointer_cm(config: CheckpointerConfig) -> Iterator[Checkpointer]:
+def _sync_checkpointer_cm(config: CheckpointerConfig, namespace: str = "") -> Iterator[Checkpointer]:
     """Context manager that creates and tears down a sync checkpointer.
 
     Returns a configured ``Checkpointer`` instance. Resource cleanup for any
     underlying connections or pools is handled by higher-level helpers in
     this module (such as the singleton factory or context manager); this
     function does not return a separate cleanup callback.
+
+    When *namespace* is non-empty, it is appended to the SQLite connection
+    string so that each project / namespace gets its own isolated database.
     """
     if config.type == "memory":
         from langgraph.checkpoint.memory import InMemorySaver
@@ -66,7 +69,12 @@ def _sync_checkpointer_cm(config: CheckpointerConfig) -> Iterator[Checkpointer]:
         except ImportError as exc:
             raise ImportError(SQLITE_INSTALL) from exc
 
-        conn_str = resolve_sqlite_conn_str(config.connection_string or "store.db")
+        conn_str = config.connection_string or "store.db"
+        if namespace:
+            import pathlib
+            base = pathlib.Path(conn_str)
+            conn_str = str(base.parent / f"{base.stem}_{namespace}{base.suffix}")
+        conn_str = resolve_sqlite_conn_str(conn_str)
         with SqliteSaver.from_conn_string(conn_str) as saver:
             saver.setup()
             logger.info("Checkpointer: using SqliteSaver (%s)", conn_str)
@@ -167,15 +175,19 @@ def reset_checkpointer() -> None:
 
 
 @contextlib.contextmanager
-def checkpointer_context() -> Iterator[Checkpointer]:
+def checkpointer_context(namespace: str = "") -> Iterator[Checkpointer]:
     """Sync context manager that yields a checkpointer and cleans up on exit.
 
     Unlike :func:`get_checkpointer`, this does **not** cache the instance —
     each ``with`` block creates and destroys its own connection.  Use it in
     CLI scripts or tests where you want deterministic cleanup::
 
-        with checkpointer_context() as cp:
+        with checkpointer_context(namespace="my_project") as cp:
             graph.invoke(input, config={"configurable": {"thread_id": "1"}})
+
+    When *namespace* is provided for a sqlite backend, the checkpoint database
+    is namespaced (e.g. ``checkpoints_my_project.db``) so that projects do not
+    share state and cannot contaminate each other.
 
     Yields an ``InMemorySaver`` when no checkpointer is configured in *config.yaml*.
     """
@@ -187,5 +199,5 @@ def checkpointer_context() -> Iterator[Checkpointer]:
         yield InMemorySaver()
         return
 
-    with _sync_checkpointer_cm(config.checkpointer) as saver:
+    with _sync_checkpointer_cm(config.checkpointer, namespace=namespace) as saver:
         yield saver

@@ -105,6 +105,22 @@ def evaluate_device_domain_consistency_gate(
     Returns:
         Gate result dict with status, findings, and quarantine routing info.
     """
+    if not cer_body_text.strip():
+        return {
+            "gate": "Gate 1 — Device Domain Consistency",
+            "gate_id": "WRITER_GATE_01",
+            "status": "HARD_FAIL",
+            "reason": "CER body text is empty; final-body domain consistency cannot be verified.",
+            "findings": [{
+                "type": "empty_final_body",
+                "severity": "HARD_FAIL",
+                "message": "Writer produced no submission-facing CER body.",
+            }],
+            "warnings": [],
+            "quarantine": True,
+            "message": "HARD_FAIL: CER body text is empty.",
+        }
+
     if not device_profile:
         return {
             "gate": "Gate 1 — Device Domain Consistency",
@@ -353,7 +369,7 @@ def evaluate_ifu_consumption_gate(
             pos = idx + 1
 
     unique_fields = len({f.get("surrounding_text", "")[:40] for f in findings})
-    hard_fail = has_ifu_source and unique_fields > 20
+    hard_fail = has_ifu_source and len(findings) > 0
 
     return {
         "gate": "Gate 2 — IFU Fact Consumption",
@@ -383,6 +399,22 @@ def evaluate_body_cleanliness_gate(
     Annex sections are excluded from the scan (structural headings like
     'Annex J MCP Execution...' are template boilerplate, not leakage).
     """
+    if not cer_body_text.strip():
+        return {
+            "gate": "Gate 4 — Submission Body Cleanliness",
+            "gate_id": "WRITER_GATE_04",
+            "status": "HARD_FAIL",
+            "banned_strings_scanned": len(BANNED_INTERNAL_STRINGS),
+            "finding_count": 1,
+            "findings": [{
+                "type": "empty_final_body",
+                "severity": "HARD_FAIL",
+                "message": "Writer produced no submission-facing CER body.",
+            }],
+            "quarantine": True,
+            "message": "HARD_FAIL: CER body text is empty.",
+        }
+
     # Exclude Annex sections from scan
     annex_marker = _find_annex_boundary(cer_body_text)
     scan_text = cer_body_text[:annex_marker] if annex_marker > 0 else cer_body_text

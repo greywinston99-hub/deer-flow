@@ -28,6 +28,7 @@ INSUFFICIENT_FORBIDDEN: list[str] = [
     "favourable",
     "favorable",
     "partial support",
+    "partially support",
     "the evidence suggests",
     "the data indicate",       # catches indicates/indicating
     "acceptable",

@@ -4,7 +4,61 @@
 **Step ID:** cer_qa_gate
 **Handler:** _run_qa_gate
 **Prompt Version:** prompt_v1_draft
-**Status:** HARDENED — gate readiness criteria, blocking issue identification, boundaries
+**Status:** HARDENED — V27 cross-agent consistency check added.
+
+## V27 Cross-Agent GSPR Consistency Check (MANDATORY)
+
+Before gate readiness assessment, cross-check CEP and IFU agent findings for the SAME GSPR clause.
+If CEP says "GSPR 23.4(g) addressed" and IFU says "GSPR 23.4(g) missing" → CONTRADICTION flag.
+
+### Check Procedure
+```
+For each GSPR clause referenced in BOTH CEP (05_lanes/panel_summary.json) AND IFU (06_consistency/report.json):
+  1. Extract the CEP finding's conclusion for that GSPR clause
+  2. Extract the IFU finding's conclusion for that GSPR clause
+  3. Compare:
+     - CONSISTENT: Both agree (both say gap exists, or both say compliant)
+     - CONTRADICTION: CEP says compliant, IFU says gap (or vice versa)
+     - COMPLEMENTARY: Different aspects of same clause, no conflict
+  4. For each CONTRADICTION, produce a cross-agent finding with:
+     finding_id: "XAGENT-{GSPR clause}"
+     severity: "major" (contradiction between agents = unreliable review output)
+     cep_finding_ref: "<finding_id from CEP>"
+     ifu_finding_ref: "<finding_id from IFU>"
+     contradiction_detail: "CEP states [X] for GSPR {clause}; IFU states [Y]. These claims are contradictory."
+     regulatory_anchor: "MDR Annex I GSPR {clause}"
+```
+
+### Example
+```
+CEP F015: "IFU includes device identification per GSPR 23.4(a) — compliant"
+IFU GSPR23-(a): "GSPR 23.4(a) device name/trade name — MISSING from IFU cover"
+→ CONTRADICTION: CEP claims compliant, IFU reports missing
+→ XAGENT-GSPR23.4(a): major severity, requires human resolution
+```
+
+### Output
+Add `cross_agent_consistency` section to qa_synthesis:
+```json
+{
+  "cross_agent_consistency": {
+    "total_gSPR_clauses_checked": 0,
+    "consistent": 0,
+    "contradictions": 0,
+    "complementary": 0,
+    "contradiction_details": [
+      {
+        "finding_id": "XAGENT-GSPR23.4(a)",
+        "gSPR_clause": "GSPR 23.4(a)",
+        "severity": "major",
+        "cep_finding_ref": "F015",
+        "ifu_finding_ref": "GSPR23-(a)",
+        "contradiction_detail": "..."
+      }
+    ]
+  }
+}
+```
 
 ## Input Contract
 

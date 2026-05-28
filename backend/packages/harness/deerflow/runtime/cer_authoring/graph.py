@@ -314,6 +314,22 @@ def _node_input_gate(state: SharedAuthoringState) -> dict[str, Any]:
                 }
             ],
         }
+    source_preflight = state.get("source_preflight_gate_report") or {}
+    if source_preflight.get("status") == "BLOCKED":
+        return {
+            "status": "source_preflight_blocked",
+            "final_gate_decision": "HUMAN_HOLD",
+            "source_preflight_gate_report": source_preflight,
+            "input_gap_list": [
+                {
+                    "gap_id": str(issue.get("issue_id") or "SOURCE-PREFLIGHT-BLOCKER"),
+                    "required_input": "Controlled source package",
+                    "impact": issue.get("message") or "CER authoring is blocked by source preflight.",
+                    **({"details": issue} if isinstance(issue, dict) else {}),
+                }
+                for issue in (source_preflight.get("blocking_issues") or [])
+            ],
+        }
     has_ifu = any(
         "ifu" in " ".join(str(item.get(key, "")) for key in ("document_type", "doc_type", "type", "filename", "path")).lower()
         and item.get("source_role") not in {"similar_device_ifu", "similar_or_benchmark_source", "unconfirmed_ifu"}
@@ -330,7 +346,12 @@ def _node_input_gate(state: SharedAuthoringState) -> dict[str, Any]:
 
 
 def _route_after_input_gate(state: SharedAuthoringState) -> str:
-    return "export" if state.get("status") in {"input_required", "provider_unavailable"} else "device_profile"
+    status = state.get("status")
+    if status == "source_preflight_blocked":
+        return "controlled_compromise"
+    if status in {"input_required", "provider_unavailable"}:
+        return "export"
+    return "device_profile"
 
 
 def _node_device_profile(state: SharedAuthoringState) -> dict[str, Any]:
@@ -1490,13 +1511,21 @@ def _should_continue_spiral(state: SharedAuthoringState, *,
         return False
 
     # Failure pattern analysis — if failure is NOT pool-related, more searching won't help
+    # G42 evidence-insufficiency patterns are all pool-related: they indicate not enough
+    # evidence of the right kind was found, and expanding the search query is the right fix.
     pool_related_patterns = {
         "no_benchmark_derivable_from_pool",
         "insufficient_pool",
         "insufficient_evidence",
         "low_retrieval_yield",
+        "ALLOWED_USE_BLOCKED",
+        "MISSING_DATA_BLOCKING",
+        "SOURCE_TYPE_REQUIREMENT_NOT_MET",
+        "CLAIM_SOURCE_MISMATCH",
+        "SOURCE_TYPE_INAPPROPRIATE",
+        "EVIDENCE_TRULY_INSUFFICIENT",
     }
-    if failure_pattern and failure_pattern not in pool_related_patterns:
+    if failure_pattern and not any(p in failure_pattern for p in pool_related_patterns):
         return False
 
     lineage = state.get("evidence_spiral_lineage") or []
@@ -1526,31 +1555,35 @@ def _should_continue_spiral(state: SharedAuthoringState, *,
     except Exception:
         pass
 
-    # Failure pattern analysis
-    # If failure is NOT about insufficient evidence pool, more searches won't help
-    pool_related_patterns = {
-        "no_benchmark_derivable_from_pool",
-        "insufficient_pool",
-        "insufficient_evidence",
-        "low_retrieval_yield",
-    }
-    if failure_pattern and failure_pattern not in pool_related_patterns:
-        return False
-
     return True
 
 
 def _node_controlled_compromise(state: SharedAuthoringState) -> dict[str, Any]:
     report = state.get("pre_writer_readiness_report") or {}
+    # Atomic filesystem short-circuit: if another parallel branch already ran
+    # controlled_compromise, skip expensive artifact re-write.
+    artifact_root = state.get("artifact_root")
+    if artifact_root:
+        from pathlib import Path
+        marker = Path(artifact_root) / ".controlled_compromise_completed"
+        try:
+            marker.touch(exist_ok=False)
+        except FileExistsError:
+            packet = pipeline.build_controlled_compromise_report(dict(state))
+            return {
+                **_stage("controlled_compromise", "blocked"),
+                **packet,
+                "final_gate_decision": "HUMAN_HOLD",
+                "status": "controlled_compromise",
+            }
     packet = pipeline.build_controlled_compromise_report(dict(state))
     # Even on controlled_compromise, write partial artifacts so the accumulated
     # evidence and analysis are not lost.
-    artifact_root = state.get("artifact_root")
     artifacts: list[str] = []
     if artifact_root:
         try:
             ifu_report = pipeline._build_ifu_feedback_report(dict(state))
-            export_state = {**dict(state), **pipeline.refresh_late_annexes(dict(state)), "ifu_feedback_report": ifu_report}
+            export_state = {**dict(state), **packet, **pipeline.refresh_late_annexes({**dict(state), **packet}), "ifu_feedback_report": ifu_report}
             artifacts = write_authoring_artifacts(artifact_root, export_state)
         except Exception as exc:
             logger.warning("Artifact write failed during controlled_compromise (non-fatal): %s", exc)
@@ -1639,6 +1672,14 @@ def _node_export(state: SharedAuthoringState) -> dict[str, Any]:
     artifact_root = state.get("artifact_root")
     if not artifact_root:
         return {"status": state.get("status") or "export_skipped_no_artifact_root"}
+    # Atomic filesystem short-circuit: if another parallel branch already exported,
+    # skip expensive artifact re-write.
+    from pathlib import Path
+    marker = Path(artifact_root) / ".export_completed"
+    try:
+        marker.touch(exist_ok=False)
+    except FileExistsError:
+        return {**_stage("export", "skipped"), "export_completed": True}
     if state.get("final_gate_decision") != "HUMAN_HOLD" and state.get("status") not in {"input_required", "provider_unavailable", "gate_rework_required"}:
         approval = interrupt({
             "confirmation_point": "cer_draft_review",
@@ -1654,7 +1695,7 @@ def _node_export(state: SharedAuthoringState) -> dict[str, Any]:
     ifu_report = pipeline._build_ifu_feedback_report(dict(state))
     export_state = {**dict(state), **pipeline.refresh_late_annexes(dict(state)), "ifu_feedback_report": ifu_report}
     artifacts = write_authoring_artifacts(artifact_root, export_state)
-    return {"artifacts": artifacts, "ifu_feedback_report": ifu_report, "status": state.get("status") or "exported"}
+    return {"artifacts": artifacts, "ifu_feedback_report": ifu_report, "status": state.get("status") or "exported", "export_completed": True}
 
 
 def _node_self_inspection(state: SharedAuthoringState) -> dict[str, Any]:
@@ -1743,7 +1784,15 @@ def build_cer_authoring_graph(checkpointer=None):
 
     builder.set_entry_point("initialize")
     builder.add_edge("initialize", "input_gate")
-    builder.add_conditional_edges("input_gate", _route_after_input_gate, {"device_profile": "device_profile", "export": "export"})
+    builder.add_conditional_edges(
+        "input_gate",
+        _route_after_input_gate,
+        {
+            "device_profile": "device_profile",
+            "controlled_compromise": "controlled_compromise",
+            "export": "export",
+        },
+    )
     builder.add_edge("device_profile", "claim_decomposition")
     builder.add_edge("claim_decomposition", "pico_derivation")
     builder.add_edge("pico_derivation", "methodology_review")
@@ -1889,5 +1938,5 @@ def build_cer_authoring_graph(checkpointer=None):
         },
     )
     builder.add_edge("export", END)
-    builder.add_edge("controlled_compromise", "cer_writing")
+    builder.add_edge("controlled_compromise", "export")
     return builder.compile(checkpointer=checkpointer)

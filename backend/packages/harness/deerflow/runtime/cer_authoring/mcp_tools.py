@@ -402,7 +402,190 @@ def mcp_log_entry(result: dict[str, Any], stage: str) -> dict[str, Any]:
     }
 
 
+_MOCK_RETRIEVAL_ENABLED = os.getenv("CER_AUTHORING_MOCK_RETRIEVAL", "0") == "1"
+
+
+def _mock_public_tool(tool: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    """Mock public evidence tool responses for local end-to-end testing.
+    
+    Returns realistic orthopedic RF ablation literature aligned with the
+    subject device profile (Plasma Electrode for joint soft-tissue surgery).
+    """
+    if tool == "pubmed_search":
+        return {
+            "status": "ok",
+            "query": arguments.get("query", ""),
+            "total_count": 4,
+            "returned_count": 4,
+            "results": [
+                {
+                    "pmid": "31447182",
+                    "title": "Radiofrequency ablation for soft tissue lesions in knee arthroscopy: a prospective cohort study",
+                    "abstract": "Objective: To evaluate the safety and efficacy of radiofrequency ablation devices in knee arthroscopy for soft tissue resection and hemostasis. Methods: Prospective cohort study of 120 patients undergoing knee arthroscopy with RF ablation. Results: RF ablation demonstrated effective soft tissue resection with minimal thermal spread. Adverse events occurred in 3.3% of cases, all minor. Conclusion: RF ablation is safe and effective for soft tissue procedures in knee arthroscopy.",
+                    "authors": ["Smith J", "Johnson A", "Williams B"],
+                    "journal": "Arthroscopy",
+                    "year": "2019",
+                    "doi": "10.1016/j.arthro.2019.04.001",
+                    "url": "https://pubmed.ncbi.nlm.nih.gov/31447182/",
+                },
+                {
+                    "pmid": "23591380",
+                    "title": "Coblation versus conventional radiofrequency for soft tissue ablation in shoulder surgery: comparative study",
+                    "abstract": "Background: Coblation and conventional radiofrequency are both used for soft tissue ablation. This study compares their safety profiles. Methods: 85 patients randomized to coblation or RF. Results: Both modalities achieved comparable clinical outcomes. Coblation showed lower adjacent tissue temperatures (42°C vs 68°C, p<0.01). Conclusion: Coblation offers a favorable safety profile for soft tissue ablation.",
+                    "authors": ["Chen L", "Zhang M", "Liu W"],
+                    "journal": "Journal of Shoulder and Elbow Surgery",
+                    "year": "2013",
+                    "doi": "10.1016/j.jse.2012.11.001",
+                    "url": "https://pubmed.ncbi.nlm.nih.gov/23591380/",
+                },
+                {
+                    "pmid": "34126219",
+                    "title": "Systematic review of plasma-mediated radiofrequency ablation in orthopedic joint surgery",
+                    "abstract": "Purpose: To systematically review clinical evidence for plasma-mediated RF ablation in orthopedic procedures. Methods: Systematic review of 15 studies (n=1,247). Results: Pooled analysis showed 94.2% clinical success rate. Serious adverse events rate was 1.2%. Conclusion: Plasma-mediated RF ablation demonstrates favorable safety and efficacy for soft tissue resection in joint surgery.",
+                    "authors": ["Anderson K", "Davis R", "Taylor S"],
+                    "journal": "Orthopaedic Journal of Sports Medicine",
+                    "year": "2021",
+                    "doi": "10.1177/23259671211012345",
+                    "url": "https://pubmed.ncbi.nlm.nih.gov/34126219/",
+                },
+                {
+                    "pmid": "37753896",
+                    "title": "Long-term outcomes of radiofrequency plasma ablation for meniscal tissue: 5-year follow-up",
+                    "abstract": "Background: Long-term data on RF plasma ablation for meniscal tissue is limited. Methods: Retrospective review of 203 patients with 5-year follow-up. Results: Clinical success maintained in 89.7% at 5 years. Revision surgery rate was 4.4%. No device-related serious adverse events observed. Conclusion: RF plasma ablation provides durable clinical outcomes for meniscal tissue management.",
+                    "authors": ["Brown P", "Miller T", "Wilson J"],
+                    "journal": "American Journal of Sports Medicine",
+                    "year": "2023",
+                    "doi": "10.1177/03635465231123456",
+                    "url": "https://pubmed.ncbi.nlm.nih.gov/37753896/",
+                },
+            ],
+        }
+    if tool == "clinicaltrials_search":
+        return {
+            "status": "ok",
+            "query": arguments.get("query", ""),
+            "total_count": 2,
+            "returned_count": 2,
+            "results": [
+                {
+                    "nct_id": "NCT04567890",
+                    "title": "Safety and Performance of Plasma RF Electrode for Soft Tissue Resection in Knee Arthroscopy",
+                    "status": "Completed",
+                    "phase": "Phase 3",
+                    "sponsor": "Orthopedic Surgical Devices Inc.",
+                    "start_date": "2020-03-15",
+                    "completion_date": "2022-08-30",
+                    "enrollment": 156,
+                    "intervention": "Plasma radiofrequency electrode for soft tissue resection",
+                    "primary_outcome": "Intraoperative hemostasis success rate",
+                    "secondary_outcome": "Postoperative adverse events through 90 days",
+                    "url": "https://clinicaltrials.gov/study/NCT04567890",
+                },
+                {
+                    "nct_id": "NCT03912345",
+                    "title": "Comparative Study of Coblation versus Standard RF for Arthroscopic Soft Tissue Procedures",
+                    "status": "Completed",
+                    "phase": "Phase 2",
+                    "sponsor": "Sports Medicine Research Institute",
+                    "start_date": "2018-06-01",
+                    "completion_date": "2020-12-15",
+                    "enrollment": 98,
+                    "intervention": "Coblation device vs conventional RF device",
+                    "primary_outcome": "Tissue ablation precision score",
+                    "secondary_outcome": "Thermal injury to adjacent tissue",
+                    "url": "https://clinicaltrials.gov/study/NCT03912345",
+                },
+            ],
+        }
+    if tool == "europe_pmc_search":
+        return {
+            "status": "ok",
+            "query": arguments.get("query", ""),
+            "total_count": 3,
+            "returned_count": 3,
+            "results": [
+                {
+                    "pmid": "31447182",
+                    "pmcid": "PMC6712345",
+                    "title": "Radiofrequency ablation for soft tissue lesions in knee arthroscopy: a prospective cohort study",
+                    "abstract": "Objective: To evaluate the safety and efficacy of radiofrequency ablation devices in knee arthroscopy for soft tissue resection and hemostasis.",
+                    "authors": ["Smith J", "Johnson A", "Williams B"],
+                    "journal": "Arthroscopy",
+                    "year": "2019",
+                    "doi": "10.1016/j.arthro.2019.04.001",
+                },
+                {
+                    "pmid": "34126219",
+                    "pmcid": "PMC8123456",
+                    "title": "Systematic review of plasma-mediated radiofrequency ablation in orthopedic joint surgery",
+                    "abstract": "Purpose: To systematically review clinical evidence for plasma-mediated RF ablation in orthopedic procedures.",
+                    "authors": ["Anderson K", "Davis R", "Taylor S"],
+                    "journal": "Orthopaedic Journal of Sports Medicine",
+                    "year": "2021",
+                    "doi": "10.1177/23259671211012345",
+                },
+                {
+                    "pmid": "37753896",
+                    "pmcid": "PMC9234567",
+                    "title": "Long-term outcomes of radiofrequency plasma ablation for meniscal tissue: 5-year follow-up",
+                    "abstract": "Background: Long-term data on RF plasma ablation for meniscal tissue is limited.",
+                    "authors": ["Brown P", "Miller T", "Wilson J"],
+                    "journal": "American Journal of Sports Medicine",
+                    "year": "2023",
+                    "doi": "10.1177/03635465231123456",
+                },
+            ],
+        }
+    if tool == "pubmed_fetch_abstracts":
+        pmids = arguments.get("pmids", [])
+        return {
+            "status": "ok",
+            "pmids_fetched": pmids,
+            "abstracts": {
+                str(pmid): f"Mock abstract for PMID {pmid}. Radiofrequency ablation demonstrates effective soft tissue resection with favorable safety profile in orthopedic joint surgery. Clinical success rates exceed 90% with low adverse event rates."
+                for pmid in (pmids if isinstance(pmids, list) else [pmids])
+            },
+        }
+    if tool == "pubmed_fetch":
+        pmids = arguments.get("pmids", [])
+        return {
+            "status": "ok",
+            "pmids_fetched": pmids,
+            "fulltext_available": True,
+            "articles": {
+                str(pmid): {
+                    "title": f"Mock article PMID {pmid}",
+                    "abstract": f"Mock abstract for PMID {pmid}. RF ablation effective for soft tissue.",
+                    "full_text": f"Mock full text for PMID {pmid}. This is a detailed clinical study demonstrating the safety and efficacy of radiofrequency plasma ablation in orthopedic joint surgery.",
+                }
+                for pmid in (pmids if isinstance(pmids, list) else [pmids])
+            },
+        }
+    if tool in {"embase_search", "cochrane_search", "cochrane_reviews_search", "cochrane_trials_search"}:
+        return {"status": "auth_required", "message": "Subscription database - mock mode returns no results", "total_count": 0, "results": []}
+    if tool in {"euctr_search", "fda_maude_search", "fda_recall_search", "accessgudid_search"}:
+        return {"status": "ok", "total_count": 0, "results": []}
+    if tool in {"mhra_safety_search", "bfarm_safety_search", "swissmedic_safety_search", "nz_medsafe_safety_search"}:
+        return {"status": "ok", "count": 0, "results": []}
+    if tool in {"eudamed_device_search", "eudamed_vigilance_search"}:
+        return {"status": "source_unavailable", "message": "Mock mode: EUDAMED unavailable", "results": []}
+    if tool == "fda_510k_search":
+        return {
+            "status": "ok",
+            "total_count": 5,
+            "results": [
+                {"k_number": "K230914", "device_name": "COBLATION Turbinate Reduction Wand", "applicant": "Arthrocare Corporation", "decision_date": "2023-06-26", "decision": "Substantially Equivalent"},
+                {"k_number": "K201337", "device_name": "RF Ablation System for Soft Tissue", "applicant": "Sports Medicine Inc", "decision_date": "2020-08-15", "decision": "Substantially Equivalent"},
+            ],
+        }
+    # Default mock: empty success
+    return {"status": "ok", "message": f"Mock mode: {tool} not specifically mocked", "results": []}
+
+
 def _call_public_tool(tool: str, arguments: dict[str, Any], started: float) -> dict[str, Any]:
+    if _MOCK_RETRIEVAL_ENABLED:
+        payload = _mock_public_tool(tool, arguments)
+        return _with_meta(payload, "cer-public-evidence", tool, arguments, started)
     func = getattr(public_evidence, tool, None)
     if not callable(func):
         return _error("cer-public-evidence", tool, arguments, "tool_unavailable", f"Tool not found: {tool}", started)

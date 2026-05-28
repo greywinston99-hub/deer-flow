@@ -18,7 +18,9 @@ from typing import Any
 KNOWN_DOMAINS: set[str] = {
     # Phase 2A pilot domains
     "cardiac_tissue_stabilizer",
+    "contrast_imaging_bubble_study_system",
     "orthopedic_rf_plasma_electrode",
+    "plasma_surgical_equipment",
     "plasma_surgical_electrode",
     "medical_imaging_software",
     "ai_diagnostic_software",
@@ -435,6 +437,7 @@ def surgical_ligating_clip_template_sections() -> list[dict[str, Any]]:
 DOMAIN_TEMPLATE_MAP: dict[str, Any] = {
     "cardiac_tissue_stabilizer": cardiac_stabilizer_template_sections,
     "orthopedic_rf_plasma_electrode": orthopedic_plasma_electrode_template_sections,
+    "plasma_surgical_equipment": orthopedic_plasma_electrode_template_sections,
     "plasma_surgical_electrode": orthopedic_plasma_electrode_template_sections,
     "medical_imaging_software": imaging_software_template_sections,
     "ai_diagnostic_software": imaging_software_template_sections,

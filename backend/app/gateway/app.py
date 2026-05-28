@@ -45,8 +45,10 @@ from app.gateway.routers import (
     cer_review_workspace,
     cer_source_package_intake_bridge,
     channels,
+    health,
     mcp,
     memory,
+    metrics,
     models,
     rmf,
     rmf_artifacts,
@@ -87,6 +89,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     config = get_gateway_config()
     logger.info(f"Starting API Gateway on {config.host}:{config.port}")
 
+    # Install signal handlers for graceful shutdown of Event Bus subsystems
+    try:
+        from deerflow.runtime.cer_authoring.graceful_shutdown import install_signal_handlers
+
+        install_signal_handlers()
+        logger.info("Event Bus signal handlers installed")
+    except Exception:
+        logger.exception("Failed to install Event Bus signal handlers")
+
     # Initialize LangGraph runtime components (StreamBridge, RunManager, checkpointer, store)
     async with langgraph_runtime(app):
         logger.info("LangGraph runtime initialised")
@@ -101,6 +112,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.exception("No IM channels configured or channel service failed to start")
 
         yield
+
+        # Graceful shutdown of Event Bus subsystems
+        try:
+            from deerflow.runtime.cer_authoring.graceful_shutdown import shutdown_event_bus_system
+
+            await shutdown_event_bus_system(timeout_seconds=30.0)
+        except Exception:
+            logger.exception("Event Bus graceful shutdown failed")
 
         # Stop channel service on shutdown
         try:
@@ -273,13 +292,16 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
     app.include_router(cer_authoring_stream.router)
     app.include_router(cer_source_package_intake_bridge.router)
 
-    @app.get("/health", tags=["health"])
-    async def health_check() -> dict:
-        """Health check endpoint.
+    # Health check router — comprehensive subsystem health
+    app.include_router(health.router)
 
-        Returns:
-            Service health status information.
-        """
+    # Metrics router — Event Bus performance metrics
+    app.include_router(metrics.router)
+
+    # Backward-compatible /health redirect
+    @app.get("/health", tags=["health"], include_in_schema=False)
+    async def _legacy_health_check() -> dict:
+        """Legacy health check endpoint (redirects to /api/health)."""
         return {"status": "healthy", "service": "deer-flow-gateway"}
 
     return app

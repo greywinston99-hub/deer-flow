@@ -450,7 +450,7 @@ def _authoring_parent_model(state: dict[str, Any]) -> str | None:
     if env_model:
         return env_model
     if _env_enabled("CER_AUTHORING_STRICT_V7") or _env_enabled("CER_AUTHORING_ENABLE_LLM_AGENTS"):
-        return "kimi-k2.6-code"
+        return "kimi-k2.6"
     return None
 
 

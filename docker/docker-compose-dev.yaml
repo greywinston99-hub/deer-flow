@@ -136,7 +136,7 @@ services:
       - /Users/winstonwei/deer-flow2/DP2.0知识库:/mnt/knowledge/DP2.0知识库:rw
       - "/Users/winstonwei/Nutstore Files/APlus Healthcare Technology/Project Management 项目管理:/mnt/knowledge/Project Management 项目管理:ro"
       - /Users/winstonwei/Documents/Github/cer-harness-core/runtime_data/source_projects:/mnt/knowledge/source_projects:ro
-      - "/Users/winstonwei/CER-RAG/RMF&CER萃取:/mnt/output/RMF&CER萃取:rw"
+      - "${CER_RAG_ROOT:-/Users/winstonwei/CER-RAG}/RMF&CER萃取:/mnt/output/RMF&CER萃取:rw"
       - ../logs:/app/logs
       # Mount uv cache for faster dependency installation
       - ~/.cache/uv:/root/.cache/uv
@@ -197,7 +197,7 @@ services:
       - /Users/winstonwei/deer-flow2/DP2.0知识库:/mnt/knowledge/DP2.0知识库:rw
       - "/Users/winstonwei/Nutstore Files/APlus Healthcare Technology/Project Management 项目管理:/mnt/knowledge/Project Management 项目管理:ro"
       - /Users/winstonwei/Documents/Github/cer-harness-core/runtime_data/source_projects:/mnt/knowledge/source_projects:ro
-      - "/Users/winstonwei/CER-RAG/RMF&CER萃取:/mnt/output/RMF&CER萃取:rw"
+      - "${CER_RAG_ROOT:-/Users/winstonwei/CER-RAG}/RMF&CER萃取:/mnt/output/RMF&CER萃取:rw"
       - ../logs:/app/logs
       # Mount uv cache for faster dependency installation
       - ~/.cache/uv:/root/.cache/uv

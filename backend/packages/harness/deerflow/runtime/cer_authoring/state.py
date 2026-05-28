@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import operator
 from typing import Annotated, Any, NotRequired
 
 from deerflow.agents.thread_state import ThreadState
@@ -21,6 +22,11 @@ def append_list(existing: list | None, new: list | None) -> list:
     if new is None:
         return existing
     return existing + new
+
+
+def _keep_first(existing: Any, new: Any) -> Any:
+    """Reducer for fields that should not be overwritten once set (e.g. freeze markers)."""
+    return existing if existing is not None else new
 
 
 _ID_FIELDS = (
@@ -105,10 +111,16 @@ class SharedAuthoringState(ThreadState):
     target_keywords: NotRequired[list[str]]
     artifact_root: NotRequired[str | None]
     status: NotRequired[Annotated[str | None, lambda e, n: n if n else e]]
+    export_completed: NotRequired[bool]
     final_gate_decision: NotRequired[str | None]
     agent_team_mode: NotRequired[str | None]
 
     source_inventory: Annotated[list[dict[str, Any]], merge_records]
+    manufacturer_intake_report: Annotated[dict[str, Any], merge_dict]
+    source_lock_report: Annotated[dict[str, Any], merge_dict]
+    ifu_fact_table: Annotated[dict[str, Any], merge_dict]
+    source_preflight_gate_report: Annotated[dict[str, Any], merge_dict]
+    classification_consistency_report: Annotated[dict[str, Any], merge_dict]
     document_structured_content: Annotated[list[dict[str, Any]], merge_records]
     document_parsing_lineage: Annotated[list[dict[str, Any]], merge_records]
     deep_reparse_requests: Annotated[list[dict[str, Any]], merge_records]
@@ -136,12 +148,14 @@ class SharedAuthoringState(ThreadState):
     source_role_report: Annotated[dict[str, Any], merge_dict]
     input_gap_list: Annotated[list[dict[str, Any]], merge_records]
     device_profile: Annotated[dict[str, Any], merge_dict]
+    device_classification_lock: Annotated[dict[str, Any], merge_dict]
     device_identity_lock: Annotated[dict[str, Any], merge_dict]
     device_identity_arbitration: Annotated[dict[str, Any], merge_dict]
     device_identity_arbitration_table: Annotated[list[dict[str, Any]], merge_records]
     domain_contamination_report: Annotated[dict[str, Any], merge_dict]
     claim_ledger: Annotated[list[dict[str, Any]], merge_records]
     intended_purpose_claim_table: Annotated[list[dict[str, Any]], merge_records]
+    clinical_evaluation_plan: Annotated[dict[str, Any], merge_dict]
     cep_pico_matrix: Annotated[list[dict[str, Any]], merge_records]
     search_run_registry: Annotated[list[dict[str, Any]], merge_records]
     literature_search_protocol_profile: Annotated[dict[str, Any], merge_dict]
@@ -240,6 +254,10 @@ class SharedAuthoringState(ThreadState):
     vigilance_recall_registry: Annotated[list[dict[str, Any]], merge_records]
     vigilance_event_statistics: Annotated[list[dict[str, Any]], merge_records]
     risk_trace_matrix: Annotated[list[dict[str, Any]], merge_records]
+    rmf_hazard_trace: Annotated[dict[str, Any], merge_dict]
+    ifu_warning_rmf_crosswalk: Annotated[dict[str, Any], merge_dict]
+    benefit_risk_closure_matrix: Annotated[dict[str, Any], merge_dict]
+    pmcf_plan_control_matrix: Annotated[dict[str, Any], merge_dict]
     gspr_coverage: Annotated[list[dict[str, Any]], merge_records]
     cer_chapter_drafts: Annotated[dict[str, Any], merge_dict]
     qa_gate_report: Annotated[dict[str, Any], merge_dict]
@@ -265,9 +283,9 @@ class SharedAuthoringState(ThreadState):
     stage_results: Annotated[list[dict[str, Any]], append_list]
     model_provider_preflight: Annotated[dict[str, Any], merge_dict]
     spiral_round_id: NotRequired[int | None]
-    evidence_lineage_frozen: NotRequired[bool]
-    evidence_lineage_frozen_at_stage: NotRequired[str | None]
-    evidence_lineage_frozen_reason: NotRequired[str | None]
+    evidence_lineage_frozen: Annotated[bool, operator.or_]
+    evidence_lineage_frozen_at_stage: Annotated[str | None, _keep_first]
+    evidence_lineage_frozen_reason: Annotated[str | None, _keep_first]
 
     authoring_baseline_version: NotRequired[str | None]
     calibration_case_schema: Annotated[dict[str, Any], merge_dict]

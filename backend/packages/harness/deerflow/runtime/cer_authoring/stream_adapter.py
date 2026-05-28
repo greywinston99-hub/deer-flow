@@ -27,6 +27,7 @@ class AuthoringEventType(str, Enum):
     LEAD_DECISION = "lead_decision"
     ERROR = "error"
     DONE = "done"
+    WORKER_PROGRESS = "worker_progress"  # Event Bus worker batch completion progress
 
 
 # Nodes that trigger human interrupts
@@ -136,6 +137,18 @@ def normalize_event(
                 "upstream_node_to_reroute": gate_report.get("upstream_node_to_reroute"),
                 "timestamp": _now_iso(),
             }
+
+    # ── Detect worker progress (Event Bus batch completion) ─────────────────
+    worker_progress_data = node_state.get("worker_progress")
+    if worker_progress_data:
+        return {
+            "event": AuthoringEventType.WORKER_PROGRESS.value,
+            "node": node_name,
+            "stage_id": worker_progress_data.get("stage_id"),
+            "completed": worker_progress_data.get("completed"),
+            "total": worker_progress_data.get("total"),
+            "timestamp": _now_iso(),
+        }
 
     # ── Detect Quick-Scan completion ──────────────────────────────────────────
     if node_name == "review_quick_scan":

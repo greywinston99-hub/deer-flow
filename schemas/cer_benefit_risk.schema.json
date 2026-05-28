@@ -14,7 +14,7 @@
     "step_id": {"type": "string", "const": "cer_clinical_evidence_panel"},
     "produced_by_step": {"type": "string", "const": "cer_clinical_evidence_panel"},
     "sub_assessment_id": {"type": "string", "const": "benefit_risk_assessment"},
-    "status": {"type": "string", "enum": ["scaffold_complete", "scaffold_stub", "draft", "validated"]},
+    "status": {"type": "string", "enum": ["scaffold_complete", "scaffold_stub", "draft", "validated", "real_analysis"]},
     "created_at": {"type": "string"},
     "source_traceability": {
       "type": "object",

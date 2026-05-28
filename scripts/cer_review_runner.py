@@ -69,6 +69,13 @@ def main() -> int:
         runner_kwargs["run_id_override"] = args.run_id_override
     runner = CERReviewRunner(**runner_kwargs)
     result = runner.run()
+    final_synthesis_path = Path(result.artifact_root_actual) / "final_synthesis.json"
+    final_synthesis = {}
+    if final_synthesis_path.exists():
+        try:
+            final_synthesis = json.loads(final_synthesis_path.read_text(encoding="utf-8"))
+        except Exception:
+            final_synthesis = {"error": "final_synthesis.json could not be parsed"}
     print(
         json.dumps(
             {
@@ -79,6 +86,9 @@ def main() -> int:
                 "executed_steps": result.executed_steps,
                 "artifact_root_virtual": result.artifact_root_virtual,
                 "artifact_root_actual": result.artifact_root_actual,
+                "final_synthesis_path": str(final_synthesis_path),
+                "final_decision": final_synthesis.get("decision"),
+                "final_synthesis": final_synthesis,
             },
             ensure_ascii=False,
             indent=2,

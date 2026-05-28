@@ -19,7 +19,7 @@ PROJECTS = [
 
 HARNESS = Path("/Users/winstonwei/Documents/Playground/deer-flow/backend/packages/harness")
 PYTHON = "/Users/winstonwei/Documents/Playground/deer-flow/.venv/bin/python3"
-SCRIPT = "../../scripts/run_cer_authoring_pilot.py"
+SCRIPT = "../../scripts/run_cer_authoring.py"
 
 results = []
 for proj in PROJECTS:
