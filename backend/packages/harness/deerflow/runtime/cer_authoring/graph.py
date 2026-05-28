@@ -128,6 +128,42 @@ def _with_team_mode(state: SharedAuthoringState, updates: dict[str, Any] | None 
     return merged
 
 
+# ── HC Rework Routing ────────────────────────────────────────────────────
+# Each HC gate can rewind to specific upstream nodes without restarting
+# the entire pipeline.  When a human confirms with action="rework", the
+# node returns Command(goto=target) and the graph resumes from there.
+
+REWORK_TARGETS: dict[str, list[str]] = {
+    "device_profile": [],
+    "claim_decomposition": ["device_profile"],
+    "sota_search_strategy": ["claim_decomposition", "device_profile"],
+    "evidence_appraisal": ["sota_search_strategy", "claim_decomposition"],
+    "endpoint_extraction": ["evidence_appraisal", "sota_search_strategy"],
+    "claim_sota_alignment": ["endpoint_extraction", "evidence_appraisal", "sota_search_strategy"],
+    "cer_draft_review": ["cer_writing", "claim_decomposition", "sota_search_strategy"],
+}
+
+
+def _check_hc_rework(approval, confirmation_point: str):
+    """If the human requested a rework, return Command(goto=target). Else None."""
+    if isinstance(approval, dict) and str(approval.get("action", "")).lower() == "rework":
+        target = str(approval.get("target") or "")
+        if target and target in REWORK_TARGETS.get(confirmation_point, []):
+            reason = str(approval.get("reason", "") or "")
+            counts = approval.get("_hc_rework_counts") or {}
+            counts[confirmation_point] = counts.get(confirmation_point, 0) + 1
+            return Command(
+                goto=target,
+                update={
+                    "hc_rework_source": confirmation_point,
+                    "hc_rework_target": target,
+                    "hc_rework_reason": reason,
+                    "_hc_rework_counts": counts,
+                },
+            )
+    return None
+
+
 def _virtual_review_rows(covered_by: str, status: str = "PASS") -> list[dict[str, Any]]:
     return [{"agent": name, "status": status, "covered_by": covered_by, "virtual_dimension": True} for name in VIRTUAL_REVIEW_DIMENSIONS]
 
@@ -367,7 +403,11 @@ def _node_device_profile(state: SharedAuthoringState) -> dict[str, Any]:
         "device_profile": profile,
         "fields_to_verify": ["device_name", "device_type", "intended_purpose", "mode_of_action", "anatomical_site"],
         "action": "confirm_or_correct",
+        "rework_targets": REWORK_TARGETS.get("device_profile", []),
     })
+    _rework = _check_hc_rework(approval, "device_profile")
+    if _rework is not None:
+        return _rework
     if isinstance(approval, dict) and approval.get("corrections"):
         profile.update(approval["corrections"])
         generated["device_profile"] = profile
@@ -418,7 +458,11 @@ def _node_claim_decomposition(state: SharedAuthoringState) -> dict[str, Any]:
                 ],
             },
         }
+    interrupt_payload["rework_targets"] = REWORK_TARGETS.get("claim_decomposition", [])
     approval = interrupt(interrupt_payload)
+    _rework = _check_hc_rework(approval, "claim_decomposition")
+    if _rework is not None:
+        return _rework
     resolved_ids: list[str] = []
     resolution_log: list[dict[str, Any]] = []
     if isinstance(approval, dict):
@@ -502,7 +546,11 @@ def _node_sota_search(state: SharedAuthoringState) -> dict[str, Any]:
         "message": "Please confirm SOTA search strategy before execution.",
         "search_runs": [{"search_id": str(r.get("search_id", "")), "database": str(r.get("database", "")), "search_terms": str(r.get("search_terms", ""))[:300]} for r in search_runs[:5]],
         "action": "confirm_or_correct",
+        "rework_targets": REWORK_TARGETS.get("sota_search_strategy", []),
     })
+    _rework = _check_hc_rework(approval, "sota_search_strategy")
+    if _rework is not None:
+        return _rework
     if isinstance(approval, dict) and approval.get("corrections"):
         generated["search_run_registry"] = approval["corrections"]
         generated["search_strategy_human_confirmed"] = True
@@ -644,7 +692,11 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
         "evidence_count": len(evidence),
         "appraisal_sample": [{"evidence_id": str(a.get("evidence_id", "")), "score": a.get("evidence_strength_score"), "weight": a.get("weight")} for a in appraisal[:10]],
         "action": "confirm_or_correct",
+        "rework_targets": REWORK_TARGETS.get("evidence_appraisal", []),
     })
+    _rework = _check_hc_rework(approval, "evidence_appraisal")
+    if _rework is not None:
+        return _rework
     if isinstance(approval, dict) and approval.get("corrections"):
         generated["article_appraisal"] = approval["corrections"]
         generated["evidence_appraisal_human_confirmed"] = True
@@ -698,7 +750,11 @@ def _node_endpoint_extraction(state: SharedAuthoringState) -> dict[str, Any]:
         "endpoint_count": len(endpoints),
         "sample_endpoints": [{"endpoint_id": str(ep.get("endpoint_id", "")), "endpoint": str(ep.get("endpoint", ""))[:200], "source_article": str(ep.get("article_id", ""))} for ep in endpoints[:10]],
         "action": "confirm_or_correct",
+        "rework_targets": REWORK_TARGETS.get("endpoint_extraction", []),
     })
+    _rework = _check_hc_rework(approval, "endpoint_extraction")
+    if _rework is not None:
+        return _rework
     if isinstance(approval, dict) and approval.get("corrections"):
         generated["endpoint_extraction"] = approval["corrections"]
         generated["endpoint_extraction_human_confirmed"] = True
@@ -919,7 +975,11 @@ def _node_claim_sota_alignment(state: SharedAuthoringState) -> dict[str, Any]:
         "alignment_summary": generated.get("sota_alignment_summary", ""),
         "unsupported_claims": [r for r in generated.get("claim_sota_alignment_table", []) if r.get("feasibility") == "unsupported"],
         "action": "confirm_or_correct",
+        "rework_targets": REWORK_TARGETS.get("claim_sota_alignment", []),
     })
+    _rework = _check_hc_rework(approval, "claim_sota_alignment")
+    if _rework is not None:
+        return _rework
     if isinstance(approval, dict) and approval.get("corrections"):
         generated["claim_sota_alignment_table"] = approval["corrections"]
         generated["claim_sota_alignment_human_confirmed"] = True
@@ -1688,7 +1748,11 @@ def _node_export(state: SharedAuthoringState) -> dict[str, Any]:
             "message": "CER draft is complete. Please review key sections before final export.",
             "sections_to_review": ["Summary", "Conclusions", "GSPR Analysis"],
             "action": "confirm_or_request_rewrite",
+            "rework_targets": REWORK_TARGETS.get("cer_draft_review", []),
         })
+        _rework = _check_hc_rework(approval, "cer_draft_review")
+        if _rework is not None:
+            return _rework
         if isinstance(approval, dict) and approval.get("rewrite_sections"):
             return {"human_review_feedback": approval, "status": "human_rewrite_requested"}
     # Phase 6: Generate IFU feedback report for closed loop

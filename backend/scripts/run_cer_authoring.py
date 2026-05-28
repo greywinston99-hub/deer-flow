@@ -97,6 +97,17 @@ def main() -> int:
         help="Resume from last interrupt with confirmed=True",
     )
     parser.add_argument(
+        "--rework-to",
+        default="",
+        help="Resume and rewind to a specific upstream node (use with --resume). "
+             "Example: --resume --rework-to sota_search_strategy",
+    )
+    parser.add_argument(
+        "--rework-reason",
+        default="",
+        help="Reason for rework (shown in HC rework metadata).",
+    )
+    parser.add_argument(
         "--auto-confirm",
         action="store_true",
         help="Auto-resume through all HC interrupts for full 42-node validation",
@@ -108,6 +119,9 @@ def main() -> int:
         help=f"Max auto-resumes before giving up (default: {MAX_AUTO_INTERRUPTS})",
     )
     args = parser.parse_args()
+
+    if args.rework_to and not args.resume:
+        parser.error("--rework-to requires --resume")
 
     if args.strict_v7:
         os.environ["CER_AUTHORING_STRICT_V7"] = "1"
@@ -154,8 +168,17 @@ def main() -> int:
         }
 
         if args.resume:
-            state: dict | Command = Command(resume={"confirmed": True, "action": "confirm"})
-            print("[CCD] Resuming from last interrupt with confirmed=True...", file=sys.stderr)
+            resume_value: dict[str, Any] = {"confirmed": True, "action": "confirm"}
+            if args.rework_to:
+                resume_value = {
+                    "action": "rework",
+                    "target": args.rework_to,
+                    "reason": args.rework_reason or "Manual rework requested",
+                }
+                print(f"[CCD] Resuming with rework → {args.rework_to}...", file=sys.stderr)
+            else:
+                print("[CCD] Resuming from last interrupt with confirmed=True...", file=sys.stderr)
+            state = Command(resume=resume_value)
         else:
             state = {
                 "messages": [],
@@ -521,9 +544,12 @@ def _single_invoke(graph, state, config) -> int:
                 message = str(interrupt_value)[:200]
                 interrupt_info = {"node": node, "message": message, "step": "?"}
             interrupt_info["artifact_root"] = artifact_root
-            interrupt_info["device_profile"] = result.get("device_profile")
-            interrupt_info["claim_ledger"] = result.get("claim_ledger")
-            interrupt_info["sota_benchmark_matrix"] = result.get("sota_benchmark_matrix")
+            if not interrupt_info.get("device_profile"):
+                interrupt_info["device_profile"] = result.get("device_profile")
+            if not interrupt_info.get("claim_ledger"):
+                interrupt_info["claim_ledger"] = result.get("claim_ledger")
+            if not interrupt_info.get("sota_benchmark_matrix"):
+                interrupt_info["sota_benchmark_matrix"] = result.get("sota_benchmark_matrix")
             interrupt_info["auto_confirm"] = False
             interrupt_info["human_gate_mode"] = "production_pause"
             gate_file = _write_human_gate_file(artifact_root, node, interrupt_info)
@@ -569,6 +595,7 @@ def _extract_interrupt_info(err_msg: str, exc: Exception) -> dict:
     if hasattr(exc, "args") and exc.args:
         for arg in exc.args:
             if isinstance(arg, dict):
+                info.update({k: v for k, v in arg.items() if k not in ("message",)})
                 info["message"] = str(arg.get("message", arg))[:500]
                 info["node"] = str(
                     arg.get("confirmation_point", arg.get("node", "unknown"))
