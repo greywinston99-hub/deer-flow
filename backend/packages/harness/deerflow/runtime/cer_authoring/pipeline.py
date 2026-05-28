@@ -2579,7 +2579,10 @@ def run_sota_search(state: dict[str, Any]) -> dict[str, Any]:
     if _evidence_lineage_is_frozen(state):
         return {}
     if state.get("sota_benchmark_matrix") and state.get("search_run_registry") and not _sota_spiral_rerun_requested(state):
-        return {}
+        _existing_bm = state.get("sota_benchmark_matrix") or []
+        _claim_count = len(state.get("claim_ledger") or [])
+        if len(_existing_bm) >= _claim_count or _claim_count <= 4:
+            return {}
     profile = state.get("device_profile") or {}
     # ── Load device KB for known benchmark reference values ──
     kb_context = _load_device_kb_context(state)
@@ -2803,6 +2806,17 @@ def run_sota_search(state: dict[str, Any]) -> dict[str, Any]:
                 "used_in_4_7": True,
                 "conclusion": "Post-operative safety benchmark established as authoring input.",
             },
+        ]
+    elif domain == "nuclear_medicine_image_processing_software":
+        benchmarks = [
+            {"benchmark_id": "BM-01", "endpoint": "Image processing consistency rate vs reference software", "clinical_significance": "Primary performance evidence for SPECT/CT image reconstruction and quantitative analysis accuracy.", "sota_source": sources, "sota_value_range": "Quantitative threshold from clinical validation; qualitative benchmark uses accepted nuclear medicine workstation SOTA.", "acceptance_criterion": "Non-inferior to reference software (GE Xeleris 1.1) within clinically acceptable tolerance.", "corresponding_claim_id": "C-01", "corresponding_gspr": "GSPR 1, 6", "used_in_4_7": True, "conclusion": "Image processing performance benchmark."},
+            {"benchmark_id": "BM-02", "endpoint": "Software-related adverse events and clinical decision-support errors", "clinical_significance": "Defines whether software malfunction risks remain acceptable for IEC 62304 Class B SaMD.", "sota_source": sources, "sota_value_range": "Malfunction/error rates from literature, PMS/PMCF, and vigilance sources.", "acceptance_criterion": "Observed risks within SOTA accepted levels after IEC 62304 controls, IFU warnings, and physician review.", "corresponding_claim_id": "C-02", "corresponding_gspr": "GSPR 1, 2, 8, 17.4", "used_in_4_7": True, "conclusion": "Software safety benchmark."},
+            {"benchmark_id": "BM-03", "endpoint": "DICOM 3.0 interoperability and multi-vendor compatibility", "clinical_significance": "Performance evidence for DICOM conformance with GE, Siemens, Philips and PACS/HIS/RIS.", "sota_source": sources, "sota_value_range": "Qualitative benchmark from nuclear medicine workstation literature and DICOM conformance standards.", "acceptance_criterion": "DICOM interoperability meets industry-standard conformance requirements across IFU-defined vendor equipment.", "corresponding_claim_id": "C-PERF-02", "corresponding_gspr": "GSPR 1, 6", "used_in_4_7": True, "conclusion": "Interoperability benchmark."},
+            {"benchmark_id": "BM-04", "endpoint": "User satisfaction and clinical workflow efficiency", "clinical_significance": "Evidence that the software is usable and supports efficient workflow across 33 SPECT/CT procedures.", "sota_source": sources, "sota_value_range": "Satisfaction/operability rates from usability surveys and workflow time-motion data.", "acceptance_criterion": "User satisfaction comparable to SOTA workstations; workflow efficiency not degrading clinical throughput.", "corresponding_claim_id": "C-PERF-03", "corresponding_gspr": "GSPR 1, 6", "used_in_4_7": True, "conclusion": "Usability and workflow benchmark."},
+            {"benchmark_id": "BM-05", "endpoint": "Software malfunction risk control effectiveness (IEC 62304 Class B)", "clinical_significance": "Evidence that software V&V, risk controls, and physician review adequately mitigate clinical risks.", "sota_source": sources, "sota_value_range": "Defect/malfunction rates from SaMD literature, IEC 62304 compliance studies, and PMS data.", "acceptance_criterion": "Residual software malfunction risk within SOTA for Class B SaMD after IFU/RMF/PMS controls.", "corresponding_claim_id": "C-SAFE-01", "corresponding_gspr": "GSPR 2, 8, 17.4", "used_in_4_7": True, "conclusion": "Software risk control benchmark."},
+            {"benchmark_id": "BM-06", "endpoint": "Cybersecurity control adequacy for networked SaMD", "clinical_significance": "Evidence that firewall, encryption, antivirus, and access controls protect PHI and software integrity.", "sota_source": sources, "sota_value_range": "Cybersecurity incident rates from medical device security literature and vulnerability databases.", "acceptance_criterion": "Cybersecurity controls meet or exceed SOTA for networked SaMD handling PHI.", "corresponding_claim_id": "C-SAFE-02", "corresponding_gspr": "GSPR 2, 8, 17.2, 17.4", "used_in_4_7": True, "conclusion": "Cybersecurity benchmark."},
+            {"benchmark_id": "BM-07", "endpoint": "Diagnostic efficiency and accuracy improvement vs existing workflow", "clinical_significance": "Evidence that the software assists in faster and more accurate nuclear medicine diagnosis.", "sota_source": sources, "sota_value_range": "Diagnostic accuracy and workflow time comparisons from nuclear medicine workstation literature.", "acceptance_criterion": "Diagnostic accuracy and efficiency non-inferior to SOTA nuclear medicine reading workstations.", "corresponding_claim_id": "C-BEN-01", "corresponding_gspr": "GSPR 1, 6, 23.4", "used_in_4_7": True, "conclusion": "Clinical benefit benchmark."},
+            {"benchmark_id": "BM-08", "endpoint": "Clinical procedure coverage across 33 SPECT/CT procedure types", "clinical_significance": "Evidence that the software supports the full IFU-defined range of nuclear medicine procedures.", "sota_source": sources, "sota_value_range": "Procedure coverage breadth from SOTA nuclear medicine workstation specifications.", "acceptance_criterion": "Coverage meets or exceeds IFU-defined 33 clinical procedures with acceptable performance per category.", "corresponding_claim_id": "C-BEN-02", "corresponding_gspr": "GSPR 1, 6", "used_in_4_7": True, "conclusion": "Procedure coverage benchmark."},
         ]
     else:
         benchmarks = [
@@ -4549,7 +4563,9 @@ def run_device_equivalence_search(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def screen_literature(state: dict[str, Any]) -> dict[str, Any]:
-    if state.get("screening_disposition"):
+    _existing = state.get("screening_disposition") or []
+    _gap_only = all(str(r.get("screen_id","")).startswith("SCR-GAP") for r in _existing) if _existing else False
+    if _existing and not _gap_only:
         return {}
     records = state.get("raw_literature_records") or []
     query_trace_by_id = {str(row.get("query_id") or ""): row for row in state.get("query_construction_trace") or []}
@@ -4698,6 +4714,12 @@ def appraise_evidence(state: dict[str, Any]) -> dict[str, Any]:
     )
     full_text_by_pmid = full_text_payload.get("full_text_by_pmid") or {}
     full_text_status_by_pmid = full_text_payload.get("status_by_pmid") or {}
+    # S8 fix: flag when no eligible articles reached full-text assessment
+    _no_fulltext = (not eligible_pmids) and (not full_text_by_pmid) and (not full_text_status_by_pmid)
+    _retrieval_gap_note = (
+        "No PMIDs eligible for full-text retrieval. Literature evidence may be metadata-only. "
+        "Evidence scores based on title/abstract alone carry limited weight."
+    ) if _no_fulltext else ""
     mcp_log.extend(full_text_payload.get("mcp_log") or [])
     evidence = []
     appraisals = []
@@ -4895,7 +4917,7 @@ def appraise_evidence(state: dict[str, Any]) -> dict[str, Any]:
                 "source_anchor": "no verified source anchor",
                 "device_relationship": "unknown",
                 "evidence_type": "Evidence gap",
-                "source": "Public literature search did not provide verified included articles in this run.",
+                "source": _retrieval_gap_note or "Public literature search did not provide verified included articles in this run.",
                 "device_relevance": "gap",
                 "population_relevance": "gap",
                 "endpoint": "gap",
@@ -19220,6 +19242,16 @@ def _device_name_from_filename(filename: str) -> str:
         return "AI Diagnostic Software" if re.search(r"\bai\b", filename.lower()) or "algorithm" in filename.lower() else "Diagnostic Software"
     if "software" in filename.lower() or "软件" in filename:
         return "Software Medical Device"
+    # S4 fix: reject stems that are document titles, not device names.
+    # Use compound patterns only — single-word tokens like "manual" would
+    # falsely reject legitimate device names (e.g. "Manual Resuscitator").
+    _stem_lower = stem.lower()
+    _doc_title_patterns = (
+        "user manual", "product user", "instructions for use",
+        "产品使用说明书", "使用说明书", "operator manual", "reference manual",
+    )
+    if any(t in _stem_lower for t in _doc_title_patterns) and len(stem) < 60:
+        return ""
     return stem[:120]
 
 
@@ -20819,6 +20851,10 @@ def _search_run_from_result(search_id: str, result: dict[str, Any], objective: s
         "url": result.get("url", ""),
         "search_date": result.get("search_date", ""),
         "query": result.get("query", ""),
+        "exact_query": result.get("query", ""),
+        "search_terms": result.get("query", ""),
+        "pmids": result.get("pmids") or [],
+        "records": result.get("records") or [],
         "device_domain_lock": result.get("device_domain_lock", ""),
         "retrieval_domain": result.get("retrieval_domain", ""),
         "intended_use_terms": result.get("intended_use_terms", ""),
@@ -20941,6 +20977,16 @@ def _raw_records_from_searches(searches: list[dict[str, Any]]) -> list[dict[str,
                 }
             )
             idx += 1
+        # S1 fix: warn when search returned count > 0 but zero records/pmids (retrieval gap)
+        if not search.get("pmids") and not search.get("records"):
+            _count = search.get("count") or search.get("result_count") or 0
+            if _count and int(_count) > 0:
+                import sys as _sys
+                print(
+                    f"[RETRIEVAL_GAP] {search.get('search_id','?')} {search.get('database','?')}: "
+                    f"count={_count} but records/pmids empty — search results not consumed",
+                    file=_sys.stderr,
+                )
     return records
 
 

@@ -139,12 +139,17 @@ def evaluate_device_domain_consistency_gate(
         return {
             "gate": "Gate 1 — Device Domain Consistency",
             "gate_id": "WRITER_GATE_01",
-            "status": "SKIPPED",
-            "reason": f"Unrecognised device_domain '{device_domain}'; cannot map to domain term matrix.",
+            "status": "BLOCKED",
+            "reason": f"Unrecognised device_domain '{device_domain}'; cannot map to domain term matrix. Domain must be registered in DEVICE_DOMAIN_TO_MATRIX_DOMAIN before Writer can run.",
             "device_domain": device_domain,
-            "findings": [],
+            "findings": [{
+                "finding_id": "DOMAIN-UNREGISTERED-001",
+                "severity": "CRITICAL",
+                "message": f"Device domain '{device_domain}' is not registered in the domain term matrix. Writer QA Gate 1 cannot validate domain consistency.",
+                "remediation": f"Add '{device_domain}' to DEVICE_DOMAIN_TO_MATRIX_DOMAIN in domain_term_matrix.py.",
+            }],
             "warnings": [],
-            "quarantine": False,
+            "quarantine": True,
         }
 
     domain_entry = DOMAIN_TERM_MATRIX.get(domain_key, {})
@@ -658,12 +663,25 @@ def run_all_writer_gates(
 
     gates = [gate1, gate2, gate3, gate4, gate5, gate6]
     any_hard_fail = any(g.get("status") == "HARD_FAIL" for g in gates)
+    any_blocked = any(g.get("status") == "BLOCKED" for g in gates)
     quarantined = any(g.get("quarantine") for g in gates)
+
+    # S6 fix: also check writer invocation and blocker status
+    blocker = state.get("blocker_report") or {}
+    writer_invoked = blocker.get("writer_invoked", True)
 
     contamination_trace = build_context_contamination_trace(cer_body_text, device_profile, state) if device_profile else {}
 
+    if any_hard_fail:
+        overall = "HARD_FAIL"
+    elif any_blocked or not writer_invoked:
+        overall = "BLOCKED_WITH_COMPROMISE"
+    elif quarantined:
+        overall = "PASS_WITH_QUARANTINE"
+    else:
+        overall = "PASS"
     return {
-        "overall_status": "HARD_FAIL" if any_hard_fail else "PASS",
+        "overall_status": overall,
         "quarantine": quarantined,
         "gates": {
             "gate_1_domain_consistency": gate1,

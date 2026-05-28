@@ -25,7 +25,8 @@ def build_benefit_risk_body_section(
     """
     now = datetime.now(timezone.utc).isoformat()
     body_lower = cer_body_text.lower()
-    br_ledger = state.get("benefit_risk_ledger") or state.get("benefit_risk_closure_matrix") or {}
+    br_ledger_raw = state.get("benefit_risk_ledger") or state.get("benefit_risk_closure_matrix") or {}
+    br_ledger = br_ledger_raw if isinstance(br_ledger_raw, dict) else {}
     rmf = state.get("rmf_hazard_trace") or {}
     claims = state.get("claim_ledger") or []
     pmcf = state.get("pmcf_plan_control_matrix") or state.get("pmcf_gap_register") or {}

@@ -19,6 +19,8 @@ DEVICE_DOMAIN_TO_MATRIX_DOMAIN: dict[str, str] = {
     "medical_imaging_software": "medical_imaging_software",
     "ai_diagnostic_software": "medical_imaging_software",
     "diagnostic_software": "medical_imaging_software",
+    "nuclear_medicine_image_processing_software": "medical_imaging_software",
+    "software_medical_device": "medical_imaging_software",
     "cardiovascular_rf_ablation_catheter": "cardiovascular_rf_ablation_catheter",
     "urology_uas": "urology_uas",
 }
