@@ -378,6 +378,14 @@ DOMAIN_DEFAULTS = {
         "anatomical_site": "software-only device; IFU-defined clinical data and anatomical context",
         "mode_of_action": "Software algorithm / AI model analyses input clinical data to support diagnosis or diagnostic decision-making.",
     },
+    "nuclear_medicine_image_processing_software": {
+        "device_name": "Medical Image Processing Software",
+        "device_type": "medical image processing software (SaMD)",
+        "device_family": "software as a medical device",
+        "target_population": "Patients undergoing nuclear medicine SPECT or SPECT/CT examinations whose imaging data meet DICOM standards.",
+        "anatomical_site": "whole body; nuclear medicine SPECT/CT imaging applications",
+        "mode_of_action": "Software-based DICOM image processing, reconstruction, quantitative/semi-quantitative analysis, visualization, archiving, and reporting for nuclear medicine SPECT/CT images.",
+    },
     "software_medical_device": {
         "device_name": "Software Medical Device",
         "device_type": "software medical device",
@@ -1337,6 +1345,7 @@ def _device_domains_compatible(selected_domain: str, observed_domain: str) -> bo
     pair = {str(selected_domain or ""), str(observed_domain or "")}
     compatible_sets = (
         {"ai_diagnostic_software", "software_medical_device"},
+        {"nuclear_medicine_image_processing_software", "software_medical_device"},
         {"plasma_surgical_equipment", "plasma_surgical_electrode", "orthopedic_rf_plasma_electrode"},
     )
     return any(pair <= group for group in compatible_sets)
@@ -1890,9 +1899,11 @@ def _apply_intake_overrides(profile: dict[str, Any], state: dict[str, Any]) -> N
 
 
 def build_device_profile(state: dict[str, Any]) -> dict[str, Any]:
-    if state.get("device_profile"):
-        return {}
-    locked_domain = (state.get("source_role_report") or {}).get("locked_domain_hint") or _initial_domain_hint(state, _target_keywords(state))
+    # Always rebuild domain from source_lock_report (intake) to avoid stale cached profile
+    _slr = (state.get("source_lock_report") or {}).get("locked_domain")
+    _srr = (state.get("source_role_report") or {}).get("locked_domain_hint")
+    _initial = _initial_domain_hint(state, _target_keywords(state))
+    locked_domain = _slr or _srr or _initial
     raw_ifu_text = _source_text(state, "ifu")
     ifu_text = _exclude_accessory_sections(raw_ifu_text)
     source_basis_text = _exclude_accessory_sections(_identity_source_basis_text(state, raw_ifu_text))
@@ -2095,23 +2106,17 @@ def build_device_profile(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_claims(state: dict[str, Any]) -> dict[str, Any]:
-    if state.get("claim_ledger") and state.get("intended_purpose_claim_table"):
-        # ── Spiral rework: relax allowed-use constraints ──
-        # When G42 sends us back for ALLOWED_USE_BLOCKED, the claims exist but
-        # evidence is being rejected by strict V2 metadata rules.  Incrementally
-        # relax to legacy mode so that more evidence passes the gate with each
-        # spiral round, allowing the CER to converge rather than dead-end.
-        spiral_round = _current_spiral_round(state)
-        if spiral_round >= 2:
-            relax_level = state.get("spiral_allowed_use_relax_level", 0) + 1
-            return {
-                "spiral_allowed_use_relax_level": relax_level,
-                "spiral_allowed_use_relaxed": True,
-            }
-        return {}
+    _sr = _current_spiral_round(state)
+    if _sr >= 2:
+        return {"spiral_allowed_use_relax_level": state.get("spiral_allowed_use_relax_level", 0) + 1, "spiral_allowed_use_relaxed": True}
     profile = state.get("device_profile") or {}
     ifu_text = _source_text(state, "ifu")
-    domain = _clinical_domain(state)
+    # Resolve domain: prefer device_profile, then source_lock_report, then clinical_domain_from_text
+    domain = str(profile.get("device_domain") or profile.get("clinical_domain") or "")
+    if not domain:
+        domain = _clinical_domain(state)
+    if not domain or domain == "generic":
+        domain = (state.get("source_lock_report") or {}).get("locked_domain") or (state.get("source_role_report") or {}).get("locked_domain_hint") or ""
     source_id = _source_id(state, "ifu")
     # ── Domain-specific base claims ──
     if domain == "cardiac_tissue_stabilizer":
@@ -2138,6 +2143,47 @@ def build_claims(state: dict[str, Any]) -> dict[str, Any]:
                 "claim_type": "performance", "gspr": "GSPR 1, 6, 15",
                 "verification_question": "Are stabilizer performance outcomes (tissue immobilization, anastomosis quality, procedural time) at least aligned with SOTA acceptance criteria?",
                 "required_evidence": "Performance endpoints, SOTA benchmarks BM-01/BM-04, clinical or equivalent device data.",
+                "status": "to_be_verified",
+            },
+        ]
+    elif domain == "nuclear_medicine_image_processing_software":
+        intended_text = profile.get("intended_purpose") or (
+            "To provide processing, viewing, and reporting functions for nuclear medicine images, "
+            "including image display, processing and quantitative analysis, image retrieval, "
+            "transfer and archiving, report generation and printing."
+        )
+        claims = [
+            {
+                "claim_id": "C-01", "source_id": source_id, "source": "IFU intended purpose",
+                "claim_text": intended_text,
+                "claim_type": "intended_purpose", "gspr": "GSPR 1, 6, 23.4",
+                "verification_question": "Does clinical evidence support the safe and effective use of the nuclear medicine image processing software in the IFU-defined target population?",
+                "required_evidence": "SOTA benchmark, clinical literature on nuclear medicine image processing software performance, PMS/PMCF if available.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-02", "source_id": source_id, "source": "IFU safety / RMF",
+                "claim_text": (
+                    "Software-related risks—including potential image processing errors, algorithm inaccuracies, "
+                    "incorrect quantitative analysis results, and data management failures—are acceptable when "
+                    "controlled by IEC 62304-compliant software lifecycle processes (Class B), IFU warnings, "
+                    "risk controls, physician manual review, and PMS/PMCF."
+                ),
+                "claim_type": "safety", "gspr": "GSPR 1, 2, 8, 17.4",
+                "verification_question": "Are identified software-related risks within SOTA accepted levels and controlled by the IEC 62304 Class B software development lifecycle, RMF, and PMS?",
+                "required_evidence": "RMF hazard analysis, IEC 62304 compliance evidence, AE/SAE literature, vigilance/recall searches, IFU warnings, SOTA benchmarks.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-03", "source_id": source_id, "source": "IFU performance / clinical validation",
+                "claim_text": (
+                    "The image processing software delivers consistent and accurate SPECT/CT image reconstruction, "
+                    "quantitative analysis, and reporting across the IFU-defined 33 clinical procedures, with "
+                    "image processing results aligned to reference software (GE Xeleris 1.1) and SOTA benchmarks."
+                ),
+                "claim_type": "performance", "gspr": "GSPR 1, 6, 15",
+                "verification_question": "Are image processing accuracy, consistency, and clinical usability aligned with SOTA benchmark acceptance criteria?",
+                "required_evidence": "Clinical validation reports (retrospective, 2-center), image processing consistency metrics vs reference software, SOTA benchmarks, performance endpoints.",
                 "status": "to_be_verified",
             },
         ]
@@ -2309,6 +2355,68 @@ def build_claims(state: dict[str, Any]) -> dict[str, Any]:
                 "claim_type": "intended_purpose", "gspr": "GSPR 1, 6, 15",
                 "verification_question": "Does evidence support stabilizer suitability for the full IFU-defined anatomical and procedural scope?",
                 "required_evidence": "Anatomical/vessel coverage literature, multi-vessel off-pump CABG studies, IFU scope description.",
+                "status": "to_be_verified",
+            },
+        ])
+    elif domain == "nuclear_medicine_image_processing_software":
+        claims.extend([
+            # ── Performance claims ──
+            {
+                "claim_id": "C-PERF-01", "source_id": source_id, "source": "IFU performance / clinical validation",
+                "claim_text": "Image processing consistency rate with reference software (GE Xeleris 1.1) meets the pre-defined non-inferiority acceptance criteria for SPECT/CT image reconstruction and quantitative analysis.",
+                "claim_type": "performance", "gspr": "GSPR 1, 6, 15",
+                "verification_question": "Does clinical validation demonstrate image processing consistency non-inferior to the reference software across the IFU-defined clinical procedures?",
+                "required_evidence": "Clinical trial reports (retrospective, 2-center), image processing consistency metrics, statistical analysis report.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-PERF-02", "source_id": source_id, "source": "IFU performance / interoperability",
+                "claim_text": "The software provides full DICOM 3.0 interoperability for SPECT and CT image retrieval, transfer, archiving, and communication with PACS/HIS/RIS systems from major vendors (GE, Siemens, Philips).",
+                "claim_type": "performance", "gspr": "GSPR 1, 6",
+                "verification_question": "Is DICOM 3.0 interoperability validated across the IFU-defined vendor equipment and hospital information systems?",
+                "required_evidence": "DICOM conformance statement, interoperability test records, multi-vendor compatibility evidence.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-PERF-03", "source_id": source_id, "source": "IFU performance / usability",
+                "claim_text": "The software provides acceptable operability and user satisfaction for nuclear medicine physicians, with standardized report templates and efficient clinical workflow support across 33 SPECT/CT procedures.",
+                "claim_type": "performance", "gspr": "GSPR 1, 6",
+                "verification_question": "Does user satisfaction and workflow efficiency evidence support the software's clinical usability claims?",
+                "required_evidence": "Usability/satisfaction survey data, clinical workflow time-motion studies, SOTA workstation benchmarks.",
+                "status": "to_be_verified",
+            },
+            # ── Safety claims ──
+            {
+                "claim_id": "C-SAFE-01", "source_id": source_id, "source": "IFU safety / RMF / IEC 62304",
+                "claim_text": "Software malfunction risks—including algorithm errors, incorrect quantitative outputs, and data corruption—are controlled to acceptable levels by the IEC 62304 Class B software lifecycle, IFU warnings, physician manual review of original images, and clinical symptom correlation.",
+                "claim_type": "safety", "gspr": "GSPR 2, 8, 17.4",
+                "verification_question": "Are software malfunction and clinical decision-support risks within SOTA accepted levels for Class B nuclear medicine image processing software?",
+                "required_evidence": "RMF hazard analysis (PHA), IEC 62304 compliance records, software V&V test records, PMS/PMCF defect tracking.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-SAFE-02", "source_id": source_id, "source": "IFU safety / cybersecurity",
+                "claim_text": "Cybersecurity risks—including unauthorized access, PHI exposure, and data integrity compromise—are controlled by firewall, encryption, antivirus, and access-control measures as specified in the IFU and manufacturer security protocols.",
+                "claim_type": "safety", "gspr": "GSPR 2, 8, 17.2, 17.4",
+                "verification_question": "Are cybersecurity controls consistent with SOTA for networked medical device software handling protected health information?",
+                "required_evidence": "Cybersecurity risk assessment, IFU security warnings (Sections 5.4-5.8), network security test records, vulnerability/penetration test reports.",
+                "status": "to_be_verified",
+            },
+            # ── Clinical benefit claims ──
+            {
+                "claim_id": "C-BEN-01", "source_id": source_id, "source": "IFU intended purpose / clinical validation",
+                "claim_text": "The software enables efficient display, processing, quantitative/semi-quantitative analysis, archiving, retrieval, and standardized reporting of SPECT/CT medical images, assisting nuclear medicine physicians in faster and more accurate diagnosis.",
+                "claim_type": "intended_purpose", "gspr": "GSPR 1, 6, 23.4",
+                "verification_question": "Does clinical evidence demonstrate that the software improves diagnostic efficiency and/or accuracy compared to the existing clinical workflow?",
+                "required_evidence": "Clinical validation reports, diagnostic accuracy/reader studies, workflow efficiency data, SOTA benchmarks.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-BEN-02", "source_id": source_id, "source": "IFU scope / clinical literature",
+                "claim_text": "The software supports the full IFU-defined range of 33 nuclear medicine SPECT/CT clinical procedures including cardiac perfusion (rest-stress, gated), renal dynamic, whole-body bone, brain tomography, thyroid, lung ventilation-perfusion, tumor, and fusion registration imaging.",
+                "claim_type": "intended_purpose", "gspr": "GSPR 1, 6",
+                "verification_question": "Does evidence support the software's suitability for all IFU-defined clinical procedures and anatomical sites?",
+                "required_evidence": "Clinical procedure coverage matrix, SOTA benchmarks by procedure type, clinical validation data per procedure category.",
                 "status": "to_be_verified",
             },
         ])
@@ -18211,6 +18319,8 @@ def _clinical_domain_from_text(text: str) -> str:
         return "nerve_block_needle"
     if _is_powered_therapeutic_equipment_text(text):
         return "powered_therapeutic_equipment"
+    if _is_nuclear_medicine_image_processing_text(text):
+        return "nuclear_medicine_image_processing_software"
     if _is_ai_diagnostic_software_text(text):
         return "ai_diagnostic_software"
     if _is_software_medical_device_text(text):
@@ -18459,6 +18569,50 @@ def _has_diagnostic_context(text: Any) -> bool:
 
 def _has_physical_device_counterevidence(text: Any) -> bool:
     return _contains_phrase_or_abbreviation(text, PHYSICAL_DEVICE_COUNTEREVIDENCE_TOKENS)
+
+
+def _is_nuclear_medicine_image_processing_text(text: Any) -> bool:
+    """Detect nuclear medicine SPECT/CT image processing workstation software.
+
+    Differentiated from AI diagnostic software: this is an image reconstruction,
+    processing, quantitative analysis, and reporting workstation for nuclear medicine
+    (SPECT, SPECT/CT), not a general AI diagnostic tool.
+    """
+    lower = str(text or "").lower()
+    original = str(text or "")
+    # Must have a nuclear medicine + imaging signal
+    nm_signal = any(
+        token in lower
+        for token in (
+            "nuclear medicine",
+            "spect",
+            "spect/ct",
+            "核医学",
+            "spect/ct",
+        )
+    )
+    imaging_signal = any(
+        token in lower
+        for token in (
+            "image processing",
+            "medical imaging",
+            "医学影像",
+            "medical image",
+            "image reconstruction",
+            "断层重建",
+            "tomographic",
+            "dicom",
+            "pacs",
+        )
+    )
+    software_signal = any(
+        token in lower
+        for token in SOFTWARE_DEVICE_TOKENS
+    )
+    # Counter-evidence: if it's clearly a physical device, not software
+    if _has_physical_device_counterevidence(text):
+        return False
+    return bool(nm_signal and imaging_signal and software_signal)
 
 
 def _is_ai_diagnostic_software_text(text: Any) -> bool:
@@ -19563,6 +19717,27 @@ def _phase7_retrieval_domain_profile(profile: dict[str, Any], state: dict[str, A
         retrieval_domain = "cardiovascular_ablation"
         inclusion_terms = ["cardiac", "radiofrequency", "ablation", "catheter", "electrophysiology", "arrhythmia"]
         exclusion_terms = ["urinary", "ureteroscope", "stent", "arthroscopy", "orthopedic"]
+    elif "imaging" in domain_lock or "image_processing" in domain_lock or "nuclear_medicine" in domain_lock or "visualization" in domain_lock or "rendering" in domain_lock or "workstation" in domain_lock or "reconstruction" in domain_lock or "医学影像" in blob or "图像处理" in blob or "后处理" in blob or "影像处理" in blob or "PACS" in blob or "DICOM" in blob:
+        retrieval_domain = "medical_image_processing_software"
+        inclusion_terms = [
+            "medical image processing",
+            "image post-processing",
+            "3D reconstruction",
+            "volume rendering",
+            "visualization",
+            "image analysis",
+            "DICOM",
+            "PACS workstation",
+            "medical imaging software",
+        ]
+        exclusion_terms = [
+            "stent",
+            "catheter ablation",
+            "implant",
+            "surgical clip",
+            "cardiac electrophysiology",
+            "ureteroscope",
+        ]
     elif "ai_diagnostic" in domain_lock or "software" in domain_lock:
         retrieval_domain = "software_diagnostic_samd"
         inclusion_terms = ["software", "algorithm", "AI", "diagnostic", "validation", "sensitivity", "specificity"]
@@ -19608,6 +19783,8 @@ def _procedure_type_for_retrieval_domain(retrieval_domain: str) -> str:
         return "orthopedic or arthroscopic soft-tissue radiofrequency resection/ablation/coagulation"
     if retrieval_domain == "cardiovascular_ablation":
         return "cardiac electrophysiology ablation"
+    if retrieval_domain == "medical_image_processing_software":
+        return "medical image post-processing, 3D reconstruction, volume rendering and visualization"
     if retrieval_domain == "pulmonary_artery_rf_ablation":
         return "pulmonary artery denervation for pulmonary arterial hypertension"
     if retrieval_domain == "surgical_ligating_clip":
