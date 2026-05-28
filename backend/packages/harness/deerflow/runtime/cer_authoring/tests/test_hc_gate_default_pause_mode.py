@@ -56,9 +56,11 @@ class TestHCGateDefaultPauseMode:
             assert '.human_gate' in content
             assert '_write_human_gate_file' in content
 
-    def test_exit_code_10_on_interrupt(self):
-        """The _single_invoke function returns exit code 10 on HC interrupt."""
+    def test_response_polling_on_hc_interrupt(self):
+        """The _single_invoke function uses response-file polling, not exit code 10."""
         script_path = Path(__file__).resolve().parents[7] / "backend" / "scripts" / "run_cer_authoring.py"
         if script_path.exists():
             content = script_path.read_text()
-            assert 'return 10' in content
+            assert '_handle_hc_interrupt' in content
+            assert '_poll_response' in content
+            assert 'response.json' in content

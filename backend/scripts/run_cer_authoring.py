@@ -414,6 +414,70 @@ def _auto_confirm_loop(graph, state, config, args) -> int:
 
 
 # ── Single invoke (production HC-pause mode) ──────────────────────────────
+# Response-file driven: the process stays alive across HC gates.  Instead of
+# printing "run --resume" and returning exit code 10, it writes a gate review
+# file (.md) and a response template (response.json) into .human_gate/, then
+# polls response.json every 2 s.  When the human saves an action, the process
+# resumes the graph automatically.  No process restart needed.
+#
+# Supported actions in response.json:
+#   {"action": "confirm"}                    → approve and continue forward
+#   {"action": "rework", "target": "<node>"} → rewind to upstream node
+#   {"action": "correct", "corrections": {}} → apply corrections and continue
+
+_HC_POLL_INTERVAL = 2       # seconds between response.json checks
+_HC_POLL_TIMEOUT = 0         # 0 = wait forever; >0 = seconds before giving up
+
+
+def _write_response_template(artifact_root: str, node: str, rework_targets: list[str]) -> Path:
+    """Write (or overwrite) the response.json template for this HC gate."""
+    gate_dir = Path(artifact_root) / ".human_gate"
+    gate_dir.mkdir(parents=True, exist_ok=True)
+    resp_path = gate_dir / "response.json"
+    # Atomic write: write to temp then rename so poller never sees a half-written file
+    tmp_path = gate_dir / ".response.json.tmp"
+    template = {"action": "", "target": "", "reason": ""}
+    tmp_path.write_text(json.dumps(template, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp_path.rename(resp_path)
+    return resp_path
+
+
+def _poll_response(artifact_root: str, node: str) -> dict[str, Any] | None:
+    """Poll .human_gate/response.json until the human writes a valid action.
+
+    Returns the parsed response dict, or None on timeout / graceful exit.
+    """
+    resp_path = Path(artifact_root) / ".human_gate" / "response.json"
+    last_mtime = resp_path.stat().st_mtime if resp_path.exists() else 0.0
+    started = time.time()
+    while True:
+        try:
+            time.sleep(_HC_POLL_INTERVAL)
+        except KeyboardInterrupt:
+            print("\n[CCD] Interrupted — pipeline state saved. Resume with --resume.", file=sys.stderr)
+            return None
+        if _HC_POLL_TIMEOUT > 0 and (time.time() - started) > _HC_POLL_TIMEOUT:
+            print(f"[CCD] HC gate timed out after {_HC_POLL_TIMEOUT}s — exiting.", file=sys.stderr)
+            return None
+        try:
+            current_mtime = resp_path.stat().st_mtime
+        except FileNotFoundError:
+            continue
+        if abs(current_mtime - last_mtime) < 0.01:
+            continue
+        last_mtime = current_mtime
+        try:
+            data = json.loads(resp_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, ValueError):
+            print(f"[CCD] Invalid JSON in response.json — waiting for valid input...", file=sys.stderr)
+            continue
+        action = str(data.get("action", "")).strip().lower()
+        if action in ("confirm", "rework", "correct"):
+            # Archive the response so the next gate starts fresh
+            _archive_response(artifact_root, node, data)
+            return data
+        if action:
+            print(f"[CCD] Unknown action '{action}' — expected confirm, rework, or correct.", file=sys.stderr)
 
 
 def _write_human_gate_file(artifact_root: str, node: str, info: dict) -> str:
@@ -488,84 +552,145 @@ def _write_human_gate_file(artifact_root: str, node: str, info: dict) -> str:
         for s in sections:
             lines.append(f"- {s}")
         lines.append("")
+    rework_targets = info.get("rework_targets") or []
     lines.append("---")
     lines.append("")
-    lines.append("**To continue**: run the same command with `--resume`")
+    lines.append("## To Continue")
+    lines.append("")
+    lines.append("Edit `.human_gate/response.json` and save the file:")
+    lines.append('- `{"action": "confirm"}` — approve and continue forward')
+    if rework_targets:
+        for rt in rework_targets:
+            lines.append(f'- `{{"action": "rework", "target": "{rt}", "reason": "..."}}` — rewind to {rt}')
+    lines.append("")
     lines.append(f"**File**: `{gate_file}`")
     content = "\n".join(lines)
     gate_file.write_text(content, encoding="utf-8")
     return str(gate_file)
 
 
-def _single_invoke(graph, state, config) -> int:
+def _archive_response(artifact_root: str, node: str, data: dict[str, Any]) -> None:
+    """Move the consumed response.json to a timestamped archive."""
+    resp_path = Path(artifact_root) / ".human_gate" / "response.json"
+    archive_dir = Path(artifact_root) / ".human_gate" / ".responses"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    ts = time.strftime("%Y%m%dT%H%M%S")
+    archive_path = archive_dir / f"{node}_{ts}.json"
     try:
-        result = graph.invoke(state, config)
-    except Exception as e:
-        err_msg = str(e)
-        if "GraphInterrupt" in type(e).__name__:
-            interrupt_info = _extract_interrupt_info(err_msg, e)
-            node = interrupt_info.get("node", "unknown")
-            message = interrupt_info.get("message", "N/A")
-            artifact_root = interrupt_info.get(
-                "artifact_root", str(Path.cwd() / "02_CER_OUTPUT")
+        resp_path.rename(archive_path)
+    except OSError:
+        pass
+
+
+def _handle_hc_interrupt(graph, state, config, interrupt_info: dict, artifact_root: str) -> Command | None:
+    """Write gate files, poll response.json, return a Command for resume/rework.
+
+    Returns None if the process should exit (timeout / KeyboardInterrupt).
+    """
+    node = interrupt_info.get("node", "unknown")
+    message = interrupt_info.get("message", "N/A")
+    rework_targets = interrupt_info.get("rework_targets") or []
+
+    # Write review files
+    gate_file = _write_human_gate_file(artifact_root, node, interrupt_info)
+    _write_response_template(artifact_root, node, rework_targets)
+
+    # Print pause banner
+    payload = {**interrupt_info, "auto_confirm": False, "human_gate_mode": "production_pause"}
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    print(f"\n{'='*60}", file=sys.stderr)
+    print(f"[CCD] ⏸️  PIPELINE PAUSED at '{node}'", file=sys.stderr)
+    print(f"[CCD] Message: {message[:200]}", file=sys.stderr)
+    print(f"[CCD] Review: {gate_file}", file=sys.stderr)
+    if rework_targets:
+        print(f"[CCD] Rework targets: {', '.join(rework_targets)}", file=sys.stderr)
+    print(f"[CCD] Edit .human_gate/response.json and save to continue", file=sys.stderr)
+    print(f"{'='*60}\n", file=sys.stderr)
+
+    # Poll for human response
+    response = _poll_response(artifact_root, node)
+    if response is None:
+        return None
+
+    action = str(response.get("action", "")).strip().lower()
+    if action == "rework":
+        target = str(response.get("target", "")).strip()
+        reason = str(response.get("reason", "")).strip()
+        if target:
+            print(f"[CCD] ↩️  Rework → {target} ({reason})", file=sys.stderr)
+            return Command(resume={"action": "rework", "target": target, "reason": reason})
+        print(f"[CCD] ⚠️  Rework requested but no target specified — confirming instead.", file=sys.stderr)
+    if action == "correct":
+        corrections = response.get("corrections") or {}
+        return Command(resume={"confirmed": True, "corrections": corrections})
+    # action == "confirm" (or empty fallthrough)
+    print(f"[CCD] ✅ Confirmed — continuing.", file=sys.stderr)
+    return Command(resume={"confirmed": True, "action": "confirm"})
+
+
+def _single_invoke(graph, state, config) -> int:
+    """Production HC-pause loop with response-file polling.
+
+    The process stays alive across HC gates.  At each gate it writes review
+    files and polls response.json.  The human edits the file in-place and
+    saves; the process detects the change and resumes automatically.
+    """
+    while True:
+        try:
+            result = graph.invoke(state, config)
+        except Exception as e:
+            err_msg = str(e)
+            if "GraphInterrupt" in type(e).__name__:
+                interrupt_info = _extract_interrupt_info(err_msg, e)
+                artifact_root = interrupt_info.get(
+                    "artifact_root", str(Path.cwd() / "02_CER_OUTPUT")
+                )
+                cmd = _handle_hc_interrupt(graph, state, config, interrupt_info, artifact_root)
+                if cmd is None:
+                    return 0
+                state = cmd
+                continue
+            summary = {"error": err_msg[:300], "status": "fatal_error"}
+            print(json.dumps(summary, ensure_ascii=False, indent=2))
+            return 3
+
+        # Check for pending interrupts (SqliteSaver path)
+        gs = graph.get_state(config)
+        pending = gs.interrupts if gs else []
+        if pending:
+            artifact_root = str(
+                result.get("artifact_root")
+                or (state.get("artifact_root") if isinstance(state, dict) else "")
+                or Path.cwd() / "02_CER_OUTPUT"
             )
-            gate_file = _write_human_gate_file(artifact_root, node, interrupt_info)
-            interrupt_info["auto_confirm"] = False
-            interrupt_info["human_gate_mode"] = "production_pause"
-            print(json.dumps(interrupt_info, ensure_ascii=False, indent=2))
-            print(f"\n{'='*60}", file=sys.stderr)
-            print(f"[CCD] ⏸️  PIPELINE PAUSED — HUMAN CONFIRMATION REQUIRED", file=sys.stderr)
-            print(f"[CCD] Node: {node}", file=sys.stderr)
-            print(f"[CCD] Message: {message[:200]}", file=sys.stderr)
-            print(f"[CCD] Review: {gate_file}", file=sys.stderr)
-            print(f"[CCD] Action: To continue, run the same command with --resume", file=sys.stderr)
-            print(f"{'='*60}", file=sys.stderr)
-            return 10
-        summary = {"error": err_msg[:300], "status": "fatal_error"}
+            for entry in pending:
+                interrupt_value = entry.value if hasattr(entry, "value") else entry
+                if isinstance(interrupt_value, dict):
+                    node = str(interrupt_value.get("confirmation_point", "unknown"))
+                    message = str(interrupt_value.get("message", "N/A"))
+                    interrupt_info = dict(interrupt_value)
+                else:
+                    node = "unknown"
+                    message = str(interrupt_value)[:200]
+                    interrupt_info = {"node": node, "message": message, "step": "?"}
+                interrupt_info["artifact_root"] = artifact_root
+                if not interrupt_info.get("device_profile"):
+                    interrupt_info["device_profile"] = result.get("device_profile")
+                if not interrupt_info.get("claim_ledger"):
+                    interrupt_info["claim_ledger"] = result.get("claim_ledger")
+                if not interrupt_info.get("sota_benchmark_matrix"):
+                    interrupt_info["sota_benchmark_matrix"] = result.get("sota_benchmark_matrix")
+                cmd = _handle_hc_interrupt(graph, state, config, interrupt_info, artifact_root)
+                if cmd is None:
+                    return 0
+                state = cmd
+                break  # One interrupt per loop iteration
+            continue
+
+        # Pipeline complete
+        summary = _build_summary(result, None)
         print(json.dumps(summary, ensure_ascii=False, indent=2))
-        return 3
-
-    gs = graph.get_state(config)
-    pending = gs.interrupts if gs else []
-    if pending:
-        artifact_root = str(
-            result.get("artifact_root")
-            or state.get("artifact_root")
-            or Path.cwd() / "02_CER_OUTPUT"
-        )
-        for entry in pending:
-            interrupt_value = entry.value if hasattr(entry, "value") else entry
-            if isinstance(interrupt_value, dict):
-                node = str(interrupt_value.get("confirmation_point", "unknown"))
-                message = str(interrupt_value.get("message", "N/A"))
-                interrupt_info = dict(interrupt_value)
-            else:
-                node = "unknown"
-                message = str(interrupt_value)[:200]
-                interrupt_info = {"node": node, "message": message, "step": "?"}
-            interrupt_info["artifact_root"] = artifact_root
-            if not interrupt_info.get("device_profile"):
-                interrupt_info["device_profile"] = result.get("device_profile")
-            if not interrupt_info.get("claim_ledger"):
-                interrupt_info["claim_ledger"] = result.get("claim_ledger")
-            if not interrupt_info.get("sota_benchmark_matrix"):
-                interrupt_info["sota_benchmark_matrix"] = result.get("sota_benchmark_matrix")
-            interrupt_info["auto_confirm"] = False
-            interrupt_info["human_gate_mode"] = "production_pause"
-            gate_file = _write_human_gate_file(artifact_root, node, interrupt_info)
-            print(json.dumps(interrupt_info, ensure_ascii=False, indent=2))
-            print(f"\n{'='*60}", file=sys.stderr)
-            print(f"[CCD] ⏸️  PIPELINE PAUSED — HUMAN CONFIRMATION REQUIRED", file=sys.stderr)
-            print(f"[CCD] Node: {node}", file=sys.stderr)
-            print(f"[CCD] Message: {message[:200]}", file=sys.stderr)
-            print(f"[CCD] Review: {gate_file}", file=sys.stderr)
-            print(f"[CCD] Action: To continue, run the same command with --resume", file=sys.stderr)
-            print(f"{'='*60}", file=sys.stderr)
-        return 10
-
-    summary = _build_summary(result, None)
-    print(json.dumps(summary, ensure_ascii=False, indent=2))
-    return 0 if result.get("final_gate_decision") == "PASS_TO_DRAFT_DOCX" else 2
+        return 0 if result.get("final_gate_decision") == "PASS_TO_DRAFT_DOCX" else 2
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────
