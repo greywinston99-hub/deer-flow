@@ -134,6 +134,7 @@ def _with_team_mode(state: SharedAuthoringState, updates: dict[str, Any] | None 
 # node returns Command(goto=target) and the graph resumes from there.
 
 REWORK_TARGETS: dict[str, list[str]] = {
+    "intake_pack_review": ["input_gate"],
     "device_profile": [],
     "claim_decomposition": ["device_profile"],
     "sota_search_strategy": ["claim_decomposition", "device_profile"],
@@ -419,7 +420,7 @@ def _node_intake_pack_review(state: SharedAuthoringState) -> dict[str, Any]:
         "critical_flags": review.get("critical_flags", []),
         "intake_pack_path": review.get("intake_pack_path", ""),
         "action": "confirm_or_request_fix",
-        "rework_targets": [],
+        "rework_targets": REWORK_TARGETS.get("intake_pack_review", ["input_gate"]),
     })
     _rework = _check_hc_rework(approval, "intake_pack_review")
     if _rework is not None:
@@ -580,9 +581,9 @@ def _node_sota_search(state: SharedAuthoringState) -> dict[str, Any]:
     approval = interrupt({
         "confirmation_point": "sota_search_strategy",
         "step": 7,
-        "priority": "HIGH",
-        "message": "Please confirm SOTA search strategy before execution.",
-        "search_runs": [{"search_id": str(r.get("search_id", "")), "database": str(r.get("database", "")), "search_terms": str(r.get("search_terms", ""))[:300]} for r in search_runs[:5]],
+        "priority": "CRITICAL",
+        "message": "Please confirm SOTA search strategy — wrong search = wrong CER.",
+        "search_runs": [{"search_id": str(r.get("search_id", "")), "database": str(r.get("database", "")), "search_terms": str(r.get("search_terms", ""))[:300], "returned_count": r.get("returned_count", 0)} for r in search_runs],
         "action": "confirm_or_correct",
         "rework_targets": REWORK_TARGETS.get("sota_search_strategy", []),
     })
@@ -750,7 +751,7 @@ def _node_prisma_flow_review(state: SharedAuthoringState) -> dict[str, Any]:
         "fulltext_pct": fulltext_pct,
         "critical_warnings": critical_warnings,
         "action": "confirm_or_request_fix",
-        "rework_targets": REWORK_TARGETS.get("prisma_flow_review", ["sota_search_strategy", "claim_decomposition"]),
+        "rework_targets": REWORK_TARGETS.get("prisma_flow_review", []),
     })
     _rework = _check_hc_rework(approval, "prisma_flow_review")
     if _rework is not None:
@@ -787,12 +788,25 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
                 break
     # Part 4: Build evidence lineage graph
     lineage_result = _build_evidence_lineage(state, generated)
+    # Build weight distribution and full-text stats for HC-4 review
+    _weights = {"pivotal": 0, "supportive": 0, "background": 0, "other": 0}
+    for e in evidence:
+        w = str(e.get("weight", "")).lower()
+        _weights[w if w in _weights else "other"] = _weights.get(w if w in _weights else "other", 0) + 1
+    _fulltext_status = {"available": 0, "abstract_only": 0}
+    for r in (state.get("fulltext_acquisition_status_table") or []):
+        if str(r.get("full_text_available", "")).lower() in ("yes", "true", "1"):
+            _fulltext_status["available"] += 1
+        else:
+            _fulltext_status["abstract_only"] += 1
     approval = interrupt({
         "confirmation_point": "evidence_appraisal",
         "step": 11,
-        "priority": "MEDIUM",
-        "message": "Please spot-check evidence appraisal scores.",
+        "priority": "HIGH",
+        "message": "Please spot-check evidence appraisal scores and weight distribution.",
         "evidence_count": len(evidence),
+        "weight_distribution": _weights,
+        "fulltext_status": _fulltext_status,
         "appraisal_sample": [{"evidence_id": str(a.get("evidence_id", "")), "score": a.get("evidence_strength_score"), "weight": a.get("weight")} for a in appraisal[:10]],
         "action": "confirm_or_correct",
         "rework_targets": REWORK_TARGETS.get("evidence_appraisal", []),
@@ -1266,9 +1280,7 @@ def _node_pre_writer_summary(state: SharedAuthoringState) -> dict[str, Any]:
         "message": "Final review before CER Writer. Confirm evidence is sufficient or accept controlled limitations.",
         "evidence_summary": summary,
         "action": "confirm_or_request_fix",
-        "rework_targets": REWORK_TARGETS.get("pre_writer_summary", [
-            "cer_writing", "claim_decomposition", "endpoint_extraction", "sota_search_strategy",
-        ]),
+        "rework_targets": REWORK_TARGETS.get("pre_writer_summary", []),
     })
     _rework = _check_hc_rework(approval, "pre_writer_summary")
     if _rework is not None:
@@ -1900,12 +1912,23 @@ def _node_export(state: SharedAuthoringState) -> dict[str, Any]:
     except FileExistsError:
         return {**_stage("export", "skipped"), "export_completed": True}
     if state.get("final_gate_decision") != "HUMAN_HOLD" and state.get("status") not in {"input_required", "provider_unavailable", "gate_rework_required"}:
+        chapters = state.get("cer_chapter_drafts") or {}
+        # Show first 800 chars of CER body for quick preview
+        body_text = "\n\n".join(str(v)[:200] for v in chapters.values() if v)[:800] or "(No CER chapters generated)"
         approval = interrupt({
             "confirmation_point": "cer_draft_review",
             "step": "export",
             "priority": "HIGH",
-            "message": "CER draft is complete. Please review key sections before final export.",
-            "sections_to_review": ["Summary", "Conclusions", "GSPR Analysis"],
+            "message": "CER draft is complete. Please review before final export.",
+            "cer_stats": {
+                "chapter_count": len(chapters),
+                "total_chars": sum(len(str(v)) for v in chapters.values()),
+                "claims_in_cer": len(state.get("claim_ledger") or []),
+                "evidence_cited": len(state.get("evidence_registry") or []),
+                "gate_decision": state.get("final_gate_decision", "unknown"),
+            },
+            "cer_preview": body_text,
+            "sections_to_review": list(chapters.keys())[:10] or ["(No sections)"],
             "action": "confirm_or_request_rewrite",
             "rework_targets": REWORK_TARGETS.get("cer_draft_review", []),
         })
