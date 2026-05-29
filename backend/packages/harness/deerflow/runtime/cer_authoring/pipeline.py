@@ -20286,9 +20286,17 @@ def _phase7_retrieval_domain_profile(profile: dict[str, Any], state: dict[str, A
         inclusion_terms = ["nerve block", "needle", "puncture", "regional anesthesia", "local anaesthesia", "injection"]
         exclusion_terms = ["stent", "software", "cardiac ablation", "ureteroscope"]
     else:
+        # O3: Try loading domain-specific search terms from sota_query_packs.json
+        # before falling back to generic profile-field terms.
         retrieval_domain = domain_lock or "generic_medical_device"
-        inclusion_terms = _unique_nonempty([profile.get("device_type"), profile.get("device_name"), profile.get("anatomical_site"), "clinical performance", "safety"])[:8]
-        exclusion_terms = ["unrelated cardiac electrophysiology", "unrelated urology", "unrelated orthopedic"] if retrieval_domain == "generic_medical_device" else []
+        pack = (_load_knowledge_asset("sota_query_packs.json") or {}).get(retrieval_domain) or {}
+        if pack:
+            inclusion_terms = pack.get("inclusion_terms") or []
+            exclusion_terms = pack.get("exclusion_terms") or []
+            endpoint_targets = pack.get("endpoint_targets") or endpoint_targets
+        else:
+            inclusion_terms = _unique_nonempty([profile.get("device_type"), profile.get("device_name"), profile.get("anatomical_site"), "clinical performance", "safety"])[:8]
+            exclusion_terms = ["unrelated cardiac electrophysiology", "unrelated urology", "unrelated orthopedic"] if retrieval_domain == "generic_medical_device" else []
     return {
         "device_domain_lock": domain_lock,
         "retrieval_domain": retrieval_domain,
@@ -20329,12 +20337,30 @@ def _query_from_phase7_profile(profile: dict[str, Any], state: dict[str, Any], r
     include = [term for term in retrieval.get("inclusion_terms") or [] if term and not _is_stale_ifu_placeholder_term(term)]
     endpoints = [term for term in retrieval.get("endpoint_targets") or [] if term and not _is_stale_ifu_placeholder_term(term)][:4]
     exclusions = [term for term in retrieval.get("exclusion_terms") or [] if term and not _is_stale_ifu_placeholder_term(term)]
+    # O1: Extract unique clinical terms from PICO proposed_queries (per-claim precision)
+    # that the domain-level inclusion_terms may miss (e.g. "diagnostic concordance", "sensitivity").
+    _pico_terms: list[str] = []
+    for pico in state.get("cep_pico_matrix") or []:
+        pq = str(pico.get("proposed_query") or "")
+        # Pull quoted phrases and meaningful tokens
+        import re as _re
+        _pico_terms.extend(_re.findall(r'"([^"]+)"', pq))
+        # Also extract key outcome terms from PICO
+        outcome = str(pico.get("outcome") or "")
+        for token in outcome.replace(",", " ").split():
+            token = token.strip().lower()
+            if len(token) > 4 and token not in ("safety", "performance", "outcome", "clinical", "device", "medical", "patients", "target", "defined", "population"):
+                _pico_terms.append(token)
+    _pico_terms = list(dict.fromkeys(t for t in _pico_terms if len(t) >= 3))[:6]  # dedupe, cap
     if objective == "device_literature":
+        # O2: DUE search uses device-specific terms only (device name + manufacturer + model).
+        # Inclusion terms are for SOTA clinical context — injecting them dilutes device
+        # specificity and returns generic literature instead of device-focused results.
         device_query = _device_literature_query(profile, state)
-        if include:
-            device_query = f"({device_query}) AND ({' OR '.join(_quote_query_term(term) for term in include[:5])})"
     else:
-        endpoint_clause = " OR ".join(_quote_query_term(term) for term in endpoints) or "safety OR performance OR outcome OR complication"
+        # O1: merge PICO-level terms into the endpoint clause for search precision
+        _all_endpoints = list(dict.fromkeys(endpoints + _pico_terms))[:8]
+        endpoint_clause = " OR ".join(_quote_query_term(term) for term in _all_endpoints) or "safety OR performance OR outcome OR complication"
         device_query = f"({' OR '.join(_quote_query_term(term) for term in include[:8])}) AND ({endpoint_clause})"
     if exclusions:
         device_query = f"({device_query}) NOT ({' OR '.join(_quote_query_term(term) for term in exclusions[:8])})"
@@ -20396,8 +20422,9 @@ def _phase7_search_plan(profile: dict[str, Any], state: dict[str, Any]) -> list[
     due_query = _query_from_phase7_profile(profile, state, retrieval, "device_literature")
     expansion = state.get("spiral_query_expansion_request") or {}
     if expansion:
-        sota_query = _apply_spiral_query_expansion(sota_query, expansion)
-        due_query = _apply_spiral_query_expansion(due_query, expansion)
+        _domain_terms = _expanded_terms_for_domain(retrieval.get("retrieval_domain") or _clinical_domain(state))
+        sota_query = _apply_spiral_query_expansion(sota_query, expansion, _domain_terms)
+        due_query = _apply_spiral_query_expansion(due_query, expansion, _domain_terms)
     pool_target = _retrieved_record_pool_target(state)
     sota_source_limit = pool_target
     due_source_limit = pool_target
@@ -20459,8 +20486,23 @@ def _retrieved_record_pool_target(state: dict[str, Any]) -> int:
     return max(RETRIEVED_RECORD_POOL_TARGET_MIN, min(RETRIEVED_RECORD_POOL_TARGET_MAX, value))
 
 
-def _apply_spiral_query_expansion(query: str, expansion: dict[str, Any]) -> str:
+def _apply_spiral_query_expansion(query: str, expansion: dict[str, Any], domain_terms: list[str] | None = None) -> str:
+    """Expand a SOTA query during spiral retrieval rounds.
+
+    Round 2+ injects real clinical synonyms from the domain's expanded_terms
+    (e.g. \"c-TTE\", \"c-TCD\", \"air embolism\" for bubble study) instead of
+    only grammar modifiers like \"MeSH OR synonym\".  Falls back to the
+    original modifier-based expansion when no domain terms are available.
+    """
     round_id = _safe_int(expansion.get("spiral_round_id"))
+    domain_terms = (domain_terms or [])[:6]
+    if domain_terms:
+        # O4: use real clinical synonyms from the domain
+        _term_clause = " OR ".join(_quote_query_term(t) for t in domain_terms)
+        if round_id == 2:
+            return f"({query}) AND ({_term_clause} OR MeSH OR synonym OR systematic review)"
+        if round_id >= 3:
+            return f"({query}) AND ({_term_clause} OR registry OR guideline OR clinicaltrials OR grey literature)"
     if round_id == 2:
         return f"({query}) AND (MeSH OR synonym OR citation OR registry OR cohort OR systematic review)"
     if round_id >= 3:
