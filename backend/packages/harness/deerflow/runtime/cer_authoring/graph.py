@@ -141,6 +141,7 @@ REWORK_TARGETS: dict[str, list[str]] = {
     "evidence_appraisal": ["sota_search_strategy", "claim_decomposition"],
     "endpoint_extraction": ["evidence_appraisal", "sota_search_strategy"],
     "claim_sota_alignment": ["endpoint_extraction", "evidence_appraisal", "sota_search_strategy"],
+    "pre_writer_summary": ["cer_writing", "claim_decomposition", "endpoint_extraction", "sota_search_strategy"],
     "cer_draft_review": ["cer_writing", "claim_decomposition", "sota_search_strategy"],
 }
 
@@ -416,6 +417,7 @@ def _node_intake_pack_review(state: SharedAuthoringState) -> dict[str, Any]:
         "p0_draft_count": review.get("p0_draft_count", 0),
         "p1_draft_count": review.get("p1_draft_count", 0),
         "critical_flags": review.get("critical_flags", []),
+        "intake_pack_path": review.get("intake_pack_path", ""),
         "action": "confirm_or_request_fix",
         "rework_targets": [],
     })
@@ -1215,7 +1217,63 @@ def _route_after_pre_writer_readiness_gate(state: SharedAuthoringState) -> str:
     if state.get("request_review_quick_scan"):
         return "review_quick_scan"
     report = state.get("pre_writer_readiness_report") or {}
-    return str(report.get("next_node") or "cer_writing")
+    route = str(report.get("next_node") or "")
+    if route == "controlled_compromise":
+        return "controlled_compromise"
+    return "pre_writer_summary"
+
+
+# ── HC-6.5: Pre-Writer Evidence Summary ────────────────────────────────
+
+def _node_pre_writer_summary(state: SharedAuthoringState) -> dict[str, Any]:
+    """HC-6.5: Final human decision before Writer — summary of all evidence.
+
+    Shows claim count, evidence count with full-text breakdown, benefit-risk
+    status, blocker list from pre-writer gate, and intake pack P1 gaps.
+    Human decides: proceed (controlled draft), rework specific nodes, or stop.
+    """
+    readiness = state.get("pre_writer_readiness_report") or {}
+    blocker = state.get("blocker_report") or {}
+    funnel = state.get("evidence_funnel_counts") or {}
+    intake = state.get("intake_pack_review") or {}
+
+    summary = {
+        "claims": len(state.get("claim_ledger") or []),
+        "evidence_total": len(state.get("evidence_registry") or []),
+        "fulltext_available": sum(
+            1 for r in (state.get("fulltext_acquisition_status_table") or [])
+            if str(r.get("full_text_available", "")).lower() in ("yes", "true", "1")
+        ),
+        "pivotal_count": funnel.get("pivotal_candidate_count", 0),
+        "supportive_count": funnel.get("supportive_candidate_count", 0),
+        "br_concludable": readiness.get("status") == "PASS",
+        "pre_writer_status": readiness.get("status", "unknown"),
+        "blocking_issues": [
+            {"condition": b.get("condition_name", ""), "message": str(b.get("message", ""))[:150]}
+            for b in blocker.get("blocking_issues", [])
+        ],
+        "p1_gaps": [
+            {"control": r.get("control_id", ""), "status": r.get("status", "")}
+            for r in intake.get("p1_rows", [])
+            if r.get("status") in ("draft", "needs_review", "")
+        ],
+    }
+
+    approval = interrupt({
+        "confirmation_point": "pre_writer_summary",
+        "step": "HC-6.5",
+        "priority": "CRITICAL",
+        "message": "Final review before CER Writer. Confirm evidence is sufficient or accept controlled limitations.",
+        "evidence_summary": summary,
+        "action": "confirm_or_request_fix",
+        "rework_targets": REWORK_TARGETS.get("pre_writer_summary", [
+            "cer_writing", "claim_decomposition", "endpoint_extraction", "sota_search_strategy",
+        ]),
+    })
+    _rework = _check_hc_rework(approval, "pre_writer_summary")
+    if _rework is not None:
+        return _rework
+    return {**_stage("pre_writer_summary"), "pre_writer_human_confirmed": True}
 
 
 def _node_review_quick_scan(state: SharedAuthoringState) -> dict[str, Any]:
@@ -1930,6 +1988,7 @@ def build_cer_authoring_graph(checkpointer=None):
         "alignment_matrix": _node_alignment_matrix,
         "alignment_gate": _node_alignment_gate,
         "pre_writer_readiness_gate": _node_pre_writer_readiness_gate,
+        "pre_writer_summary": _node_pre_writer_summary,
         "controlled_compromise": _node_controlled_compromise,
         "cer_writing": _node_cer_writing,
         "human_style_review": _node_human_style_review,
@@ -2081,6 +2140,7 @@ def build_cer_authoring_graph(checkpointer=None):
         "pre_writer_readiness_gate",
         _route_after_pre_writer_readiness_gate,
         {
+            "pre_writer_summary": "pre_writer_summary",
             "cer_writing": "cer_writing",
             "controlled_compromise": "controlled_compromise",
             "device_profile": "device_profile",
@@ -2094,6 +2154,7 @@ def build_cer_authoring_graph(checkpointer=None):
     )
     # After quick-scan, route back to pre_writer_readiness_gate for re-evaluation
     builder.add_edge("review_quick_scan", "pre_writer_readiness_gate")
+    builder.add_edge("pre_writer_summary", "cer_writing")
     builder.add_edge("cer_writing", "human_style_review")
     builder.add_edge("human_style_review", "nb_precheck")
     builder.add_edge("nb_precheck", "workbook")
