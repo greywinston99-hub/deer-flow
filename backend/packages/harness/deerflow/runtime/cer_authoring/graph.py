@@ -387,7 +387,42 @@ def _route_after_input_gate(state: SharedAuthoringState) -> str:
         return "controlled_compromise"
     if status in {"input_required", "provider_unavailable"}:
         return "export"
-    return "device_profile"
+    return "intake_pack_review"
+
+
+# ── HC-0: Intake Pack P0/P1 Review ──────────────────────────────────────
+
+def _node_intake_pack_review(state: SharedAuthoringState) -> dict[str, Any]:
+    """HC-0: Review manufacturer intake pack before device profile.
+
+    Reads the filled intake pack .xlsx and surfaces P0 (blocks Writer) and
+    P1 (controlled gaps) statuses for human confirmation.  Critical issues
+    (wrong-device GSPR, draft P0 fields) are flagged prominently.
+    """
+    from pathlib import Path
+    review = pipeline.build_intake_pack_review(dict(state))
+    if not review.get("intake_pack_found"):
+        # No intake pack — skip HC-0, let source preflight handle it
+        return {**_stage("intake_pack_review", "skipped"), "intake_pack_review": review}
+
+    approval = interrupt({
+        "confirmation_point": "intake_pack_review",
+        "step": "HC-0",
+        "priority": "CRITICAL",
+        "message": "Please review manufacturer intake pack P0/P1 status before device profile.",
+        "p0_rows": review.get("p0_rows", []),
+        "p1_rows": review.get("p1_rows", []),
+        "p0_draft_count": review.get("p0_draft_count", 0),
+        "p1_draft_count": review.get("p1_draft_count", 0),
+        "critical_flags": review.get("critical_flags", []),
+        "action": "confirm_or_request_fix",
+        "rework_targets": [],
+    })
+    _rework = _check_hc_rework(approval, "intake_pack_review")
+    if _rework is not None:
+        return _rework
+    return {**_stage("intake_pack_review"), "intake_pack_review": review,
+            "intake_pack_human_confirmed": True}
 
 
 def _node_device_profile(state: SharedAuthoringState) -> dict[str, Any]:
@@ -1795,6 +1830,7 @@ def build_cer_authoring_graph(checkpointer=None):
     _NODE_REGISTRY = {
         "initialize": _node_initialize,
         "input_gate": _node_input_gate,
+        "intake_pack_review": _node_intake_pack_review,
         "device_profile": _node_device_profile,
         "claim_decomposition": _node_claim_decomposition,
         "pico_derivation": _node_pico_derivation,
@@ -1852,11 +1888,12 @@ def build_cer_authoring_graph(checkpointer=None):
         "input_gate",
         _route_after_input_gate,
         {
-            "device_profile": "device_profile",
+            "intake_pack_review": "intake_pack_review",
             "controlled_compromise": "controlled_compromise",
             "export": "export",
         },
     )
+    builder.add_edge("intake_pack_review", "device_profile")
     builder.add_edge("device_profile", "claim_decomposition")
     builder.add_edge("claim_decomposition", "pico_derivation")
     builder.add_edge("pico_derivation", "methodology_review")

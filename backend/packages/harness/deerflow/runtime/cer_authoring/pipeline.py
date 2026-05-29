@@ -1664,7 +1664,7 @@ def _domain_contamination_report(state: dict[str, Any]) -> dict[str, Any]:
         "software_medical_device": ("stent", "urinary tract", "renal pelvis", "nephroscope", "ligating clip", "ablation catheter", "hemoperfusion", "puncture needle", "nerve block needle", "gauge", "stylet"),
     }
     for token in tokens_by_domain.get(domain, ()):
-        if token in core_text:
+        if _identity_token_present(core_text, token):
             findings.append({"scope": "profile_or_core_chapters", "token": token, "severity": "HIGH"})
     return {
         "locked_domain": domain,
@@ -1896,6 +1896,102 @@ def _apply_intake_overrides(profile: dict[str, Any], state: dict[str, Any]) -> N
         existing = str(profile.get(profile_key) or "").strip()
         if not existing or "Requires confirmation" in existing or len(value) > len(existing) * 0.5:
             profile[profile_key] = value
+
+
+# ── HC-0: Intake Pack Review ────────────────────────────────────────────
+
+def build_intake_pack_review(state: dict[str, Any]) -> dict[str, Any]:
+    """Read the manufacturer intake pack .xlsx and return P0/P1 status for HC-0.
+
+    Searches for MANUFACTURER_INTAKE_PACK_TEMPLATE_*.xlsx in the project folder.
+    Returns a summary of P0 (blocks Writer) and P1 (controlled gaps) rows with
+    their statuses and any critical flags (wrong-device GSPR, draft P0, etc.).
+    """
+    from pathlib import Path
+
+    input_root = Path(str(state.get("input_root") or ""))
+    project_dir = input_root.parent  # 01_AUTHORING_INPUT_ALLOWED → project root
+    review: dict[str, Any] = {
+        "intake_pack_found": False, "p0_rows": [], "p1_rows": [],
+        "p0_draft_count": 0, "p1_draft_count": 0, "critical_flags": [],
+    }
+
+    # Find intake pack xlsx
+    candidates = (
+        list(project_dir.glob("MANUFACTURER_INTAKE_PACK_TEMPLATE*.xlsx"))
+        + list(project_dir.glob("00_MANUFACTURER_INTAKE/*.xlsx"))
+        + list(input_root.glob("MANUFACTURER_INTAKE*.xlsx"))
+    )
+    if not candidates:
+        return review
+
+    review["intake_pack_found"] = True
+    review["intake_pack_path"] = str(candidates[0])
+
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(str(candidates[0]), data_only=True)
+    except Exception:
+        review["critical_flags"].append(
+            "INTAKE-PACK-PARSE-ERROR: Cannot read intake pack. Install openpyxl or check file format."
+        )
+        return review
+
+    def _read_sheet(sheet_name: str) -> list[dict[str, Any]]:
+        rows_out: list[dict[str, Any]] = []
+        if sheet_name not in wb.sheetnames:
+            return rows_out
+        ws = wb[sheet_name]
+        headers: list[str] = []
+        for row in ws.iter_rows(min_row=1, max_row=min(ws.max_row, 50), values_only=True):
+            vals = [str(c).strip() if c is not None else "" for c in row]
+            if not any(v for v in vals):
+                continue
+            if not headers and any("field_id" in v.lower() or "control_id" in v.lower() for v in vals):
+                headers = vals
+                continue
+            if headers:
+                row_dict = {}
+                for i, h in enumerate(headers):
+                    if i < len(vals):
+                        row_dict[h.strip().lower().replace(" ", "_").replace("/", "_")] = vals[i]
+                if row_dict:
+                    rows_out.append(row_dict)
+        return rows_out
+
+    # Read P0 Device Scope
+    p0_rows = _read_sheet("P0_Device_Scope")
+    for r in p0_rows:
+        fid = r.get("field_id", "")
+        status = str(r.get("status", "")).lower()
+        resp = str(r.get("response", ""))[:120]
+        review["p0_rows"].append({"field_id": fid, "status": status, "response": resp})
+        if status in ("draft", ""):
+            review["p0_draft_count"] += 1
+            review["critical_flags"].append(f"P0-DRAFT: {fid} — {resp[:80]}")
+
+    # Read P1 Evidence Controls
+    p1_rows = _read_sheet("P1_Evidence_Controls")
+    for r in p1_rows:
+        cid = r.get("control_id", "")
+        status = str(r.get("status", "")).lower()
+        resp = str(r.get("response", ""))[:200]
+        review["p1_rows"].append({"control_id": cid, "status": status, "response": resp})
+        if status in ("draft", "needs_review", ""):
+            review["p1_draft_count"] += 1
+        if status == "needs_review":
+            review["critical_flags"].append(f"P1-NEEDS-REVIEW: {cid} — {resp[:100]}")
+        # Special: GSPR for wrong device
+        if cid == "gspr_checklist" and status == "needs_review":
+            review["critical_flags"].append(
+                "CRITICAL: GSPR checklist may belong to a DIFFERENT device. Verify before proceeding."
+            )
+
+    try:
+        wb.close()
+    except Exception:
+        pass
+    return review
 
 
 def build_device_profile(state: dict[str, Any]) -> dict[str, Any]:
@@ -2146,6 +2242,45 @@ def build_claims(state: dict[str, Any]) -> dict[str, Any]:
                 "status": "to_be_verified",
             },
         ]
+    elif domain == "contrast_imaging_bubble_study_system":
+        intended_text = profile.get("intended_purpose") or (
+            "The Bubble Study System is used for IFU-defined preparation and injection of "
+            "agitated saline during bubble-study procedures for contrast echocardiography "
+            "or contrast-enhanced transcranial Doppler assessment of right-to-left shunt."
+        )
+        claims = [
+            {
+                "claim_id": "C-01", "source_id": source_id, "source": "IFU intended purpose",
+                "claim_text": intended_text,
+                "claim_type": "intended_purpose", "gspr": "GSPR 1, 6, 23.4",
+                "verification_question": "Does the clinical evidence support the IFU-defined use of automated agitated-saline preparation/injection for bubble-study RLS/PFO assessment?",
+                "required_evidence": "SOTA benchmarks for agitated-saline bubble study, c-TTE/c-TCD RLS/PFO detection literature, subject-device clinical/PMS/PMCF evidence where available.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-02", "source_id": source_id, "source": "IFU safety information / RMF",
+                "claim_text": (
+                    "Risks associated with agitated-saline preparation and injection, disposable tubing use, "
+                    "contrast-bubble administration, patient cooperation, and monitoring are acceptable when "
+                    "controlled by IFU warnings, contraindications, risk controls, and PMS/PMCF."
+                ),
+                "claim_type": "safety", "gspr": "GSPR 1, 2, 8, 23.4",
+                "verification_question": "Are injection-related, contrast-bubble, tubing, monitoring, and contraindication risks within accepted SOTA levels and controlled by IFU/RMF/PMS?",
+                "required_evidence": "AE/SAE literature for agitated-saline bubble studies, vigilance/recall searches, IFU contraindications/warnings, RMF, PMS/PMCF.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-03", "source_id": source_id, "source": "IFU performance description",
+                "claim_text": (
+                    "The system supports reproducible preparation and injection of agitated saline to obtain "
+                    "clinically interpretable c-TTE or c-TCD bubble-study results under the IFU-defined use conditions."
+                ),
+                "claim_type": "performance", "gspr": "GSPR 1, 6, 15",
+                "verification_question": "Are diagnostic success, opacification adequacy, shunt detection/grading, and workflow performance aligned with SOTA acceptance criteria?",
+                "required_evidence": "SOTA endpoints for bubble-study diagnostic success, RLS/PFO detection concordance, grading reproducibility, procedure completion, and device performance/PMS evidence.",
+                "status": "to_be_verified",
+            },
+        ]
     elif domain == "nuclear_medicine_image_processing_software":
         intended_text = profile.get("intended_purpose") or (
             "To provide processing, viewing, and reporting functions for nuclear medicine images, "
@@ -2358,6 +2493,65 @@ def build_claims(state: dict[str, Any]) -> dict[str, Any]:
                 "status": "to_be_verified",
             },
         ])
+    elif domain == "contrast_imaging_bubble_study_system":
+        claims.extend([
+            {
+                "claim_id": "C-PERF-01", "source_id": source_id, "source": "IFU performance / SOTA benchmark",
+                "claim_text": "The system prepares and injects agitated saline in a controlled, repeatable manner to support bubble-study contrast generation.",
+                "claim_type": "performance", "gspr": "GSPR 1, 6, 15",
+                "verification_question": "Does evidence support repeatable agitated-saline preparation/injection performance compared with accepted manual or automated bubble-study practice?",
+                "required_evidence": "SOTA benchmark BM-04, verification/PMS data on preparation consistency, device performance records, and relevant clinical literature.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-PERF-02", "source_id": source_id, "source": "IFU performance / clinical literature",
+                "claim_text": "The system enables adequate contrast-bubble opacification and procedure completion for c-TTE and/or c-TCD bubble-study assessment.",
+                "claim_type": "performance", "gspr": "GSPR 1, 6, 15",
+                "verification_question": "Are opacification adequacy and diagnostic/procedure success aligned with SOTA for agitated-saline bubble studies?",
+                "required_evidence": "SOTA benchmarks BM-01/BM-05, clinical literature on c-TTE/c-TCD bubble-study success, and subject-device clinical/PMS data where available.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-PERF-03", "source_id": source_id, "source": "IFU performance / SOTA benchmark",
+                "claim_text": "RLS/PFO detection and semi-quantitative shunt grading using the IFU-defined workflow are clinically interpretable against accepted bubble-study diagnostic pathways.",
+                "claim_type": "performance", "gspr": "GSPR 1, 6",
+                "verification_question": "Are detection concordance, false positive/negative risk, and shunt grading reproducibility acceptable versus SOTA comparators?",
+                "required_evidence": "SOTA benchmarks BM-02/BM-03/BM-07, guideline/pathway literature, and clinical validation or PMCF data.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-SAFE-01", "source_id": source_id, "source": "IFU warnings / RMF",
+                "claim_text": "Injection-related adverse events, microbubble administration risks, and patient monitoring risks are controlled to acceptable levels through IFU instructions and risk controls.",
+                "claim_type": "safety", "gspr": "GSPR 1, 2, 8",
+                "verification_question": "Are injection-related and cardiopulmonary/neurological safety events within SOTA accepted levels after IFU/RMF controls?",
+                "required_evidence": "SOTA benchmark BM-06, AE/SAE literature for agitated-saline bubble studies, vigilance data, IFU contraindications/warnings, and RMF.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-SAFE-02", "source_id": source_id, "source": "IFU single-use tubing / sterility controls",
+                "claim_text": "Single-use contrast injection tubing and related disposable components control contamination, reuse, and performance-degradation risks when used as instructed.",
+                "claim_type": "safety", "gspr": "GSPR 2, 8, 11, 23.4",
+                "verification_question": "Are tubing-set sterility, reuse-prevention, injection-path, and device-malfunction risks adequately controlled by source evidence?",
+                "required_evidence": "Sterility/packaging evidence, RMF hazards, IFU warnings, PMS/PMCF complaints, and vigilance/recall searches.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-BEN-01", "source_id": source_id, "source": "IFU intended purpose / clinical pathway",
+                "claim_text": "The system supports clinical assessment of suspected right-to-left shunt or patent foramen ovale by standardizing agitated-saline bubble-study workflow.",
+                "claim_type": "clinical_benefit", "gspr": "GSPR 1, 6, 23.4",
+                "verification_question": "Does evidence support that standardized bubble-study workflow contributes to clinically useful RLS/PFO assessment?",
+                "required_evidence": "Clinical pathway literature, SOTA benchmarks BM-01/BM-02/BM-03, subject-device clinical data, PMS/PMCF plan/data.",
+                "status": "to_be_verified",
+            },
+            {
+                "claim_id": "C-BEN-02", "source_id": source_id, "source": "IFU workflow / SOTA benchmark",
+                "claim_text": "Automated or controlled agitated-saline preparation may reduce manual variability, with the clinical conclusion limited to the strength of available evidence.",
+                "claim_type": "clinical_benefit", "gspr": "GSPR 1, 6",
+                "verification_question": "Is reduced manual variability supported by direct performance, usability, or clinical workflow evidence?",
+                "required_evidence": "Preparation consistency data, usability/workflow evidence, SOTA benchmark BM-04/BM-05, PMCF objectives if direct evidence is limited.",
+                "status": "to_be_verified",
+            },
+        ])
     elif domain == "nuclear_medicine_image_processing_software":
         claims.extend([
             # ── Performance claims ──
@@ -2546,6 +2740,7 @@ def _device_domain_to_kb_family(clinical_domain: str) -> str:
         "plasma_surgical_electrode": "DEV-SU",
         "plasma_surgical_equipment": "DEV-SU",
         "medical_imaging_software": "DEV-SW",
+        "nuclear_medicine_image_processing_software": "DEV-SW",
         "ai_diagnostic_software": "DEV-SW",
     }
     return mapping.get(clinical_domain, "DEV-SU")  # default to surgical
@@ -2618,7 +2813,106 @@ def run_sota_search(state: dict[str, Any]) -> dict[str, Any]:
     sota_query = next((row.get("query_string") for row in search_plan if row.get("objective") == "SOTA"), _base_query(profile, state))
     due_query = next((row.get("query_string") for row in search_plan if row.get("objective") == "device_literature"), _device_literature_query(profile, state))
     domain = _clinical_domain(state)
-    if domain == "cardiac_pfa":
+    if domain == "contrast_imaging_bubble_study_system":
+        benchmarks = [
+            {
+                "benchmark_id": "BM-01",
+                "endpoint": "Diagnostic/procedure success for agitated-saline bubble study",
+                "clinical_significance": "Primary SOTA endpoint showing whether the workflow produces interpretable c-TTE/c-TCD bubble-study examinations.",
+                "sota_source": sources,
+                "sota_value_range": "Quantitative rate to be extracted from included bubble-study literature and subject-device clinical/PMS evidence; qualitative benchmark uses accepted c-TTE/c-TCD diagnostic success expectations.",
+                "acceptance_criterion": "Procedure success/opacification adequacy should be clinically interpretable and not worse than accepted agitated-saline bubble-study practice after population and modality matching.",
+                "corresponding_claim_id": "C-PERF-02",
+                "corresponding_gspr": "GSPR 1, 6, 15",
+                "used_in_4_7": True,
+                "conclusion": "Bubble-study diagnostic success benchmark established as authoring input.",
+            },
+            {
+                "benchmark_id": "BM-02",
+                "endpoint": "RLS/PFO positive and negative detection concordance",
+                "clinical_significance": "Key diagnostic-performance endpoint for right-to-left shunt and patent foramen ovale assessment.",
+                "sota_source": sources,
+                "sota_value_range": "Sensitivity, specificity, positive/negative agreement or concordance to be extracted from c-TTE/c-TCD/TEE comparator literature.",
+                "acceptance_criterion": "Detection concordance should be clinically acceptable versus accepted comparator pathways with matched modality, shunt definition and Valsalva protocol.",
+                "corresponding_claim_id": "C-PERF-03",
+                "corresponding_gspr": "GSPR 1, 6",
+                "used_in_4_7": True,
+                "conclusion": "RLS/PFO detection benchmark established as authoring input.",
+            },
+            {
+                "benchmark_id": "BM-03",
+                "endpoint": "Semi-quantitative shunt grading reproducibility",
+                "clinical_significance": "Supports interpretation of bubble counts/grades used for clinical decision-making and follow-up.",
+                "sota_source": sources,
+                "sota_value_range": "Inter-reader or modality agreement and grading thresholds to be extracted from included literature.",
+                "acceptance_criterion": "Shunt grading should be interpretable against SOTA definitions and downgraded if grading thresholds or readers are not comparable.",
+                "corresponding_claim_id": "C-PERF-03",
+                "corresponding_gspr": "GSPR 1, 6",
+                "used_in_4_7": True,
+                "conclusion": "Shunt grading benchmark established as authoring input.",
+            },
+            {
+                "benchmark_id": "BM-04",
+                "endpoint": "Agitated-saline preparation and injection consistency",
+                "clinical_significance": "Directly addresses the system's value in controlling contrast-bubble generation and reducing manual variability.",
+                "sota_source": sources,
+                "sota_value_range": "Preparation repeatability, injection volume/timing, bubble quality, or usability metrics from device evidence and literature.",
+                "acceptance_criterion": "Preparation/injection consistency should be supported by verification, usability, clinical, or PMCF evidence; absent direct data must become a PMCF objective.",
+                "corresponding_claim_id": "C-PERF-01",
+                "corresponding_gspr": "GSPR 1, 6, 15",
+                "used_in_4_7": True,
+                "conclusion": "Preparation/injection consistency benchmark established as authoring input.",
+            },
+            {
+                "benchmark_id": "BM-05",
+                "endpoint": "Workflow completion, user handling and Valsalva protocol feasibility",
+                "clinical_significance": "Connects intended user workflow, patient cooperation and examination completion to clinical usability.",
+                "sota_source": sources,
+                "sota_value_range": "Completion, repeat-test, handling/usability, and protocol adherence metrics from clinical/PMS/PMCF evidence.",
+                "acceptance_criterion": "Workflow completion and user handling should be adequate for trained clinical users and IFU-defined patient cooperation requirements.",
+                "corresponding_claim_id": "C-BEN-01",
+                "corresponding_gspr": "GSPR 1, 6, 23.4",
+                "used_in_4_7": True,
+                "conclusion": "Workflow usability benchmark established as authoring input.",
+            },
+            {
+                "benchmark_id": "BM-06",
+                "endpoint": "Procedure/device-related adverse events",
+                "clinical_significance": "Defines whether bubble-study injection, contrast administration and monitoring risks remain clinically acceptable.",
+                "sota_source": sources,
+                "sota_value_range": "AE/SAE rates for agitated-saline bubble studies, injection-related reactions, arrhythmia/hemodynamic events, neurological symptoms, and device complaints.",
+                "acceptance_criterion": "Observed risks should be within accepted bubble-study SOTA after contraindications, monitoring and risk controls are applied.",
+                "corresponding_claim_id": "C-SAFE-01",
+                "corresponding_gspr": "GSPR 1, 2, 8",
+                "used_in_4_7": True,
+                "conclusion": "Bubble-study safety benchmark established as authoring input.",
+            },
+            {
+                "benchmark_id": "BM-07",
+                "endpoint": "False-positive/false-negative and diagnostic misclassification risk",
+                "clinical_significance": "Controls overclaiming of diagnostic benefit where comparator methods or shunt definitions differ.",
+                "sota_source": sources,
+                "sota_value_range": "Misclassification, discordance or diagnostic limitation data from c-TTE/c-TCD/TEE comparative studies.",
+                "acceptance_criterion": "Diagnostic claims must be limited to comparator-matched evidence and downgraded where false positive/negative uncertainty remains.",
+                "corresponding_claim_id": "C-BEN-01",
+                "corresponding_gspr": "GSPR 1, 6, 23.4",
+                "used_in_4_7": True,
+                "conclusion": "Diagnostic uncertainty benchmark established as authoring input.",
+            },
+            {
+                "benchmark_id": "BM-08",
+                "endpoint": "Disposable tubing, sterility/reuse control and device malfunction",
+                "clinical_significance": "Links the single-use injection path and system reliability to patient safety and performance continuity.",
+                "sota_source": sources,
+                "sota_value_range": "Complaint, malfunction, sterility, packaging and vigilance data from manufacturer and public sources.",
+                "acceptance_criterion": "Tubing/reuse/sterility and malfunction risks must be closed by RMF/IFU/PMS evidence or carried as controlled PMCF/PMS gaps.",
+                "corresponding_claim_id": "C-SAFE-02",
+                "corresponding_gspr": "GSPR 2, 8, 11",
+                "used_in_4_7": True,
+                "conclusion": "Disposable tubing and reliability benchmark established as authoring input.",
+            },
+        ]
+    elif domain == "cardiac_pfa":
         benchmarks = [
             {
                 "benchmark_id": "BM-01",
@@ -9814,14 +10108,14 @@ def _compose_modular_writer_sections(signal_profile: dict[str, Any]) -> tuple[li
                 "orthopedic RF plasma electrode domain template",
                 domain_sections,
             )
-    elif clinical_domain in {"medical_imaging_software", "ai_diagnostic_software", "diagnostic_software"}:
+    elif clinical_domain in {"medical_imaging_software", "nuclear_medicine_image_processing_software", "ai_diagnostic_software", "diagnostic_software"}:
         domain_sections = get_domain_template_sections(clinical_domain) or []
         if domain_sections:
             add_module(
                 "domain_imaging_software",
                 "domain_specific",
-                "locked clinical_domain=medical_imaging_software",
-                "medical imaging software (SaMD) domain template",
+                f"locked clinical_domain={clinical_domain}",
+                "medical imaging / nuclear medicine software (SaMD) domain template",
                 domain_sections,
             )
     # ── End Phase 2A domain dispatch ──
@@ -18391,15 +18685,40 @@ def _source_relevance_score(filename: str, document_type: str, target_keywords: 
 
 
 def _infer_device_name_from_sources(state: dict[str, Any]) -> str:
+    locked_domain = str(
+        (state.get("source_lock_report") or {}).get("locked_domain")
+        or (state.get("source_role_report") or {}).get("locked_domain_hint")
+        or _initial_domain_hint(state, _target_keywords(state))
+        or ""
+    )
+    domain_default = _default_device_name_for_domain(locked_domain)
+
+    def _domain_preferred_name(candidate: str) -> str:
+        if not domain_default:
+            return candidate
+        generic_software_names = {
+            "software medical device",
+            "diagnostic software",
+            "ai diagnostic software",
+            "medical software",
+        }
+        if locked_domain == "nuclear_medicine_image_processing_software" and (
+            not candidate or candidate.strip().lower() in generic_software_names
+        ):
+            return domain_default
+        return candidate
+
     for item in _candidate_sources(state, "ifu"):
         filename = str(item.get("filename", ""))
         name = _device_name_from_filename(filename)
         if name:
-            return name
+            return _domain_preferred_name(name)
     for item in sorted(state.get("source_inventory") or [], key=lambda row: int(row.get("relevance_score") or 0), reverse=True):
         name = _device_name_from_filename(str(item.get("filename", "")))
         if name:
-            return name
+            return _domain_preferred_name(name)
+    if locked_domain == "nuclear_medicine_image_processing_software":
+        return domain_default
     return ""
 
 
@@ -18564,17 +18883,29 @@ def _is_powered_therapeutic_equipment_text(text: Any) -> bool:
 
 
 def _contains_phrase_or_abbreviation(text: Any, tokens: tuple[str, ...]) -> bool:
-    lower = str(text or "").lower()
-    original = str(text or "")
     for token in tokens:
-        token_lower = token.lower()
-        if token_lower == "ai":
-            if re.search(r"\bai\b", lower):
-                return True
-            continue
-        if token_lower in lower or token in original:
+        if _identity_token_present(text, token):
             return True
     return False
+
+
+def _identity_token_match(text: Any, token: str) -> re.Match[str] | None:
+    lower = str(text or "").lower()
+    token_lower = str(token or "").lower()
+    if not token_lower:
+        return None
+    if re.fullmatch(r"[a-z0-9][a-z0-9+/-]*", token_lower):
+        return re.search(rf"(?<![a-z0-9]){re.escape(token_lower)}(?![a-z0-9])", lower)
+    return re.search(re.escape(token_lower), lower)
+
+
+def _identity_token_present(text: Any, token: str) -> bool:
+    if not token:
+        return False
+    original = str(text or "")
+    if any("\u4e00" <= char <= "\u9fff" for char in str(token)):
+        return str(token) in original
+    return _identity_token_match(original, token) is not None
 
 
 def _has_software_specific_evidence(text: Any) -> bool:
@@ -18630,7 +18961,18 @@ def _is_nuclear_medicine_image_processing_text(text: Any) -> bool:
     software_signal = any(
         token in lower
         for token in SOFTWARE_DEVICE_TOKENS
-    )
+    ) or any(
+        token in lower
+        for token in (
+            "workstation",
+            "viewer",
+            "post-processing",
+            "post processing",
+            "reconstruction workstation",
+            "dicom workstation",
+            "pacs workstation",
+        )
+    ) or any(token in original for token in ("工作站", "后处理", "图像处理系统", "重建工作站"))
     # Counter-evidence: if it's clearly a physical device, not software
     if _has_physical_device_counterevidence(text):
         return False
@@ -18693,10 +19035,10 @@ def _is_software_medical_device_text(text: Any) -> bool:
 
 
 def _evidence_span(text: str, tokens: tuple[str, ...], source_id: str) -> dict[str, Any]:
-    lower = text.lower()
     for token in tokens:
-        idx = lower.find(token.lower())
-        if idx >= 0:
+        match = _identity_token_match(text, token)
+        if match:
+            idx = match.start()
             start = max(idx - 120, 0)
             end = min(idx + len(token) + 220, len(text))
             return {"source_id": source_id, "matched_token": token, "span": _clean(text[start:end])[:450]}
@@ -18721,8 +19063,7 @@ def _identity_evidence_spans(state: dict[str, Any], basis: str, tokens: tuple[st
                 (_exclude_accessory_sections(str(item.get("text") or "")) if str(item.get("document_type") or "").lower() == "ifu" else str(item.get("text") or ""))[:5000],
             ]
         )
-        lowered = text.lower()
-        if any((token.lower() in lowered if token.lower() != "ai" else bool(re.search(r"\bai\b", lowered))) or token in text for token in tokens):
+        if any(_identity_token_present(text, token) for token in tokens):
             spans.append(_evidence_span(text, tokens, source_id))
     if not spans:
         spans.append(_evidence_span(basis, tokens, source_ids[0] if source_ids else "SRC-UNKNOWN"))
@@ -19130,7 +19471,7 @@ def _classify_device_identity(fallback_name: str, intended_purpose: str, source_
         )
 
     powered_candidate_present = any(row.get("clinical_domain") == "powered_therapeutic_equipment" for row in scored)
-    if ("stent" in lower or "支架" in basis) and not powered_candidate_present:
+    if (_identity_token_present(basis, "stent") or "支架" in basis) and not powered_candidate_present:
         add_candidate(
             "stent",
             "implantable stent",
@@ -19193,7 +19534,21 @@ def _device_name_from_filename(filename: str) -> str:
     stem = re.sub(r"(?i)\b(DHF|YH|TP|A0|IFU|Instructions for Use|Product|使用说明书|产品使用说明书)\b", " ", stem)
     stem = re.sub(r"[_()（）\-0-9.]+", " ", stem)
     stem = _clean(stem)
+    # Reject document-title stems before generic software fallback. Otherwise
+    # filenames such as "C XM User Manual" or "Software User Manual" become
+    # false device names and contaminate DUE searches.
+    _stem_lower = stem.lower()
+    _doc_title_patterns = (
+        "user manual", "product user", "instructions for use",
+        "产品使用说明书", "使用说明书", "operator manual", "reference manual",
+    )
+    if any(t in _stem_lower for t in _doc_title_patterns) and len(stem) < 80:
+        return ""
     candidates = [
+        "Bubble Study System",
+        "Disposable Contrast Injection Tubing Set",
+        "Nuclear Medicine Image Processing Software",
+        "Medical Image Processing Software",
         "Pulsed Field Ablation Generator",
         "Pulsed Field Ablation Catheter",
         "Multi-channel Pulsed Field Ablation Generator",
@@ -19236,22 +19591,16 @@ def _device_name_from_filename(filename: str) -> str:
         return "等离子手术设备"
     if "等离子射频治疗仪" in filename:
         return "等离子射频治疗仪"
+    if any(token in filename.lower() for token in ("bubble study", "contrast injection tubing", "agitated saline")) or any(token in filename for token in ("发泡试验", "造影注射管路")):
+        return "Bubble Study System"
     if "Ureteral Access Sheath" in filename:
         return "Ureteral Access Sheath"
     if "diagnostic software" in filename.lower() or ("software" in filename.lower() and "diagn" in filename.lower()):
         return "AI Diagnostic Software" if re.search(r"\bai\b", filename.lower()) or "algorithm" in filename.lower() else "Diagnostic Software"
+    if any(token in filename.lower() for token in ("nuclear medicine", "spect", "spect/ct", "image processing")) or any(token in filename for token in ("核医学", "医学影像", "图像处理", "后处理")):
+        return "Medical Image Processing Software"
     if "software" in filename.lower() or "软件" in filename:
         return "Software Medical Device"
-    # S4 fix: reject stems that are document titles, not device names.
-    # Use compound patterns only — single-word tokens like "manual" would
-    # falsely reject legitimate device names (e.g. "Manual Resuscitator").
-    _stem_lower = stem.lower()
-    _doc_title_patterns = (
-        "user manual", "product user", "instructions for use",
-        "产品使用说明书", "使用说明书", "operator manual", "reference manual",
-    )
-    if any(t in _stem_lower for t in _doc_title_patterns) and len(stem) < 60:
-        return ""
     return stem[:120]
 
 
@@ -19749,7 +20098,27 @@ def _phase7_retrieval_domain_profile(profile: dict[str, Any], state: dict[str, A
         retrieval_domain = "cardiovascular_ablation"
         inclusion_terms = ["cardiac", "radiofrequency", "ablation", "catheter", "electrophysiology", "arrhythmia"]
         exclusion_terms = ["urinary", "ureteroscope", "stent", "arthroscopy", "orthopedic"]
-    elif "imaging" in domain_lock or "image_processing" in domain_lock or "nuclear_medicine" in domain_lock or "visualization" in domain_lock or "rendering" in domain_lock or "workstation" in domain_lock or "reconstruction" in domain_lock or "医学影像" in blob or "图像处理" in blob or "后处理" in blob or "影像处理" in blob or "PACS" in blob or "DICOM" in blob:
+    elif "nuclear_medicine_image_processing" in domain_lock or "nuclear medicine" in blob or "spect" in blob or "核医学" in blob:
+        retrieval_domain = "nuclear_medicine_image_processing_software"
+        inclusion_terms = [
+            "nuclear medicine",
+            "SPECT",
+            "SPECT/CT",
+            "medical image processing",
+            "image reconstruction",
+            "quantitative analysis",
+            "DICOM",
+            "PACS workstation",
+            "nuclear medicine workstation",
+        ]
+        exclusion_terms = [
+            "AI diagnosis without nuclear medicine imaging",
+            "radiotherapy planning",
+            "catheter ablation",
+            "surgical implant",
+            "urology endoscope",
+        ]
+    elif "imaging" in domain_lock or "image_processing" in domain_lock or "visualization" in domain_lock or "rendering" in domain_lock or "workstation" in domain_lock or "reconstruction" in domain_lock or "医学影像" in blob or "图像处理" in blob or "后处理" in blob or "影像处理" in blob or "PACS" in blob or "DICOM" in blob:
         retrieval_domain = "medical_image_processing_software"
         inclusion_terms = [
             "medical image processing",
@@ -19817,6 +20186,8 @@ def _procedure_type_for_retrieval_domain(retrieval_domain: str) -> str:
         return "cardiac electrophysiology ablation"
     if retrieval_domain == "medical_image_processing_software":
         return "medical image post-processing, 3D reconstruction, volume rendering and visualization"
+    if retrieval_domain == "nuclear_medicine_image_processing_software":
+        return "nuclear medicine SPECT/SPECT-CT image processing, reconstruction, quantitative analysis and reporting"
     if retrieval_domain == "pulmonary_artery_rf_ablation":
         return "pulmonary artery denervation for pulmonary arterial hypertension"
     if retrieval_domain == "surgical_ligating_clip":
@@ -20522,6 +20893,7 @@ def _medical_field_for_domain(domain: str) -> str:
 
 def _database_source_row(row: dict[str, Any]) -> dict[str, Any]:
     status = row.get("status") or "unknown"
+    retrieval_gap_note = str(row.get("retrieval_gap_note") or "")
     return {
         "row_id": f"DB-{row.get('search_id', row.get('database', 'SRC'))}",
         "search_id": row.get("search_id"),
@@ -20536,7 +20908,10 @@ def _database_source_row(row: dict[str, Any]) -> dict[str, Any]:
         "status": status,
         "error_type": row.get("error_type"),
         "error_message": row.get("error_message"),
-        "limitation": "Subscription/API access limitation recorded; not interpreted as zero evidence." if status in {"auth_required", "source_unavailable"} else "",
+        "limitation": (
+            retrieval_gap_note
+            or ("Subscription/API access limitation recorded; not interpreted as zero evidence." if status in {"auth_required", "source_unavailable"} else "")
+        ),
     }
 
 
@@ -20554,6 +20929,18 @@ def _protocol_deviations_from_registry(registry: list[dict[str, Any]]) -> list[d
                     "description": f"{row.get('database')} returned {row.get('status')}; this is not a no-result search.",
                     "impact": "Evidence completeness may be limited; conclusions must remain proportionate and PMCF/full search update may be needed.",
                     "control": "Keep search metadata and request subscription/API access or manual export if the database is required for final submission.",
+                }
+            )
+        elif row.get("retrieval_gap_note"):
+            deviations.append(
+                {
+                    "deviation_id": f"DEV-{idx:03d}",
+                    "search_id": row.get("search_id"),
+                    "database": row.get("database"),
+                    "deviation_type": "retrieval_result_gap",
+                    "description": row.get("retrieval_gap_note"),
+                    "impact": "Database hit count could not be converted into screened records; evidence completeness is limited until rerun or manual export confirms the records.",
+                    "control": "Retain exact query, rerun the database search, or attach manual exported records before drawing strong conclusions.",
                 }
             )
     if not deviations:
@@ -20842,6 +21229,7 @@ def _public_device_term(profile: dict[str, Any], state: dict[str, Any]) -> str:
 
 
 def _search_run_from_result(search_id: str, result: dict[str, Any], objective: str) -> dict[str, Any]:
+    retrieval_gap_note = str(result.get("retrieval_gap_note") or "")
     return {
         "search_id": search_id,
         "query_id": result.get("query_id"),
@@ -20870,7 +21258,8 @@ def _search_run_from_result(search_id: str, result: dict[str, Any], objective: s
         "included_count": 0,
         "status": result.get("status", "unknown"),
         "error_type": result.get("error_type", ""),
-        "error_message": result.get("error_message") or result.get("source_unavailable_reason") or "",
+        "error_message": result.get("error_message") or result.get("source_unavailable_reason") or retrieval_gap_note or "",
+        "retrieval_gap_note": retrieval_gap_note,
     }
 
 
