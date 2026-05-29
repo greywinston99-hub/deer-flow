@@ -434,6 +434,7 @@ def _node_device_profile(state: SharedAuthoringState) -> dict[str, Any]:
     if not generated and not state.get("device_profile"):
         return _stage("device_profile", "rework_required", note="Device Profile must be populated from IFU/source documents")
     profile = generated.get("device_profile") or state.get("device_profile") or {}
+    ifu_extraction = profile.get("ifu_structured_extraction") or {}
     approval = interrupt({
         "confirmation_point": "device_profile",
         "step": 3,
@@ -441,6 +442,9 @@ def _node_device_profile(state: SharedAuthoringState) -> dict[str, Any]:
         "message": "Please confirm Device Profile before proceeding to claim decomposition.",
         "device_profile": profile,
         "fields_to_verify": ["device_name", "device_type", "intended_purpose", "mode_of_action", "anatomical_site"],
+        "ifu_fields_extracted": ifu_extraction.get("fields_extracted", []),
+        "ifu_fields_pending": ifu_extraction.get("fields_pending", []),
+        "ifu_pending_note": "Pending fields are deferred to claim decomposition — they will be resolved when clinical performance/safety claims need these baseline parameters.",
         "action": "confirm_or_correct",
         "rework_targets": REWORK_TARGETS.get("device_profile", []),
     })
@@ -474,12 +478,16 @@ def _node_claim_decomposition(state: SharedAuthoringState) -> dict[str, Any]:
         ],
         key=lambda f: _SEVERITY_ORDER.get(str(f.get("severity", "")).upper(), 99),
     )
+    profile = state.get("device_profile") or {}
+    ifu_ext = profile.get("ifu_structured_extraction") or {}
     interrupt_payload: dict[str, Any] = {
         "confirmation_point": "claim_decomposition",
         "step": 4,
         "priority": "CRITICAL",
         "message": "Please confirm Claim Ledger before proceeding to PICO derivation.",
         "claim_ledger": [{"claim_id": str(c.get("claim_id", "")), "claim_text": str(c.get("claim_text", ""))[:200], "claim_type": str(c.get("claim_type", ""))} for c in claims],
+        "ifu_fields_pending": ifu_ext.get("fields_pending", []),
+        "ifu_pending_note": "Claims may reference device parameters still pending IFU confirmation. These will be resolved when the claim's evidence chain requires the parameter — no independent re-extraction needed.",
         "action": "confirm_modify_add_delete",
     }
     if relevant_feedback:
