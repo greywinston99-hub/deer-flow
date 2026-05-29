@@ -5021,6 +5021,31 @@ def screen_literature(state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _relevance_weight_from_screening(state: dict[str, Any], record: dict[str, Any], fallback_weight: str = "supportive") -> float:
+    """Derive relevance_weight from screening disposition's domain match status.
+
+    Engineer feedback: evidence scoring should include a relevance factor that
+    reflects how closely the article matches the subject device's clinical domain.
+    This weight can be used to adjust evidence_strength_score.
+    """
+    screening = state.get("screening_disposition") or []
+    aid = str(record.get("article_id") or record.get("evidence_id") or "")
+    pmid = str(record.get("pmid") or "")
+    for s in screening:
+        if (aid and str(s.get("article_id", "")) == aid) or (pmid and str(s.get("pmid", "")) == pmid):
+            status = str(s.get("retrieval_domain_status", "")).lower()
+            if "high" in status:
+                return 1.0
+            if "medium" in status:
+                return 0.6
+            if "low" in status:
+                return 0.3
+            if "mismatch" in status:
+                return 0.1
+    # Fallback: default weights by evidence role
+    return {"pivotal": 1.0, "supportive": 0.7, "background": 0.3}.get(fallback_weight.lower(), 0.5)
+
+
 def appraise_evidence(state: dict[str, Any]) -> dict[str, Any]:
     # V2 BL-17: Annotate data_source_type for each evidence record (manufacturer/literature/registry/vigilance)
     registry = state.get("evidence_registry") or []
@@ -5224,6 +5249,7 @@ def appraise_evidence(state: dict[str, Any]) -> dict[str, Any]:
                 "contribution_rationale": _evidence_contribution_rationale(weight, study_design, oxford_level, full_text_status),
                 "quantitative_support": statistical_adequacy in {"adequate_for_extracted_endpoint", "sample_size_extracted_statistics_limited"},
                 "weight": weight,
+                "relevance_weight": _relevance_weight_from_screening(state, record, weight),
                 "verified": verified,
             }
         )
@@ -11913,9 +11939,15 @@ def _score_evidence_registry(state: dict[str, Any], evidence_rows: list[dict[str
         if _ei_device_relationship(evidence) == "competitor" and _ei_claim_category(claim_type) != "sota":
             score = min(score, 54.0)
         confidence, limitations = _ei_score_meta_confidence(evidence, factors, facts_by_evidence.get(str(evidence.get("evidence_id") or ""), []))
+        # Compute relevance_weight from screening domain match (engineer feedback: "评分校准")
+        _screening = state.get("screening_disposition") or []
+        _scr = next((s for s in _screening if str(s.get("article_id", "")) == str(evidence.get("article_id", ""))), {})
+        _domain_match = str(_scr.get("clinical_domain_match", "")).lower() or str(_scr.get("retrieval_domain_status", "")).lower()
+        _relevance_weight = {"matched": 1.0, "high": 1.0, "domain_match_high": 1.0, "medium": 0.6, "domain_match_medium": 0.6, "low": 0.3, "domain_match_low": 0.3, "mismatch": 0.1}.get(_domain_match, 0.5)
         evidence.update(
             {
                 "evidence_strength_score": score,
+                "relevance_weight": _relevance_weight,
                 "evidence_quality_tier": _ei_quality_tier(score),
                 "score_calibration_status": "provisional",
                 "calibration_required": True,

@@ -597,8 +597,16 @@ def _node_sota_search(state: SharedAuthoringState) -> dict[str, Any]:
             "comparator": str(p.get("comparator", ""))[:120],
             "outcome": str(p.get("outcome", ""))[:100],
         })
-    # ── Top raw records with basic metadata ──
+    # ── Per-PICO result counts for feedback loop ──
     raw_records = generated.get("raw_literature_records") or state.get("raw_literature_records") or []
+    for p in pico_summary:
+        outcome_terms = str(p.get("outcome", "")).lower().replace(",", " ").split()
+        p["matching_records"] = sum(
+            1 for r in raw_records
+            if any(t in (str(r.get("title", "")) + " " + str(r.get("abstract", ""))).lower()
+                   for t in outcome_terms if len(t) > 3)
+        )
+    # ── Top raw records with basic metadata ──
     top_records = []
     for r in raw_records[:15]:
         top_records.append({
@@ -874,7 +882,7 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
         "fulltext_status": _fulltext_status,
         "full_text_request_count": len(ft_requests),
         "full_text_requests": ft_requests[:10],
-        "appraisal_sample": [{"evidence_id": str(a.get("evidence_id", "")), "score": a.get("evidence_strength_score"), "weight": a.get("weight")} for a in appraisal[:10]],
+        "appraisal_sample": [{"evidence_id": str(a.get("evidence_id", "")), "score": a.get("evidence_strength_score"), "weight": a.get("weight"), "relevance_weight": a.get("relevance_weight")} for a in appraisal[:10]],
         "action": "confirm_or_correct",
         "rework_targets": REWORK_TARGETS.get("evidence_appraisal", []),
     })
