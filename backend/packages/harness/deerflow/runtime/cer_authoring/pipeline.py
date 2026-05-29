@@ -5087,6 +5087,15 @@ def appraise_evidence(state: dict[str, Any]) -> dict[str, Any]:
     articles = list(fetch_payload.get("articles") or [])
     abstract_by_pmid = dict(fetch_payload.get("abstracts_by_pmid") or {})
     raw_by_pmid = {str(item.get("pmid")): item for item in state.get("raw_literature_records") or [] if item.get("pmid")}
+    # DC-01: NCBI API fallback — use raw_literature_records when fetch returns empty
+    _ncbi_failed = not articles and bool(eligible_pmids)
+    if _ncbi_failed:
+        articles = [
+            {"pmid": pmid, "title": raw.get("title", ""), "abstract": raw.get("abstract", ""),
+             "source": raw.get("database", "raw_record")}
+            for pmid, raw in raw_by_pmid.items() if raw.get("title")
+        ]
+        state["_ncbi_api_failed"] = True
     articles_by_pmid = {str(item.get("pmid")): item for item in articles if item.get("pmid")}
     full_text_payload = _retrieve_pubmed_full_text_records(
         eligible_pmids,
@@ -12842,12 +12851,33 @@ def _ei_claim_support_matrix(state: dict[str, Any]) -> dict[str, Any]:
         subject_direct = [row for row in qualified if _ei_device_relationship(row) == "subject"]
         high_subject = [row for row in subject_direct if str(row.get("evidence_quality_tier") or "") in {"excellent", "good"}]
         indirect = [row for row in qualified if _ei_device_relationship(row) in {"equivalent", "similar", "previous_gen"}]
+        # ── BL-03: Weighted support score from evidence quality (engineer feedback) ──
+        _evidence_by_id = {str(ev.get("evidence_id", "")): ev for ev in (state.get("evidence_registry") or [])}
+        _qualified_ids = {str(ev.get("evidence_id", "")) for ev in qualified}
+        _contributions: list[float] = []
+        _total_weight = 0.0
+        for eid in matched_ids:
+            ev = _evidence_by_id.get(eid, {})
+            score = float(ev.get("evidence_strength_score", 50))
+            rel_weight = float(ev.get("relevance_weight", 0.7))
+            if eid in _qualified_ids:
+                _contributions.append(score * rel_weight)
+                _total_weight += rel_weight
+        weighted_support_score = round(sum(_contributions) / max(_total_weight, 0.01), 1) if _contributions else 0.0
+        best_evidence_score = max(
+            (float(_evidence_by_id.get(eid, {}).get("evidence_strength_score", 0)) for eid in matched_ids),
+            default=0,
+        )
         if "conflicting" in missing_flags:
             support = "INSUFFICIENT"
         elif len(high_subject) >= 2:
             support = "STRONG"
+            if weighted_support_score < 65:
+                support = "MODERATE"
         elif len(subject_direct) >= min_count:
             support = "MODERATE"
+            if best_evidence_score < 40:
+                support = "CAUTIOUS"
         elif indirect:
             support = "CAUTIOUS"
         else:
@@ -12860,6 +12890,14 @@ def _ei_claim_support_matrix(state: dict[str, Any]) -> dict[str, Any]:
             "missing_evidence_flags": _unique_nonempty(missing_flags),
             "quantitative_allowed": support in {"STRONG", "MODERATE"} and _ei_quantitative_allowed(state, matched),
             "required_source_profile": profile,
+            "weighted_support_score": weighted_support_score,
+            "best_evidence_score": best_evidence_score,
+            "evidence_contributions": [
+                {"evidence_id": eid,
+                 "strength_score": float(_evidence_by_id.get(eid, {}).get("evidence_strength_score", 50)),
+                 "relevance_weight": float(_evidence_by_id.get(eid, {}).get("relevance_weight", 0.7))}
+                for eid in matched_ids
+            ],
         }
     return matrix
 

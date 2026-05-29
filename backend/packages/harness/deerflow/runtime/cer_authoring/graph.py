@@ -561,13 +561,16 @@ def _node_methodology_review(state: SharedAuthoringState) -> dict[str, Any]:
 
 def _node_sota_search(state: SharedAuthoringState) -> dict[str, Any]:
     claims = state.get("claim_ledger") or []
-    ifw_warning_only = all(
-        str(c.get("claim_type", "")).lower() in ("ifu_warning", "warning_contraindication")
-        for c in claims
-    ) if claims else False
-    if ifw_warning_only:
+    # BL-01: Only claims with non-RMF/GSPR primary_source need PubMed search.
+    # IFU_warning and warning_contraindication claims route to RMF/GSPR, not PubMed.
+    _pubmed_claims = [
+        c for c in claims
+        if "rmf" not in str(c.get("primary_source", "")).lower()
+        and "gspr" not in str(c.get("primary_source", "")).lower()
+    ] if claims else []
+    if not _pubmed_claims:
         return {**_stage("sota_search"), "search_skipped_ifu_warning": True,
-                "search_skip_reason": "All claims are IFU warning/contraindication type — evidence sourced from RMF/GSPR, not PubMed"}
+                "search_skip_reason": "All claims have primary_source in RMF/GSPR — evidence sourced from RMF/GSPR, not PubMed"}
     # ── Event Bus parallel path (feature-flagged) ──
     generated = None
     if _event_bus_available():
@@ -620,7 +623,20 @@ def _node_sota_search(state: SharedAuthoringState) -> dict[str, Any]:
         "step": 7,
         "priority": "CRITICAL",
         "message": "Please confirm SOTA search strategy — wrong search = wrong CER.",
-        "search_runs": [{"search_id": str(r.get("search_id", "")), "database": str(r.get("database", "")), "search_terms": str(r.get("search_terms", ""))[:300], "returned_count": r.get("returned_count", 0)} for r in search_runs],
+        "search_runs": [
+            {
+                "search_id": str(r.get("search_id", "")),
+                "database": str(r.get("database", "")),
+                "search_terms": str(r.get("search_terms", ""))[:300],
+                "returned_count": r.get("returned_count", 0),
+                "inclusion_criteria": str(r.get("inclusion_terms", "")),
+                "exclusion_criteria": str(r.get("exclusion_terms", "")),
+                "editable": True,
+            }
+            for r in search_runs
+        ],
+        "database_options": ["PubMed", "NCBI PMC", "Europe PMC", "ClinicalTrials.gov", "Embase", "Cochrane Library", "EU Clinical Trials Register"],
+        "modifiable_fields": ["search_terms", "inclusion_criteria", "exclusion_criteria"],
         "pico_count": len(pico_summary),
         "pico_summary": pico_summary[:8],
         "total_raw_records": len(raw_records),
@@ -821,6 +837,18 @@ def _node_prisma_flow_review(state: SharedAuthoringState) -> dict[str, Any]:
         "fulltext_pct": fulltext_pct,
         "full_text_request_count": len(ft_requests),
         "full_text_requests": ft_requests[:10],
+        # NCBI API fallback warning
+        "ncbi_api_failed": state.get("_ncbi_api_failed", False),
+        # Weighting preview: show how screening relevance will affect downstream claim support
+        "weighting_preview": {
+            "high_relevance_count": sum(1 for s in screening if "high" in str(s.get("retrieval_domain_status", "")).lower()),
+            "medium_relevance_count": sum(1 for s in screening if "medium" in str(s.get("retrieval_domain_status", "")).lower()),
+            "low_relevance_count": sum(1 for s in screening if "low" in str(s.get("retrieval_domain_status", "")).lower()),
+            "pivotal_candidates": sum(1 for s in screening if str(s.get("evidence_role_candidate", "")) == "pivotal_candidate"),
+            "supportive_candidates": sum(1 for s in screening if str(s.get("evidence_role_candidate", "")) == "supportive_candidate"),
+            "background_candidates": sum(1 for s in screening if str(s.get("evidence_role_candidate", "")) == "background_candidate"),
+            "note": "HIGH relevance = close domain match (weight 1.0). LOW = marginal (weight 0.3). These feed into weighted_support_score for claim support level determination.",
+        },
         "critical_warnings": critical_warnings,
         "action": "confirm_or_request_fix",
         "rework_targets": REWORK_TARGETS.get("prisma_flow_review", []),
@@ -883,12 +911,43 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
         "full_text_request_count": len(ft_requests),
         "full_text_requests": ft_requests[:10],
         "appraisal_sample": [{"evidence_id": str(a.get("evidence_id", "")), "score": a.get("evidence_strength_score"), "weight": a.get("weight"), "relevance_weight": a.get("relevance_weight")} for a in appraisal[:10]],
+        "calibration": {
+            "enabled": True,
+            "sample_size": min(20, len(appraisal)),
+            "calibration_sample": [
+                {
+                    "evidence_id": str(a.get("evidence_id", "")),
+                    "system_score": a.get("evidence_strength_score"),
+                    "weight": a.get("weight"),
+                    "title": str(next((r.get("title", "")) for r in (state.get("raw_literature_records") or []) if str(r.get("pmid", "")) == str(a.get("pmid", ""))), "")[:120],
+                    "human_score": None,
+                }
+                for a in (appraisal[:20] if len(appraisal) >= 20 else appraisal)
+            ],
+            "deviation_threshold": 15,
+        },
         "action": "confirm_or_correct",
         "rework_targets": REWORK_TARGETS.get("evidence_appraisal", []),
     })
     _rework = _check_hc_rework(approval, "evidence_appraisal")
     if _rework is not None:
         return _rework
+    if isinstance(approval, dict) and approval.get("calibration_scores"):
+        calib = approval["calibration_scores"]
+        adjustments = []
+        for a in appraisal:
+            eid = str(a.get("evidence_id", ""))
+            if eid in calib:
+                human = float(calib[eid])
+                system = float(a.get("evidence_strength_score", 0))
+                deviation = abs(human - system)
+                if deviation > 15:
+                    a["evidence_strength_score"] = round((system + human) / 2, 1)
+                    a["calibration_deviation"] = deviation
+                    a["score_calibration_status"] = "calibrated"
+                    adjustments.append({"evidence_id": eid, "system": system, "human": human, "deviation": deviation})
+        generated["calibration_adjustments"] = adjustments
+        generated["score_calibration_count"] = len(adjustments)
     if isinstance(approval, dict) and approval.get("corrections"):
         generated["article_appraisal"] = approval["corrections"]
         generated["evidence_appraisal_human_confirmed"] = True
