@@ -799,6 +799,7 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
             _fulltext_status["available"] += 1
         else:
             _fulltext_status["abstract_only"] += 1
+    ft_requests = state.get("full_text_request_list") or []
     approval = interrupt({
         "confirmation_point": "evidence_appraisal",
         "step": 11,
@@ -807,6 +808,8 @@ def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
         "evidence_count": len(evidence),
         "weight_distribution": _weights,
         "fulltext_status": _fulltext_status,
+        "full_text_request_count": len(ft_requests),
+        "full_text_requests": ft_requests[:10],
         "appraisal_sample": [{"evidence_id": str(a.get("evidence_id", "")), "score": a.get("evidence_strength_score"), "weight": a.get("weight")} for a in appraisal[:10]],
         "action": "confirm_or_correct",
         "rework_targets": REWORK_TARGETS.get("evidence_appraisal", []),
@@ -1258,6 +1261,7 @@ def _node_pre_writer_summary(state: SharedAuthoringState) -> dict[str, Any]:
             1 for r in (state.get("fulltext_acquisition_status_table") or [])
             if str(r.get("full_text_available", "")).lower() in ("yes", "true", "1")
         ),
+        "full_text_requests_pending": len(state.get("full_text_request_list") or []),
         "pivotal_count": funnel.get("pivotal_candidate_count", 0),
         "supportive_count": funnel.get("supportive_candidate_count", 0),
         "br_concludable": readiness.get("status") == "PASS",

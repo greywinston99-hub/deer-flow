@@ -5371,10 +5371,43 @@ def appraise_evidence(state: dict[str, Any]) -> dict[str, Any]:
             "mcp_call_log": mcp_log,
         }
     )
+    # ── K5: full_text_request_list — which articles need PDFs? ──
+    _ft_requests: list[dict[str, Any]] = []
+    for e in evidence:
+        eid = str(e.get("evidence_id", ""))
+        pmid = str(e.get("pmid", ""))
+        weight = str(e.get("weight", "")).lower()
+        # Only request full text for pivotal and supportive evidence
+        if weight not in ("pivotal", "supportive"):
+            continue
+        # Check if full text is already available
+        ft_status = ""
+        for ft_row in fulltext_rows:
+            if str(ft_row.get("evidence_id", "")) == eid or str(ft_row.get("pmid", "")) == pmid:
+                ft_status = str(ft_row.get("full_text_available", "")).lower()
+                break
+        if ft_status in ("yes", "true", "1"):
+            continue
+        # Also check inline full_text field
+        if str(e.get("full_text", "")).strip():
+            continue
+        _ft_requests.append({
+            "evidence_id": eid,
+            "pmid": pmid or str(e.get("doi", "")),
+            "title": str(e.get("title") or e.get("source_title", ""))[:150],
+            "weight": weight,
+            "full_text_status": ft_status or "abstract_only",
+            "reason": "Full text required for endpoint extraction and benchmark quantification.",
+            "priority": "high" if weight == "pivotal" else "medium",
+        })
+    # Sort pivotal first
+    _ft_requests.sort(key=lambda r: (0 if r["priority"] == "high" else 1, r["evidence_id"]))
+
     return {
         "evidence_registry": evidence,
         "article_appraisal": appraisals,
         "fulltext_acquisition_status_table": fulltext_rows,
+        "full_text_request_list": _ft_requests,
         "evidence_source_trace_matrix": source_trace_rows,
         "retrieval_domain_grounding_report": _retrieval_domain_grounding_report(state, source_trace_rows),
         "sota_ck_appraisal_table": _sota_ck_appraisal_rows(state, evidence),
