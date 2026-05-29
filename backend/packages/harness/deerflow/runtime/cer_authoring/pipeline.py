@@ -1900,42 +1900,96 @@ def _apply_intake_overrides(profile: dict[str, Any], state: dict[str, Any]) -> N
 
 # ── HC-0: Intake Pack Review ────────────────────────────────────────────
 
+# Header aliases: intake pack columns may use variant names.
+# Normalized key → set of alternative raw header forms.
+_HEADER_ALIASES: dict[str, set[str]] = {
+    "response": {"response", "response___summary", "response__summary", "response_summary", "response / summary"},
+    "question": {"question", "required_input", "required input", "requiredinput"},
+    "file_reference": {"file_or_table_reference", "file_reference", "fileortablereference", "evidence_source_or_note"},
+}
+
+# Status values treated as incomplete / not-yet-confirmed.
+_INCOMPLETE_STATUSES = frozenset({"draft", "blank", "needs_review", ""})
+
+
 def build_intake_pack_review(state: dict[str, Any]) -> dict[str, Any]:
     """Read the manufacturer intake pack .xlsx and return P0/P1 status for HC-0.
 
-    Searches for MANUFACTURER_INTAKE_PACK_TEMPLATE_*.xlsx in the project folder.
-    Returns a summary of P0 (blocks Writer) and P1 (controlled gaps) rows with
-    their statuses and any critical flags (wrong-device GSPR, draft P0, etc.).
+    File selection:
+      - Priority 1: FILLED / FILLED_v2 files in input_root or its children.
+      - Priority 2: Any intake pack template in input_root or its parent.
+      - Falls back to adjacent project_dir candidates.
+
+    Header handling:
+      - Normalises ``response / summary`` → ``response``, ``required input`` → ``question``,
+        ``file_or_table_reference`` → ``file_reference`` via _HEADER_ALIASES.
+
+    Status handling:
+      - ``blank`` is treated as incomplete (counted in draft_count).
     """
     from pathlib import Path
+    import glob as _glob
 
     input_root = Path(str(state.get("input_root") or ""))
-    project_dir = input_root.parent  # 01_AUTHORING_INPUT_ALLOWED → project root
     review: dict[str, Any] = {
         "intake_pack_found": False, "p0_rows": [], "p1_rows": [],
         "p0_draft_count": 0, "p1_draft_count": 0, "critical_flags": [],
     }
 
-    # Find intake pack xlsx
-    candidates = (
-        list(project_dir.glob("MANUFACTURER_INTAKE_PACK_TEMPLATE*.xlsx"))
-        + list(project_dir.glob("00_MANUFACTURER_INTAKE/*.xlsx"))
-        + list(input_root.glob("MANUFACTURER_INTAKE*.xlsx"))
-    )
-    if not candidates:
+    # ── File selection: prioritise FILLED variants in input_root ──
+    def _pick_candidate(paths: list[Path]) -> Path | None:
+        # FILLED files first
+        filled = [p for p in paths if "FILLED" in p.name.upper()]
+        if filled:
+            # Prefer v2 / higher version
+            filled.sort(key=lambda p: p.name, reverse=True)
+            return filled[0]
+        # Any template
+        temps = [p for p in paths if "TEMPLATE" in p.name.upper()]
+        if temps:
+            temps.sort(key=lambda p: p.name)
+            return temps[0]
+        return paths[0] if paths else None
+
+    candidates: list[Path] = []
+    # 1. input_root itself (the project folder) — highest priority
+    candidates += list(input_root.glob("MANUFACTURER_INTAKE_PACK_TEMPLATE*.xlsx"))
+    # 2. 00_MANUFACTURER_INTAKE subfolder
+    candidates += list(input_root.glob("00_MANUFACTURER_INTAKE/*.xlsx"))
+    # 3. input_root's parent (for standard 01_AUTHORING_INPUT_ALLOWED layout)
+    candidates += list(input_root.parent.glob("MANUFACTURER_INTAKE_PACK_TEMPLATE*.xlsx"))
+    candidates += list(input_root.parent.glob("00_MANUFACTURER_INTAKE/*.xlsx"))
+    # 4. Any subfolder of input_root
+    for sub in input_root.iterdir():
+        if sub.is_dir() and sub.name not in ("02_CER_OUTPUT", "_TO_REMOVE", "_run_logs", ".human_gate", ".cache"):
+            candidates += list(sub.glob("MANUFACTURER_INTAKE_PACK_TEMPLATE*.xlsx"))
+
+    chosen = _pick_candidate(candidates)
+    if not chosen:
         return review
 
     review["intake_pack_found"] = True
-    review["intake_pack_path"] = str(candidates[0])
+    review["intake_pack_path"] = str(chosen)
 
     try:
         import openpyxl
-        wb = openpyxl.load_workbook(str(candidates[0]), data_only=True)
+        wb = openpyxl.load_workbook(str(chosen), data_only=True)
     except Exception:
         review["critical_flags"].append(
             "INTAKE-PACK-PARSE-ERROR: Cannot read intake pack. Install openpyxl or check file format."
         )
         return review
+
+    def _normalize_key(raw_key: str) -> str:
+        """Map a raw header string to a canonical key via aliases."""
+        key = raw_key.strip().lower().replace(" ", "_").replace("/", "_").replace("-", "_")
+        # Collapse repeated underscores
+        while "__" in key:
+            key = key.replace("__", "_")
+        for canonical, aliases in _HEADER_ALIASES.items():
+            if key in aliases:
+                return canonical
+        return key
 
     def _read_sheet(sheet_name: str) -> list[dict[str, Any]]:
         rows_out: list[dict[str, Any]] = []
@@ -1943,44 +1997,53 @@ def build_intake_pack_review(state: dict[str, Any]) -> dict[str, Any]:
             return rows_out
         ws = wb[sheet_name]
         headers: list[str] = []
-        for row in ws.iter_rows(min_row=1, max_row=min(ws.max_row, 50), values_only=True):
+        for row in ws.iter_rows(min_row=1, max_row=min(ws.max_row, 60), values_only=True):
             vals = [str(c).strip() if c is not None else "" for c in row]
             if not any(v for v in vals):
                 continue
             if not headers and any("field_id" in v.lower() or "control_id" in v.lower() for v in vals):
-                headers = vals
+                headers = [_normalize_key(v) for v in vals]
                 continue
             if headers:
-                row_dict = {}
+                row_dict: dict[str, str] = {}
                 for i, h in enumerate(headers):
-                    if i < len(vals):
-                        row_dict[h.strip().lower().replace(" ", "_").replace("/", "_")] = vals[i]
+                    if i < len(vals) and h:
+                        row_dict[h] = vals[i]
                 if row_dict:
                     rows_out.append(row_dict)
         return rows_out
+
+    def _get_resp(r: dict[str, Any]) -> str:
+        """Get the response field, checking aliases."""
+        return str(r.get("response") or r.get("response___summary") or r.get("response_summary") or "")
 
     # Read P0 Device Scope
     p0_rows = _read_sheet("P0_Device_Scope")
     for r in p0_rows:
         fid = r.get("field_id", "")
-        status = str(r.get("status", "")).lower()
-        resp = str(r.get("response", ""))[:120]
+        status = str(r.get("status", "")).strip().lower()
+        resp = _get_resp(r)[:120]
         review["p0_rows"].append({"field_id": fid, "status": status, "response": resp})
-        if status in ("draft", ""):
+        if status in _INCOMPLETE_STATUSES:
             review["p0_draft_count"] += 1
-            review["critical_flags"].append(f"P0-DRAFT: {fid} — {resp[:80]}")
+            if status in ("draft", "blank"):
+                review["critical_flags"].append(f"P0-{status.upper()}: {fid} — {resp[:80]}")
+            elif status == "needs_review":
+                review["critical_flags"].append(f"P0-NEEDS-REVIEW: {fid} — {resp[:80]}")
 
     # Read P1 Evidence Controls
     p1_rows = _read_sheet("P1_Evidence_Controls")
     for r in p1_rows:
         cid = r.get("control_id", "")
-        status = str(r.get("status", "")).lower()
-        resp = str(r.get("response", ""))[:200]
+        status = str(r.get("status", "")).strip().lower()
+        resp = _get_resp(r)[:200]
         review["p1_rows"].append({"control_id": cid, "status": status, "response": resp})
-        if status in ("draft", "needs_review", ""):
+        if status in _INCOMPLETE_STATUSES:
             review["p1_draft_count"] += 1
         if status == "needs_review":
             review["critical_flags"].append(f"P1-NEEDS-REVIEW: {cid} — {resp[:100]}")
+        if status in ("draft", "blank"):
+            review["critical_flags"].append(f"P1-{status.upper()}: {cid} — {resp[:100]}")
         # Special: GSPR for wrong device
         if cid == "gspr_checklist" and status == "needs_review":
             review["critical_flags"].append(
@@ -19380,6 +19443,36 @@ def _classify_device_identity(fallback_name: str, intended_purpose: str, source_
             score,
             "IFU/intended purpose indicates a reusable plasma surgical equipment main unit used with compatible single-use plasma electrodes for ENT soft-tissue procedures.",
             ("plasma surgical equipment", "radiofrequency plasma surgical equipment", "plasma generator", "main unit", "等离子手术设备", "等离子射频治疗仪", "主机", "耳鼻喉"),
+        )
+
+    if _is_contrast_imaging_bubble_study_text(basis):
+        score = 16
+        if "bubble study" in lower or "发泡试验" in basis:
+            score += 3
+        if "agitated saline" in lower or "振荡生理盐水" in basis:
+            score += 2
+        if any(token in lower for token in ("right-to-left shunt", "pfo", "c-tte", "c-tcd")) or any(token in basis for token in ("右向左分流", "卵圆孔未闭")):
+            score += 2
+        add_candidate(
+            "automated agitated-saline contrast injection system with single-use contrast injection tubing set",
+            "ultrasound contrast bubble-study diagnostic system",
+            "contrast_imaging_bubble_study_system",
+            score,
+            "IFU/intended purpose indicates an automated agitated-saline bubble-study system for RLS/PFO assessment; tubing terms are treated as part of the locked system/accessory pathway rather than a competing catheter domain.",
+            (
+                "bubble study",
+                "agitated saline",
+                "right-to-left shunt",
+                "patent foramen ovale",
+                "contrast echocardiography",
+                "transcranial doppler",
+                "c-TTE",
+                "c-TCD",
+                "发泡试验",
+                "右向左分流",
+                "卵圆孔未闭",
+                "造影导管",
+            ),
         )
 
     if _is_rf_ablation_catheter_text(basis):
