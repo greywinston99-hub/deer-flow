@@ -21782,24 +21782,36 @@ def _screening_decision_for_record(record: dict[str, Any], domain_result: dict[s
             "screening_rationale": "Excluded by deterministic ranking cap after preserving traceability.",
         }
     if endpoint_result.get("endpoint_match") == "endpoint_weak_or_unconfirmed":
+        _domain_hits = str(domain_result.get("domain_inclusion_hits", ""))
         return {
             "title_abstract_decision": "include_background",
             "full_text_decision": "background_only_not_for_pivotal_appraisal",
             "screening_category": "SOTA/background only",
             "evidence_role_candidate": "background_candidate",
-            "reason_for_inclusion": "Domain appears relevant but endpoint support is weak; retained as SOTA/background only.",
+            "reason_for_inclusion": f"Domain relevant ({_domain_hits[:80] if _domain_hits else 'matched'}) but no specific endpoint found in title/abstract. Retained as SOTA context.",
             "exclusion_reason": "",
-            "screening_rationale": "Cannot become pivotal/supportive until endpoint match is established.",
+            "screening_rationale": "Cannot become pivotal/supportive until full-text endpoint extraction confirms clinical endpoints.",
         }
     role = "pivotal_candidate" if record.get("pmid") and domain_result.get("retrieval_domain_status") == "DOMAIN_MATCH_HIGH" else "supportive_candidate"
+    # Build a specific, human-readable reason
+    _domain_hits = str(domain_result.get("domain_inclusion_hits", ""))
+    _ep_match = str(endpoint_result.get("endpoint_match", ""))
+    _title = str(record.get("title") or record.get("source_title", ""))[:80]
+    _reason_parts = []
+    if _domain_hits:
+        _reason_parts.append(f"domain terms matched: {_domain_hits[:120]}")
+    if _ep_match and _ep_match not in ("none", "endpoint_weak_or_unconfirmed", ""):
+        _reason_parts.append(f"endpoint relevance: {_ep_match}")
+    if not _reason_parts:
+        _reason_parts.append(f"query provenance from {record.get('database', 'PubMed')}")
     return {
         "title_abstract_decision": "include",
         "full_text_decision": "include_for_appraisal",
         "screening_category": "included",
         "evidence_role_candidate": role,
-        "reason_for_inclusion": "Record has query provenance, clinical-domain match and endpoint/procedure applicability for appraisal.",
+        "reason_for_inclusion": "; ".join(_reason_parts),
         "exclusion_reason": "",
-        "screening_rationale": "Included by Phase 7 retrieval-grounding screen; downstream weight still depends on citation verification/full text/Oxford appraisal.",
+        "screening_rationale": f"Included: {'; '.join(_reason_parts)}. Full-text/Oxford appraisal required for weight assignment.",
     }
 
 

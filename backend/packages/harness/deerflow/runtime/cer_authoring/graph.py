@@ -586,12 +586,37 @@ def _node_sota_search(state: SharedAuthoringState) -> dict[str, Any]:
     if not generated and not state.get("sota_benchmark_matrix"):
         return _stage("sota_search", "rework_required", note="SOTA benchmark matrix must be populated by real searches")
     search_runs = generated.get("search_run_registry") or state.get("search_run_registry") or []
+    # ── PICO summary for human review ──
+    pico_summary = []
+    for p in (state.get("cep_pico_matrix") or []):
+        pico_summary.append({
+            "pico_id": str(p.get("pico_id", "")),
+            "claim_id": str(p.get("claim_id", "")),
+            "population": str(p.get("population", ""))[:100],
+            "intervention": str(p.get("intervention", ""))[:80],
+            "comparator": str(p.get("comparator", ""))[:120],
+            "outcome": str(p.get("outcome", ""))[:100],
+        })
+    # ── Top raw records with basic metadata ──
+    raw_records = generated.get("raw_literature_records") or state.get("raw_literature_records") or []
+    top_records = []
+    for r in raw_records[:15]:
+        top_records.append({
+            "pmid": str(r.get("pmid", "")),
+            "title": str(r.get("title") or r.get("source_title", ""))[:150],
+            "database": str(r.get("database", "")),
+            "search_id": str(r.get("search_id", "")),
+        })
     approval = interrupt({
         "confirmation_point": "sota_search_strategy",
         "step": 7,
         "priority": "CRITICAL",
         "message": "Please confirm SOTA search strategy — wrong search = wrong CER.",
         "search_runs": [{"search_id": str(r.get("search_id", "")), "database": str(r.get("database", "")), "search_terms": str(r.get("search_terms", ""))[:300], "returned_count": r.get("returned_count", 0)} for r in search_runs],
+        "pico_count": len(pico_summary),
+        "pico_summary": pico_summary[:8],
+        "total_raw_records": len(raw_records),
+        "top_records": top_records,
         "action": "confirm_or_correct",
         "rework_targets": REWORK_TARGETS.get("sota_search_strategy", []),
     })
@@ -746,17 +771,48 @@ def _node_prisma_flow_review(state: SharedAuthoringState) -> dict[str, Any]:
     if fulltext_pct < 10 and evidence_count > 0:
         critical_warnings.append(f"Full-text available for only {fulltext_available}/{evidence_count} articles ({fulltext_pct}%). Benchmark endpoint extraction may be unreliable.")
 
+    # ── Article-level data for human review ──
+    screening = state.get("screening_disposition") or []
+    raw_recs = {str(r.get("article_id") or ""): r for r in (state.get("raw_literature_records") or [])}
+    # Count exclusions by reason
+    exclusion_counts: dict[str, int] = {}
+    for s in screening:
+        reason = str(s.get("exclusion_reason", "")).strip()
+        if reason:
+            exclusion_counts[reason[:80]] = exclusion_counts.get(reason[:80], 0) + 1
+    # Top included articles with relevance assessment
+    included_articles = []
+    for s in screening:
+        if str(s.get("title_abstract_decision", "")).lower() not in ("exclude", "excluded"):
+            raw = raw_recs.get(str(s.get("article_id", "")), {})
+            included_articles.append({
+                "pmid": str(s.get("pmid", "")),
+                "title": str(s.get("title") or raw.get("title", ""))[:150],
+                "relevance": str(s.get("clinical_domain_match", s.get("retrieval_domain_status", ""))),
+                "role": str(s.get("evidence_role_candidate", "")),
+                "reason": str(s.get("reason_for_inclusion", ""))[:150],
+            })
+    included_articles.sort(key=lambda a: (0 if "high" in a["relevance"].lower() else 1 if "medium" in a["relevance"].lower() else 2, a.get("pmid", "")))
+    # Full-text requests
+    ft_requests = state.get("full_text_request_list") or []
+
     approval = interrupt({
         "confirmation_point": "prisma_flow_review",
         "step": "HC-3.5",
         "priority": "HIGH",
-        "message": "Review search results and PRISMA flow before evidence appraisal.",
+        "message": "Review search results, article relevance, and PRISMA flow before evidence appraisal.",
         "search_summary": search_summary,
         "prisma_funnel": funnel,
+        "screening_total": len(screening),
+        "screening_excluded": sum(1 for s in screening if str(s.get("title_abstract_decision", "")).lower() in ("exclude", "excluded")),
+        "exclusion_reasons": exclusion_counts,
+        "included_articles": included_articles[:20],
         "evidence_count": evidence_count,
         "fulltext_count": fulltext_count,
         "fulltext_available": fulltext_available,
         "fulltext_pct": fulltext_pct,
+        "full_text_request_count": len(ft_requests),
+        "full_text_requests": ft_requests[:10],
         "critical_warnings": critical_warnings,
         "action": "confirm_or_request_fix",
         "rework_targets": REWORK_TARGETS.get("prisma_flow_review", []),
