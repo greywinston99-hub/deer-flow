@@ -39,7 +39,7 @@ def test_t1_graph_compilation():
 
     graph = build_cer_authoring_graph()
     assert graph is not None, "Graph build returned None"
-    assert len(graph.nodes) == 45, f"Expected 45 nodes (44 + review_quick_scan), got {len(graph.nodes)}"
+    assert len(graph.nodes) == 46, f"Expected 46 nodes (45 + review_quick_scan), got {len(graph.nodes)}"
     # V2 nodes
     assert "claim_sota_alignment" in graph.nodes, "V2 node claim_sota_alignment missing"
     assert "device_profile_iteration" in graph.nodes, "V2 node device_profile_iteration missing"

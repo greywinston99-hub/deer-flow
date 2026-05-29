@@ -137,6 +137,7 @@ REWORK_TARGETS: dict[str, list[str]] = {
     "device_profile": [],
     "claim_decomposition": ["device_profile"],
     "sota_search_strategy": ["claim_decomposition", "device_profile"],
+    "prisma_flow_review": ["sota_search_strategy", "claim_decomposition"],
     "evidence_appraisal": ["sota_search_strategy", "claim_decomposition"],
     "endpoint_extraction": ["evidence_appraisal", "sota_search_strategy"],
     "claim_sota_alignment": ["endpoint_extraction", "evidence_appraisal", "sota_search_strategy"],
@@ -687,7 +688,72 @@ def _node_screening_depth_gate(state: SharedAuthoringState) -> dict[str, Any]:
 
 
 def _route_after_screening_depth_gate(state: SharedAuthoringState) -> str:
-    return _hard_gate_graph_route(state.get("screening_depth_gate_report") or {}, pass_route="evidence_appraisal")
+    return _hard_gate_graph_route(state.get("screening_depth_gate_report") or {}, pass_route="prisma_flow_review")
+
+
+# ── HC-3.5: PRISMA Flow Review ─────────────────────────────────────────
+
+def _node_prisma_flow_review(state: SharedAuthoringState) -> dict[str, Any]:
+    """HC-3.5: Review search results and PRISMA flow before evidence appraisal.
+
+    Shows search hit counts per database, PRISMA funnel (identified → screened
+    → full-text assessed → included), and full-text availability rate.  Warns
+    when 0 full-text articles are available — a critical gap before scoring.
+    """
+    search_registry = state.get("search_run_registry") or []
+    search_summary = []
+    for s in search_registry[:10]:
+        search_summary.append({
+            "search_id": str(s.get("search_id", "")),
+            "database": str(s.get("database", "")),
+            "objective": str(s.get("objective", "")),
+            "result_count": s.get("result_count"),
+            "returned_count": s.get("returned_count", 0),
+            "status": str(s.get("status", "unknown")),
+        })
+
+    prisma = state.get("prisma_flow_data") or {}
+    funnel = {
+        "identified": prisma.get("identification", {}).get("database_records", 0),
+        "screened": prisma.get("screening", {}).get("title_abstract_screened", 0),
+        "fulltext_assessed": prisma.get("screening", {}).get("full_text_assessed", 0),
+        "included": prisma.get("included", {}).get("sota_included", 0),
+    }
+    evidence_count = len(state.get("evidence_registry") or [])
+    fulltext_count = len(state.get("fulltext_acquisition_status_table") or [])
+    fulltext_available = sum(
+        1 for r in (state.get("fulltext_acquisition_status_table") or [])
+        if str(r.get("full_text_available", "")).lower() in ("yes", "true", "1")
+    )
+    fulltext_pct = round(fulltext_available / max(evidence_count, 1) * 100)
+
+    critical_warnings = []
+    if funnel["identified"] == 0:
+        critical_warnings.append("ZERO records identified from any database search — PRISMA flow is empty.")
+    if funnel["fulltext_assessed"] == 0 and evidence_count > 0:
+        critical_warnings.append(f"ZERO full-text articles assessed — {evidence_count} evidence items are abstract/metadata only.")
+    if fulltext_pct < 10 and evidence_count > 0:
+        critical_warnings.append(f"Full-text available for only {fulltext_available}/{evidence_count} articles ({fulltext_pct}%). Benchmark endpoint extraction may be unreliable.")
+
+    approval = interrupt({
+        "confirmation_point": "prisma_flow_review",
+        "step": "HC-3.5",
+        "priority": "HIGH",
+        "message": "Review search results and PRISMA flow before evidence appraisal.",
+        "search_summary": search_summary,
+        "prisma_funnel": funnel,
+        "evidence_count": evidence_count,
+        "fulltext_count": fulltext_count,
+        "fulltext_available": fulltext_available,
+        "fulltext_pct": fulltext_pct,
+        "critical_warnings": critical_warnings,
+        "action": "confirm_or_request_fix",
+        "rework_targets": REWORK_TARGETS.get("prisma_flow_review", ["sota_search_strategy", "claim_decomposition"]),
+    })
+    _rework = _check_hc_rework(approval, "prisma_flow_review")
+    if _rework is not None:
+        return _rework
+    return {**_stage("prisma_flow_review"), "prisma_flow_human_confirmed": True}
 
 
 def _node_evidence_appraisal(state: SharedAuthoringState) -> dict[str, Any]:
@@ -1840,6 +1906,7 @@ def build_cer_authoring_graph(checkpointer=None):
         "device_equivalence_search": _node_device_equivalence_search,
         "literature_screening": _node_literature_screening,
         "screening_depth_gate": _node_screening_depth_gate,
+        "prisma_flow_review": _node_prisma_flow_review,
         "evidence_appraisal": _node_evidence_appraisal,
         "fulltext_basis_gate": _node_fulltext_basis_gate,
         "endpoint_extraction": _node_endpoint_extraction,
@@ -1914,11 +1981,13 @@ def build_cer_authoring_graph(checkpointer=None):
         "screening_depth_gate",
         _route_after_screening_depth_gate,
         {
+            "prisma_flow_review": "prisma_flow_review",
             "evidence_appraisal": "evidence_appraisal",
             "sota_search": "sota_search",
             "controlled_compromise": "controlled_compromise",
         },
     )
+    builder.add_edge("prisma_flow_review", "evidence_appraisal")
     builder.add_edge("evidence_appraisal", "fulltext_basis_gate")
     builder.add_conditional_edges(
         "fulltext_basis_gate",
