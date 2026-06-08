@@ -1,0 +1,3 @@
+item,requirement,status,closure_level
+J-1,Core implementation,PASS,HEURISTIC_ONLY
+J-2,Tests passing,PASS,HEURISTIC_ONLY

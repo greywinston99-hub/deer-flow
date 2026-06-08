@@ -1,0 +1,3 @@
+item,requirement,status,closure_level
+L-1,Core implementation,PASS,DERIVED_VALIDATION
+L-2,Tests passing,PASS,DERIVED_VALIDATION
