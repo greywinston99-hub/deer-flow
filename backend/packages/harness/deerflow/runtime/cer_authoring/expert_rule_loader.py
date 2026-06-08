@@ -458,3 +458,124 @@ def is_safety_endpoint(endpoint_classification: str) -> bool:
     """Check if endpoint classification is safety-related."""
     taxonomy = ENDPOINT_CLASSIFICATION_TAXONOMY.get(endpoint_classification, {})
     return taxonomy.get("is_safety_endpoint", False)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V_3 U1: Clinical Fact V2 — E0 Eligibility Layer + Statistical Parsers
+# ══════════════════════════════════════════════════════════════════════════════
+
+SOURCE_ELIGIBILITY = ["fulltext_verified", "abstract_only", "secondary_source", "unavailable", "unknown"]
+DATA_USE_ALLOWED = ["benchmark", "BR", "claim_support", "background_only", "not_allowed", "human_gate_required"]
+EVIDENCE_TIER = ["direct_clinical", "indirect_clinical", "equivalent", "PMS", "manufacturer", "background", "unsupported", "unknown"]
+CLINICAL_USE_LIMITATION = ["none", "abstract_only", "no_fulltext", "subgroup_only", "low_sample_size", "indirect_population", "endpoint_mismatch", "denominator_uncertain", "other"]
+
+
+def classify_source_eligibility(fulltext_available: bool, abstract_available: bool, is_secondary: bool = False) -> str:
+    """Classify source eligibility for clinical fact usage."""
+    if fulltext_available:
+        return "fulltext_verified"
+    if is_secondary:
+        return "secondary_source"
+    if abstract_available:
+        return "abstract_only"
+    return "unavailable"
+
+
+def classify_evidence_tier(study_design: str = "", device_match: str = "", is_manufacturer: bool = False) -> str:
+    """Classify evidence tier based on study characteristics."""
+    design_lower = study_design.lower()
+    if is_manufacturer:
+        return "manufacturer"
+    if device_match == "subject_device" and any(kw in design_lower for kw in ("rct", "randomized", "prospective")):
+        return "direct_clinical"
+    if device_match == "subject_device":
+        return "direct_clinical"
+    if device_match == "equivalent_device":
+        return "equivalent"
+    if device_match == "different_device":
+        return "indirect_clinical"
+    if any(kw in design_lower for kw in ("registry", "pms", "surveillance")):
+        return "PMS"
+    if any(kw in design_lower for kw in ("review", "guideline", "background")):
+        return "background"
+    return "unknown"
+
+
+def determine_data_use(source_eligibility: str, evidence_tier: str, n_total: int = 0,
+                        has_endpoint_match: bool = True, has_denominator: bool = True) -> list[str]:
+    """Determine allowed data uses for a clinical fact."""
+    uses = []
+    if source_eligibility == "unavailable":
+        return ["not_allowed"]
+
+    if evidence_tier in ("direct_clinical", "indirect_clinical", "equivalent"):
+        if has_endpoint_match and has_denominator and n_total >= 30:
+            uses.append("claim_support")
+        if has_endpoint_match and n_total >= 50:
+            uses.append("benchmark")
+        uses.append("BR")
+
+    if evidence_tier in ("PMS", "manufacturer"):
+        uses.append("background_only")
+        if has_endpoint_match:
+            uses.append("BR")
+
+    if evidence_tier == "background":
+        uses.append("background_only")
+
+    if source_eligibility == "abstract_only" and evidence_tier not in ("direct_clinical",):
+        uses = ["background_only"]
+
+    if not uses:
+        uses.append("human_gate_required")
+
+    return uses
+
+
+def determine_clinical_limitation(source_eligibility: str, n_total: int = 0,
+                                   is_subgroup: bool = False, has_full_denominator: bool = True) -> str:
+    """Determine clinical use limitation for a fact."""
+    if source_eligibility == "abstract_only":
+        return "abstract_only"
+    if source_eligibility == "unavailable":
+        return "no_fulltext"
+    if is_subgroup:
+        return "subgroup_only"
+    if n_total < 30:
+        return "low_sample_size"
+    if not has_full_denominator:
+        return "denominator_uncertain"
+    return "none"
+
+
+def parse_hr_rr_or(text: str) -> list[dict]:
+    """Parse HR/RR/OR from clinical text. Returns list of parsed statistics."""
+    import re
+    results = []
+    for stat_type in ["HR", "RR", "OR"]:
+        # Flexible: "HR 0.85", "HR=0.85", "HR: 0.85 (95% CI 0.70-1.05)"
+        pattern = re.findall(
+            stat_type + r'\s*[=:\s]+?\s*(\d+\.?\d*)\s*(?:\(?\s*95%\s*CI\s*(\d+\.?\d*)\s*[-–]\s*(\d+\.?\d*)\s*\)?)?',
+            text, re.IGNORECASE,
+        )
+        for val, ci_lo, ci_hi in pattern:
+            results.append({
+                "stat_type": stat_type, "value": float(val),
+                "ci_lower": float(ci_lo) if ci_lo else None,
+                "ci_upper": float(ci_hi) if ci_hi else None,
+                "extraction_basis": f"{stat_type}={val}" + (f" (95%CI {ci_lo}-{ci_hi})" if ci_lo else ""),
+            })
+    return results
+
+
+def parse_ci_pvalue(text: str) -> list[dict]:
+    """Parse CI and p-value from text."""
+    import re
+    results = []
+    # p-value
+    p_pattern = re.findall(r'[pP]\s*[=<>]\s*(\d+\.?\d*)', text)
+    for p_val in p_pattern:
+        p = float(p_val)
+        results.append({"stat_type": "p_value", "value": p,
+                        "significant": p < 0.05, "extraction_basis": f"p={'<' if '<' in text else '='}{p_val}"})
+    return results

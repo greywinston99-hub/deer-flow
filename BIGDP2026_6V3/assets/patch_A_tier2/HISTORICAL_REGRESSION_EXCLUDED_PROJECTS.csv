@@ -1,0 +1,2 @@
+﻿project_id,project_name,path,excluded_reason,allowed_use,not_allowed_use
+PROJECT,PROJECT_001_项目复盘,/Users/winstonwei/CER-RAG/Source/项目文件夹_L1_CER_NB_PROJECTS_FOR_DEERFLOW/PROJECT_001_项目复盘,Contains excluded keyword (南驰/iTClamp/A06) or marked as golden feedback,historical_regression_reference,"calibration,stress,holdout,new_gold_asset,new_rule_source,new_fixture_source"
