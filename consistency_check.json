@@ -1,0 +1,67 @@
+{
+  "overall": "FAIL",
+  "checks": {
+    "STY-001": {
+      "status": "FAIL",
+      "detail": "Abbreviation 'SU-FURS' used in 01_summary before full name defined in 01_summary"
+    },
+    "STY-002": {
+      "status": "FAIL",
+      "detail": "Multiple terms found: {'adverse event', 'complication'}. Prefer: 'adverse event'; Multiple terms found: {'subjects', 'patients', 'cases'}. Prefer: 'patient'; Multiple terms found: {'the device', 'the system'}. Prefer: 'device'"
+    },
+    "STY-005": {
+      "status": "FAIL",
+      "detail": "169 naked percentages found",
+      "issues": [
+        "01_summary:L222 '87%' lacks denominator (n/N)",
+        "01_summary:L435 '87%' lacks denominator (n/N)",
+        "01_summary:L435 '9.3%' lacks denominator (n/N)",
+        "01_summary:L435 '8.8%' lacks denominator (n/N)",
+        "02_device_description:L209 '95%' lacks denominator (n/N)",
+        "02_device_description:L210 '95%' lacks denominator (n/N)",
+        "02_device_description:L327 '87%' lacks denominator (n/N)",
+        "02_device_description:L327 '9.3%' lacks denominator (n/N)",
+        "02_device_description:L327 '8.8%' lacks denominator (n/N)",
+        "03_clinical_background:L7 '15%' lacks denominator (n/N)",
+        "03_clinical_background:L7 '9%' lacks denominator (n/N)",
+        "03_clinical_background:L7 '50%' lacks denominator (n/N)",
+        "03_clinical_background:L99 '87%' lacks denominator (n/N)",
+        "03_clinical_background:L99 '77.8%' lacks denominator (n/N)",
+        "03_clinical_background:L99 '18%' lacks denominator (n/N)",
+        "03_clinical_background:L99 '68.5%' lacks denominator (n/N)",
+        "03_clinical_background:L99 '33%' lacks denominator (n/N)",
+        "03_clinical_background:L103 '87%' lacks denominator (n/N)",
+        "03_clinical_background:L104 '77.8%' lacks denominator (n/N)",
+        "03_clinical_background:L105 '68.5%' lacks denominator (n/N)"
+      ]
+    },
+    "sample_size": {
+      "status": "PASS",
+      "detail": "Sample sizes consistent across 3 chapters"
+    },
+    "indication": {
+      "status": "SKIP",
+      "detail": "No indication in metadata"
+    },
+    "pmcf": {
+      "status": "FAIL",
+      "detail": "Device not EU-approved (status: not_approved) but PMCF chapter contains substantive content. Should state PMCF not required."
+    },
+    "limitation": {
+      "status": "PASS",
+      "detail": "Conclusion references limitations"
+    },
+    "endpoint": {
+      "status": "PASS",
+      "detail": "6 primary endpoints; no excluded endpoints leaked"
+    },
+    "DO-001": {
+      "status": "PASS",
+      "detail": "Variant difference description present"
+    },
+    "TM-001": {
+      "status": "PASS",
+      "detail": "No template residues"
+    }
+  }
+}
