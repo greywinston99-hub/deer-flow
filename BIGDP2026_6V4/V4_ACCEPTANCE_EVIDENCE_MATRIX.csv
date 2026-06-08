@@ -1,0 +1,8 @@
+check_id,batch,requirement,status,code_evidence,test_evidence,runtime_evidence,asset_evidence,closure_level,notes
+V4-I1,I,Strategy route classifier,PASS,classify_strategy_route in expert_rule_loader.py,test_v4:6 tests,Runtime callable,I1-I3 CSVs (49 rows PARTIAL),HEURISTIC_ONLY,No gold labels
+V4-I2,I,WET 6-condition,PASS,WET_6_CONDITIONS constant,test_v4:test_wet_6_conditions_defined,Runtime enforced,Regulatory rule ledger,DERIVED_VALIDATION,From MDR/MEDDEV
+V4-I3,I,Hard overrides,PASS,classify_strategy_route hard overrides,test_v4:3 tests,Runtime enforced,Regulatory rule ledger,DERIVED_VALIDATION,Equivalence/WET/innovation blocked
+V4-J1,J,Literature role classifier,PASS,classify_literature_role in expert_rule_loader.py,test_v4:4 tests,Runtime callable,J1-J3 CSVs (95 rows PARTIAL),HEURISTIC_ONLY,No gold labels
+V4-K1,K,CER blueprints,PASS,get_route_blueprint + ROUTE_BLUEPRINTS,test_v4:5 tests,Runtime callable,K1-K3 CSVs (37 rows PARTIAL),DERIVED_VALIDATION,From regulatory sources
+V4-L1,L,NB explainability,PASS,generate_nb_explainability_packet,test_v4:2 tests,Runtime callable,L1-L3 CSVs (43 rows PARTIAL),DERIVED_VALIDATION,Regulatory basis included
+V4-REG,All,Regression stability,PASS,,615/615 pass,All 4 batches functional,V2/V3 baseline intact,VERIFIED,No regressions
