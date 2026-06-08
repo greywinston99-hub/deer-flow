@@ -1,22 +1,34 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [
-    ['html', { outputFolder: '../artifacts/cer_rmf_real_operating_loop/adaptive_ai_assisted_review_engine_productization_v5/playwright-report' }],
-    ['list']
-  ],
+  reporter: process.env.CI ? "github" : "html",
+  timeout: 30_000,
+
   use: {
-    baseURL: 'http://localhost:2026',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'on-first-retry',
+    baseURL: "http://localhost:3000",
+    trace: "on-first-retry",
   },
+
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
+
+  webServer: {
+    command: "pnpm build && pnpm start",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+    env: {
+      SKIP_ENV_VALIDATION: "1",
+      DEER_FLOW_AUTH_DISABLED: "1",
+    },
+  },
 });
