@@ -323,18 +323,24 @@ ENDPOINT_CLASSIFICATION_TAXONOMY = {
         "definition": "Device-related untoward medical event per ISO 14155",
         "examples": ["skin damage", "infection", "device malfunction", "hematoma", "pseudoaneurysm"],
         "is_safety_endpoint": True,
+        "classification_basis": "ISO_14155",
+        "common_misclassification": "serious_adverse_event",
     },
     "serious_adverse_event": {
         "label": "Serious Adverse Event (SAE)",
         "definition": "AE resulting in death, life-threatening, hospitalization, disability, or intervention",
         "examples": ["major bleeding requiring transfusion", "retroperitoneal hemorrhage", "death"],
         "is_safety_endpoint": True,
+        "classification_basis": "ISO_14155",
+        "common_misclassification": "adverse_event",
     },
     "device_deficiency": {
         "label": "Device Deficiency",
         "definition": "Inadequacy of device identity, quality, durability, reliability, safety, or performance",
         "examples": ["device fracture", "coating delamination", "premature battery depletion"],
         "is_safety_endpoint": True,
+        "classification_basis": "heuristic",
+        "common_misclassification": "adverse_event",
     },
     "treatment_failure": {
         "label": "Treatment Failure / Switching",
@@ -342,6 +348,8 @@ ENDPOINT_CLASSIFICATION_TAXONOMY = {
         "examples": ["conversion to manual compression", "switch to surgical closure", "device abandonment for tourniquet"],
         "is_safety_endpoint": False,
         "note": "Reflects efficacy limitation, not safety issue. Must be reported separately from AE.",
+        "classification_basis": "NB_comment",
+        "common_misclassification": "adverse_event",
     },
     "inadequate_hemostasis": {
         "label": "Inadequate Hemostasis",
@@ -349,26 +357,59 @@ ENDPOINT_CLASSIFICATION_TAXONOMY = {
         "examples": ["continued bleeding at 3 min", "hemostasis not achieved within protocol window"],
         "is_safety_endpoint": False,
         "note": "Efficacy endpoint, not safety. Report as hemostasis failure rate under efficacy.",
+        "classification_basis": "engineer_correction",
+        "common_misclassification": "adverse_event",
     },
     "rescue_therapy_switch": {
         "label": "Rescue Therapy / Alternative Treatment",
         "definition": "Use of rescue therapy when primary device fails to achieve intended result",
         "examples": ["additional closure device applied", "surgical repair", "prolonged manual pressure"],
         "is_safety_endpoint": False,
+        "classification_basis": "expert_judgment",
+        "common_misclassification": "adverse_event",
     },
     "procedural_outcome": {
         "label": "Procedural Outcome",
         "definition": "Endpoint measuring procedural success or efficiency",
         "examples": ["device success rate", "procedure time", "length of stay"],
         "is_safety_endpoint": False,
+        "classification_basis": "heuristic",
+        "common_misclassification": "",
     },
     "other": {
         "label": "Other / Unclassified",
         "definition": "Endpoint not matching any defined category",
         "examples": [],
         "is_safety_endpoint": False,
+        "classification_basis": "heuristic",
+        "common_misclassification": "",
     },
 }
+
+# ── Absorbed from C1_ENDPOINT_SEMANTICS.csv (90 rows, 15 projects) ──
+# Key finding: ALL non-AE endpoint types share common_misclassification="adverse_event"
+# This means the dominant error pattern is over-classifying everything as AE.
+# The classifier must actively warn when treatment_failure/rescue_therapy_switch/
+# inadequate_hemostasis are being misclassified as adverse_event.
+ENDPOINT_MISCLASSIFICATION_WARNING = (
+    "WARNING: Endpoint classified as '{actual}' but may be misclassified. "
+    "Common misclassification pattern from {basis}-based calibration data: "
+    "'{endpoint_name}' is frequently misclassified as 'adverse_event'. "
+    "Verify: is this a safety event (AE) or an efficacy/treatment endpoint?"
+)
+
+
+# ── Absorbed from C2_COMPARATOR_BENCHMARK.csv (54 rows, 11+ projects) ──
+# Distribution: 78% direct, 22% fallback. Fallback always has limitation.
+# Comparator data found in 42/54 rows; 12/54 have NO_COMPARATOR_DATA_FOUND.
+COMPARATOR_EXPECTED_DIRECTNESS_RATIO = 0.78  # 42/54 direct
+COMPARATOR_FALLBACK_RATE = 0.22  # 12/54 fallback
+COMPARATOR_MINIMUM_REQUIREMENTS = [
+    "point_estimate",
+    "sample_size",
+    "source_PMID",
+    "directness",
+]
 
 
 def classify_endpoint(endpoint_name: str, context_text: str = "") -> str:

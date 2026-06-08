@@ -1309,24 +1309,38 @@ def _check_retrieval_completeness(state: dict[str, Any]) -> GateResult:
             upstream_node_to_reroute="sota_search",
         )
 
-    # V3.2: If evidence records exist, retrieval is functionally complete.
-    # Status field inconsistency in search_run_registry is an implementation
-    # detail that should not block CER writing.
-    if evidence or screening:
+    cep = state.get("clinical_evaluation_plan") or {}
+    lsp = cep.get("literature_search_protocol") or {}
+    planned_databases = lsp.get("databases") or []
+
+    if not search_runs:
         return GateResult(
             "retrieval_completeness",
-            "PASS",
-            f"Retrieval is functionally complete: {len(evidence)} evidence records, "
-            f"{len(screening)} screened, {len(search_runs)} search runs registered.",
+            "BLOCKED",
+            "search_run_registry is empty — no literature search has been executed. "
+            "Writer cannot proceed without retrieval evidence.",
+            failure_pattern="no_search_executed",
+            upstream_node_to_reroute="sota_search",
         )
 
-    # Fallback: searches executed but evidence not yet populated
-    return GateResult(
-        "retrieval_completeness",
-        "PASS",
-        f"{len(search_runs)} search(es) registered. Controlled deferral — "
-        "retrieval evidence is captured in evidence_registry and screening tables.",
-    )
+    completed = [s for s in search_runs if str(s.get("status") or "").lower() in ("completed", "done", "finished")]
+    failed = [s for s in search_runs if str(s.get("status") or "").lower() in ("failed", "error")]
+
+    if planned_databases and len(completed) < len(planned_databases):
+        return GateResult(
+            "retrieval_completeness",
+            "REWORK_REQUIRED",
+            f"Only {len(completed)}/{len(planned_databases)} planned database(s) searched. "
+            "Complete all planned searches before Writer release.",
+            failure_pattern="incomplete_search_coverage",
+            upstream_node_to_reroute="sota_search",
+        )
+
+    if failed:
+        return GateResult(
+            "retrieval_completeness",
+            "REWORK_REQUIRED",
+            f"{len(failed)} search(es) failed. Retry or document the controlled compromise before Writer release.",
             failure_pattern="search_failures_present",
             upstream_node_to_reroute="sota_search",
         )
