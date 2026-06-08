@@ -1,0 +1,12 @@
+defect_id,score_area,capability,required_asset,asset_status,source_path_or_basis,fallback_allowed,fallback_type,full_score_allowed,max_score_if_missing,blocks_full_100,Owner_question,Domain_expert_question,last_updated_phase
+DC-1,Retrieval recall,Search audit trail+gold recall,Manual Search Gold Set,UNKNOWN,,yes,heuristic,no,5,yes,"Confirm Gold Set exists?","Verify recall threshold?",Phase_0
+DC-2,Retrieval recall,Query reproducibility,search_run_registry,READY,graph.py:sota_search,yes,synthetic_fixture,yes,10,no,,,Phase_0
+DC-3,Screening exclusion,N<10+animal+review exclusion,Screening Gold Labels,UNKNOWN,,yes,heuristic,no,5,yes,"Gold labels available?","Confirm exclusion criteria?",Phase_0
+DC-4,Clinical fact traceability,PMID-anchored data extraction,PMID Verification Set,UNKNOWN,,yes,synthetic_fixture,no,6,yes,"PMID set available?","Verify extraction accuracy?",Phase_0
+DC-5,Fulltext policy,Abstract-only constraint,Fulltext Availability Mapping,PARTIAL,artifacts/cer/*,yes,heuristic,no,5,yes,"Fulltext mapping complete?","Acceptable abstract-only threshold?",Phase_0
+DC-6,Endpoint semantics,AE vs treatment_failure taxonomy,Endpoint/AE Expert Labels,PARTIAL,engineer feedback,endpoint_rules,no,heuristic,no,6,yes,"Expert labels for endpoints?","Taxonomy correct?",Phase_0
+DC-7,Comparator benchmark,Range+CI+source completeness,Comparator Gold Ranges,NOT_FOUND,,yes,synthetic_fixture,no,5,yes,"Comparator ranges available?","Benchmark complete?",Phase_0
+DC-8,Cross-section consistency,Endpoint+benchmark+narrative alignment,SOTA Accounting Gold Ledger,NOT_FOUND,,yes,heuristic,no,5,yes,"Accounting ledger exists?","Consistency rules correct?",Phase_0
+DC-9,SOTA accounting,Search→screen→include number reconciliation,SOTA Accounting Gold Ledger,NOT_FOUND,,yes,heuristic,no,5,yes,"Ledger available?","Accounting method correct?",Phase_0
+DC-10,Denominator correctness,Subgroup vs total N separation,Denominator Gold Labels,NOT_FOUND,,yes,synthetic_fixture,no,5,yes,"Gold labels available?","Denominator rules correct?",Phase_0
+DC-11,Writer consistency,Prose vs ledger constraint mapping,Writer Output (current or historical),PARTIAL,phase7_dry_run_output,yes,accepted_CER_reverse_label,no,3,yes,"Writer output available?","Prose quality acceptable?",Phase_0

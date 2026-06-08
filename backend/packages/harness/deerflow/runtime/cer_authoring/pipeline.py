@@ -7880,6 +7880,30 @@ def _lookup_fulltext_endpoint(
             if name_words & key_words:
                 candidates.extend(eps)
 
+    # V3.2: Clinical semantic mapping — bridge abstract endpoint categories
+    # to specific full-text endpoint keywords when direct word overlap fails
+    if not candidates:
+        _clinical_map = {
+            "visualization": ["image quality", "visibility", "visualization", "illumination"],
+            "procedure completion": ["stone-free", "success rate", "access success", "procedure completion"],
+            "image quality": ["image quality", "visibility", "visualization", "illumination"],
+            "maneuverability": ["deflection", "insertion", "maneuverability", "maneuver"],
+            "device malfunction": ["breakage", "failure", "malfunction", "deflection loss", "image loss"],
+            "injury": ["complication", "perforation", "avulsion", "injury", "mucosal"],
+            "bleeding": ["bleeding", "transfusion", "hemorrhage", "blood loss"],
+            "infection": ["infection", "sepsis", "uti", "febrile", "sirs"],
+            "perforation": ["perforation", "avulsion", "ureteral injury"],
+            "sepsis": ["sepsis", "urosepsis", "infection", "sirs"],
+        }
+        matched_categories = set()
+        for category, keywords in _clinical_map.items():
+            if category in name_clean:
+                matched_categories.update(keywords)
+        if matched_categories:
+            for key, eps in lookup.items():
+                if any(kw in key for kw in matched_categories):
+                    candidates.extend(eps)
+
     if not candidates:
         return None
 

@@ -1,0 +1,16 @@
+asset_id,asset_name,status,source_path,evidence_basis,defect_classes_covered,score_areas_affected,usable_for,locked_status,writer_access,next_action,blocks_path_A,caps_score
+A-01,Engineer Feedback Pack,PARTIAL,A06_南驰 project (9 versions + human gates),Implicit in iterative versions and CLAUDE.md RCA,DC-1/3/4/6/7/9/10,Multiple,calibration+stress,LOCKED_NO_WRITER,No,"Extract explicit defect patterns from V4→V12 diffs",yes,yes
+A-02,Real Project Pack,READY,A06_南驰 full project,IFU+GSPR+CER_INPUT+9 runs+QA,DC-1 through DC-11,All,calibration+holdout,WRITER_ALLOWED,Yes,"Use as primary validation project",no,no
+A-03,Full-text/Clinical Data Pack,PARTIAL,02_CER_OUTPUT_DEERFLOW_V12/,Evidence registry + clinical endpoints in package,DC-4/5/10,Clinical fact+fulltext+denominator,calibration,WRITER_ALLOWED,Yes,"Extract clinical facts from V12 output",no,no
+A-04,Manual Search Gold Set,NOT_FOUND,,No gold recall set found,DC-1/2,Retrieval recall,none,N/A,No,"Request Owner to confirm if manual search exists",yes,yes
+A-05,Screening Gold Labels,NOT_FOUND,,No explicit screening labels,DC-3,Screening exclusion,none,N/A,No,"Derive from human gate review decisions",yes,yes
+A-06,Fulltext Availability Mapping,PARTIAL,A06_南驰 outputs,Partial fulltext data in evidence registry,DC-5,Fulltext policy,calibration,WRITER_ALLOWED,Yes,"Map fulltext status from V12 evidence registry",no,no
+A-07,PMID/Clinical Fact Verification Set,NOT_FOUND,,No PMID verification set,DC-4,Clinical fact traceability,none,N/A,No,"Extract from V12 clinical data; cross-check with abstracts",yes,yes
+A-08,Denominator Gold Labels,NOT_FOUND,,No denominator verification labels,DC-10,Denominator correctness,none,N/A,No,"Create synthetic fixtures from McKee-style patterns",yes,yes
+A-09,Endpoint/AE Expert Labels,PARTIAL,CLAUDE.md RCA + engineer feedback rules,AE vs treatment_failure distinction in RCA,DC-6,Endpoint semantics,calibration,CALIBRATION_ONLY,No,"Extract taxonomy rules from RCA document",yes,yes
+A-10,Comparator Benchmark Gold Ranges,NOT_FOUND,,No comparator gold ranges,DC-7,Comparator benchmark,none,N/A,No,"Extract from equivalence report + SOTA literature",yes,yes
+A-11,SOTA Accounting Gold Ledger,NOT_FOUND,,No accounting ledger,DC-8/9,SOTA accounting,none,N/A,No,"Create from V12 search→screen→include numbers",yes,yes
+A-12,Claim-Evidence Support Labels,NOT_FOUND,,No explicit support labels,DC-11 related,Claim-evidence semantic,none,N/A,No,"Derive from claim_ledger+evidence mapping in package",yes,yes
+A-13,Writer Output,PARTIAL,02_section_drafts/,Section drafts from V12 run,DC-11,Writer consistency,validation,CALIBRATION_ONLY,No,"Validate section drafts against V12 package",no,no
+A-14,Minimal Regulatory Core,READY,A06_南驰 source,IFU+GSPR+DoC+PMS+PMCF,DC-all,All,calibration,WRITER_ALLOWED,Yes,"Use IFU/GSPR for product identity validation",no,no
+A-15,Minimal Endpoint/AE Expert Labels,PARTIAL,CLAUDE.md §CER Clinical Endpoint Classification,AE/treatment_failure/inadequate_hemostasis classification rules,DC-6,Endpoint semantics,calibration,CALIBRATION_ONLY,No,"Apply rules from CLAUDE.md to endpoint registry",no,no
