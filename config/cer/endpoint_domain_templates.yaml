@@ -1,0 +1,110 @@
+# BIGDP2026.6V_3 U4: Endpoint Domain Template Library
+# 5 domain templates with expected endpoints, comparators, misclassifications.
+schema_version: "1.0.0"
+
+domains:
+  hemostasis_wound_closure:
+    clinical_domain: "Hemostasis / Wound Closure"
+    keywords: ["hemostasis", "closure", "vascular closure", "bleeding", "wound"]
+    expected_safety_endpoints:
+      - name: "major_adverse_events"
+        type: "primary_safety"
+        common_misclassification: "adverse_event"
+      - name: "access_site_complications"
+        type: "secondary_safety"
+    expected_performance_endpoints:
+      - name: "hemostasis_success_rate"
+        type: "primary_efficacy"
+        common_misclassification: "adverse_event"
+      - name: "time_to_hemostasis"
+        type: "secondary_efficacy"
+      - name: "device_success_rate"
+        type: "secondary_efficacy"
+    expected_comparators: ["manual_compression", "surgical_closure", "vascular_closure_device"]
+    benchmark_format: "percentage_with_CI"
+
+  ablation:
+    clinical_domain: "Ablation (Cardiac/Tumor)"
+    keywords: ["ablation", "PFA", "RFA", "microwave ablation", "cryoablation"]
+    expected_safety_endpoints:
+      - name: "major_complications"
+        type: "primary_safety"
+      - name: "phrenic_nerve_injury"
+        type: "secondary_safety"
+      - name: "esophageal_injury"
+        type: "secondary_safety"
+    expected_performance_endpoints:
+      - name: "acute_procedural_success"
+        type: "primary_efficacy"
+      - name: "freedom_from_recurrence"
+        type: "primary_efficacy"
+      - name: "procedure_time"
+        type: "secondary_efficacy"
+    expected_comparators: ["antiarrhythmic_drugs", "thermal_ablation", "cryoablation"]
+    benchmark_format: "percentage_with_CI"
+
+  implant_orthopaedic:
+    clinical_domain: "Implant / Orthopaedic"
+    keywords: ["implant", "orthopaedic", "orthopedic", "prosthesis", "arthroplasty"]
+    expected_safety_endpoints:
+      - name: "implant_related_complications"
+        type: "primary_safety"
+      - name: "revision_rate"
+        type: "primary_safety"
+      - name: "infection_rate"
+        type: "secondary_safety"
+    expected_performance_endpoints:
+      - name: "implant_survival_rate"
+        type: "primary_efficacy"
+      - name: "functional_outcome_score"
+        type: "primary_efficacy"
+      - name: "range_of_motion"
+        type: "secondary_efficacy"
+    expected_comparators: ["standard_implant", "non_operative_treatment"]
+    benchmark_format: "percentage_with_CI"
+
+  cardiovascular_support:
+    clinical_domain: "Cardiovascular Support"
+    keywords: ["ventricular assist", "VAD", "ECMO", "cardiopulmonary", "bypass"]
+    expected_safety_endpoints:
+      - name: "major_bleeding"
+        type: "primary_safety"
+      - name: "thromboembolic_events"
+        type: "primary_safety"
+      - name: "device_malfunction"
+        type: "secondary_safety"
+    expected_performance_endpoints:
+      - name: "survival_to_discharge"
+        type: "primary_efficacy"
+      - name: "hemodynamic_support_duration"
+        type: "secondary_efficacy"
+      - name: "bridge_to_transplant_rate"
+        type: "secondary_efficacy"
+    expected_comparators: ["optimal_medical_therapy", "alternative_MCS_device"]
+    benchmark_format: "percentage_with_CI"
+
+  surgical_instrument:
+    clinical_domain: "Surgical Instrument"
+    keywords: ["surgical", "instrument", "endoscopic", "laparoscopic", "cutter", "stapler"]
+    expected_safety_endpoints:
+      - name: "device_related_adverse_events"
+        type: "primary_safety"
+      - name: "tissue_damage"
+        type: "secondary_safety"
+    expected_performance_endpoints:
+      - name: "procedural_success_rate"
+        type: "primary_efficacy"
+      - name: "operative_time"
+        type: "secondary_efficacy"
+      - name: "blood_loss"
+        type: "secondary_efficacy"
+    expected_comparators: ["manual_instrument", "alternative_surgical_device"]
+    benchmark_format: "percentage_with_CI"
+
+generic_fallback:
+  clinical_domain: "unknown"
+  expected_safety_endpoints: []
+  expected_performance_endpoints: []
+  expected_comparators: []
+  benchmark_format: "narrative_only"
+  limitation: "No domain-specific template available. Generic fallback applied."

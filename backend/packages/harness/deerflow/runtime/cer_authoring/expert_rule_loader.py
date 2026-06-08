@@ -665,6 +665,105 @@ def validate_equivalence_route(state: dict) -> str:
     return "equivalence_claimed"
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V_3 U5: BR/GSPR Substantive Crosswalk
+# ══════════════════════════════════════════════════════════════════════════════
+
+def validate_br_gspr_crosswalk(state: dict) -> dict:
+    """Validate benefit-risk and GSPR crosswalk completeness.
+
+    Returns dict with: is_valid, issues, checks.
+    """
+    issues = []
+    br_ledger = state.get("benefit_risk_ledger", [])
+    gspr = state.get("gspr_coverage", {})
+    alignment = state.get("alignment_matrix", [])
+    unfavourable = state.get("unfavourable_evidence_register", [])
+
+    # Benefit must have evidence
+    for row in br_ledger:
+        if not row.get("benefit_evidence_basis") and not row.get("evidence_ids"):
+            issues.append(f"Benefit '{row.get('benefit', '?')}' has no evidence basis")
+
+    # Unresolved uncertainty must have disposition
+    uncertainty = state.get("unresolved_uncertainty_register", [])
+    valid_dispositions = {"PMCF", "labeling_limitation", "risk_control", "human_gate", "cannot_support"}
+    for item in uncertainty:
+        disp = str(item.get("disposition", ""))
+        if disp not in valid_dispositions:
+            issues.append(f"Uncertainty '{item.get('description', '?')}' has invalid disposition: {disp}")
+
+    # Unfavourable evidence must be addressed
+    if unfavourable and not any("addressed" in str(u.get("status", "")).lower() for u in unfavourable):
+        issues.append("Unfavourable evidence present but not addressed")
+
+    return {
+        "is_valid": len(issues) == 0,
+        "issues": issues,
+        "checks": {
+            "benefits_have_evidence": not any("no evidence basis" in i for i in issues),
+            "uncertainties_dispositioned": not any("invalid disposition" in i for i in issues),
+            "unfavourable_addressed": not any("not addressed" in i for i in issues),
+        },
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V_3 U6: Post-Write CER Prose QA Detectors
+# ══════════════════════════════════════════════════════════════════════════════
+
+def detect_writer_issues(prose_text: str, ledger: dict) -> list[dict]:
+    """Run 9 post-write QA detectors against CER prose.
+
+    Each detector returns {"detector": name, "status": PASS/FLAG/FAIL, "detail": str}.
+    """
+    results = []
+
+    # 1. conclusion_overstatement
+    for claim in ledger.get("claims", []):
+        strength = claim.get("conclusion_strength", "limited")
+        claim_text = claim.get("claim_text", "")
+        if strength in ("limited", "not_supported") and claim_text[:30] in prose_text:
+            strong_words = ["demonstrates", "confirms", "proves", "establishes", "guarantees"]
+            if any(w in prose_text.lower() for w in strong_words):
+                results.append({"detector": "conclusion_overstatement", "status": "FAIL",
+                                "detail": f"Claim '{claim_text[:60]}' has strength={strength} but prose uses strong language"})
+
+    # 2. unsupported_positive_claim
+    for claim in ledger.get("claims", []):
+        if claim.get("conclusion_strength") == "not_supported":
+            if claim.get("claim_text", "")[:30] in prose_text:
+                results.append({"detector": "unsupported_positive_claim", "status": "FAIL",
+                                "detail": f"not_supported claim '{claim['claim_text'][:60]}' appears in prose"})
+
+    # 3. no_source_numeric
+    import re
+    numbers = re.findall(r'\d+\.?\d*\s*%', prose_text)
+    if numbers and not ("PMID" in prose_text or "pmid" in prose_text.lower()):
+        results.append({"detector": "no_source_numeric", "status": "FLAG",
+                        "detail": f"{len(numbers)} numeric claims without PMID reference"})
+
+    # 4. endpoint_taxonomy_contradiction
+    if "adverse event" in prose_text.lower() and "treatment failure" in prose_text.lower():
+        results.append({"detector": "endpoint_taxonomy_contradiction", "status": "FLAG",
+                        "detail": "Both AE and treatment_failure language in prose — verify classification"})
+
+    # 5. PMCF overclaim
+    if "PMCF" in prose_text.upper() and "resolves" in prose_text.lower():
+        results.append({"detector": "PMCF_overclaim", "status": "FAIL",
+                        "detail": "PMCF cannot 'resolve' evidence gaps — this is overclaim language"})
+
+    # 6. missing_benchmark_limitation
+    for ep in ledger.get("benchmark_derivation_trace", {}).get("endpoints", []):
+        if ep.get("directness") == "fallback" and ep.get("endpoint_name", "")[:20] in prose_text:
+            if "limitation" not in prose_text.lower() and "fallback" not in prose_text.lower():
+                results.append({"detector": "missing_benchmark_limitation", "status": "FLAG",
+                                "detail": f"Fallback benchmark '{ep['endpoint_name']}' used without limitation statement"})
+
+    if not results:
+        results.append({"detector": "all_clear", "status": "PASS", "detail": "No issues detected"})
+
+    return results
 def get_equivalence_limitation_for_writer(route: str) -> str:
     """Generate Writer limitation text based on equivalence route."""
     limitations = {

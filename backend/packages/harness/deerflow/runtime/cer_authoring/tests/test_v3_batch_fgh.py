@@ -94,3 +94,65 @@ class TestU4U5U6:
         from deerflow.runtime.cer_authoring.expert_rule_loader import parse_hr_rr_or
         results = parse_hr_rr_or("HR 0.85 (95% CI 0.70-1.05) p=0.08")
         assert len(results) >= 1
+
+
+class TestU4DomainLibrary:
+    def test_config_exists(self):
+        import yaml
+        from pathlib import Path
+        config = Path(__file__).parents[7] / "config" / "cer" / "endpoint_domain_templates.yaml"
+        assert config.exists()
+        data = yaml.safe_load(config.read_text())
+        assert len(data.get("domains", {})) >= 5
+
+    def test_five_domains_defined(self):
+        import yaml
+        from pathlib import Path
+        config = Path(__file__).parents[7] / "config" / "cer" / "endpoint_domain_templates.yaml"
+        data = yaml.safe_load(config.read_text())
+        for d in ["hemostasis_wound_closure", "ablation", "implant_orthopaedic", "cardiovascular_support", "surgical_instrument"]:
+            assert d in data["domains"], f"Missing: {d}"
+
+
+class TestU5BRGSPR:
+    def test_crosswalk_valid_passes(self):
+        from deerflow.runtime.cer_authoring.expert_rule_loader import validate_br_gspr_crosswalk
+        result = validate_br_gspr_crosswalk({
+            "benefit_risk_ledger": [{"benefit": "Hemostasis", "benefit_evidence_basis": "RCT"}],
+        })
+        assert result["is_valid"]
+
+    def test_benefit_without_evidence_fails(self):
+        from deerflow.runtime.cer_authoring.expert_rule_loader import validate_br_gspr_crosswalk
+        result = validate_br_gspr_crosswalk({
+            "benefit_risk_ledger": [{"benefit": "Hemostasis"}],
+        })
+        assert not result["is_valid"]
+
+
+class TestU6WriterQA:
+    def test_detect_overstatement(self):
+        from deerflow.runtime.cer_authoring.expert_rule_loader import detect_writer_issues
+        results = detect_writer_issues(
+            "The device demonstrates superior hemostasis.",
+            {"claims": [{"claim_id": "C-01", "claim_text": "demonstrates superior hemostasis", "conclusion_strength": "limited"}]},
+        )
+        assert any(r["detector"] == "conclusion_overstatement" for r in results)
+
+    def test_detect_unsupported_claim(self):
+        from deerflow.runtime.cer_authoring.expert_rule_loader import detect_writer_issues
+        results = detect_writer_issues(
+            "The device eliminates all complications.",
+            {"claims": [{"claim_id": "C-01", "claim_text": "eliminates all complications.", "conclusion_strength": "not_supported"}]},
+        )
+        assert any(r["detector"] == "unsupported_positive_claim" for r in results)
+
+    def test_clean_prose_passes(self):
+        from deerflow.runtime.cer_authoring.expert_rule_loader import detect_writer_issues
+        results = detect_writer_issues(
+            "Hemostasis in 94% (PMID: 12345).",
+            {"claims": [{"claim_id": "C-01", "claim_text": "hemostasis", "conclusion_strength": "strong"}], "benchmark_derivation_trace": {"endpoints": []}},
+        )
+        has_pass = any(r["status"] == "PASS" for r in results)
+        no_fail = not any(r["status"] == "FAIL" for r in results)
+        assert has_pass or no_fail, f"Results: {results}"
