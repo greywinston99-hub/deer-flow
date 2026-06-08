@@ -1,0 +1,4 @@
+dc_id,closure_status,score_area,code_location,test_location,runtime_evidence,validation_evidence,score_cap_reason,full_score_possible
+DC-8,CLOSED_WITH_HEURISTIC_VALIDATION,Cross-section consistency (part of SOTA 8),test_batch_d_validation.py:TestCrossSectionConsistency,test_batch_d_validation.py,PRISMA number reconciliation in place,No SOTA gold ledger,No: max 6/8 — heuristic rules without gold
+DC-9,CLOSED_WITH_HEURISTIC_VALIDATION,SOTA accounting (8),test_batch_d_validation.py:TestSOTAAccountingConsistency,test_batch_d_validation.py,PRISMA reconciliation test passes,No SOTA gold ledger,No: max 6/8 — heuristic without gold
+DC-11,CLOSED_WITH_DERIVED_VALIDATION,Writer consistency (6),test_batch_d_validation.py:TestWriterSemanticQA + cer_package_validator.py,test_batch_d_validation.py,Writer must not exceed ledger conclusion_strength; not_supported→blocked,No current-run Writer output (Level 1 unavailable),No: max 4/6 — derived validation from package constraints

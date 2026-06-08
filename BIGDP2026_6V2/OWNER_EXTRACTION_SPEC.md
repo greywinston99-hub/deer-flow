@@ -1,385 +1,394 @@
-# BIGDP2026.6V_2 — Owner 资料提取规范
+# BIGDP2026.6V_2 — Owner 系统性资产提取规范
 
-**用途：** Owner 从 44 个项目 + 法规文件中提取资料，供 Batch B/C/D/Final 使用。
-**原则：** 只提取，不分析。每份提取物有明确的 Batch/DC 落点。
-**颗粒度要求：** 每个提取任务都链接到具体的已知缺陷、CLAUDE.md 规则、或工程师反馈中的精确 PMID/数值。不提取"一般信息"，只提取能直接用于校准、测试、规则归纳的信息。
+**目标：** 从 44 个 L1 项目中选取 15–20 个项目，提取结构化资产，使 Patch A 输出可直接被 Batch B/C/D/Final 吸收为 rule / fixture / semantic test / runtime validator / writer QA / validation evidence。
+**原则：** 每条提取数据必须带着吸收目的出生——有 target_batch、target_dc、score_area、dataset_role、evidence_level、absorption_type。不提取"一般信息"。
+**参考锚点：** `~/.claude/CLAUDE.md`（全文 CER 规则）、`BIGDP2026_6V2/BIGDP2026_6V2_ENGINEER_FEEDBACK_DEFECT_MAP.md`（10 类缺陷精确描述）、`SCORE_CAP_RULES.md`（扣分规则）。
 
 ---
 
-## 一、提取总览
+## 一、本轮排除项目
 
-| Batch | 需要信息 | 来源文件夹 | 输出格式 |
+**南驰 / iTClamp / A06 已吸收项目不进入本轮新提取。**
+
+| 项目 | 本轮角色 | 允许 | 不允许 |
 |:---|:---|:---|:---|
-| B | 检索记录、筛选决策、PMID-数据映射、全文状态、分母 | `01_CER_SOURCE_PACKAGE` > `CLINICAL_EVIDENCE` > `CER` | CSV |
-| B | NB 对数据质量的意见 | `02_NB_BENCHMARK_ORIGINAL` > `NB_REVIEW_COMMENTS` | 原文摘录 MD |
-| C | Endpoint 分类、比较器基准值 | `01_CER_SOURCE_PACKAGE` > `CER` > `CLINICAL_EVIDENCE` | CSV |
-| C | NB 对 endpoint/equivalence 的意见 | `02_NB_BENCHMARK_ORIGINAL` > `NB_QUESTIONS` | 原文摘录 MD |
-| D | SOTA 数字、CER 正文、前后修订对比 | `01_CER_SOURCE_PACKAGE` > `CER` + `03_COMPANY_RESPONSES` | 原文文件 |
-| D | NB 最终验收结论 | `03_COMPANY_RESPONSES` > `CLOSURE_RECORDS` | 原文摘录 MD |
-| 全阶段 | 法规规则 | `/Users/winstonwei/CER-RAG/Source/EU MDCG/` | 原文文件 |
+| A06_南驰 / iTClamp | Historical Regression only | 作为历史问题来源、作为回归测试参考 | 作为本轮 calibration / stress / holdout 项目、计入新资产覆盖数量、参与新规则归纳 |
+
+原因：该项目已被 BIGDP2026.6 和 V2 前期多次吸收。继续作为主样本会导致系统围绕 iTClamp 过拟合，无法泛化到其他器械类型和 NB 反馈风格。
 
 ---
 
-## 二、按 Batch 的详细提取任务
+## 二、15–20 项目选择策略
 
-### Batch B — 证据完整性（6 个 DC）
+### 项目结构
 
-#### 任务 B1：检索审计信息 → 落点 DC-1, DC-2
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CLINICAL_EVIDENCE/` 中的文献检索报告
-**查找关键词：** "search strategy", "PubMed", "Embase", "检索策略", "检索词", "query", "PRISMA"
-**提取内容：** 检索词、数据库名称、检索日期、命中数、筛选后数量、入选 PMID 列表
-**输出格式：** 每个项目一个 `B1_SEARCH_AUDIT.csv`，字段：
+| 类型 | 数量 | 用途 |
+|:---|:--:|:---|
+| Calibration | 8–10 | 提炼规则、SOP、fixtures、gold labels |
+| Stress | 4–5 | 测试资料缺失、endpoint 模糊、全文不可得、denominator 错误 |
+| Holdout | 3–5 | 不参与规则归纳，只做最终验证 |
+| Special Evidence | 0–2 | 专门补某一类缺口（PMCF、equivalence、SOTA accounting） |
+| **总计** | **15–20** | |
+
+### 选择原则
+
+1. 优先选有 CER + SOTA + 文献检索 + NB feedback + final accepted version 的项目
+2. 优先选不同器械类型（避免同一 domain 全进 calibration）
+3. 优先选不同缺陷类型（避免只覆盖某几类 DC）
+4. 优先选不同 NB 机构（避免过拟合某个 NB 的审核风格）
+5. Holdout 项目不参与 calibration 规则归纳和 fixture 生成
+6. 南驰 / iTClamp 不进入本轮新提取
+
+### 校准项目最低要求
+
+Calibration 8–10 个项目的分布要求：
+
+| 要求 | 最低数量 |
+|:---|:--:|
+| 有完整 SOTA / search 记录 | ≥5 |
+| 有全文或 PMID 数据表 | ≥5 |
+| 有 NB feedback | ≥4 |
+| 有 before/after CER 版本 | ≥3 |
+| 有 denominator / endpoint 详细数据表 | ≥4 |
+
+### Stress 项目选择标准
+
+挑问题多的：文献少、全文缺失、endpoint 模糊、comparator 缺失、SOTA 数字混乱、NB feedback 多轮、IFU/RMF/GSPR 不一致。
+
+### Holdout 项目选择标准
+
+挑资料完整但不参与规则归纳的：有 IFU/RMF/GSPR/CER/SOTA，有 final accepted CER。
+
+### Dataset Role Lock（角色锁定规则）
+
+| 项目角色 | 能做什么 | 禁止什么 |
+|:---|:---|:---|
+| Calibration | 生成规则、fixtures、tests | 不能作为最终泛化证明 |
+| Stress | 测试极端情况、缺失资料、模糊判断 | 不能作为主要规则来源 |
+| Holdout | 最终验证 | 不能参与规则归纳、不能生成 fixtures |
+| Historical Regression | 只做历史回归参考 | 不计入新资产覆盖 |
+| Special Evidence | 专门补某一 DC 缺口 | 不用于其他 DC 的泛化规则 |
+
+---
+
+## 三、项目选择覆盖矩阵
+
+创建 `PROJECT_SELECTION_COVERAGE_MATRIX.csv`，每个候选项目一行。字段：
+
+```csv
+project_id,project_name,device_type,NB_body_if_known,has_CER,has_SOTA,has_IFU,has_RMF,has_GSPR,has_literature_search,has_fulltext,has_NB_feedback,has_company_response,has_final_accepted_version,has_before_after,DC1_search,DC2_query,DC3_screening,DC4_pmid_trace,DC5_fulltext,DC6_endpoint,DC7_comparator,DC8_consistency,DC9_sota_accounting,DC10_denominator,DC11_writer,dataset_role,selection_reason,exclusion_reason
+```
+
+### DC 覆盖配额（Patch A 验收标准）
+
+| 缺陷类 | 最低覆盖项目数 |
+|:---|:--:|
+| DC-1/2 检索召回和检索词 | ≥5 |
+| DC-3 筛选规则 | ≥5 |
+| DC-4 PMID 数据溯源 | ≥5 |
+| DC-5 全文状态 | ≥5 |
+| DC-6 endpoint 语义 | ≥6 |
+| DC-7 comparator benchmark | ≥4 |
+| DC-8/9 SOTA accounting / 上下文一致性 | ≥5 |
+| DC-10 denominator/subgroup | ≥4 |
+| DC-11 Writer before/after | ≥4 |
+
+**Patch A 不以项目数量为唯一验收标准，而以 DC 覆盖配额为验收标准。**
+
+---
+
+## 四、提取任务：Batch B — 证据完整性
+
+每个任务给出：目标 DC、参考锚点、输出 CSV 字段、最低数量、正例/负例提示。
+
+### B1 检索审计 → DC-1, DC-2
+
+**源文件夹：** `01_CER_SOURCE_PACKAGE/CLINICAL_EVIDENCE/`
+**查找：** "search strategy", "PubMed", "Embase", "检索策略", "检索词", "query", "PRISMA"
+**CLAUDE.md 规则（Line 148）：** Every search MUST document: exact PubMed query string, date, total hits, Humans filter, count after each exclusion.
+**Defect Map引用：** DC-1 Line 16-17（query_string, database, date, total_hits, humans_filter）、DC-2 Line 33
+
+**输出：** `B1_SEARCH_AUDIT.csv`
 
 ```
 project_id, search_round, database, query_string, date_executed, total_hits, humans_filter_applied, humans_hits, dedup_hits, included_pmids, excluded_pmids
 ```
 
-**最低要求：** 至少 3 个项目有完整检索记录（含检索词）。如果有项目完全没有检索记录 → 标记 `NO_SEARCH_RECORD`。
-
-#### 任务 B2：筛选决策记录 → 落点 DC-3
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CLINICAL_EVIDENCE/` 中的文献筛选表
-**查找关键词：** "inclusion", "exclusion", "筛选", "纳入", "排除", sample size, N=
-**提取内容：** 每篇文献的 PMID、纳入/排除决定、排除原因、样本量
-**输出格式：** `B2_SCREENING.csv`（跨项目汇总），字段：
-
-```
-project_id, pmid, title, sample_size, decision (included/excluded), exclusion_reason, exclusion_reason_code (N_LT_10/ANIMAL/IN_VITRO/REVIEW/WRONG_POPULATION/OTHER), date_range_start, date_range_end
-```
-
-**最低要求：** 至少包含 5 个 "N<10 应排除但纳入" 的案例，和 5 个 "正确排除" 的案例。
-
-#### 任务 B3：全文可用性标记 → 落点 DC-5
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CLINICAL_EVIDENCE/` 中的 PDF 全文
-**提取内容：** 每个 PMID 的全文状态
-**输出格式：** `B3_FULLTEXT_STATUS.csv`，字段：
-
-```
-project_id, pmid, fulltext_status (obtained/abstract_only/unobtainable), has_numerical_data, data_source (abstract/fulltext_table/fulltext_text/unknown)
-```
-
-**最低要求：** 覆盖至少 20 个 PMID。
-
-#### 任务 B4：PMID-数据溯源 → 落点 DC-4
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CER/` 中的临床数据表、endpoint 表
-**提取内容：** CER 中引用的每个具体数据点 → 它的来源 PMID → PMID 中是否真的存在该数据
-**输出格式：** `B4_PMID_TRACE.csv`，字段：
-
-```
-project_id, data_point_description, data_point_value, source_pmid, data_found_in_abstract (yes/no/unknown), data_found_in_fulltext (yes/no/unknown), source_sentence_or_location, confidence (high/medium/low/unverifiable)
-```
-
-**最低要求：** 覆盖至少 20 个数据点。
-
-#### 任务 B5：分母/子组标注 → 落点 DC-10
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CER/` 中的安全性和有效性数据表
-**提取内容：** 每个 rate/proportion 的分子、分母、人群标签
-**输出格式：** `B5_DENOMINATOR.csv`，字段：
-
-```
-project_id, pmid, endpoint, numerator, denominator, population_label (total/subgroup_name), study_reported_total_n, denominator_matches_study (yes/no), subgroup_correctly_labeled (yes/no)
-```
-
-**最低要求：** 包含至少 3 个 "分母混用" 案例（例如 N=216 总样本 vs n=80 子组）。
-
----
-
-### Batch C — 专家语义可靠性（2 个 DC）
-
-#### 任务 C1：Endpoint 语义分类标注 → 落点 DC-6
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CER/` 中的 endpoint 表 + `02_NB_BENCHMARK_ORIGINAL/NB_REVIEW_COMMENTS/` 中 NB 对 endpoint 分类的意见
-**提取内容：** 为每个 endpoint 标注正确的语义类别
-**标注选项：** `adverse_event` / `serious_adverse_event` / `treatment_failure` / `rescue_therapy_switch` / `inadequate_hemostasis` / `device_deficiency` / `procedural_outcome` / `other`
-**输出格式：** `C1_ENDPOINT_SEMANTICS.csv`，字段：
-
-```
-project_id, endpoint_name, endpoint_value, correct_semantic_class, common_misclassification, classification_basis (ISO_14155/NB_comment/engineer_correction/expert_judgment), source_evidence
-```
-
-**最低要求：** 至少 10 个 endpoint 标注，其中至少 3 个是 `treatment_failure` 或 `inadequate_hemostasis`（非 AE）。
-
-#### 任务 C2：比较器 Benchmark 数据 → 落点 DC-7
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CLINICAL_EVIDENCE/` 中的 SOTA/benchmark/literature review
-**查找关键词：** "comparator", "alternative", "benchmark", "tourniquet", "suture", "staples", "止血带", "缝线", "缝钉"
-**提取内容：** 替代疗法/比较器的性能数据（含 CI 和来源）
-**输出格式：** `C2_COMPARATOR_BENCHMARK.csv`，字段：
-
-```
-project_id, comparator_name, endpoint, point_estimate, ci_lower, ci_upper, sample_size, source_pmid, directness (direct/indirect/fallback), data_in_original_cer (yes/no/missing), limitation_if_missing
-```
-
-**最低要求：** 至少 5 个比较器数据点，含至少 2 个带 CI 的。
-
-#### 任务 C3：Claim-Evidence 支撑标注 → 落点 Claim-Evidence Semantic
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CER/` 中的 claim/evidence 矩阵或结论章节
-**提取内容：** 每个临床声明 → 支撑它的证据类型和强度
-**输出格式：** `C3_CLAIM_EVIDENCE_SUPPORT.csv`，字段：
-
-```
-project_id, claim_id, claim_text, evidence_pmid, evidence_support_type (direct/indirect/equivalent/manufacturer/PMS), endpoint_match (yes/partial/no), population_match (yes/partial/no), support_strength (strong/moderate/weak), n_evidence_items
-```
-
----
-
-### Batch D — 验证与 Writer QA（3 个 DC）
-
-#### 任务 D1：SOTA Accounting 数字 → 落点 DC-8, DC-9
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CER/` 中的 SOTA 章节或 standalone SOTA report
-**提取内容：** 检索策略组数、原始记录数、去重后、筛选后、全文评估数、纳入研究数、证据条目数
-**输出格式：** `D1_SOTA_ACCOUNTING.csv`，字段：
-
-```
-project_id, section, search_groups_count, raw_records, dedup_records, screened_records, fulltext_assessed, included_studies, evidence_items, numbers_consistent (yes/no), inconsistency_description
-```
-
-**最低要求：** 至少 2 个项目有完整 SOTA 数字（最好有数字不一致的项目）。
-
-#### 任务 D2：跨章节一致性检查素材 → 落点 DC-8
-**源文件夹：** `01_CER_SOURCE_PACKAGE/CER/` 的完整 CER 文档
-**提取内容：** 完整 CER Word/PDF 文件，标注哪些章节定义了 endpoint，哪些章节引用了 endpoint
-**输出格式：** 不做 CSV — 直接提供 CER 原文文件 + `D2_CROSS_CHAPTER_NOTES.md`：
-
-```
-project_id, cer_file, section, endpoint_definition_or_usage, endpoint_count_in_section, consistent_with_other_sections (yes/no/unknown)
-```
-
-#### 任务 D3：Writer 输出素材 → 落点 DC-11
-**源文件夹：** `03_COMPANY_RESPONSES/CLOSURE_RECORDS/` 中的最终提交版本 + `01_CER_SOURCE_PACKAGE/CER/` 原始版本
-**提取内容：** CER 的原始版本（修改前）和最终版本（NB 验收后），形成 before/after 对比
-**输出格式：** 原文文件 + `D3_WRITER_OUTPUT_MANIFEST.csv`：
-
-```
-project_id, version (draft/submitted/NB_accepted), cer_file_path, has_writer_issues (yes/no), known_issues_description
-```
-
-#### 任务 D4：真实项目验证素材 → 落点 Real Project Validation
-**源文件夹：** 选择一个资料最完整的项目
-**提取内容：** IFU + RMF + GSPR + literature search + CER draft + CER final + NB review + company response
-**输出格式：** `D4_VALIDATION_PROJECT/` 目录，包含完整项目文件 + `D4_PROJECT_READINESS.md` 说明文件完整性。
-
-**推荐候选项目（按优先级）：**
-
-| 优先级 | 项目 | 原因 |
-|:--:|:---|:---|
-| 1 | `PROJECT_029_苏州心擎` | 心擎=心室辅助/循环支持设备 — endpoint 语义丰富（AE vs device failure vs treatment escalation），适合 DC-6. 可能有完整 NB 审核记录 |
-| 2 | `PROJECT_005_北京海杰亚` | 消融设备 — endpoint 清晰（消融成功/并发症），适合 DC-6/DC-10. 已有 manifest |
-| 3 | `PROJECT_021_青岛德迈迪` | CLAUDE.md 特别提到此项目 |
-| 4 | `PROJECT_042_安徽巨目` | BIGDP2026.6 Phase 7 dry-run 使用过，已有输出 baseline |
-
----
-
-### 法规文件提取
-
-**源文件夹：** `/Users/winstonwei/CER-RAG/Source/EU MDCG/`
-
-**必须提取的文件：**
-
-| 文件 | 用途 | Batch |
-|:---|:---|:---|
-| `MDR_02017R0745-...` | MDR Annex XIV 临床评价要求 | 全阶段 |
-| `05 MDCG 2020-5...` | 等效性指南 | C3 |
-| `md_mdcg_2019_7...` | 临床证据要求 | B2, B3 |
-| `CEAR.pdf` | 临床评价评估报告模板 | D |
-| `md_cybersecurity_en.pdf` | 网络安全（如涉及软件设备） | C4 |
-| `md_mdcg_2020-10-1...` | 安全报告指南 | C1 (AE 分类) |
-
-**最低要求：** 上述 6 个文件就位。127 个文件全部可选。
-
----
-
-## 三、输出目录结构
-
-提取完成后，请按此结构组织：
-
-```
-BIGDP2026_6V2/assets/
-├── batch_B/
-│   ├── B1_search_audit/          ← 每个项目的检索审计 CSV
-│   ├── B2_screening/             ← 跨项目筛选 CSV
-│   ├── B3_fulltext_status/       ← 跨项目全文状态 CSV
-│   ├── B4_pmid_trace/            ← 跨项目 PMID 溯源 CSV
-│   └── B5_denominator/           ← 跨项目分母标注 CSV
-├── batch_C/
-│   ├── C1_endpoint_semantics/    ← Endpoint 语义分类 CSV
-│   ├── C2_comparator_benchmark/  ← 比较器基准 CSV
-│   └── C3_claim_evidence/        ← Claim-Evidence 支撑 CSV
-├── batch_D/
-│   ├── D1_sota_accounting/       ← SOTA 数字 CSV
-│   ├── D2_cer_originals/         ← CER 原文文件
-│   ├── D3_writer_outputs/        ← Writer 输出 before/after
-│   ├── D4_validation_project/    ← 验证项目完整文件
-│   └── NB_feedback_excerpts/     ← NB 意见摘录
-├── regulatory/
-│   └── (法规文件)
-└── ASSET_READINESS_REGISTER.csv  ← 更新状态
-```
-
----
-
-## 四、项目优先级
-
-从Master Index 来看，以下项目最有价值（有 CER + NB material）：
-
-| 优先级 | 提取范围 | 说明 |
-|:--:|:---|:---|
-| **P0** | 3 个项目：选 2 个设备类型差异大的 + 1 个有完整 NB review | 校准用 |
-| **P1** | 3 个项目：选不同设备类型 | Stress test 用 |
-| **P2** | 2 个项目：选资料完整但在校准中未使用的 | Holdout 用 |
-| **P3** | 其余 36 个项目 | 可选 — 用于验证泛化能力 |
-
-**不需要 44 个项目全提取。8 个项目足以覆盖所有 Batch。**
-
----
-
-## 五、提取后下一步
-
-1. Owner 完成提取 → 文件放到 `assets/` 目录
-2. Controller 更新 `ASSET_READINESS_REGISTER.csv`（READY/PARTIAL 变化）
-3. Claude Code 读取提取物，回填 `ASSET_DEPENDENCY_MATRIX.csv` 中的 UNKNOWN 字段
-4. 如 12 Core Assets 中 ≥8 变为 READY → 重新评估 Path A/B
-5. 继续 Batch B 实施（DC-4 补充）+ Batch C + Batch D
-
----
-
-## 六、参考锚点：每个提取任务对应的已知缺陷和规则
-
-以下为每个提取任务提供精确的参考锚点，来源均为已有文件。确保提取的信息有明确的下游用途。
-
-### B1 检索审计 → DC-1, DC-2
-
-**已知缺陷：** iTClamp 项目人工检索 18 篇→Humans 13 篇→AI 只入选 3 篇（recall=23%）。检索报告只显示数量不显示检索词。
-
-**CLAUDE.md §Literature Management Line 148：** "Every literature search MUST document: exact PubMed query string, date executed, total hits, Humans filter applied, number after each exclusion criterion."
-
-**Defect Map DC-1 Line 16-17：** 需要 `query_string, database, date, total_hits, humans_filter`。
-
-**提取重点：** 有完整 query_string 的检索 → 正例。只有数量无检索词 → 负例。人工 vs 系统检索对比。
-
----
+**最低：** ≥5 项目有完整检索记录。正例=含 query_string。负例=只有数量无检索词。
 
 ### B2 筛选决策 → DC-3
 
-**CLAUDE.md Line 143：** "EXCLUDE: Case reports with N<10 patients. EXCLUDE: Animal studies, cadaver studies, porcine/swine models, in vitro only."
+**源文件夹：** `01_CER_SOURCE_PACKAGE/CLINICAL_EVIDENCE/` 文献筛选表
+**CLAUDE.md（Line 143）：** EXCLUDE: N<10 case reports, animal/cadaver/in-vitro.
+**Defect Map DC-3 Line 50：** N<10→EXCLUDE, animal→EXCLUDE, time_unspecified→REWORK
 
-**Defect Map DC-3 Line 50：** `N<10 → EXCLUDE (case_report_insufficient); animal/cadaver/in-vitro → EXCLUDE`。
+**输出：** `B2_SCREENING.csv`
 
-**提取时对标以下 reason_code：**
+```
+project_id, pmid, title, sample_size, decision, exclusion_reason, reason_code, date_range_start, date_range_end
+```
 
-| code | 含义 | 引用 |
-|:---|:---|:---|
-| `N_LT_10` | 样本量不足 | CLAUDE.md L143 |
-| `ANIMAL` | 动物/尸体/离体 | CLAUDE.md L143 |
-| `REVIEW` | 综述作原始数据 | CLAUDE.md L144 |
-| `NO_FULLTEXT` | 全文不可得 | CLAUDE.md L158 |
-| `TIME_UNSPECIFIED` | 时间范围未记录 | Defect Map DC-3 |
+**reason_code 枚举：** `N_LT_10 | ANIMAL | IN_VITRO | REVIEW | WRONG_POPULATION | NO_FULLTEXT | TIME_UNSPECIFIED | OTHER`
 
-**提取重点：** 正确排除 N<10 的→正例。错误纳入 N<10 的→负例（iTClamp 2-case 文献）。
-
----
+**最低：** ≥5 项目。≥5 个正确排除 N<10 案例。≥5 个正确排除动物/体外案例。
 
 ### B3 全文状态 → DC-5
 
-**Defect Map DC-5 Line 78-86：** 人工无法下载全文但系统仍生成数据。需要 `fulltext_status` per PMID：`obtained / abstract_only / unobtainable`。
+**源文件夹：** `01_CER_SOURCE_PACKAGE/CLINICAL_EVIDENCE/` PDF 全文
+**CLAUDE.md（Line 158）：** Mark each PMID: ✅ Full-text / ⚠️ Abstract only / ❌ Unobtainable.
 
-**CLAUDE.md Line 158：** "Mark each cited PMID as: ✅ Full-text available / ⚠️ Abstract only / ❌ Unobtainable."
+**输出：** `B3_FULLTEXT_STATUS.csv`
 
-**提取重点：** `abstract_only` 的 PMID 在 CER 中产生了数值→负例。
+```
+project_id, pmid, fulltext_status, has_numerical_data, data_source
+```
 
----
+**fulltext_status 枚举：** `obtained | abstract_only | unobtainable`
+**data_source 枚举：** `abstract | fulltext_table | fulltext_text | unknown`
+
+**最低：** ≥5 项目，≥20 PMID。正例=obtained 且有数据来源标注。负例=abstract_only 却产生了数值型数据。
 
 ### B4 PMID 溯源 → DC-4
 
-**已知精确 PMID（来自工程师反馈）：**
-- PMID 31539432 — 数据在 abstract 中找不到
-- PMID 32209132 — 同上
-- PMID 30635996（McKee JL 2019）— 分母混用
+**已知精确 PMID（来自工程师反馈）：** PMID 31539432, PMID 32209132, PMID 30635996
+**CLAUDE.md §Data Traceability（Line 152–160）：** Every data point MUST have source PMID. Abstract-verify required. Zero tolerance for orphan data.
 
-**CLAUDE.md §Data Traceability Line 152-160：** "Every numerical data point MUST be traceable to source PMID. PMID-anchor required. Abstract-verify required. Zero tolerance for orphan data."
+**输出：** `B4_PMID_TRACE.csv`
 
-**提取重点：** 打开上述 3 个 PMID 的 PubMed abstract，核对 CER 中引用的数据是否真实存在于 abstract 中。标注 `data_found_in_abstract: yes/no`。
+```
+project_id, data_point_description, data_point_value, source_pmid, data_found_in_abstract, data_found_in_fulltext, source_sentence_or_location, confidence
+```
 
----
+**最低：** ≥5 项目，≥20 数据点。正例=数据在 abstract 中可找到且有 source sentence。负例=PMID 中找不到声称的数据。
 
 ### B5 分母标注 → DC-10
 
-**已知精确案例：** PMID 30635996, N=216 total, CMF 子集 n=80。报告写成 "87.5% (70/80), N=216" — `N=216` 应该对应 `70/216=32.4%`而非 `87.5%`。
+**已知精确案例：** PMID 30635996, N=216 total, CMF 子集 n=80. "87.5% (70/80), N=216" — denominator mismatch.
+**Defect Map DC-10 Line 169：** numerator, denominator, population (total/subgroup). Mismatch → BLOCKED.
 
-**Defect Map DC-10 Line 169：** "每个 rate 必须标注 numerator, denominator, population (total/subgroup)。denominator 与 study reported N 不一致 → BLOCKED。"
+**输出：** `B5_DENOMINATOR.csv`
 
-**提取重点：** 重新计算 percentage 验证分母是否正确。子组结果是否被标注为总体结果。
+```
+project_id, pmid, endpoint, numerator, denominator, population_label, study_reported_total_n, denominator_matches_study
+```
 
----
-
-### C1 Endpoint 语义 → DC-6
-
-**已知缺陷：** "装置弃用→直接压迫" 和 "装置弃用→止血带" 被标为 AE。应该是 treatment_failure 或 rescue_therapy_switch。
-
-**CLAUDE.md §Endpoint Classification Line 164-167：**
-
-| 正确分类 | 定义 |
-|:---|:---|
-| `adverse_event` | Device-related untoward medical event (ISO 14155) |
-| `treatment_failure` | Clinical decision to abandon device. NOT an AE |
-| `inadequate_hemostasis` | Efficacy endpoint, not safety AE |
-
-**提取重点：** 任何"装置弃用→替代疗法"被标为 AE 的→高价值负例。NB review 指出 endpoint 分类错误的→最高价值。
+**最低：** ≥4 项目，≥3 个分母混用负例，≥3 个正确分母正例。
 
 ---
+
+## 五、提取任务：Batch C — 专家语义可靠性
+
+### C1 Endpoint 语义分类 → DC-6
+
+**已知缺陷：** "装置弃用→直接压迫/止血带" 被标为 AE。应为 treatment_failure 或 inadequate_hemostasis。
+**CLAUDE.md §Endpoint Classification（Line 164–167）：**
+- `adverse_event` = Device-related untoward medical event (ISO 14155)
+- `treatment_failure` = Clinical decision to abandon device. NOT an AE.
+- `inadequate_hemostasis` = Efficacy endpoint, not safety AE.
+
+**输出：** `C1_ENDPOINT_SEMANTICS.csv`
+
+```
+project_id, endpoint_name, endpoint_value, correct_semantic_class, common_misclassification, classification_basis, source_evidence
+```
+
+**semantic_class 枚举：** `adverse_event | serious_adverse_event | treatment_failure | rescue_therapy_switch | inadequate_hemostasis | device_deficiency | procedural_outcome | other`
+
+**classification_basis 枚举：** `ISO_14155 | NB_comment | engineer_correction | expert_judgment | heuristic`
+
+**最低：** ≥6 项目，≥20 endpoint 标注。≥3 个 treatment_failure 或 inadequate_hemostasis 案例。
 
 ### C2 比较器 Benchmark → DC-7
 
-**已知缺陷：** 替代疗法（止血带、缝线、缝钉）有数据但 benchmark 表缺失。有数据的比较器无 CI。
+**已知缺陷：** 止血带/缝线/缝钉有数据但 benchmark 表缺失。有数据无 CI。
+**CLAUDE.md §Statistical Consistency（Line 170）：** Wilson 95% CI for EVERY reportable rate. No bare percentages.
 
-**CLAUDE.md §Statistical Consistency Line 170：** "Wilson Score 95% CI must be computed for EVERY reportable rate. No bare percentages without CI context."
+**输出：** `C2_COMPARATOR_BENCHMARK.csv`
 
-**提取重点：** 比较器表中有数值无 CI→负例。有数值有 CI 有 source PMID→正例。
+```
+project_id, comparator_name, endpoint, point_estimate, ci_lower, ci_upper, sample_size, source_pmid, directness, in_original_cer
+```
+
+**最低：** ≥4 项目，≥10 比较器数据点。正例=有 CI + source PMID。负例=有数值无 CI、无 source。
+
+### C3 Claim-Evidence 支撑 → Semantic Support
+
+**输出：** `C3_CLAIM_EVIDENCE_SUPPORT.csv`
+
+```
+project_id, claim_id, claim_text, evidence_pmid, evidence_support_type, endpoint_match, population_match, support_strength, n_evidence_items
+```
+
+**evidence_support_type 枚举：** `direct | indirect | equivalent | manufacturer | PMS`
+**最低：** ≥5 项目，≥15 claim-evidence pairs。
 
 ---
+
+## 六、提取任务：Batch D — 验证与 Writer QA
 
 ### D1 SOTA Accounting → DC-8, DC-9
 
-**已知精确案例：** "13 篇文章" vs "14 检索词组 / 1000 records / 183 fulltext / 219 evidence" — 自相矛盾。
+**已知缺陷：** "13 articles" vs "14 search groups / 1000 records / 183 fulltext / 219 evidence".
+**Defect Map DC-9 Line 152：** article_count = screening included_count; evidence_count = appraisal appraised_count.
 
-**Defect Map DC-9 Line 152：** "article_count 必须等于 screening 的 included_count。evidence_count 必须等于 appraisal 的 appraised_count。"
+**输出：** `D1_SOTA_ACCOUNTING.csv`
 
-**提取重点：** 同一 SOTA 报告中相邻段落数字不一致→负例。
+```
+project_id, section, search_groups, raw_records, dedup_records, screened_records, fulltext_assessed, included_studies, evidence_items, numbers_consistent
+```
 
----
+**最低：** ≥5 项目有 SOTA 数字。≥2 项目有数字不一致案例（负例）。
 
 ### D2 跨章节一致性 → DC-8
 
-**已知缺陷：** 前文 4 个安全性终点 → 后文综合对比变成 1 个 "1.7% 皮肤损伤"。
+**已知缺陷：** 前文 4 个安全性终点 → 后文变成 1 个 "1.7% 皮肤损伤"。
+**输出：** CER 原文文件 + `D2_CROSS_CHAPTER_NOTES.md`
 
-**提取重点：** §5（安全性）vs §6（讨论/对比）的 endpoint 列表是否一致。同一 endpoint 值在不同章节是否一致。
+```
+project_id, cer_file, section, endpoint_definition_count, endpoint_usage_count, consistent
+```
+
+**最低：** ≥5 项目有完整 CER 文件。≥2 项目有前后不一致案例。
+
+### D3 Writer 输出 → DC-11
+
+**源文件夹：** `03_COMPANY_RESPONSES/` before/after + `01_CER_SOURCE_PACKAGE/CER/` 原始版
+**输出：** `D3_WRITER_MANIFEST.csv` + 原文文件
+
+```
+project_id, version, cer_file_path, has_writer_issues, known_issues
+```
+
+**version 枚举：** `draft | submitted | NB_round1 | NB_round2 | NB_accepted`
+**最低：** ≥4 项目有 before/after CER。≥2 项目有 ≥2 轮 NB revision。
+
+### D4 验证项目 → Real Project Validation
+
+**从 Holdout 项目中选 1–2 个。** 如果 D4 选用 calibration 项目，必须标记 `validation_type = calibration_replay`，不能作为 full holdout validation。
+**输出：** `D4_VALIDATION_PROJECT/` 完整文件 + `D4_READINESS.md`
 
 ---
 
-## 七、所有参考材料索引
+## 七、法规资源：Rule Extraction Targets
 
-| # | 文件 | 用途 |
-|:--:|:---|:---|
-| 1 | `~/.claude/CLAUDE.md` | 全文 CER 规则——一切提取的最高标准来源 |
-| 2 | `BIGDP2026_6V2/BIGDP2026_6V2_ENGINEER_FEEDBACK_DEFECT_MAP.md` | 10 类缺陷的精确 PMID、错误值、所需素材 |
-| 3 | `BIGDP2026_6V2/resource_planning/ENGINEER_FEEDBACK_COVERAGE_TARGETS.md` | 每类缺陷的最小可用素材 |
-| 4 | `BIGDP2026_6V2/SCORE_CAP_RULES.md` | 扣分规则——告诉你哪些提取物对分数影响最大 |
-| 5 | `BIGDP2026_6V2/ASSET_DEPENDENCY_MATRIX.csv` | 每个 DC 依赖的资产列表 |
-| 6 | `BIGDP2026_6V2/VALIDATION_PATH_DECISION.md` | 当前 Path B 缺口——提取后哪些可能变 READY |
-| 7 | `BIGDP2026_6V2/BIGDP2026_6V2_MASTER_PLAN.md` | 整体升级路线 |
-| 8 | `BIGDP2026_6V2/EXPERT_LABEL_SOURCE_POLICY.md` | 标签来源信心级别 |
-| 9 | `BIGDP2026_6V2/LOCKED_FEEDBACK_USE_POLICY.md` | NB/engineer feedback 使用边界 |
+法规文件不只是"引用资料"，必须进入 rule extraction。创建 `REGULATORY_RULE_EXTRACTION_TARGETS.csv`：
 
-## 八、每份提取物的下游用途
+```
+document_name, file_path, clause_or_section, regulatory_topic, target_dc, target_batch, target_rule_type, expected_runtime_use, expected_writer_constraint, required_or_optional
+```
 
-| 提取物 | 直接校准 | 生成 |
+| 文件 | target_dc | target_rule_type |
 |:---|:---|:---|
-| B1 检索 CSV | DC-1/2 gold/counter examples | G_RETRIEVAL_AUDIT test fixtures |
-| B2 筛选 CSV | DC-3 screening rules | G_SCREENING reason_code classifier |
-| B3 全文 CSV | DC-5 fulltext policy | G_FULLTEXT_BASIS gate 强化 |
-| B4 PMID CSV | DC-4 anchor validator | PMID 31539432/32209132 test fixtures |
-| B5 分母 CSV | DC-10 denominator validator | McKee-style test fixtures |
-| C1 Endpoint CSV | DC-6 semantic classifier | AE/treatment_failure 分类规则 |
-| C2 Comparator CSV | DC-7 completeness checker | Wilson CI 验证 |
-| C3 Claim-Evidence CSV | Semantic support validator | CER_REASONING_LEDGER 质量 |
-| D1 SOTA CSV | DC-8/9 accounting checker | SOTA_ACCOUNTING test fixtures |
-| D2 CER 原文 | DC-8 cross-section checker | Writer QA validation |
-| D3 Writer before/after | DC-11 writer validator | Post-write representative output |
-| D4 验证项目 | All DCs 端到端 | Real project validation score |
+| MDR Annex XIV | DC-4, DC-11 | clinical evaluation evidence chain |
+| MDCG 2020-5 Equivalence | Claim-evidence | equivalence limitation rules |
+| CEAR | Final validation | NB assessment checklist |
+| MDCG 2020-10-1 Safety Reporting | DC-6 | AE/incident classification |
+| ISO 14155 (via MDR references) | DC-6 | endpoint taxonomy |
+
+**最低：** 6 个核心法规文件。`required_or_optional = required` 的必须就位。
+
+---
+
+## 八、Asset-to-Absorption Contract
+
+每份提取物必须声明以下吸收属性。创建 `ASSET_ABSORPTION_CONTRACT.csv`：
+
+```
+extract_id, target_batch, target_dc, absorption_type, closure_level_supported, score_area, can_train_rules, can_validate_holdout, writer_allowed, locked_boundary
+```
+
+| 字段 | 枚举值 |
+|:---|:---|
+| target_batch | B / C / D / Final |
+| target_dc | DC-1 ~ DC-11 |
+| absorption_type | rule / SOP / fixture / semantic_test / runtime_validator / writer_QA / validation_asset |
+| closure_level_supported | FULLY_CLOSED / DERIVED_VALIDATION / HEURISTIC_ONLY / SYNTHETIC_ONLY |
+| score_area | 12 个评分维度之一 |
+| can_train_rules | yes / no |
+| can_validate_holdout | yes / no |
+| writer_allowed | yes / no |
+| locked_boundary | open_input / calibration_only / validation_only / locked_no_writer / holdout_only |
+
+**核心原则：每条提取数据必须带着吸收目的出生。没有 absorption_type 和 target_dc 的提取物不是资产，只是资料堆。**
+
+---
+
+## 九、提取质量验收标准
+
+每个 CSV 必须通过以下质量门：
+
+| 检查项 | 要求 |
+|:---|:---|
+| source_file_path | 不得为空 |
+| source_quote_or_anchor | gold / expert / source_verified 级别不得为空 |
+| evidence_level | 必填 |
+| dataset_role | 必填（calibration / stress / holdout / historical） |
+| locked_status | 必填 |
+| writer_access_allowed | 必填 |
+| confidence | 必填（high / medium / low / unverifiable） |
+| DC mapping | 必填 |
+| score_area mapping | 必填 |
+| duplicate check | 同一 PMID / endpoint / claim 不得重复且不得自相矛盾 |
+| holdout contamination check | holdout 项目数据不得出现在 rule source 中 |
+
+**Patch A 输出不可直接进入代码。必须先通过质量门验证。**
+
+---
+
+## 十、吸收就绪判定
+
+Patch A 完成后，创建 `PATCH_A_ABSORPTION_READINESS_REPORT.md`。必须回答：
+
+1. 哪些 DC 已有 gold / expert / source_verified 资产？
+2. 哪些 DC 只有 heuristic / report-derived 资产？
+3. 哪些 DC 仍 NOT_FOUND？
+4. 南驰 / iTClamp 是否未被计入本轮 calibration / holdout 数量？
+5. 是否达到 DC 覆盖配额？
+6. 是否有 holdout contamination？
+7. 哪些 CSV 可直接生成 fixtures？
+8. 哪些 CSV 可直接生成 semantic tests？
+9. 哪些资产支持 Path A FULLY_CLOSED？
+10. 哪些资产只能支持 Path B capped score？
+11. 最终 Path A 还是 Path B？
+12. 是否 READY_FOR_CLAUDE_CODE_ABSORPTION？
+
+---
+
+## 十一、输出目录结构
+
+```
+BIGDP2026_6V2/assets/
+├── PROJECT_SELECTION_COVERAGE_MATRIX.csv
+├── ASSET_ABSORPTION_CONTRACT.csv
+├── REGULATORY_RULE_EXTRACTION_TARGETS.csv
+├── PATCH_A_ABSORPTION_READINESS_REPORT.md
+├── batch_B/
+│   ├── B1_search_audit/
+│   ├── B2_screening/
+│   ├── B3_fulltext_status/
+│   ├── B4_pmid_trace/
+│   └── B5_denominator/
+├── batch_C/
+│   ├── C1_endpoint_semantics/
+│   ├── C2_comparator_benchmark/
+│   └── C3_claim_evidence/
+├── batch_D/
+│   ├── D1_sota_accounting/
+│   ├── D2_cer_originals/
+│   ├── D3_writer_outputs/
+│   ├── D4_validation_project/
+│   └── NB_feedback_excerpts/
+└── regulatory/
+```
+
+---
+
+## 十二、提取后流程
+
+1. Owner 完成 15–20 项目提取 → 文件放入 `assets/` 目录
+2. Controller 运行质量门验证（Section 九的 11 项检查）
+3. Controller 填写 `ASSET_ABSORPTION_CONTRACT.csv`
+4. Controller 更新 `ASSET_READINESS_REGISTER.csv` 和 `VALIDATION_PATH_DECISION.md`
+5. Controller 生成 `PATCH_A_ABSORPTION_READINESS_REPORT.md`
+6. 如 READY_FOR_CLAUDE_CODE_ABSORPTION → Claude Code 吸收 Batch B → C → D
+7. 如 NOT_READY → 精确指出哪个 DC 的覆盖配额未达、哪个 CSV 质量门未过
