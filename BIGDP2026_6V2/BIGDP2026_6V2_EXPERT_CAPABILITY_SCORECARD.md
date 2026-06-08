@@ -1,6 +1,6 @@
 # BIGDP2026.6V_2 — Expert Capability Scorecard
 
-**Date:** 2026-06-08 | **Tests:** 562/562 pass | **Path:** B
+**Date:** 2026-06-08 | **Tests:** 562/562 pass | **Path:** B | **Score:** 81/100 (↑ from 75)
 
 ---
 
