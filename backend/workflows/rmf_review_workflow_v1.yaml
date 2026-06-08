@@ -141,27 +141,27 @@ model_profiles:
     type: deterministic
   structured_extraction:
     type: cerllm
-    model: minimax-m2.7
+    model: deepseek-v4-pro
     max_tokens: 8192
     temperature: 0.1
   rule_patch_semantic:
     type: cerllm
-    model: minimax-m2.7
+    model: deepseek-v4-pro
     max_tokens: 16384
     temperature: 0.2
   professional_reasoning:
     type: cerllm
-    model: minimax-m2.7
+    model: deepseek-v4-pro
     max_tokens: 16384
     temperature: 0.3
   high_stakes_reasoning:
     type: cerllm
-    model: minimax-m2.7
+    model: deepseek-v4-pro
     max_tokens: 20480
     temperature: 0.3
   qa_synthesis:
     type: cerllm
-    model: minimax-m2.7
+    model: deepseek-v4-pro
     max_tokens: 24576
     temperature: 0.4
 

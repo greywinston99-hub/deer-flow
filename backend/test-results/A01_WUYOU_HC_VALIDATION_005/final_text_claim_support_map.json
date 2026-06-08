@@ -1,0 +1,142 @@
+[
+  {
+    "claim_id": "C-01",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-02",
+    "support_status": "not_supported_or_unresolved",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": true
+  },
+  {
+    "claim_id": "C-03",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-PERF-01",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-PERF-02",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-PERF-03",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-SAFE-01",
+    "support_status": "not_supported_or_unresolved",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": true
+  },
+  {
+    "claim_id": "C-SAFE-02",
+    "support_status": "not_supported_or_unresolved",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": true
+  },
+  {
+    "claim_id": "C-BEN-01",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-BEN-02",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-04",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-05",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-06",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  },
+  {
+    "claim_id": "C-07",
+    "support_status": "ALLOWED_USE_BLOCKED",
+    "conclusion_strength": "not_allowed",
+    "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+    "evidence_strength_ceiling": "not_allowed",
+    "final_body_allowed": true,
+    "text_sections": [],
+    "wording_is_allowed": false
+  }
+]

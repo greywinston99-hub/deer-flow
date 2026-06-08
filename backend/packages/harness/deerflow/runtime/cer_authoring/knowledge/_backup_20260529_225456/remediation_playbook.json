@@ -1,0 +1,1119 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "generated_from": "nb_defects_classified_merged.json",
+    "total_records_analyzed": 64,
+    "defect_types_covered": 16,
+    "data_driven_types": 11,
+    "taxonomy_only_types": 5,
+    "purpose": "DeerFlow injectable remediation playbook for NB defect self-healing",
+    "injection_layer": "Gap Action → Remediation Engine",
+    "last_updated": "2026-05-20"
+  },
+  "playbook": {
+    "DO-001": {
+      "defect_name": "器械描述缺陷 / Device Description Incomplete",
+      "frequency": {
+        "records": 26,
+        "percentage": 40.6,
+        "projects": 6,
+        "nb_bodies": [
+          "BSI",
+          "TUV SUD"
+        ]
+      },
+      "severity_profile": {
+        "Major": 25,
+        "Minor": 1
+      },
+      "cer_sections": [
+        "CER-02",
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-01",
+        "REG-MDR-01",
+        "REG-MDR-02"
+      ],
+      "remediation_template": {
+        "phase_1_document": [
+          "提取当前 CER §1 Device Description 全文",
+          "对照技术文档（设计输入、风险管理、IFU）核对规格参数完整性",
+          "列出所有缺失项：尺寸/材料/能量参数/软件版本/配套附件"
+        ],
+        "phase_2_enrich": [
+          "补充型号差异矩阵（Model-to-Model Comparison Table）",
+          "添加设计原理图/工作流程图引用（图号+版本）",
+          "明确关键性能参数（KPP）及其与宣称的关联"
+        ],
+        "phase_3_validate": [
+          "交叉验证：设备描述 ↔ IFU ↔ 标签 ↔ 风险管理文件",
+          "确认所有引用的型号/规格在技术上文件中有对应证据",
+          "运行 DO-001 自检清单（见 verification_checklist）"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有上市型号均已在 §1.1 中列出并区分",
+        "[ ] 每个型号的尺寸/材料/能量参数完整且带单位",
+        "[ ] 软件版本号（如适用）已明确标注",
+        "[ ] 设计原理/工作机制有图示或流程说明",
+        "[ ] 与 IFU 中的描述无矛盾",
+        "[ ] 引用的技术文档编号和版本号正确且可追踪"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出描述缺失项，要求补充型号差异/设计原理",
+        "r2_risk": "若仅补充文字未提供技术文档引用，NB 会追问 'where is the evidence?'",
+        "r2_recommended": "同时补充文字描述 + 引用具体技术文件编号 + 提供文件摘要或摘录",
+        "r3_persistent": "若涉及软件算法，需额外提供算法验证报告引用（BSI 常见追问）",
+        "escalation_pattern": "TÜV SÜD 倾向于在同一 DR 编号下追加追问；BSI 可能在不同 Review Dimension 中分别提问"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受补充，转向其他缺陷或关闭审评维度",
+        "partial": "NB 接受部分补充，但指出新增描述与其他章节矛盾（触发 DT-001）",
+        "rejected": "NB 认为补充仍不充分，要求提供原始设计文档或第三方验证报告"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "DO-001",
+        "auto_prompt_prefix": "【器械描述自检】在输出 CER §1 前，强制检查：1) 型号完整性 2) 参数完整性 3) 文档引用一致性",
+        "output_enforcement": "必须在 §1.1 中包含 Model Comparison Table；在 §1.2 中包含 Design Principle 引用"
+      },
+      "real_case_references": [
+        "PROJECT_011: 'The different product models listed have different dimensions... In what way are the models different?'",
+        "PROJECT_013: 'Device Description is incomplete regarding the energy delivery mechanism'",
+        "PROJECT_014: 'Novelty features not described; missing contraindications and patient population details'"
+      ]
+    },
+    "GS-001": {
+      "defect_name": "GSPR 覆盖不全 / GSPR Coverage Incomplete",
+      "frequency": {
+        "records": 9,
+        "percentage": 14.1,
+        "projects": 4,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 8,
+        "Minor": 1
+      },
+      "cer_sections": [
+        "CER-06",
+        "CER-02",
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDR-01",
+        "REG-ISO-01",
+        "REG-MDCG-01"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "获取最新版 GSPR 清单（MDR Annex I）",
+          "逐条核对：CER 中是否引用了每个 GSPR 的符合性证据",
+          "标记缺失项和 'N/A' 标注不当的条目"
+        ],
+        "phase_2_map": [
+          "构建 GSPR → 证据映射表（Evidence Mapping Table）",
+          "对每条 GSPR，明确：适用性(Yes/No/N/A)、证据来源、证据编号、CER 引用位置",
+          "对标注 N/A 的条目，提供充分的理由说明"
+        ],
+        "phase_3_integrate": [
+          "将 GSPR 映射表作为 CER Annex 或独立文件提交",
+          "在 CER 正文中增加 GSPR 引用锚点（如 'See GSPR Table entry GSPR-9.2'）",
+          "更新 DoC（符合性声明）确保与 GSPR 映射一致"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] MDR Annex I 所有 GSPR 条目均已覆盖（或明确标注 N/A 并附理由）",
+        "[ ] 每条 GSPR 均有对应的证据文件引用",
+        "[ ] GSPR 映射表版本号与 CER 版本号一致",
+        "[ ] DoC 中的标准引用与 GSPR 映射一致",
+        "[ ] N/A 标注均有书面理由，且理由符合 MDCG 指导原则"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出特定 GSPR 条目缺失引用（如 GSPR-9、GSPR-14）",
+        "r2_risk": "仅补充引用但未更新 DoC，NB 会指出 'DoC does not match GSPR table'",
+        "r2_recommended": "同步更新 GSPR 映射表 + DoC + CER 引用，三位一体",
+        "r3_persistent": "若 NB 质疑 N/A 理由，需提供行业惯例或类似产品的对比说明",
+        "escalation_pattern": "BSI 的 Technical Review Dimension 和 Main Job Dimension 可能分别提出 GSPR 问题"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 GSPR 映射表，关闭相关缺陷",
+        "partial": "NB 接受映射表但指出某些 GSPR 的证据等级不足（如仅引用内部测试而非标准测试）",
+        "rejected": "NB 认为 N/A 理由不充分，要求提供替代符合性证据"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "GS-001",
+        "auto_prompt_prefix": "【GSPR 自检】在输出 CER 前，强制要求：1) GSPR 映射表完整性 2) 每条 GSPR 有证据引用 3) DoC 与映射表一致性",
+        "output_enforcement": "必须生成 GSPR Evidence Mapping Table 作为 Annex；正文必须引用映射表"
+      },
+      "real_case_references": [
+        "BSI 典型表述: 'The documents have been found to be non-compliant with the requirements of 2017/745 MDR Chapter VI'",
+        "常见追问: 'GSPR-14.2 ( usability ) not adequately addressed in CER'"
+      ]
+    },
+    "EV-001": {
+      "defect_name": "临床证据不足 / Insufficient Clinical Evidence",
+      "frequency": {
+        "records": 6,
+        "percentage": 9.4,
+        "projects": 3,
+        "nb_bodies": [
+          "BSI",
+          "TUV SUD"
+        ]
+      },
+      "severity_profile": {
+        "Major": 6
+      },
+      "cer_sections": [
+        "CER-06",
+        "CER-05",
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-01",
+        "REG-MDR-01",
+        "REG-MDR-02"
+      ],
+      "remediation_template": {
+        "phase_1_assess": [
+          "评估当前临床证据缺口：缺失的是安全性数据还是性能数据？",
+          "区分证据类型需求：文献数据 / 等同器械数据 / 自有临床数据 / PMCF 数据",
+          "确定目标人群和适应症是否均有足够证据支撑"
+        ],
+        "phase_2_source": [
+          "若为文献缺口：扩展检索策略（增加数据库/调整检索式/延长时限）",
+          "若为等同器械缺口：补充等同器械的临床数据引用或扩大等同器械范围",
+          "若为自有数据缺口：评估是否可补充回顾性研究数据或加速 PMCF 启动",
+          "若完全无临床数据：启动临床评估豁免论证（仅适用于低风险且已有充分文献）"
+        ],
+        "phase_3_document": [
+          "在 CER §5 中增加证据层级说明（Evidence Hierarchy）",
+          "补充数据汇总表（Clinical Data Summary Table）：来源、样本量、随访期、关键终点",
+          "更新获益风险分析，确保新增证据已纳入 BR 评估"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 每个适应症声明均有对应的临床证据支撑",
+        "[ ] 安全性声明（如 '无严重不良事件'）有数据支撑",
+        "[ ] 性能声明（如 '95% 成功率'）有定量数据",
+        "[ ] 文献检索报告覆盖至少 2 个主要医学数据库",
+        "[ ] 等同器械数据（如使用）有完整的等同性论证",
+        "[ ] PMCF 计划与证据缺口对应（如计划收集缺失的数据）"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'insufficient clinical evidence'，可能具体说明缺哪类数据",
+        "r2_risk": "补充文献但 NB 认为文献质量低（非同行评审、样本量小、随访短）",
+        "r2_recommended": "补充高质量文献 + 提供文献质量评估表（如 GRADE 或自建标准）",
+        "r3_persistent": "若 NB 质疑等同器械数据适用性，需补充差异分析并论证差异无临床影响",
+        "escalation_pattern": "TÜV SÜD 可能在 R1→R3 中逐步加码证据要求；BSI 的 Clinical Dimension 可能独立发补"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 认为证据充分，接受临床评估结论",
+        "partial": "NB 接受部分证据但要求补充特定人群（如儿童、孕妇）的数据",
+        "rejected": "NB 认为证据等级不足，要求提供临床试验数据或拒绝认证"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "EV-001",
+        "auto_prompt_prefix": "【临床证据自检】在输出 CER §5 前，强制验证：1) 每句声明有证据 2) 证据质量分级 3) 缺口有 PMCF 计划覆盖",
+        "output_enforcement": "必须包含 Clinical Data Summary Table；每行证据标注来源和样本量"
+      },
+      "real_case_references": [
+        "TÜV SÜD: 'The clinical evidence provided is insufficient to support the safety and performance claims'",
+        "BSI: 'Justifying the lack of a Post-Market Clinical Surveillance Study is not sufficient for high-risk devices'"
+      ]
+    },
+    "CL-001": {
+      "defect_name": "临床数据质量缺陷 / Clinical Data Quality Issues",
+      "frequency": {
+        "records": 4,
+        "percentage": 6.3,
+        "projects": 3,
+        "nb_bodies": [
+          "BSI",
+          "TUV SUD"
+        ]
+      },
+      "severity_profile": {
+        "Major": 4
+      },
+      "cer_sections": [
+        "CER-06",
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-02",
+        "REG-MDCG-03",
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_diagnose": [
+          "识别数据质量问题的具体维度：样本量不足 / 随访缺失 / 终点定义不清 / 统计方法不当 / 伦理审批缺失",
+          "评估问题是否可通过补充文件解决（如补充伦理批件）还是需要重新分析数据"
+        ],
+        "phase_2_remediate": [
+          "样本量不足：补充更多病例或合并多中心数据",
+          "随访缺失：补充随访计划说明，解释失访原因及影响评估",
+          "终点定义不清：明确定义主要/次要终点，引用标准临床终点定义",
+          "统计方法不当：补充统计分析计划（SAP）或重新进行统计分析",
+          "伦理审批缺失：补充伦理委员会批准文件和知情同意书模板"
+        ],
+        "phase_3_present": [
+          "在 CER 中增加数据质量说明章节",
+          "提供数据完整性矩阵（Data Completeness Matrix）",
+          "更新获益风险分析，纳入数据质量限制的影响"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有临床数据均有伦理审批文件",
+        "[ ] 主要终点和次要终点有明确定义",
+        "[ ] 统计分析计划（SAP）与报告一致",
+        "[ ] 失访率低于可接受阈值（通常 <20%）且有说明",
+        "[ ] 数据收集表单（CRF）有版本控制",
+        "[ ] 数据质量审计报告（如适用）已提供"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 CSR 质量不足或随访数据缺失",
+        "r2_risk": "仅补充文字说明未提供原始数据或审计报告",
+        "r2_recommended": "补充原始数据摘要 + 数据质量评估 + 缺失数据影响分析",
+        "r3_persistent": "若涉及 GCP 合规性质疑，需提供监查报告或第三方审计",
+        "escalation_pattern": "BSI Clinical Dimension 对数据质量要求严格，可能要求 ISO 14155 合规证明"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受数据质量改进，关闭缺陷",
+        "partial": "NB 接受部分改进但要求补充特定文档（如 SAP 修订版）",
+        "rejected": "NB 认为数据质量问题影响结论可靠性，要求重新进行临床研究"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "CL-001",
+        "auto_prompt_prefix": "【临床数据质量自检】验证：1) 伦理文件完整 2) 终点定义清晰 3) 统计方法恰当 4) 失访有说明",
+        "output_enforcement": "CSR 引用必须包含伦理批件编号、终点定义、SAP 版本"
+      },
+      "real_case_references": [
+        "BSI: 'Clinical Study Report inadequate, follow-up data missing'",
+        "TÜV SÜD: 'High-risk devices need post-market clinical data; justification for lack of study insufficient'"
+      ]
+    },
+    "LB-001": {
+      "defect_name": "标签/说明书问题 / Labeling/IFU Deficiencies",
+      "frequency": {
+        "records": 4,
+        "percentage": 6.3,
+        "projects": 2,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 4
+      },
+      "cer_sections": [
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-01",
+        "REG-MDR-02"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "获取最新版 IFU 和标签样本",
+          "对照 MDR Annex I GSPR-23 和 ISO 15223-1 核对信息要求",
+          "识别缺失项：禁忌症、警告、注意事项、副作用、存储条件、符号说明"
+        ],
+        "phase_2_enrich": [
+          "补充所有 GSPR-23 要求的要素",
+          "增加特定人群警告（孕妇、儿童、老年、免疫抑制患者）",
+          "确保 IFU 中的性能声明与 CER 临床证据一致",
+          "添加 UDl 相关信息（如适用）"
+        ],
+        "phase_3_validate": [
+          "交叉验证：IFU ↔ CER ↔ 风险管理文件",
+          "进行可用性评估（Usability Evaluation）确认信息可理解性",
+          "更新标签规格说明和版本控制"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] IFU 包含所有 GSPR-23 要求的要素",
+        "[ ] 禁忌症和警告信息与 CER 安全性数据一致",
+        "[ ] 性能声明不超过 CER 临床证据支持的范围",
+        "[ ] 符号符合 ISO 15223-1 或已提供符号说明",
+        "[ ] 存储和运输条件有明确说明",
+        "[ ]  IFU 语言符合目标市场要求"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 IFU 缺失特定警告或禁忌症",
+        "r2_risk": "补充警告但用语过于笼统（如 'consult your doctor'）",
+        "r2_recommended": "提供具体、可操作的警告信息，引用 CER 中的安全性数据支撑",
+        "r3_persistent": "若 NB 质疑警告充分性，需提供风险管理文件中的风险-控制对应关系",
+        "escalation_pattern": "BSI 可能同时从 Clinical 和 Main Job 维度分别提问 IFU 问题"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 IFU 更新，关闭缺陷",
+        "partial": "NB 接受更新但要求调整特定措辞或补充额外语言版本",
+        "rejected": "NB 认为 IFU 风险信息不充分，要求重新进行可用性测试"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "LB-001",
+        "auto_prompt_prefix": "【IFU 自检】验证：1) GSPR-23 全覆盖 2) 警告与 CER 一致 3) 性能声明有证据支撑",
+        "output_enforcement": "IFU 引用必须包含版本号；警告信息必须引用 CER §5 或风险管理文件"
+      },
+      "real_case_references": [
+        "BSI: 'References to effective clinical studies not provided in product information; suitability assessment could not be performed'",
+        "常见追问: 'Warning for pregnant women missing from IFU despite CER identifying risk'"
+      ]
+    },
+    "PM-001": {
+      "defect_name": "PMCF/PMS 计划缺陷 / PMCF/PMS Plan Inadequate",
+      "frequency": {
+        "records": 3,
+        "percentage": 4.7,
+        "projects": 3,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 3
+      },
+      "cer_sections": [
+        "CER-06"
+      ],
+      "regulatory_references": [
+        "REG-MDR-04",
+        "REG-MDCG-02",
+        "REG-MEDDEV-01"
+      ],
+      "remediation_template": {
+        "phase_1_assess": [
+          "评估当前 PMCF 计划覆盖范围：是否覆盖所有适应症和目标人群？",
+          "检查 PMS 程序是否符合 MDR Article 83-86 要求",
+          "识别缺口：缺失的数据类型、未覆盖的人群、不充分的监测方法"
+        ],
+        "phase_2_design": [
+          "设计 PMCF 研究方案：目标、设计类型、样本量、终点、统计方法",
+          "制定 PMS 程序：严重事件报告流程、趋势分析、PSUR 编写计划",
+          "建立数据收集工具：病例报告表、患者随访流程、数据管理系统"
+        ],
+        "phase_3_document": [
+          "编写完整 PMCF 计划（PMCF Plan）和 PMS 程序（PMS Procedure）",
+          "提供 PMCF 评估报告模板（PMCF Evaluation Report Template）",
+          "在 CER 中引用 PMCF 计划并说明其与临床证据缺口的对应关系"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] PMCF 计划覆盖所有适应症和宣称",
+        "[ ] 样本量计算有统计学依据",
+        "[ ] 主要终点与 CER 性能声明对应",
+        "[ ] PMS 程序包含严重事件报告机制",
+        "[ ] PSUR 编写频率符合 MDR 要求",
+        "[ ] PMCF 计划与 CER 中识别的证据缺口直接对应"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 认为 'justification for not conducting PMCF study is insufficient'",
+        "r2_risk": "仅提供文字说明未提供详细研究方案",
+        "r2_recommended": "提供完整 PMCF Plan + 样本量计算 + 研究时间表 + 伦理考虑",
+        "r3_persistent": "若 NB 质疑样本量，需提供统计假设和功效计算详情",
+        "escalation_pattern": "BSI 的 Clinical Dimension 对 PMCF 要求严格；TÜV SÜD 可能在后续轮次中要求 PMCF 进展报告"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 PMCF 计划，可能要求定期提交进展",
+        "partial": "NB 接受计划但要求调整样本量或监测频率",
+        "rejected": "NB 认为 PMCF 计划不可行，要求重新设计或提供替代方案"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "PM-001",
+        "auto_prompt_prefix": "【PMCF 自检】验证：1) 覆盖所有证据缺口 2) 样本量有依据 3) PMS 程序完整",
+        "output_enforcement": "CER §5/§8 必须引用 PMCF Plan；Plan 必须包含样本量计算和研究时间表"
+      },
+      "real_case_references": [
+        "BSI: 'The justification for not conducting a PMCF study is insufficient'",
+        "常见追问: 'PMCF plan does not cover pediatric population mentioned in indications'"
+      ]
+    },
+    "SW-001": {
+      "defect_name": "软件/网络安全缺陷 / Software/Cybersecurity Deficiencies",
+      "frequency": {
+        "records": 3,
+        "percentage": 4.7,
+        "projects": 2,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 3
+      },
+      "cer_sections": [
+        "CER-02"
+      ],
+      "regulatory_references": [
+        "REG-MDR-04",
+        "REG-MDR-01",
+        "REG-MDCG-01"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "评估软件文档完整性：软件描述、生命周期文档、验证报告",
+          "检查网络安全评估：威胁模型、风险评估、控制措施、渗透测试",
+          "识别缺失：IEC 62304 文档、IEC 81001-5-1 评估、网络安全标签"
+        ],
+        "phase_2_develop": [
+          "补充软件描述（SOUP 清单、软件版本、架构图）",
+          "提供软件验证和确认报告（V&V Report）",
+          "完成网络安全评估报告（Cybersecurity Assessment Report）",
+          "更新 IFU 增加网络安全相关警告（如网络连接风险、IT 要求）"
+        ],
+        "phase_3_validate": [
+          "交叉验证：软件版本号在 CER / IFU / 测试报告中的一致性",
+          "确认网络安全控制措施已纳入风险管理文件",
+          "提供软件更新计划（Software Update Plan）和补丁管理策略"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 软件版本号在所有文档中一致",
+        "[ ] IEC 62304 要求的文档完整（软件计划、需求、设计、测试）",
+        "[ ] 网络安全威胁模型覆盖所有已知威胁",
+        "[ ] IFU 包含网络安全警告和 IT 环境要求",
+        "[ ] 软件更新计划包含安全补丁管理策略",
+        "[ ] 网络安全控制措施与风险管理文件关联"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出软件文档缺失或网络安全评估不足",
+        "r2_risk": "仅补充文档未提供测试报告",
+        "r2_recommended": "补充文档 + 测试报告 + 威胁模型 + 控制措施验证",
+        "r3_persistent": "若涉及 AI/ML，需提供算法验证、数据质量评估和可解释性说明",
+        "escalation_pattern": "BSI 的 Technical Dimension 对软件要求严格；可能要求独立第三方渗透测试"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受软件文档和网络安全评估",
+        "partial": "NB 接受部分文档但要求补充特定测试（如渗透测试报告）",
+        "rejected": "NB 认为网络安全风险未充分控制，要求重新设计安全措施"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "SW-001",
+        "auto_prompt_prefix": "【软件自检】验证：1) 62304 文档完整 2) 网络安全评估完成 3) IFU 有网络安全警告",
+        "output_enforcement": "软件版本号必须一致；必须引用 IEC 62304 和 IEC 81001-5-1 评估"
+      },
+      "real_case_references": [
+        "BSI: 'No mention on the IFU on the risks of using unsecure network or any other IT requirements'",
+        "BSI: 'Software documentation incomplete; missing 62304 test report consistency'"
+      ]
+    },
+    "EQ-001": {
+      "defect_name": "等同器械论证缺陷 / Equivalence Demonstration Deficient",
+      "frequency": {
+        "records": 3,
+        "percentage": 4.7,
+        "projects": 1,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 3
+      },
+      "cer_sections": [
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-02",
+        "REG-MDR-03",
+        "REG-MDCG-03"
+      ],
+      "remediation_template": {
+        "phase_1_assess": [
+          "评估当前等同性论证：是否遵循 MDCG 2020-6 的三步法？",
+          "识别缺失维度：技术等同性 / 生物等同性 / 临床等同性",
+          "检查等同器械选择：是否已上市 / 是否有充分临床数据 / 是否可获取技术文件"
+        ],
+        "phase_2_construct": [
+          "构建完整等同性表格（Equivalence Table）：参数逐项对比",
+          "对每项差异进行差异分析（Gap Analysis），论证差异无临床影响",
+          "提供等同器械的临床数据引用和文献支持",
+          "如有设计差异，提供设计原理说明和验证数据"
+        ],
+        "phase_3_validate": [
+          "验证等同性论证与 CER 其他章节的一致性",
+          "确认等同器械的技术文件可获取（如适用）",
+          "更新 CER §4 结构，确保符合 MEDDEV 2.7/1 rev.4 要求"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 等同性表格覆盖 MDCG 2020-6 要求的所有参数",
+        "[ ] 每项差异均有差异分析和临床影响论证",
+        "[ ] 等同器械已上市且有充分临床数据",
+        "[ ] 等同器械的技术文件可获取（如为自身前代产品）",
+        "[ ] 等同性论证与设备描述、临床证据章节一致",
+        "[ ] 引用 MDCG 2020-6 和 MEDDEV 2.7/1 rev.4 §4"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'no formal equivalence justification in accordance with MDCG 2020-6'",
+        "r2_risk": "仅提供表格未对差异进行充分论证",
+        "r2_recommended": "完整等同性表格 + 逐差异分析 + 临床影响论证 + 等同器械数据引用",
+        "r3_persistent": "若 NB 质疑等同器械数据适用性，需补充文献综述支持等同器械安全性",
+        "escalation_pattern": "BSI 对等同性要求严格；若等同器械为竞争对手产品，可能要求技术文件访问协议"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受等同性论证，关闭缺陷",
+        "partial": "NB 接受论证但要求补充特定差异的分析",
+        "rejected": "NB 认为等同性无法证明，要求提供自有临床数据"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "EQ-001",
+        "auto_prompt_prefix": "【等同性自检】验证：1) MDCG 2020-6 三步法完整 2) 差异分析充分 3) 等同器械数据可引用",
+        "output_enforcement": "必须包含 Equivalence Table 和 Gap Analysis；必须引用 MDCG 2020-6"
+      },
+      "real_case_references": [
+        "BSI: 'No formal equivalence justification in accordance with MDCG 2020-6 has been provided'",
+        "常见追问: 'The similar device cited has different materials; clinical impact of this difference not addressed'"
+      ]
+    },
+    "BR-001": {
+      "defect_name": "获益风险分析不充分 / Benefit-Risk Analysis Incomplete",
+      "frequency": {
+        "records": 2,
+        "percentage": 3.1,
+        "projects": 1,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 2
+      },
+      "cer_sections": [
+        "CER-10",
+        "CER-06"
+      ],
+      "regulatory_references": [
+        "REG-MDR-03",
+        "REG-MDCG-02",
+        "REG-ISO-01"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "评估当前 BR 分析的完整性：是否覆盖所有风险？",
+          "检查风险量化方法：是否使用定量或半定量评估？",
+          "识别缺失维度：特定人群风险、长期风险、残余风险可接受性"
+        ],
+        "phase_2_enrich": [
+          "补充所有已识别风险的控制措施和残余风险评估",
+          "增加特定人群（孕妇、儿童、老年）的获益风险分析",
+          "提供风险可接受性标准（Risk Acceptance Criteria）引用",
+          "更新 IFU 警告信息，确保与 BR 分析一致"
+        ],
+        "phase_3_validate": [
+          "交叉验证：BR 分析 ↔ 风险管理文件 ↔ 临床证据 ↔ IFU",
+          "确认所有残余风险均被声明为可接受并有依据",
+          "验证风险降低措施与 GSPR-1 和 GSPR-2 的对应关系"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有已识别风险均有控制措施和残余风险评估",
+        "[ ] 获益风险分析覆盖所有适应症和目标人群",
+        "[ ] 风险可接受性标准明确且符合行业惯例",
+        "[ ] 残余风险声明有临床数据或文献支持",
+        "[ ] BR 分析与风险管理文件（ISO 14971）一致",
+        "[ ] IFU 警告与 BR 分析中的风险对应"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 BR 分析为 'bald statement' 或缺乏证据支撑",
+        "r2_risk": "仅补充文字未更新风险量化表或 IFU",
+        "r2_recommended": "补充定量 BR 表 + 更新 IFU + 提供风险可接受性依据",
+        "r3_persistent": "若 NB 质疑残余风险可接受性，需提供同类产品的风险对比数据",
+        "escalation_pattern": "BSI 可能从 Clinical 和 Technical 维度分别质疑 BR 分析"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 BR 分析，关闭缺陷",
+        "partial": "NB 接受分析但要求补充特定人群的风险评估",
+        "rejected": "NB 认为残余风险不可接受，要求重新设计风险控制措施"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "BR-001",
+        "auto_prompt_prefix": "【BR 分析自检】验证：1) 所有风险有控制措施 2) 残余风险可接受 3) 与 IFU 一致",
+        "output_enforcement": "必须包含 Benefit-Risk Summary Table；残余风险必须有数据支撑"
+      },
+      "real_case_references": [
+        "BSI: 'There is no consideration of evidence here and it is therefore a bald statement'",
+        "常见追问: 'Residual risk of [X] not demonstrated to be acceptable compared to clinical benefit'"
+      ]
+    },
+    "DT-001": {
+      "defect_name": "数据不一致 / Data Inconsistency",
+      "frequency": {
+        "records": 2,
+        "percentage": 3.1,
+        "projects": 1,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 2
+      },
+      "cer_sections": [
+        "CER-00",
+        "CER-06",
+        "CER-10"
+      ],
+      "regulatory_references": [
+        "REG-MDR-02",
+        "REG-MDCG-01",
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_identify": [
+          "全面扫描 CER 全文及引用文档，识别数据矛盾点",
+          "常见矛盾：型号名称 / 规格参数 / 患者数量 / 不良事件数 / 版本号 / 日期",
+          "使用表格记录所有不一致项及其出现位置"
+        ],
+        "phase_2_resolve": [
+          "确定正确值：以最新版技术文件或原始数据为准",
+          "更新所有出现该数据的位置，确保一致性",
+          "若数据更新影响结论，需重新评估相关章节"
+        ],
+        "phase_3_prevent": [
+          "建立 CER 数据一致性检查清单",
+          "在文档控制流程中增加交叉验证步骤",
+          "使用版本控制确保所有引用文档为最新版"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] CER 中所有型号名称与 IFU/标签一致",
+        "[ ] 规格参数在所有表格和正文中一致",
+        "[ ] 患者数量、样本量在不同章节中一致",
+        "[ ] 不良事件数量与原始 CSR 一致",
+        "[ ] 引用的文档版本号与提交文件一致",
+        "[ ] 日期（如文献发表日期、批准日期）准确且一致"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出特定数据矛盾（如 'CER says N=50 but CSR says N=48'）",
+        "r2_risk": "仅修正一处但未全面扫描其他矛盾",
+        "r2_recommended": "修正所有矛盾 + 提供一致性声明 + 说明错误原因",
+        "r3_persistent": "若 NB 发现新的矛盾，说明一致性检查不彻底，需重新进行全文审计",
+        "escalation_pattern": "数据不一致是信任杀手，多次出现可能导致 NB 质疑整体文档质量"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受修正，关闭缺陷",
+        "partial": "NB 接受部分修正但发现新的不一致",
+        "rejected": "NB 认为不一致反映系统性文档控制问题，要求全面重新审计"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "DT-001",
+        "auto_prompt_prefix": "【一致性自检】强制扫描：1) 型号名称 2) 规格参数 3) 患者数量 4) 版本号 5) 日期",
+        "output_enforcement": "最终输出前必须运行一致性检查；发现矛盾必须标注并修正"
+      },
+      "real_case_references": [
+        "BSI: 'Can't locate C3-DME-3005... Can't find any Design nor verification records'",
+        "BSI: 'Two very recent versions of this section – the earlier one has very much more detail'"
+      ]
+    },
+    "MF-001": {
+      "defect_name": "制造/灭菌验证缺陷 / Manufacturing/Sterilization Validation Deficient",
+      "frequency": {
+        "records": 2,
+        "percentage": 3.1,
+        "projects": 2,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 2
+      },
+      "cer_sections": [
+        "CER-02"
+      ],
+      "regulatory_references": [
+        "REG-MDR-03",
+        "REG-ISO-02",
+        "REG-ISO-01"
+      ],
+      "remediation_template": {
+        "phase_1_identify": [
+          "识别缺失的验证文档：灭菌验证 / 清洁验证 / 包装验证 / 洁净室认证",
+          "确认缺失文档对应的产品范围（所有型号还是部分型号）"
+        ],
+        "phase_2_obtain": [
+          "从制造商获取缺失的验证报告",
+          "确保验证报告覆盖所有上市型号和规格",
+          "验证报告应在有效期内（灭菌验证通常 1-3 年）"
+        ],
+        "phase_3_integrate": [
+          "在 CER 或技术文件中引用验证报告",
+          "更新风险管理文件，纳入制造和灭菌风险",
+          "确保 IFU 中的灭菌/清洁说明与验证报告一致"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 灭菌验证报告覆盖所有型号和包装规格",
+        "[ ] 清洁验证报告（如适用）已提供",
+        "[ ] 洁净室认证在有效期内",
+        "[ ] 包装验证（如适用）已提供",
+        "[ ] 验证报告中的参数与 IFU 使用说明一致",
+        "[ ] 微生物控制措施有书面记录"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 要求提供灭菌验证或洁净室认证",
+        "r2_risk": "提供的验证报告过期或未覆盖所有型号",
+        "r2_recommended": "提供最新验证报告 + 覆盖矩阵（型号×验证类型）",
+        "r3_persistent": "若 NB 质疑验证方法，需提供标准符合性声明（如 ISO 17665、ISO 11135）",
+        "escalation_pattern": "BSI 的 Technical Dimension 对灭菌验证要求严格"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受验证报告，关闭缺陷",
+        "partial": "NB 接受报告但要求补充特定型号的验证",
+        "rejected": "NB 认为验证不充分，要求重新进行验证"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "MF-001",
+        "auto_prompt_prefix": "【制造验证自检】验证：1) 灭菌验证覆盖所有型号 2) 验证在有效期 3) 与 IFU 一致",
+        "output_enforcement": "必须引用验证报告编号和有效期；必须提供型号覆盖矩阵"
+      },
+      "real_case_references": [
+        "BSI: 'Please provide evidence that the manufacturing site has established microbiological and contamination controls'",
+        "BSI: 'Provide most recent clean room certification'"
+      ]
+    },
+    "EV-002": {
+      "defect_name": "文献检索缺陷 / Literature Search Deficient",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Major": "typical",
+        "Critical": "possible"
+      },
+      "cer_sections": [
+        "CER-05",
+        "CER-06"
+      ],
+      "regulatory_references": [
+        "REG-MEDDEV-01",
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "获取当前文献检索报告（Literature Search Report）",
+          "评估检索策略：数据库覆盖、检索式设计、纳入/排除标准",
+          "识别缺陷：数据库缺失 / 检索式错误 / 时限不足 / 语言限制"
+        ],
+        "phase_2_redesign": [
+          "扩展数据库覆盖：至少 PubMed + Embase + Cochrane（A 类）；考虑 Scopus/Web of Science（B 类）",
+          "优化检索式：确保包含 MeSH 术语和自由词，覆盖同义词",
+          "明确纳入/排除标准（PICO 框架）",
+          "延长检索时限至最近 6-12 个月"
+        ],
+        "phase_3_report": [
+          "编写完整文献检索报告：策略、数据库、检索式、结果、筛选流程（PRISMA 流程图）",
+          "提供检索日期和检索员信息",
+          "在 CER 中引用检索报告并总结关键发现"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 覆盖至少 2 个主要医学数据库（PubMed + Embase）",
+        "[ ] 检索式包含 MeSH 术语和自由词",
+        "[ ] 纳入/排除标准明确且基于 PICO",
+        "[ ] 检索日期在 CER 提交前 6 个月内",
+        "[ ] 提供 PRISMA 流程图或等效筛选记录",
+        "[ ] 检索报告有版本控制和检索员签名"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'literature search not comprehensive' 或 'missing database'",
+        "r2_risk": "仅补充文献列表未改进检索策略",
+        "r2_recommended": "提供完整检索报告 + 改进后的检索策略 + 新增文献",
+        "r3_persistent": "若 NB 质疑检索式，需提供检索式设计依据和预检索结果",
+        "escalation_pattern": "文献检索缺陷常与 EV-001 并发，需同步解决"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受检索报告，关闭缺陷",
+        "partial": "NB 接受报告但要求补充特定数据库的检索",
+        "rejected": "NB 认为检索策略存在系统性缺陷，要求重新设计"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "EV-002",
+        "auto_prompt_prefix": "【文献检索自检】验证：1) 数据库覆盖 ≥2 2) 检索式完整 3) 有 PRISMA 流程图",
+        "output_enforcement": "必须引用 Literature Search Report；必须包含检索日期和数据库列表"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'literature search not comprehensive', 'missing database'",
+        "常见追问: 'Search strategy does not include Embase; justification required'"
+      ]
+    },
+    "ST-001": {
+      "defect_name": "SOTA 基准缺失 / State of the Art Not Adequately Addressed",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Major": "typical"
+      },
+      "cer_sections": [
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MEDDEV-01",
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_assess": [
+          "评估当前 SOTA 章节：是否回答了三个核心问题？",
+          "问题 1：当前治疗/诊断替代方案有哪些？",
+          "问题 2：类似器械的技术水平和性能基准？",
+          "问题 3：本器械与 SOTA 对比的优劣势？"
+        ],
+        "phase_2_research": [
+          "检索并引用最新临床指南（Clinical Guidelines）",
+          "收集同类竞争产品的公开性能数据",
+          "引用行业共识文件和标准治疗路径",
+          "确保引用文献在 3-5 年内（除非经典文献）"
+        ],
+        "phase_3_write": [
+          "结构化 SOTA 章节：治疗方案概述 → 器械技术对比 → 性能基准 → 本器械定位",
+          "使用对比表格（SOTA Comparison Table）呈现关键数据",
+          "明确本器械相对于 SOTA 的临床优势或等效性"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] SOTA 章节回答了三个核心问题",
+        "[ ] 引用了最新临床指南（≤5 年）",
+        "[ ] 包含同类器械性能对比数据",
+        "[ ] 对比表格参数与 CER 其他章节一致",
+        "[ ] 明确本器械在 SOTA 中的定位",
+        "[ ] 文献引用格式统一且可追踪"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'SOTA not adequately addressed' 或 'state of the art missing'",
+        "r2_risk": "仅补充文献列表未进行系统性对比",
+        "r2_recommended": "结构化 SOTA 章节 + 对比表格 + 本器械定位说明",
+        "r3_persistent": "若 NB 质疑对比参数选择，需提供参数选择依据",
+        "escalation_pattern": "SOTA 缺陷常与 ST-001 和 EV-001 并发"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 SOTA 分析，关闭缺陷",
+        "partial": "NB 接受分析但要求补充特定竞争产品数据",
+        "rejected": "NB 认为 SOTA 分析未证明本器械的临床价值"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "ST-001",
+        "auto_prompt_prefix": "【SOTA 自检】验证：1) 三个核心问题已回答 2) 有对比表格 3) 本器械定位明确",
+        "output_enforcement": "必须包含 SOTA Comparison Table；必须引用最新临床指南"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'SOTA not adequately addressed', 'state of the art missing'",
+        "常见追问: 'No comparison with currently available alternative treatments'"
+      ]
+    },
+    "RM-001": {
+      "defect_name": "风险管理不足 / Risk Management File Incomplete",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Major": "typical"
+      },
+      "cer_sections": [
+        "CER-10"
+      ],
+      "regulatory_references": [
+        "REG-ISO-02",
+        "REG-MDR-03"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "评估风险管理文件（ISO 14971）完整性",
+          "检查：风险分析 / 风险评价 / 风险控制 / 残余风险评估 / 风险管理报告",
+          "识别缺失：危险源未识别 / 控制措施不充分 / 残余风险未评估"
+        ],
+        "phase_2_enrich": [
+          "补充所有识别的危险源（Hazard Identification）",
+          "验证风险控制措施的有效性（如验证报告、测试结果）",
+          "评估残余风险的可接受性",
+          "更新风险管理报告，确保与 CER 和 IFU 一致"
+        ],
+        "phase_3_validate": [
+          "交叉验证：风险管理文件 ↔ CER BR 分析 ↔ IFU 警告",
+          "确认所有 IFU 警告在风险管理文件中有对应的风险-控制记录",
+          "验证风险可接受性标准与行业惯例一致"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有已知危险源均已识别",
+        "[ ] 每项风险均有控制措施和验证",
+        "[ ] 残余风险已评估且可接受",
+        "[ ] 风险管理文件与 CER BR 分析一致",
+        "[ ] IFU 所有警告在风险管理文件中有对应记录",
+        "[ ] 风险管理报告已更新并签署"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'risk management file incomplete' 或 'hazard not identified'",
+        "r2_risk": "仅更新风险管理文件未同步更新 CER 和 IFU",
+        "r2_recommended": "更新风险管理文件 + 同步 CER + 同步 IFU，三位一体",
+        "r3_persistent": "若 NB 质疑风险控制有效性，需提供验证数据",
+        "escalation_pattern": "风险管理缺陷常与 BR-001 并发，需同步解决"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受风险管理文件，关闭缺陷",
+        "partial": "NB 接受文件但要求补充特定危险源的分析",
+        "rejected": "NB 认为风险控制不充分，要求重新设计"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "RM-001",
+        "auto_prompt_prefix": "【风险管理自检】验证：1) 危险源全覆盖 2) 控制措施有验证 3) 残余风险可接受",
+        "output_enforcement": "必须引用 ISO 14971 风险管理报告；IFU 警告必须与风险记录对应"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'risk management file incomplete', 'hazard not identified'",
+        "常见追问: 'Risk control for [specific hazard] not verified with test data'"
+      ]
+    },
+    "BC-001": {
+      "defect_name": "生物相容性评估缺陷 / Biocompatibility Evaluation Insufficient",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Major": "typical"
+      },
+      "cer_sections": [
+        "CER-02"
+      ],
+      "regulatory_references": [
+        "REG-ISO-03",
+        "REG-MDR-03"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "评估生物相容性评估报告完整性",
+          "检查：材料清单 / 接触类型和持续时间分类 / 测试项目 / 标准符合性",
+          "识别缺失：未测试材料 / 过时标准 / 缺失生物学终点"
+        ],
+        "phase_2_test": [
+          "补充缺失的生物相容性测试（按 ISO 10993-1 生物学评价框架）",
+          "更新材料清单，确保所有与人体接触的材料均有评估",
+          "使用最新版 ISO 10993 系列标准",
+          "对不可测试材料提供论证（如文献数据、等同器械数据）"
+        ],
+        "phase_3_report": [
+          "编写完整生物相容性评估报告（Biological Evaluation Report）",
+          "提供测试样品与上市产品的等同性说明",
+          "在 CER 中引用生物相容性评估报告"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有与人体接触的材料均已评估",
+        "[ ] 接触类型和持续时间分类正确（ISO 10993-1）",
+        "[ ] 测试项目覆盖所有必要的生物学终点",
+        "[ ] 使用最新版 ISO 10993 标准",
+        "[ ] 测试样品与上市产品等同",
+        "[ ] 对未测试材料有充分论证"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'biocompatibility evaluation insufficient'",
+        "r2_risk": "仅提供旧版测试报告",
+        "r2_recommended": "提供最新测试报告 + 生物学评价表 + 材料清单",
+        "r3_persistent": "若 NB 质疑测试样品代表性，需提供样品-上市产品等同性说明",
+        "escalation_pattern": "生物相容性缺陷在植入器械中尤为关键，NB 可能要求独立实验室测试"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受生物相容性评估，关闭缺陷",
+        "partial": "NB 接受评估但要求补充特定测试",
+        "rejected": "NB 认为评估不充分，要求重新测试"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "BC-001",
+        "auto_prompt_prefix": "【生物相容性自检】验证：1) 材料全覆盖 2) 标准最新 3) 测试样品等同",
+        "output_enforcement": "必须引用 Biological Evaluation Report；必须包含材料清单和接触分类"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'biocompatibility evaluation insufficient'",
+        "常见追问: 'Cytotoxicity test not performed for [material X]'"
+      ]
+    },
+    "TM-001": {
+      "defect_name": "模板残留 / Template Residue",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Minor": "typical",
+        "Major": "possible if affects critical content"
+      },
+      "cer_sections": [
+        "CER-00"
+      ],
+      "regulatory_references": [
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_scan": [
+          "全文扫描模板残留：占位符（如 [INSERT] / XXX / TBD）、示例文本、批注",
+          "使用关键词搜索：'template' / 'example' / 'placeholder' / 'TBD' / '[ ]'",
+          "检查页眉页脚中的模板信息"
+        ],
+        "phase_2_clean": [
+          "删除所有模板占位符和示例文本",
+          "替换为实际内容或删除该部分",
+          "清理文档属性和元数据中的模板信息",
+          "移除所有审阅批注（或转换为正式内容）"
+        ],
+        "phase_3_validate": [
+          "进行最终全文审阅，确保无残留",
+          "使用多人交叉检查",
+          "在提交前运行自动化扫描（如适用）"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 无占位符文本（[INSERT] / XXX / TBD 等）",
+        "[ ] 无示例数据或虚构数据",
+        "[ ] 无模板批注或修订标记",
+        "[ ] 页眉页脚信息与当前项目一致",
+        "[ ] 文档属性中的作者/公司信息正确",
+        "[ ] 目录和交叉引用已更新"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'template text not removed' 或 'placeholder remaining'",
+        "r2_risk": "仅删除明显占位符但未检查隐藏批注",
+        "r2_recommended": "全面清理 + 提供清理声明 + 最终检查清单",
+        "r3_persistent": "极少发生，若发生说明清理流程存在系统性问题",
+        "escalation_pattern": "模板残留通常单独出现，但会降低 NB 对文档整体质量的信任"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受清理，关闭缺陷",
+        "partial": "NB 发现新的残留，要求进一步清理",
+        "rejected": "极少发生"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "TM-001",
+        "auto_prompt_prefix": "【模板残留自检】扫描：占位符、示例文本、批注、页眉页脚",
+        "output_enforcement": "最终输出前必须运行模板残留扫描；发现残留必须清理"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'template text not removed', 'placeholder remaining'",
+        "常见场景: 页眉保留其他公司名称、批注未删除、示例数据未替换"
+      ]
+    }
+  }
+}

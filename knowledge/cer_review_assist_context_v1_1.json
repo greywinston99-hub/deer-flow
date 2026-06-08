@@ -1,0 +1,444 @@
+{
+  "pack_id": "cer_review_assist_context_v1_1",
+  "date": "2026-04-27",
+  "version": "1.1",
+  "status": "sandbox_pilot_active",
+  "description": "Knowledge Context Pack V1.1 for CER Review Assist Sandbox Pilot. Extends V1 with evidence depth taxonomy, MDR transitional provisions, standards manifest, device class patterns, and external dependency taxonomy. Preserves all V1 calibration assets.",
+
+  "delta_from_v1": [
+    "Added evidence_depth taxonomy (PRIMARY_VERBATIM/PRIMARY_DERIVED/SECONDARY_SUMMARY/MISSING_PRIMARY)",
+    "Added MDR Article 120 transitional provisions reference data",
+    "Added harmonized standards manifest (5 core standards)",
+    "Added MEDDEV 2.7/1 Rev.4 benefit-risk guidance",
+    "Added device-class-specific regulatory patterns (2 classes)",
+    "Added external dependency taxonomy (PRESENT/EXTERNAL_CONFIRMED_HANDOFF/MISSING)",
+    "Added project type classification matrix (CER_BUNDLE/SOFTWARE_LIFECYCLE/RMF_ONLY/MIXED/UNKNOWN)",
+    "Added INFORMATIONAL severity tier definition",
+    "Added severity-to-evidence_depth binding rules"
+  ],
+
+  "preserved_from_v1": [
+    "V5 calibration pack (~236 non-quarantined candidates)",
+    "Convergence R1/R2/R3 assets",
+    "Track A D1-D9 canonical dimensions",
+    "Track B frozen snapshots",
+    "Per-agent calibration bindings",
+    "All hard boundaries"
+  ],
+
+  "calibration_summary": {
+    "source": "Track C Consolidation V5",
+    "total_candidates": 252,
+    "pass_quality": 242,
+    "warn_quality": 5,
+    "fail_quality": 5,
+    "p0_quarantined": 7,
+    "type_distribution": {
+      "AP": 62, "BD": 38, "GS": 72, "RD": 23, "RP": 21, "SV": 36
+    }
+  },
+
+  "v1_1_new": {
+
+    "evidence_depth_taxonomy": {
+      "description": "Four-level evidence depth classification for all findings. Required field on every finding across all agents.",
+      "levels": {
+        "PRIMARY_VERBATIM": {
+          "definition": "Verbatim excerpt from an original source document (CER, IFU, RMF, SSCP, BSI letter, etc.)",
+          "confidence_cap": "HIGH",
+          "severity_cap": "CRITICAL",
+          "source_example": "Direct quote from CER Section 4.2: 'The device demonstrated 98% first-shock success...'",
+          "human_gate": "Not required for LOW/INFORMATIONAL"
+        },
+        "PRIMARY_DERIVED": {
+          "definition": "Content derived/paraphrased from original source but traceable to specific section",
+          "confidence_cap": "HIGH",
+          "severity_cap": "HIGH",
+          "source_example": "Summary of IFU Section 3 warnings, paraphrased with section reference",
+          "human_gate": "Required for HIGH severity"
+        },
+        "SECONDARY_SUMMARY": {
+          "definition": "Excerpt from Track B agent-generated summary (INTAKE_REPORT, PROJECT_PROFILE, etc.)",
+          "confidence_cap": "MEDIUM",
+          "severity_cap": "MEDIUM",
+          "source_example": "WO-XXX_INTAKE_REPORT.md: 'The CER references MDD 93/42/EEC...'",
+          "required_action": "Finding MUST state: 'Verify against primary source at [source path]. Current evidence is from [Track B file] which is an agent-generated summary.'",
+          "human_gate": "Required for MEDIUM severity; finding auto-capped at MEDIUM"
+        },
+        "MISSING_PRIMARY": {
+          "definition": "Primary source not accessible to sandbox; evidence from indirect reference only",
+          "confidence_cap": "LOW",
+          "severity_cap": "LOW",
+          "source_example": "Content referenced in Track B summary but original file not in sandbox input",
+          "required_action": "Classify as UNVERIFIED_GAP. Recommendation MUST include: 'Verify against [specific document] at [source path] before finalizing.'",
+          "human_gate": "Conditional — only if severity would otherwise be MEDIUM+"
+        }
+      },
+      "severity_binding_rules": {
+        "CRITICAL": {"required_evidence": ["PRIMARY_VERBATIM"], "rule": "CRITICAL severity requires PRIMARY_VERBATIM evidence — no exceptions"},
+        "HIGH": {"required_evidence": ["PRIMARY_VERBATIM", "PRIMARY_DERIVED"], "rule": "HIGH severity requires PRIMARY evidence — no exceptions"},
+        "MEDIUM": {"allowed_evidence": ["PRIMARY_VERBATIM", "PRIMARY_DERIVED", "SECONDARY_SUMMARY"], "rule": "SECONDARY_SUMMARY evidence caps severity at MEDIUM"},
+        "LOW": {"allowed_evidence": ["PRIMARY_VERBATIM", "PRIMARY_DERIVED", "SECONDARY_SUMMARY", "MISSING_PRIMARY"], "rule": "MISSING_PRIMARY → UNVERIFIED_GAP"},
+        "INFORMATIONAL": {"allowed_evidence": "ALL", "rule": "INFORMATIONAL tier has no evidence depth requirement; not counted in gap metrics"}
+      },
+      "auto_downgrade_rules": [
+        "CRITICAL + SECONDARY_SUMMARY → downgrade to MEDIUM, add 'Verify against primary source'",
+        "CRITICAL + MISSING_PRIMARY → downgrade to LOW, reclassify as UNVERIFIED_GAP",
+        "HIGH + SECONDARY_SUMMARY → downgrade to MEDIUM, add 'Verify against primary source'",
+        "HIGH + MISSING_PRIMARY → downgrade to LOW, reclassify as UNVERIFIED_GAP",
+        "Missing evidence_depth field → default to MISSING_PRIMARY, downgrade to LOW"
+      ]
+    },
+
+    "severity_framework_extended": {
+      "description": "V1.1 extends the V1.0 D7 severity framework with INFORMATIONAL tier.",
+      "tiers": {
+        "CRITICAL": {"definition": "Blocks regulatory submission", "examples": ["Missing mandatory evidence", "False claims", "Prohibited language"], "gate": "ALWAYS human"},
+        "HIGH": {"definition": "Requires remediation before next review", "examples": ["Significant gaps", "Contradictory claims", "Missing SOTA benchmarking"], "gate": "ALWAYS human"},
+        "MEDIUM": {"definition": "Should be tracked and resolved", "examples": ["Insufficient detail", "Minor inconsistencies", "Incomplete but non-blocking"], "gate": "Human if confidence < HIGH"},
+        "LOW": {"definition": "Minor suggestion, informational", "examples": ["Formatting", "Organizational suggestions", "Phrasing polish"], "gate": "Auto-pass eligible"},
+        "INFORMATIONAL": {"definition": "Documentation polish, no regulatory impact", "examples": ["Style preferences", "Table consolidation suggestions", "Minor phrasing notes without regulatory implications"], "gate": "Auto-pass always; not counted in gap metrics"}
+      }
+    },
+
+    "mdr_transitional_provisions": {
+      "description": "MDR Article 120 transitional provision reference for MDD/MDR boundary decisions.",
+      "article_120": {
+        "regulation": "MDR (EU) 2017/745",
+        "provision": "Article 120",
+        "extended_by": "Regulation (EU) 2023/607",
+        "max_validity": "2028-05-26",
+        "conditions": [
+          "Device has valid MDD certificate issued before 2021-05-26",
+          "No significant changes in design or intended purpose",
+          "Manufacturer meets MDR post-market surveillance requirements",
+          "Manufacturer meets MDR vigilance requirements"
+        ],
+        "decision_matrix": {
+          "valid_mdd_certificate": {"finding_type": "standards_currency_note", "severity": "MEDIUM", "note": "Device may operate under MDD per Article 120 transitional provisions"},
+          "certificate_expired_or_none": {"finding_type": "standards_currency_gap", "severity": "MEDIUM", "note": "MDD framework reference without valid transitional provision"},
+          "certificate_status_unknown": {"finding_type": "standards_currency_note", "severity": "MEDIUM", "note": "Certificate status unknown — verify against manufacturer's MDD certificate before escalating"},
+          "no_transitional_eligibility": {"finding_type": "boundary_violation", "severity": "HIGH", "note": "MDR required — device not eligible for MDD transitional provisions"}
+        },
+        "severity_guidance": "If device has valid MDD certificate under Article 120, MDD framework reference is NOT a boundary violation. Flag as standards_currency_note at MEDIUM."
+      }
+    },
+
+    "harmonized_standards_manifest": {
+      "description": "Current harmonized standards reference for systematic standards currency checking.",
+      "last_updated": "2026-04-27",
+      "standards": [
+        {
+          "id": "EN 62304",
+          "title": "Medical device software — Software life cycle processes",
+          "current_version": "EN 62304:2006",
+          "current_amendments": ["AMD 1:2015"],
+          "superseded_versions": [],
+          "mdr_harmonized": true,
+          "key_requirements": [
+            "Software development process",
+            "Software maintenance process",
+            "Risk management for software",
+            "Legacy software handling (AMD 1)",
+            "SOUP management (AMD 1)",
+            "Security risk management (AMD 1)"
+          ]
+        },
+        {
+          "id": "EN ISO 13485",
+          "title": "Medical devices — Quality management systems",
+          "current_version": "EN ISO 13485:2016",
+          "current_amendments": ["A11:2021"],
+          "superseded_versions": ["EN ISO 13485:2012"],
+          "mdr_harmonized": true
+        },
+        {
+          "id": "EN 60601-1",
+          "title": "Medical electrical equipment — General requirements for basic safety",
+          "current_version": "EN 60601-1:2006",
+          "current_amendments": ["A1:2013", "A2:2021"],
+          "mdr_harmonized": true
+        },
+        {
+          "id": "EN 60601-1-8",
+          "title": "Medical electrical equipment — Alarm systems",
+          "current_version": "EN 60601-1-8:2007",
+          "current_amendments": ["A1:2013"],
+          "mdr_harmonized": true
+        },
+        {
+          "id": "IEC 60601-2-24",
+          "title": "Infusion pumps and controllers",
+          "current_version": "IEC 60601-2-24:2012",
+          "current_amendments": [],
+          "mdr_harmonized": true
+        }
+      ],
+      "usage": "For each standard referenced in project documents, check: (a) is the referenced version the current harmonized version? (b) are any published amendments missing from the reference? (c) has the standard been withdrawn or superseded?",
+      "limitation": "Full standards manifest requires Context Pack V2. V1.1 includes 5 core standards only. For unlisted standards, flag as: 'Standards currency not verified — [standard] not in sandbox standards manifest.'"
+    },
+
+    "meddev_2_7_1_rev4_reference": {
+      "description": "MEDDEV 2.7/1 Rev.4 key guidance for benefit-risk assessment calibration.",
+      "benefit_risk_conclusion": {
+        "guidance": "MEDDEV 2.7/1 Rev.4, Section 8.3",
+        "key_point": "A qualitative benefit-risk conclusion is acceptable when quantitative data supporting the conclusion exists elsewhere in the CER dossier.",
+        "classification": {
+          "QUALITATIVE_CONCLUSION_WITH_QUANTITATIVE_BACKING": {
+            "definition": "Conclusion stated qualitatively but quantitative data exists elsewhere in the dossier",
+            "acceptability": "Acceptable per MEDDEV 2.7/1 Rev.4",
+            "action": "Do NOT flag as a gap"
+          },
+          "UNSUPPORTED_CONCLUSION": {
+            "definition": "Conclusion lacks data backing anywhere in the dossier",
+            "acceptability": "Gap — requires remediation",
+            "action": "Flag at MEDIUM or above",
+            "severity": "MEDIUM"
+          }
+        },
+        "severity_guidance": "UNSUPPORTED_CONCLUSION (no data backing) → MEDIUM. QUALITATIVE_WITH_QUANTITATIVE_BACKING → INFORMATIONAL or no finding."
+      }
+    },
+
+    "device_class_patterns": {
+      "description": "Device-class-specific regulatory concern patterns observed across pilots.",
+      "class_iii_active_implantable_and_high_risk": {
+        "examples": ["AED", "Implantable pacemaker", "Neurostimulator"],
+        "common_gaps": [
+          "SOTA benchmarking against alternatives",
+          "Quantitative safety acceptance criteria",
+          "PMCF study design adequacy"
+        ],
+        "key_standards": ["EN 60601-1 series", "MEDDEV 2.7/1 Rev.4"],
+        "pilot_reference": "103_jiuxin"
+      },
+      "software_class_c": {
+        "examples": ["Infusion pump controller", "Radiotherapy planning"],
+        "common_gaps": [
+          "Standards version currency",
+          "SOUP/legacy software documentation",
+          "External dependency documentation"
+        ],
+        "key_standards": ["EN 62304:2006 + AMD 1:2015", "IEC 62366-1:2015"],
+        "pilot_reference": "020_wuxidingdian"
+      }
+    },
+
+    "external_dependency_taxonomy": {
+      "description": "Three-state classification for external dependencies. Replaces binary present/absent from V1.0.",
+      "states": {
+        "PRESENT": {
+          "definition": "File exists and is readable in the project bundle",
+          "completeness_impact": "Normal scoring"
+        },
+        "EXTERNAL_CONFIRMED_HANDOFF": {
+          "definition": "File is external but handoff point is documented (traceability matrix reference, closeout confirmation of separate file)",
+          "completeness_impact": "Does NOT reduce completeness score",
+          "examples": [
+            "Risk management file maintained separately per QMS",
+            "SOP referenced as organizational-level document",
+            "NB review letter archived in separate regulatory dossier"
+          ]
+        },
+        "MISSING": {
+          "definition": "File should be present but is not, and no handoff is documented",
+          "completeness_impact": "Reduces completeness score"
+        }
+      },
+      "rule": "Only MISSING contributes to negative completeness scoring. EXTERNAL_CONFIRMED_HANDOFF is a normal documentation pattern, not a gap."
+    },
+
+    "project_type_classification_matrix": {
+      "description": "Project type classifier for determining CER review scope applicability.",
+      "types": {
+        "CER_BUNDLE": {
+          "definition": "Full clinical evaluation report with clinical data and supporting documents",
+          "cer_calibration_applies": true,
+          "scope_note_required": false,
+          "detection": "Presence of CER, CEP, clinical evaluation, 临床评价 files"
+        },
+        "SOFTWARE_LIFECYCLE": {
+          "definition": "EN 62304 software documentation (not a CER)",
+          "cer_calibration_applies": false,
+          "scope_note_required": true,
+          "scope_note": "PROJECT_TYPE_SCOPE_NOTE — sandbox calibrated for CER review. Findings should be interpreted with scope limitation: this is a SOFTWARE_LIFECYCLE project, not a CER bundle.",
+          "detection": "EN 62304 references, software development/maintenance plans, SOUP list"
+        },
+        "RMF_ONLY": {
+          "definition": "Risk management file only, no CER",
+          "cer_calibration_applies": false,
+          "scope_note_required": true,
+          "detection": "RMF present but no CER, no clinical data"
+        },
+        "MIXED": {
+          "definition": "Multiple document types including CER elements",
+          "cer_calibration_applies": "partial",
+          "scope_note_required": true,
+          "detection": "Both CER and software lifecycle documents present"
+        },
+        "UNKNOWN": {
+          "definition": "Cannot determine project type",
+          "cer_calibration_applies": "unknown",
+          "scope_note_required": true,
+          "detection": "None of the above patterns detected"
+        }
+      }
+    },
+
+    "pipeline_limitation_vs_document_quality": {
+      "description": "Distinction between pipeline constraints and actual document quality issues.",
+      "DOCUMENT_QUALITY_ISSUE": {
+        "definition": "Problem with the source document itself",
+        "examples": ["Empty file", "Placeholder content", "Corrupted file"],
+        "scored_as_finding": true
+      },
+      "PIPELINE_LIMITATION": {
+        "definition": "Constraint of the extraction/reading pipeline, not the document",
+        "examples": ["DOC format not readable by text extractor", "XLSX not parseable", "Scanned PDF without OCR"],
+        "scored_as_finding": false,
+        "action": "Informational note only — does not reflect on document quality"
+      }
+    }
+  },
+
+  "track_a_assets": [
+    {
+      "asset_id": "D1", "type": "requirement_hierarchy",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D1_REQUIREMENT_HIERARCHY_ANALYSIS.md",
+      "target_agents": ["regulatory-boundary-qa.v1_1.sandbox", "cer-rmf-review-logic-qa.v1_1.sandbox"]
+    },
+    {
+      "asset_id": "D2", "type": "concept_graph",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D2_CONCEPT_GRAPH.md",
+      "target_agents": ["gap-analysis-specialist.v1_1.sandbox"]
+    },
+    {
+      "asset_id": "D4", "type": "rule_mapping",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D4_RULE_TO_TEMPLATE_MAPPING.md",
+      "target_agents": ["cer-rmf-review-logic-qa.v1_1.sandbox"]
+    },
+    {
+      "asset_id": "D7", "type": "evaluation_logic",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D7_EVALUATION_LOGIC.md",
+      "target_agents": ["ALL"],
+      "severity_framework": {
+        "CRITICAL": "Blocks regulatory submission",
+        "HIGH": "Requires remediation before next review",
+        "MEDIUM": "Should be tracked and resolved",
+        "LOW": "Informational — minor formatting",
+        "INFORMATIONAL": "Documentation polish — not counted in gap metrics (V1.1 NEW)"
+      }
+    },
+    {
+      "asset_id": "D8", "type": "gate_boundary",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D8_HUMAN_GATE_BOUNDARY_MAP.md",
+      "target_agents": ["regulatory-boundary-qa.v1_1.sandbox", "cer-rmf-review-logic-qa.v1_1.sandbox"]
+    }
+  ],
+
+  "track_c_assets": [
+    {
+      "asset_id": "V5_CALIBRATION_PACK",
+      "type": "calibration_pack",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/track_c_consolidation_v5/TRACK_C_CALIBRATION_PACK_V5.json",
+      "target_agents": ["ALL"]
+    },
+    {
+      "asset_id": "V5_AGENT_BINDING_MATRIX",
+      "type": "binding_matrix",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/track_c_consolidation_v5/TRACK_C_AGENT_BINDING_MATRIX_V5.md",
+      "target_agents": ["ALL"]
+    },
+    {
+      "asset_id": "V5_P0_FAST_REVIEW",
+      "type": "quarantine_reference",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/track_c_consolidation_v5/P0_FAST_REVIEW_PACKET_V5.md",
+      "target_agents": ["ALL"]
+    }
+  ],
+
+  "convergence_assets": [
+    {"asset_id": "CONVERGENCE_R1", "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/CONVERGENCE_ROUND_1.md"},
+    {"asset_id": "CONVERGENCE_R2", "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/CONVERGENCE_ROUND_2.md"},
+    {"asset_id": "CONVERGENCE_R3", "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/CONVERGENCE_ROUND_3.md"}
+  ],
+
+  "per_agent_calibration": {
+    "canonical-recommendation-engine.v1_1.sandbox": {
+      "calibration_types": ["GS", "AP"],
+      "max_confidence": "HIGH",
+      "v1_1_additions": ["project_type_classifier", "source_type_confidence_caps", "version_type_classifier"],
+      "key_anti_patterns": [
+        {"id": "KA-CAL-AP-RPR-0001", "type": "empty_file_accepted_as_source", "severity": "CRITICAL"},
+        {"id": "KA-CAL-AP-RPR-0002", "type": "copy_paste_template_artifact", "severity": "MEDIUM"},
+        {"id": "KA-CAL-AP-RPR-0003", "type": "placeholder_content", "severity": "HIGH"},
+        {"id": "KA-CAL-AP-RPR-0004", "type": "synthetic_summary_instead_of_excerpt", "severity": "CRITICAL"},
+        {"id": "KA-CAL-AP-RPR-0005", "type": "over_generalization", "severity": "MEDIUM"},
+        {"id": "KA-CAL-AP-RPR-0008", "type": "version_inconsistency", "severity": "MEDIUM"},
+        {"id": "KA-CAL-AP-RPR-0009", "type": "plan_without_execution", "severity": "HIGH"},
+        {"id": "KA-CAL-GS-RPR-0003", "type": "factual_contradiction", "severity": "HIGH"}
+      ]
+    },
+    "evidence-artifact-curator.v1_1.sandbox": {
+      "calibration_types": ["GS", "AP"],
+      "max_confidence": "HIGH",
+      "v1_1_additions": ["evidence_depth_classification", "external_dependency_taxonomy", "pipeline_limitation_flag", "project_type_scope_note"],
+      "evidence_packs": {"EP-001": "Project Identity", "EP-002": "Clinical Evidence", "EP-003": "Post-Market", "EP-004": "Regulatory", "EP-005": "Audit Trail"}
+    },
+    "gap-analysis-specialist.v1_1.sandbox": {
+      "calibration_types": ["AP", "SV", "BD"],
+      "max_confidence": "MEDIUM",
+      "v1_1_additions": ["informational_severity_tier", "unverified_gap_subtype", "evidence_depth_inheritance"],
+      "key_gap_patterns": ["missing_source_pattern", "placeholder_content_gap", "incomplete_evidence_chain", "version_mismatch_gap", "plan_without_execution", "over_generalization_gap", "factual_contradiction"]
+    },
+    "regulatory-boundary-qa.v1_1.sandbox": {
+      "calibration_types": ["AP", "RD"],
+      "max_confidence": "HIGH",
+      "v1_1_additions": ["evidence_depth_awareness", "transitional_provision_check", "standards_currency_check"],
+      "prohibited_claims": [
+        "official CEAR generated", "final clinical/regulatory decision", "production ready",
+        "full CER/RMF review completed", "RMF complete", "PMCF adequate",
+        "equivalence demonstrated", "GSPR complete", "SSCP complete"
+      ]
+    },
+    "cer-rmf-review-logic-qa.v1_1.sandbox": {
+      "calibration_types": ["SV", "RP", "RD"],
+      "max_confidence": "MEDIUM",
+      "v1_1_additions": ["terminal_verdict_removal", "evidence_confidence_field", "benefit_risk_calibration", "informational_tier", "advisory_only_disclaimer"],
+      "repair_pairs": [
+        {"pattern": "equivalence_rejected", "repair": "pivot_to_standalone_mdr_article_61_6a"},
+        {"pattern": "sota_not_benchmarked", "repair": "add_quantitative_comparison"},
+        {"pattern": "qualitative_safety_claim", "repair": "add_sota_derived_acceptance_criteria"},
+        {"pattern": "cep_cer_claim_mismatch", "repair": "systematic_cross_reference_table"},
+        {"pattern": "missing_pmcf_study_design", "repair": "add_study_protocol_with_endpoints"},
+        {"pattern": "document_version_inconsistency", "repair": "identify_authoritative_nb_reviewed_version"},
+        {"pattern": "evaluation_route_change_undocumented", "repair": "document_both_routes_with_rationale"}
+      ]
+    }
+  },
+
+  "out_of_scope": [
+    "P0 quarantined candidates (7 — HOLD_FOR_HUMAN_REVIEW)",
+    "FAIL/WARN quality tier candidates (10)",
+    "NocoDB writes (hard boundary)",
+    "Runtime agent modification (hard boundary)",
+    "approved=true (hard boundary)",
+    "runtime_call_allowed=true (hard boundary)"
+  ],
+
+  "hard_boundaries": {
+    "no_nocodb_writes": true,
+    "no_approved_true": true,
+    "no_runtime_call_allowed_true": true,
+    "no_production_agent_modification": true,
+    "no_p0_quarantine_lift": true,
+    "candidate_knowledge_as_internal_review_assist_context_only": true,
+    "all_findings_must_have_evidence_trace": true,
+    "all_findings_must_have_evidence_depth": true,
+    "all_findings_must_have_evidence_confidence": true,
+    "no_terminal_pass_fail_verdicts": true,
+    "critical_severity_requires_primary_verbatim": true,
+    "high_severity_requires_primary_evidence": true,
+    "secondary_evidence_capped_at_medium": true
+  }
+}

@@ -6,7 +6,10 @@
     "source_projects": 11,
     "nb_records": 64,
     "product_families": 7,
-    "description": "跨 Product Family 共性启发式规则，基于 5 份 CER 范本横向比较 + 64 条 NB 审评缺陷模式提炼"
+    "description": "跨 Product Family 共性启发式规则，基于 5 份 CER 范本横向比较 + 64 条 NB 审评缺陷模式提炼",
+    "v5_linked_defects": {
+      "DO-001": 153
+    }
   },
   "heuristics": [
     {
@@ -19,7 +22,12 @@
         "exceptions": [
           "DEV-VAD"
         ],
-        "exception_reason": "Innovative Class III devices with no comparable products should explicitly claim non-equivalence"
+        "exception_reason": "Innovative Class III devices with no comparable products should explicitly claim non-equivalence",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "cer_sections": [
         "CER-02",
@@ -130,7 +138,12 @@
       "applicability": {
         "all_families": true,
         "exceptions": [],
-        "exception_reason": ""
+        "exception_reason": "",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "cer_sections": [
         "CER-02",
@@ -226,7 +239,12 @@
       "applicability": {
         "all_families": true,
         "exceptions": [],
-        "exception_reason": ""
+        "exception_reason": "",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "cer_sections": [
         "CER-10"
@@ -313,7 +331,12 @@
       "applicability": {
         "all_families": true,
         "exceptions": [],
-        "exception_reason": ""
+        "exception_reason": "",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "cer_sections": [
         "CER-05"
@@ -409,7 +432,12 @@
       "applicability": {
         "all_families": true,
         "exceptions": [],
-        "exception_reason": ""
+        "exception_reason": "",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "cer_sections": [
         "CER-02"
@@ -515,7 +543,12 @@
       "applicability": {
         "all_families": true,
         "exceptions": [],
-        "exception_reason": ""
+        "exception_reason": "",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "cer_sections": [
         "CER-05",
@@ -619,7 +652,12 @@
       "applicability": {
         "all_families": true,
         "exceptions": [],
-        "exception_reason": ""
+        "exception_reason": "",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "cer_sections": [
         "ALL"
@@ -710,7 +748,12 @@
       "applicability": {
         "all_families": true,
         "exceptions": [],
-        "exception_reason": ""
+        "exception_reason": "",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "cer_sections": [
         "ALL"
@@ -803,6 +846,21 @@
     "injection_point": "Between Slot Rules (Family-specific) and Section Defense (Chapter-specific)",
     "layer_name": "Universal Heuristics Layer",
     "precedence": "Slot Rules override Heuristics for family-specific conflicts; Heuristics override defaults",
-    "activation": "Always active for all CER generation tasks"
+    "activation": "Always active for all CER generation tasks",
+    "v5_linked_defects": {
+      "DO-001": 153
+    }
+  },
+  "v5_enrichment": {
+    "applied_at": "2026-05-30T12:49:17.846185",
+    "total_v5_findings_available": 63,
+    "defect_types_available": 27,
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    },
+    "deepened": true,
+    "cross_refs_added": 11
   }
 }

@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "${PLAYWRIGHT_MCP_COMMAND}",
+      "args": [],
+      "env": {
+        "PLAYWRIGHT_HEADLESS": "true"
+      }
+    },
+    "document-extraction-optional": {
+      "command": "${DOCUMENT_EXTRACTION_MCP_COMMAND}",
+      "args": [],
+      "env": {
+        "DOCUMENT_EXTRACTION_MODE": "read_only"
+      }
+    }
+  }
+}

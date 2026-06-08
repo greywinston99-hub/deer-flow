@@ -1,0 +1,10 @@
+{
+  "total_conflicts": 30,
+  "entity_level_conflicts": 0,
+  "semantic_conflicts": 30,
+  "hrq_generated_conflicts": 30,
+  "filtered_out_count": 0,
+  "filter_reason_distribution": {
+    "semantic_high_critical_linked": 30
+  }
+}

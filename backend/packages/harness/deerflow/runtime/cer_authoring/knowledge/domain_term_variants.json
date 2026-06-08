@@ -1,78 +1,545 @@
 {
   "zh_en_variants": [
-    {"zh": "手术薄膜", "en_primary": "surgical_drape", "en_variants": ["surgical_curtain", "incise_drape", "sterile_drape"]},
-    {"zh": "射频消融", "en_primary": "radiofrequency_ablation", "en_variants": ["RF_ablation", "RFA", "thermal_ablation"]},
-    {"zh": "输尿管软镜", "en_primary": "flexible_ureteroscope", "en_variants": ["fURS", "digital_ureteroscope", "flexible_ureterorenoscope"]},
-    {"zh": "血液灌流", "en_primary": "hemoperfusion", "en_variants": ["blood_perfusion", "sorbent_hemoperfusion", "charcoal_perfusion"]},
-    {"zh": "心脏组织稳定器", "en_primary": "cardiac_tissue_stabilizer", "en_variants": ["heart_stabilizer", "myocardial_stabilizer", "coronary_stabilizer"]},
-    {"zh": "等离子手术电极", "en_primary": "plasma_surgical_electrode", "en_variants": ["coblation_electrode", "RF_plasma_electrode", "plasma_wand"]},
-    {"zh": "脉冲电场消融", "en_primary": "pulsed_field_ablation", "en_variants": ["PFA", "electroporation_ablation", "irreversible_electroporation"]},
-    {"zh": "封堵器", "en_primary": "occluder", "en_variants": ["closure_device", "septal_occluder", "vascular_plug"]},
-    {"zh": "球囊导管", "en_primary": "balloon_catheter", "en_variants": ["PTCA_balloon", "dilatation_catheter", "angioplasty_balloon"]},
-    {"zh": "支架", "en_primary": "stent", "en_variants": ["vascular_stent", "coronary_stent", "endoprosthesis"]}
+    {
+      "zh": "手术薄膜",
+      "en_primary": "surgical_drape",
+      "en_variants": [
+        "surgical_curtain",
+        "incise_drape",
+        "sterile_drape"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "射频消融",
+      "en_primary": "radiofrequency_ablation",
+      "en_variants": [
+        "RF_ablation",
+        "RFA",
+        "thermal_ablation"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "输尿管软镜",
+      "en_primary": "flexible_ureteroscope",
+      "en_variants": [
+        "fURS",
+        "digital_ureteroscope",
+        "flexible_ureterorenoscope"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "血液灌流",
+      "en_primary": "hemoperfusion",
+      "en_variants": [
+        "blood_perfusion",
+        "sorbent_hemoperfusion",
+        "charcoal_perfusion"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "心脏组织稳定器",
+      "en_primary": "cardiac_tissue_stabilizer",
+      "en_variants": [
+        "heart_stabilizer",
+        "myocardial_stabilizer",
+        "coronary_stabilizer"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "等离子手术电极",
+      "en_primary": "plasma_surgical_electrode",
+      "en_variants": [
+        "coblation_electrode",
+        "RF_plasma_electrode",
+        "plasma_wand"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "脉冲电场消融",
+      "en_primary": "pulsed_field_ablation",
+      "en_variants": [
+        "PFA",
+        "electroporation_ablation",
+        "irreversible_electroporation"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "封堵器",
+      "en_primary": "occluder",
+      "en_variants": [
+        "closure_device",
+        "septal_occluder",
+        "vascular_plug"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "球囊导管",
+      "en_primary": "balloon_catheter",
+      "en_variants": [
+        "PTCA_balloon",
+        "dilatation_catheter",
+        "angioplasty_balloon"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    },
+    {
+      "zh": "支架",
+      "en_primary": "stent",
+      "en_variants": [
+        "vascular_stent",
+        "coronary_stent",
+        "endoprosthesis"
+      ],
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
+    }
   ],
   "regional_variants": [
-    {"term": "ureteral_access_sheath", "US": "ureteral_access_sheath", "EU": "ureteric_access_sheath", "UK": "ureteric_access_sheath"},
-    {"term": "intravascular_ultrasound", "US": "intravascular_ultrasound", "EU": "intravascular_ultrasound", "UK": "intravascular_ultrasound"},
-    {"term": "hemoperfusion_cartridge", "US": "hemoperfusion_cartridge", "EU": "haemoperfusion_cartridge", "UK": "haemoperfusion_cartridge"},
-    {"term": "catheter_ablation", "US": "catheter_ablation", "EU": "catheter_ablation", "UK": "catheter_ablation"},
-    {"term": "edema", "US": "edema", "EU": "oedema", "UK": "oedema"},
-    {"term": "ischemic", "US": "ischemic", "EU": "ischaemic", "UK": "ischaemic"}
+    {
+      "term": "ureteral_access_sheath",
+      "US": "ureteral_access_sheath",
+      "EU": "ureteric_access_sheath",
+      "UK": "ureteric_access_sheath",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "term": "intravascular_ultrasound",
+      "US": "intravascular_ultrasound",
+      "EU": "intravascular_ultrasound",
+      "UK": "intravascular_ultrasound",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "term": "hemoperfusion_cartridge",
+      "US": "hemoperfusion_cartridge",
+      "EU": "haemoperfusion_cartridge",
+      "UK": "haemoperfusion_cartridge",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "term": "catheter_ablation",
+      "US": "catheter_ablation",
+      "EU": "catheter_ablation",
+      "UK": "catheter_ablation",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "term": "edema",
+      "US": "edema",
+      "EU": "oedema",
+      "UK": "oedema",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "term": "ischemic",
+      "US": "ischemic",
+      "EU": "ischaemic",
+      "UK": "ischaemic",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    }
   ],
   "synonym_clusters": [
-    {"canonical": "major_adverse_cardiac_events", "synonyms": ["MACE", "MACCE", "major_cardiac_events", "cardiac_adverse_events"]},
-    {"canonical": "target_lesion_failure", "synonyms": ["TLF", "target_lesion_revascularization", "TLR", "lesion_failure"]},
-    {"canonical": "all_cause_mortality", "synonyms": ["all_cause_death", "total_mortality", "overall_survival"]},
-    {"canonical": "quality_of_life", "synonyms": ["QoL", "health_related_quality_of_life", "HRQoL", "patient_reported_outcomes"]},
-    {"canonical": "procedural_success", "synonyms": ["technical_success", "device_success", "acute_procedural_success"]}
+    {
+      "canonical": "major_adverse_cardiac_events",
+      "synonyms": [
+        "MACE",
+        "MACCE",
+        "major_cardiac_events",
+        "cardiac_adverse_events"
+      ],
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "canonical": "target_lesion_failure",
+      "synonyms": [
+        "TLF",
+        "target_lesion_revascularization",
+        "TLR",
+        "lesion_failure"
+      ],
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "canonical": "all_cause_mortality",
+      "synonyms": [
+        "all_cause_death",
+        "total_mortality",
+        "overall_survival"
+      ],
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "canonical": "quality_of_life",
+      "synonyms": [
+        "QoL",
+        "health_related_quality_of_life",
+        "HRQoL",
+        "patient_reported_outcomes"
+      ],
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    },
+    {
+      "canonical": "procedural_success",
+      "synonyms": [
+        "technical_success",
+        "device_success",
+        "acute_procedural_success"
+      ],
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
+    }
   ],
   "cer_phrase_templates": {
     "_note": "基于5份真实CER报告的高频句式模板（CER_03_STYLE）。5/5表示所有报告均使用该句式。",
     "device_description_§2": [
-      {"template": "The [Device Name] is designed/intended/developed for/to [clinical purpose].", "frequency": "5/5"},
-      {"template": "The device uses/utilizes [technology/mechanism] to [achieve clinical effect].", "frequency": "4/5"},
-      {"template": "The main technical specifications include [param1], [param2], and [param3].", "frequency": "5/5"}
+      {
+        "template": "The [Device Name] is designed/intended/developed for/to [clinical purpose].",
+        "frequency": "5/5",
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
+      },
+      {
+        "template": "The device uses/utilizes [technology/mechanism] to [achieve clinical effect].",
+        "frequency": "4/5",
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
+      },
+      {
+        "template": "The main technical specifications include [param1], [param2], and [param3].",
+        "frequency": "5/5",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      }
     ],
     "evidence_statement_§4": [
-      {"template": "Based on the available [data/evidence/literature], [N] studies were identified that [meet criteria].", "frequency": "5/5"},
-      {"template": "The device meets/complies with/conforms to [standard/regulation/GSPR X.X].", "frequency": "5/5"},
-      {"template": "The [safety/performance/benefit-risk] analysis demonstrates/indicates that [conclusion].", "frequency": "4/5"},
-      {"template": "No significant/serious/adverse [events/effects/reactions] were [reported/identified/observed].", "frequency": "4/5"},
-      {"template": "Compared to [existing/standard/alternative] [treatment/device], [Device Name] [advantage].", "frequency": "3/5"}
+      {
+        "template": "Based on the available [data/evidence/literature], [N] studies were identified that [meet criteria].",
+        "frequency": "5/5",
+        "v5_linked_defects": {
+          "LB-001": 162,
+          "EV-001": 126
+        }
+      },
+      {
+        "template": "The device meets/complies with/conforms to [standard/regulation/GSPR X.X].",
+        "frequency": "5/5",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "GS-001": 72
+        }
+      },
+      {
+        "template": "The [safety/performance/benefit-risk] analysis demonstrates/indicates that [conclusion].",
+        "frequency": "4/5",
+        "v5_linked_defects": {
+          "BR-001": 148
+        }
+      },
+      {
+        "template": "No significant/serious/adverse [events/effects/reactions] were [reported/identified/observed].",
+        "frequency": "4/5",
+        "v5_linked_defects": {
+          "TR-001": 102
+        }
+      },
+      {
+        "template": "Compared to [existing/standard/alternative] [treatment/device], [Device Name] [advantage].",
+        "frequency": "3/5",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "GS-001": 72
+        }
+      }
     ],
     "conclusion_§5": [
-      {"template": "This Clinical Evaluation [Report/assessment] [confirms/demonstrates/concludes] that [Device Name] [meets requirements].", "frequency": "5/5"},
-      {"template": "The device [meets the requirements of/complies with] [GSPR X.X] based on [evidence source].", "frequency": "4/5"}
+      {
+        "template": "This Clinical Evaluation [Report/assessment] [confirms/demonstrates/concludes] that [Device Name] [meets requirements].",
+        "frequency": "5/5",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "TR-001": 102
+        }
+      },
+      {
+        "template": "The device [meets the requirements of/complies with] [GSPR X.X] based on [evidence source].",
+        "frequency": "4/5",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "EV-001": 126,
+          "GS-001": 72
+        }
+      }
     ],
     "equivalence_§4.2": [
-      {"template": "Equivalence shall be demonstrated according to the Regulation (EU) 2017/745. The requirements from MEDDEV 2.7/1 Rev. 4 and MDCG 2020-5 would also be taken into consideration.", "frequency": "3/5", "context": "需要等效性论证时的标准开头"},
-      {"template": "Equivalence is not claimed for the device under evaluation. The device represents a novel technology for which no equivalent device has been identified on the market.", "frequency": "1/5", "context": "心擎模式：创新器械无需等效性论证"}
+      {
+        "template": "Equivalence shall be demonstrated according to the Regulation (EU) 2017/745. The requirements from MEDDEV 2.7/1 Rev. 4 and MDCG 2020-5 would also be taken into consideration.",
+        "frequency": "3/5",
+        "context": "需要等效性论证时的标准开头",
+        "v5_linked_defects": {
+          "EQ-001": 73,
+          "GS-001": 72
+        }
+      },
+      {
+        "template": "Equivalence is not claimed for the device under evaluation. The device represents a novel technology for which no equivalent device has been identified on the market.",
+        "frequency": "1/5",
+        "context": "心擎模式：创新器械无需等效性论证",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "EQ-001": 73
+        }
+      }
     ],
     "gspr_analysis_§4.7": [
-      {"template": "Regarding GSPR X.X ([requirement description]), the available evidence includes [sources]. The analysis demonstrates that [reasoning]. Therefore, the device meets this requirement.", "frequency": "structure pattern"}
+      {
+        "template": "Regarding GSPR X.X ([requirement description]), the available evidence includes [sources]. The analysis demonstrates that [reasoning]. Therefore, the device meets this requirement.",
+        "frequency": "structure pattern",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "EV-001": 126,
+          "GS-001": 72
+        }
+      }
     ],
     "literature_review_§4.4": [
-      {"template": "A total of [N] studies were identified. Among them, [N] met the inclusion criteria. The key findings indicate [summary]. The overall quality of evidence is [assessment].", "frequency": "structure pattern"}
-    ]
+      {
+        "template": "A total of [N] studies were identified. Among them, [N] met the inclusion criteria. The key findings indicate [summary]. The overall quality of evidence is [assessment].",
+        "frequency": "structure pattern",
+        "v5_linked_defects": {
+          "LB-001": 162
+        }
+      }
+    ],
+    "v5_linked_defects": {
+      "DO-001": 153,
+      "EV-001": 126,
+      "EQ-001": 73,
+      "GS-001": 72
+    }
   },
   "wording_recommendations": {
     "_note": "基于5份真实CER报告的同义表述选择矩阵（CER_03_STYLE）。",
     "pairs": [
-      {"semantic": "设备功能", "recommended": "is intended for", "avoid": "used for", "reason": "used for过于口语化"},
-      {"semantic": "证据支持", "recommended": "demonstrates", "avoid": "shows", "reason": "demonstrates更正式"},
-      {"semantic": "合规状态", "recommended": "complies with", "avoid": "follows", "reason": "follows不够正式"},
-      {"semantic": "风险状态", "recommended": "acceptable", "avoid": "okay/fine", "reason": "okay/fine过于口语"},
-      {"semantic": "不良事件", "recommended": "were reported", "avoid": "occurred", "reason": "were reported更准确"},
-      {"semantic": "比较结果", "recommended": "non-inferior", "avoid": "equivalent (unless proven)", "reason": "equivalent需严格论证"},
-      {"semantic": "结论强度", "recommended": "confirms (strong) / indicates (moderate)", "avoid": "thinks/believes", "reason": "thinks/believes主观性过强"},
-      {"semantic": "描述数量", "recommended": "approximately, [N] cases", "avoid": "about, some", "reason": "about/some模糊不精确"}
+      {
+        "semantic": "设备功能",
+        "recommended": "is intended for",
+        "avoid": "used for",
+        "reason": "used for过于口语化",
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
+      },
+      {
+        "semantic": "证据支持",
+        "recommended": "demonstrates",
+        "avoid": "shows",
+        "reason": "demonstrates更正式",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      },
+      {
+        "semantic": "合规状态",
+        "recommended": "complies with",
+        "avoid": "follows",
+        "reason": "follows不够正式",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      },
+      {
+        "semantic": "风险状态",
+        "recommended": "acceptable",
+        "avoid": "okay/fine",
+        "reason": "okay/fine过于口语",
+        "v5_linked_defects": {
+          "BR-001": 148,
+          "DT-001": 53
+        }
+      },
+      {
+        "semantic": "不良事件",
+        "recommended": "were reported",
+        "avoid": "occurred",
+        "reason": "were reported更准确",
+        "v5_linked_defects": {
+          "TR-001": 102
+        }
+      },
+      {
+        "semantic": "比较结果",
+        "recommended": "non-inferior",
+        "avoid": "equivalent (unless proven)",
+        "reason": "equivalent需严格论证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      },
+      {
+        "semantic": "结论强度",
+        "recommended": "confirms (strong) / indicates (moderate)",
+        "avoid": "thinks/believes",
+        "reason": "thinks/believes主观性过强",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      },
+      {
+        "semantic": "描述数量",
+        "recommended": "approximately, [N] cases",
+        "avoid": "about, some",
+        "reason": "about/some模糊不精确",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      }
     ],
-    "hedging_guidance": "模糊限定词(may/might/could/approximately/typically)应在风险描述时使用（海杰亚模式72次），确定性表述(demonstrated/confirmed/proven)应在有充分证据时使用（帕姆模式72次）。过度确定性与过度模糊均为缺陷。"
+    "hedging_guidance": "模糊限定词(may/might/could/approximately/typically)应在风险描述时使用（海杰亚模式72次），确定性表述(demonstrated/confirmed/proven)应在有充分证据时使用（帕姆模式72次）。过度确定性与过度模糊均为缺陷。",
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    }
   },
   "section_opening_templates": {
-    "§2_Scope": ["The [Device Name] is a [device type] intended for [purpose].", "This section describes the [device/system] under evaluation."],
-    "§3_SOTA": ["This section provides an overview of the [disease/condition] and current treatment options.", "The State of the Art (SOTA) assessment includes [components]."],
-    "§4_Evidence": ["This section presents the clinical evidence [available/identified] for [Device Name].", "The clinical evaluation is based on [evaluation type]."],
-    "§5_Conclusions": ["Based on the [evidence/analysis] presented in Section 4, [conclusion].", "The Clinical Evaluation concludes that [summary statement]."]
+    "§2_Scope": [
+      "The [Device Name] is a [device type] intended for [purpose].",
+      "This section describes the [device/system] under evaluation."
+    ],
+    "§3_SOTA": [
+      "This section provides an overview of the [disease/condition] and current treatment options.",
+      "The State of the Art (SOTA) assessment includes [components]."
+    ],
+    "§4_Evidence": [
+      "This section presents the clinical evidence [available/identified] for [Device Name].",
+      "The clinical evaluation is based on [evaluation type]."
+    ],
+    "§5_Conclusions": [
+      "Based on the [evidence/analysis] presented in Section 4, [conclusion].",
+      "The Clinical Evaluation concludes that [summary statement]."
+    ],
+    "v5_linked_defects": {
+      "EV-001": 126
+    }
+  },
+  "v5_enrichment": {
+    "applied_at": "2026-05-30T12:51:28.974736",
+    "total_v5_findings_available": 63,
+    "defect_types_available": 27,
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    },
+    "deepened": true,
+    "cross_refs_added": 4,
+    "deepened_r3": true,
+    "r3_cross_refs": 43,
+    "all_defect_stats": {
+      "PM-001": 312,
+      "LB-001": 162,
+      "DO-001": 153,
+      "BR-001": 148,
+      "EV-001": 126,
+      "MF-001": 108,
+      "TR-001": 102,
+      "EQ-001": 73,
+      "GS-001": 72,
+      "CL-001": 69,
+      "RM-001": 59,
+      "CV-001": 54,
+      "DT-001": 53,
+      "SW-001": 49,
+      "AU-001": 10,
+      "CM-001": 9,
+      "IV-001": 6,
+      "SC-001": 3,
+      "DQ-001": 2
+    }
   }
 }

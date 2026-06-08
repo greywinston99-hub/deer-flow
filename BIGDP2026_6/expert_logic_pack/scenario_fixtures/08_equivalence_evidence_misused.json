@@ -1,0 +1,57 @@
+{
+  "scenario_id": "S-08",
+  "scenario_name": "Equivalence Evidence Misused as Direct Clinical Evidence",
+  "rule_category": "Evidence Support Type",
+  "rules_tested": ["EVS-03", "EVS-04", "CON-02"],
+  "description": "Evidence from an equivalent device is being treated as direct clinical evidence on the subject device. System must correct support type to 'equivalent' and cap conclusion strength.",
+
+  "input": {
+    "ifu_text": "Device achieves rapid and durable hemostasis.",
+    "subject_device": {"device_name": "NewClosure V2", "device_class": "IIb"},
+    "equivalent_device": {"device_name": "ClosurePro V1", "equivalence_claimed": true},
+    "available_evidence": [
+      {
+        "evidence_id": "E-001", "pmid": "88888888",
+        "study_design": "RCT", "sample_size": 300,
+        "device_studied": "ClosurePro V1 (equivalent device)",
+        "findings": "Hemostasis success 94% at 3 min. Sustained at 30-day follow-up.",
+        "originally_classified_as": "direct",
+        "correct_classification": "equivalent"
+      },
+      {
+        "evidence_id": "E-002", "pmid": "99999999",
+        "study_design": "Prospective registry", "sample_size": 500,
+        "device_studied": "ClosurePro V1 (equivalent device)",
+        "findings": "Device-related complication rate 1.2%.",
+        "originally_classified_as": "direct",
+        "correct_classification": "equivalent"
+      }
+    ],
+    "no_direct_evidence_on_subject_device": true
+  },
+
+  "expected_expert_reasoning": {
+    "evidence_support_type_must_be": "equivalent",
+    "must_not_be": "direct",
+    "reason": "All available clinical evidence is from ClosurePro V1 (equivalent device), not NewClosure V2. Support type must be 'equivalent', not 'direct'.",
+    "conclusion_strength_ceiling": "moderate",
+    "reason_for_ceiling": "Equivalent device evidence alone, without direct subject-device clinical data, cannot support 'strong' conclusions per MDR Annex XIV."
+  },
+
+  "expected_ledger": {
+    "cer_reasoning_ledger": {
+      "evidence_support_type": "equivalent",
+      "conclusion_strength": "moderate",
+      "gap_disposition": "PMCF",
+      "gap_rationale": "No direct clinical evidence on subject device. PMCF should collect subject-device clinical data to confirm equivalence assumptions."
+    }
+  },
+
+  "expected_gate_behavior": {
+    "G43": {"status": "PASS"},
+    "G46": {"claim_evidence": "PASS"}
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["equivalent device evidence caveat", "no direct subject-device clinical data", "PMCF to confirm equivalence"]
+}

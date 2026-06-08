@@ -12,11 +12,16 @@ from __future__ import annotations
 
 import os
 import json
+from pathlib import Path
 from typing import Any
+
+from dotenv import load_dotenv
+
+from deerflow.config.app_config import get_app_config
 
 # -- Default parent model (used when no per-agent override) ------------------
 
-DEFAULT_PARENT_MODEL = "kimi-k2.6"
+DEFAULT_PARENT_MODEL = "kimi-k2.6-api"
 
 AGENT_NAME_ALIASES = {
     "cer-writer": "authoring-cer-writer-agent",
@@ -42,25 +47,25 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
     "cer-authoring-lead-agent": {
         "role": "lead / controller agent",
         "task_type": "controller_triage",
-        "default_model": "kimi-k2.6",
-        "provider_fallback_models": ["kimi-k2.6-api"],
+        "default_model": "kimi-k2.6-api",
+        "provider_fallback_models": ["kimi-k2.6-api", "deepseek-v4-pro"],
         "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
         "rationale": "Stable 1+6 lead/controller routing only. It does not write CER prose or perform final clinical reasoning.",
     },
     "authoring-intake-profile-claim-agent": {
         "role": "intake / device profile / IFU structured extraction / structured claim-fact intake",
         "task_type": "extraction_structuring",
-        "default_model": "kimi-k2.6",
-        "provider_fallback_models": ["kimi-k2.6-api"],
+        "default_model": "kimi-k2.6-api",
+        "provider_fallback_models": ["kimi-k2.6-api", "deepseek-v4-pro"],
         "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
-        "rationale": "Owns intake, source inventory, device profile, IFU extraction, claim ledger and structured facts. Kimi Code is the fixed model for this structured chain.",
+        "rationale": "Owns intake, source inventory, device profile, IFU extraction, claim ledger and structured facts. The direct Kimi API path is the fixed model for this structured chain.",
     },
     "authoring-methodology-sota-agent": {
         "role": "SOTA reasoning / methodology / endpoint benchmark reasoning",
         "task_type": "evidence_reasoning",
         "default_model": "deepseek-v4-pro",
         "provider_fallback_models": ["kimi-k2.6-api"],
-        "forbidden_models": ["kimi-k2.6-code", *MINIMAX_FORBIDDEN_MODELS],
+        "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
         "rationale": "Owns SOTA, methodology and benchmark reasoning. This is a clinical reasoning chain and is fixed to DeepSeek V4 Pro.",
     },
     "authoring-evidence-agent": {
@@ -68,7 +73,7 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
         "task_type": "evidence_reasoning",
         "default_model": "deepseek-v4-pro",
         "provider_fallback_models": ["kimi-k2.6-api"],
-        "forbidden_models": ["kimi-k2.6-code", *MINIMAX_FORBIDDEN_MODELS],
+        "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
         "rationale": "Owns retrieval screening, citation verification, evidence appraisal, endpoint interpretation and claim support. Physical stable agent includes reasoning, so it is fixed to DeepSeek V4 Pro.",
     },
     "authoring-risk-equivalence-gspr-agent": {
@@ -76,30 +81,30 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
         "task_type": "risk_equivalence",
         "default_model": "deepseek-v4-pro",
         "provider_fallback_models": ["kimi-k2.6-api"],
-        "structured_comparability_model": "kimi-k2.6-code",
+        "structured_comparability_model": "kimi-k2.6-api",
         "clinical_reasoning_model": "deepseek-v4-pro",
         "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
-        "rationale": "The stable physical agent mixes equivalence, vigilance, risk/GSPR and clinical admissibility. Because clinical equivalence and benefit-risk/PMCF reasoning are in scope, the physical agent is fixed to DeepSeek V4 Pro. Structured comparability-only work may use Kimi Code in a future split, but this stable 1+6 agent is not split here.",
+        "rationale": "The stable physical agent mixes equivalence, vigilance, risk/GSPR and clinical admissibility. Because clinical equivalence and benefit-risk/PMCF reasoning are in scope, the physical agent is fixed to DeepSeek V4 Pro. Structured comparability-only work may use Kimi API in a future split, but this stable 1+6 agent is not split here.",
     },
     "risk-equivalence-gspr": {
         "role": "risk / equivalence / GSPR structured extraction lane",
         "task_type": "risk_equivalence",
-        "default_model": "kimi-k2.6",
-        "provider_fallback_models": ["kimi-k2.6-api"],
+        "default_model": "kimi-k2.6-api",
+        "provider_fallback_models": ["kimi-k2.6-api", "deepseek-v4-pro"],
         "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
         "rationale": "Compatibility short-name lane used by routing tests and structured extraction dispatch; full physical authoring-risk-equivalence-gspr-agent remains DeepSeek for clinical reasoning.",
     },
     "authoring-cer-writer-agent": {
         "role": "CER writer agent",
         "task_type": "cer_writer",
-        "default_model": "kimi-k2.6",
+        "default_model": "deepseek-v4-pro",
         "requires_ab_test": True,
         "ab_status": "pending",
-        "candidate_a": "kimi-k2.6",
-        "candidate_b": "deepseek-v4-pro",
+        "candidate_a": "deepseek-v4-pro",
+        "candidate_b": "kimi-k2.6",
         "provider_fallback_models": ["kimi-k2.6-api", "deepseek-v4-pro"],
-        "forbidden_models": ["kimi-k2.6-code", *MINIMAX_FORBIDDEN_MODELS],
-        "rationale": "CER body writing requires evidence fidelity and medical writing quality. Default: Kimi k2.6 (faster, more stable). DeepSeek V4 Pro available as fallback/AB candidate.",
+        "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
+        "rationale": "CER body writing requires evidence fidelity and medical writing quality. Default: DeepSeek V4 Pro; Kimi API remains available as explicit fallback/AB candidate.",
     },
     "authoring-qa-review-agent": {
         "role": "QA / reviewer agent",
@@ -110,7 +115,7 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
         "candidate_a": "deepseek-v4-pro",
         "candidate_b": "kimi-k2.6",
         "provider_fallback_models": ["kimi-k2.6-api"],
-        "forbidden_models": ["kimi-k2.6-code", *MINIMAX_FORBIDDEN_MODELS],
+        "forbidden_models": MINIMAX_FORBIDDEN_MODELS,
         "rationale": "Integrated QA review requires detection sensitivity across methodology, evidence, SOTA, equivalence, risk/GSPR and NB precheck. Fixed to DeepSeek V4 Pro.",
     },
 }
@@ -118,12 +123,6 @@ ROUTING_POLICY_V1: dict[str, dict[str, Any]] = {
 # -- Model usage boundaries (global) -----------------------------------------
 
 MODEL_BOUNDARIES: dict[str, dict[str, Any]] = {
-    "kimi-k2.6-code": {
-        "label": "Kimi K2.6 Code",
-        "allowed_for": ["controller_triage", "extraction_structuring", "structured_comparability"],
-        "forbidden_for": ["sota_reasoning", "evidence_reasoning", "risk_equivalence_reasoning", "benefit_risk_pmcf_reasoning", "cer_writer", "qa_reviewer"],
-        "notes": "Default for lead/control and structured intake/extraction. Not used for Writer, QA, evidence reasoning, BR/PMCF or final claim support.",
-    },
     "deepseek-v4-pro": {
         "label": "DeepSeek V4 Pro",
         "allowed_for": ["sota_reasoning", "evidence_reasoning", "risk_equivalence_reasoning", "benefit_risk_pmcf_reasoning", "cer_writer", "qa_reviewer", "controller_triage"],
@@ -134,13 +133,13 @@ MODEL_BOUNDARIES: dict[str, dict[str, Any]] = {
         "label": "Kimi API candidate",
         "allowed_for": ["controller_triage", "extraction_structuring", "evidence_reasoning", "risk_equivalence", "cer_writer", "qa_reviewer"],
         "forbidden_for": [],
-        "notes": "Kimi API may be used as a provider fallback or explicit override when Kimi Code or DeepSeek providers fail.",
+        "notes": "Kimi API may be used as a provider fallback or explicit override when DeepSeek providers fail.",
     },
     "kimi-k2.6-api": {
         "label": "Kimi API candidate",
         "allowed_for": ["controller_triage", "extraction_structuring", "evidence_reasoning", "risk_equivalence", "cer_writer", "qa_reviewer"],
         "forbidden_for": [],
-        "notes": "Kimi API may be used as a provider fallback or explicit override when Kimi Code or DeepSeek providers fail.",
+        "notes": "Kimi API may be used as a provider fallback or explicit override when DeepSeek providers fail.",
     },
     "kimi-api": {
         "label": "Kimi API legacy alias",
@@ -167,12 +166,13 @@ MODEL_BOUNDARIES: dict[str, dict[str, Any]] = {
 }
 
 MODEL_REQUIRED_ENV: dict[str, tuple[str, ...]] = {
-    "kimi-k2.6-code": ("KIMI_CODE_API_KEY",),
     "kimi-k2.6": ("KIMI_API_KEY",),
     "kimi-k2.6-api": ("KIMI_API_KEY",),
     "kimi-api": ("KIMI_API_KEY",),
     "deepseek-v4-pro": ("DEEPSEEK_API_KEY",),
 }
+
+_PROVIDER_ENV_LOADED = False
 
 # -- Routing resolver --------------------------------------------------------
 
@@ -236,6 +236,8 @@ def is_model_allowed_for_agent(agent_name: str, model_name: str) -> bool:
     policy = ROUTING_POLICY_V1.get(_canonical_agent_name(agent_name))
     if not policy:
         return True  # Unknown agent — allow, will be logged
+    if not _model_supports_native_tool_calls(model_name):
+        return False
     forbidden = policy.get("forbidden_models") or []
     if model_name in forbidden:
         return False
@@ -274,6 +276,7 @@ def get_model_boundaries(model_name: str) -> dict[str, Any] | None:
 def missing_provider_env(model_name: str) -> list[str]:
     """Return missing environment variables required by the routed model."""
 
+    _ensure_provider_env_loaded()
     required = MODEL_REQUIRED_ENV.get(model_name, ())
     return [name for name in required if not os.getenv(name)]
 
@@ -341,8 +344,44 @@ def _agent_env_key(agent_name: str) -> str:
     return f"CER_AUTHORING_MODEL_{safe}"
 
 
+def _ensure_provider_env_loaded() -> None:
+    """Load DeerFlow provider credentials before model-route preflight checks.
+
+    Some CER authoring entrypoints check provider readiness before AppConfig is
+    instantiated. Loading the same deterministic dotenv locations here prevents
+    false "provider unavailable" reports and avoids falling back to unrelated
+    Anthropic/OpenAI credentials.
+    """
+
+    global _PROVIDER_ENV_LOADED
+    if _PROVIDER_ENV_LOADED:
+        return
+    if os.getenv("DEERFLOW_SKIP_PROVIDER_DOTENV", "").strip() == "1":
+        _PROVIDER_ENV_LOADED = True
+        return
+    backend_dir = Path(__file__).resolve().parents[6]
+    repo_root = backend_dir.parent
+    for path in (Path.cwd() / ".env", backend_dir / ".env", repo_root / ".env"):
+        if path.exists():
+            load_dotenv(path, override=False)
+    _PROVIDER_ENV_LOADED = True
+
+
 def _canonical_agent_name(agent_name: str) -> str:
     return AGENT_NAME_ALIASES.get(agent_name, agent_name)
+
+
+def _model_supports_native_tool_calls(model_name: str) -> bool:
+    """Return false only when the configured model explicitly disables tool calls."""
+
+    try:
+        app_config = get_app_config()
+        model_config = app_config.get_model_config(model_name)
+    except Exception:
+        return True
+    if model_config is None:
+        return True
+    return bool(model_config.supports_tool_calls)
 
 
 def _validate_model_allowed(agent_name: str, model_name: str) -> None:

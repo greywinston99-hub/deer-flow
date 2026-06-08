@@ -1,0 +1,68 @@
+{
+  "total_files": 7,
+  "items": [
+    {
+      "filename": "PHASE2_ACCEPTANCE_CRITERIA_V2.md",
+      "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_stack_freeze/phase2_handoff/PHASE2_ACCEPTANCE_CRITERIA_V2.md",
+      "purpose": "Gate criteria (5 gates) + Human Reviewability Rubric (7 rules) + Test criteria + Freeze criteria",
+      "required": true,
+      "exists": true,
+      "size_bytes": 3200,
+      "last_modified": "2026-05-15T20:15:20"
+    },
+    {
+      "filename": "PHASE2_ACCESSIBILITY_CHECK.md",
+      "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_stack_freeze/phase2_handoff/PHASE2_ACCESSIBILITY_CHECK.md",
+      "purpose": "Path verification: handoff, W0, quarantine, closeouts, test suite, source code, pilot outputs. All paths verified.",
+      "required": true,
+      "exists": true,
+      "size_bytes": 1925,
+      "last_modified": "2026-05-15T20:16:20"
+    },
+    {
+      "filename": "PHASE2_CLAUDE_CODE_CLOSED_LOOP_COMMAND.md",
+      "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_stack_freeze/phase2_handoff/PHASE2_CLAUDE_CODE_CLOSED_LOOP_COMMAND.md",
+      "purpose": "Complete closed-loop execution command. Required reading list, execution loop, per-sub-phase tasks, hard stop conditions, allowed final status labels",
+      "required": true,
+      "exists": true,
+      "size_bytes": 5008,
+      "last_modified": "2026-05-15T20:14:53"
+    },
+    {
+      "filename": "PHASE2_CONTROLLER_WATCH_PROTOCOL.md",
+      "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_stack_freeze/phase2_handoff/PHASE2_CONTROLLER_WATCH_PROTOCOL.md",
+      "purpose": "CCD audit scope, closeout review process, final verdict options",
+      "required": true,
+      "exists": true,
+      "size_bytes": 1150,
+      "last_modified": "2026-05-15T20:16:36"
+    },
+    {
+      "filename": "PHASE2_EXECUTION_BOUNDARY_FOR_CLAUDE_CODE.md",
+      "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_stack_freeze/phase2_handoff/PHASE2_EXECUTION_BOUNDARY_FOR_CLAUDE_CODE.md",
+      "purpose": "What Claude Code can and cannot do. Forbidden actions list.",
+      "required": true,
+      "exists": true,
+      "size_bytes": 1193,
+      "last_modified": "2026-05-15T20:15:35"
+    },
+    {
+      "filename": "PHASE2_MASTER_STATUS_CLEANUP_NOTE.md",
+      "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_stack_freeze/phase2_handoff/PHASE2_MASTER_STATUS_CLEANUP_NOTE.md",
+      "purpose": "What stale sections were removed from PROJECT_MASTER_STATUS, current active truth",
+      "required": true,
+      "exists": true,
+      "size_bytes": 1354,
+      "last_modified": "2026-05-15T20:15:50"
+    },
+    {
+      "filename": "PHASE2_STACK_FREEZE_PLAN_V2.md",
+      "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_stack_freeze/phase2_handoff/PHASE2_STACK_FREEZE_PLAN_V2.md",
+      "purpose": "Complete Phase 2A0-2E plan with goals, inputs, scope, acceptance per sub-phase",
+      "required": true,
+      "exists": true,
+      "size_bytes": 6441,
+      "last_modified": "2026-05-15T20:15:58"
+    }
+  ]
+}

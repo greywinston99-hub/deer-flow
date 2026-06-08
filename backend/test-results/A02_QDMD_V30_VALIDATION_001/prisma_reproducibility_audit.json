@@ -1,0 +1,31 @@
+{
+  "schema": "prisma_reproducibility_audit_v1",
+  "generated_at": "2026-05-29T14:12:30.432645+00:00",
+  "flow_counts": {
+    "raw_hits": 0,
+    "dedup_input_count": 0,
+    "duplicate_count": 0,
+    "after_dedup_count": 0,
+    "title_abstract_screened": 0,
+    "title_abstract_excluded": 0,
+    "fulltext_assessed": 0,
+    "fulltext_excluded": 0,
+    "final_included": 0
+  },
+  "count_reconciliation_ok": false,
+  "dedup_before_screening": false,
+  "failures": [
+    {
+      "type": "ZERO_RAW_HITS",
+      "severity": "major",
+      "message": "No records identified from any database search."
+    }
+  ],
+  "warnings": [],
+  "search_audit_issues": [],
+  "screening_audit_issues": [],
+  "status": "FAIL",
+  "critical_failures": 0,
+  "major_failures": 1,
+  "submission_grade_sota_blocked": true
+}

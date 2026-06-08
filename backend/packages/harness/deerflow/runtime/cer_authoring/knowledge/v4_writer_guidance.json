@@ -1,0 +1,57 @@
+{
+  "version": "V4.0",
+  "source": "5-real-CER cross-analysis by regulatory engineers",
+  "activated_by": "CER_AUTHORING_V4_MODE=1",
+  "templates": {
+    "device_description": {
+      "pattern": "The [Device] is designed/intended for [clinical purpose].",
+      "frequency": "5/5 real CERs",
+      "example": "The Pulnovo PADN system is intended for the treatment of pulmonary arterial hypertension."
+    },
+    "evidence_statement": {
+      "pattern": "Based on the available [data/evidence/literature], [N] studies were identified that [criteria].",
+      "frequency": "5/5 real CERs"
+    },
+    "compliance": {
+      "pattern": "The device meets/complies with/conforms to [standard/regulation/GSPR].",
+      "frequency": "5/5 real CERs"
+    },
+    "negative_finding": {
+      "pattern": "No significant/serious/adverse [events/effects/reactions] were [reported/identified/observed].",
+      "frequency": "5/5 real CERs"
+    },
+    "non_equivalence": {
+      "pattern": "Equivalence is not claimed for the device under evaluation.",
+      "frequency": "1/5 (heart-lung machine — novel device, no comparable product)",
+      "example": "The device represents a novel technology for which no equivalent device has been identified on the market."
+    }
+  },
+  "section_requirements": {
+    "§1": {"min_words": 400, "max_words": 800, "must_include": ["device_name", "classification", "intended_purpose", "benefit_risk_conclusion"]},
+    "§2": {"min_words": 2000, "subsections": ["device_description", "intended_purpose", "contraindications", "similar_devices", "marketing_history"]},
+    "§3": {"min_words": 3000, "subsections": ["clinical_background", "epidemiology", "alternative_treatments", "guidelines", "hazards", "endpoints"]},
+    "§4": {"min_words": 8000, "subsections": ["evaluation_type", "equivalence", "manufacturer_data", "literature_evidence", "appraisal", "vigilance", "gspr_analysis"]},
+    "§5": {"min_words": 400, "max_words": 800, "must_include": ["benefit_risk_table", "limitations"]},
+    "§6": {"must_include": ["next_evaluation_date", "annual_literature_surveillance"]},
+    "§§7-9": {"must_include": ["qualifications", "declaration", "signatures"]},
+    "Annexes": {"min_count": 9, "must_include": ["search_protocol", "prisma", "evidence_tables", "benchmark_derivation", "claim_matrix", "br_ledger", "pmcf", "standards", "vigilance"]}
+  },
+  "evidence_rules": {
+    "ifu_not_absolute": "IFU is a source document, not final truth. It can be calibrated by evidence, RMF, and claim alignment.",
+    "sota_benchmark_reasoning": "Every benchmark must show: evidence source → quantitative data → benchmark value → claim linkage.",
+    "claim_evidence_alignment": "Claims, IFU, RMF, GSPR, and clinical evidence must have traceable alignment.",
+    "pmid_requirement": "Every quantitative claim must cite a real PMID from the evidence registry.",
+    "evidence_ceiling_transparency": "Explicitly state whether evidence is from title/abstract (MODERATE) or full-text (STRONG)."
+  },
+  "quality_gates": {
+    "zero_placeholders": "No [To be completed] or TBD anywhere in document",
+    "zero_ai_traces": "No 'DeerFlow', 'auto-generated', 'pipeline', 'AI-generated' references",
+    "version_consistency": "Single version number throughout document",
+    "gmdn_consistency": "GMDN code (61810) consistent across all tables and sections"
+  },
+  "sentence_patterns": {
+    "hedging": ["may", "might", "could", "approximately", "typically", "in general"],
+    "certainty": ["demonstrated", "confirmed", "verified", "established", "proven"],
+    "passive_voice_ratio": "0.15-0.25 (15-25% acceptable)"
+  }
+}

@@ -111,3 +111,44 @@ async def get_mcp_tools() -> list[BaseTool]:
     except Exception as e:
         logger.error(f"Failed to load MCP tools: {e}", exc_info=True)
         return []
+
+
+# ── Monkey-patch StructuredTool._run to support sync invocation ─────────
+# StructuredTool._run() raises NotImplementedError by default.  DeerFlow
+# agents can invoke tools synchronously (BaseTool.run() → _run()), which
+# crashes for any StructuredTool without `func` set.  This class-level
+# patch wraps the coroutine at init time so all StructuredTool instances
+# (including those from langchain-mcp-adapters) support sync execution.
+def _apply_structuredtool_sync_patch() -> None:
+    try:
+        from langchain_core.tools.structured import StructuredTool as _ST
+
+        _orig_init = _ST.__init__
+
+        def _sync_wrapper_from_coro(coro: Callable[..., Any], tool_name: str = "") -> Callable[..., Any]:
+            """Inline sync wrapper (avoid circular import from _make_sync_tool_wrapper)."""
+            def _wrapped(*args: Any, **kwargs: Any) -> Any:
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = None
+                if loop is not None and loop.is_running():
+                    future = _SYNC_TOOL_EXECUTOR.submit(asyncio.run, coro(*args, **kwargs))
+                    return future.result()
+                return asyncio.run(coro(*args, **kwargs))
+            return _wrapped
+
+        def _patched_init(self: Any, *args: Any, **kwargs: Any) -> None:
+            _orig_init(self, *args, **kwargs)
+            if self.coroutine is not None and self.func is None:
+                self.func = _sync_wrapper_from_coro(
+                    self.coroutine, getattr(self, "name", "unknown_mcp_tool")
+                )
+
+        _ST.__init__ = _patched_init  # type: ignore[method-assign]
+        logger.info("StructuredTool sync-invocation patch applied (class-level __init__ wrapper)")
+    except Exception as exc:
+        logger.warning("Failed to apply StructuredTool sync patch: %s", exc)
+
+
+_apply_structuredtool_sync_patch()

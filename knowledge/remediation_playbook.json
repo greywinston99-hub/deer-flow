@@ -1,0 +1,368 @@
+{
+  "schema": "remediation_playbook",
+  "version": "v1.0",
+  "generated_at": "2026-05-29T22:48:53.871744",
+  "playbook": [
+    {
+      "defect_type": "AU-001",
+      "occurrence_count": 10,
+      "nb_question_pattern": "When NB finds AU-001, they typically ask for missing or insufficient documentation in: Quality Audit Documentation",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in Quality Audit Documentation",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for AU-001 compliance",
+        "Ensure evidence is provided for all claims related to AU-001",
+        "Cross-reference with NB expectations for AU-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "BR-001",
+      "occurrence_count": 148,
+      "nb_question_pattern": "When NB finds BR-001, they typically ask for missing or insufficient documentation in: §5 Benefit-Risk Analysis, Risk Management",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §5 Benefit-Risk Analysis",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Benefits must be quantified where possible (endpoint values, patient numbers)",
+        "Risks must be mapped to RMF hazard IDs",
+        "Residual risk acceptability must be justified per indication"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "CL-001",
+      "occurrence_count": 69,
+      "nb_question_pattern": "When NB finds CL-001, they typically ask for missing or insufficient documentation in: §4 Clinical Evidence, §4.3 Clinical Investigation",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §4 Clinical Evidence",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for CL-001 compliance",
+        "Ensure evidence is provided for all claims related to CL-001",
+        "Cross-reference with NB expectations for CL-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "CM-001",
+      "occurrence_count": 9,
+      "nb_question_pattern": "When NB finds CM-001, they typically ask for missing or insufficient documentation in: §4 Clinical Evidence, Clinical Data",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §4 Clinical Evidence",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for CM-001 compliance",
+        "Ensure evidence is provided for all claims related to CM-001",
+        "Cross-reference with NB expectations for CM-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "CV-001",
+      "occurrence_count": 54,
+      "nb_question_pattern": "When NB finds CV-001, they typically ask for missing or insufficient documentation in: Certificates, Declaration of Conformity",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in Certificates",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for CV-001 compliance",
+        "Ensure evidence is provided for all claims related to CV-001",
+        "Cross-reference with NB expectations for CV-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "DO-001",
+      "occurrence_count": 153,
+      "nb_question_pattern": "When NB finds DO-001, they typically ask for missing or insufficient documentation in: §2 Device Description, §2.1 Basic Information, §2.2 Intended Purpose",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §2 Device Description",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Verify device name is IDENTICAL across all sections — no abbreviations or variants",
+        "List EVERY model/variant with design rationale and clinical scenario",
+        "Intended purpose must specify: patient population, clinical setting, intended users"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "DQ-001",
+      "occurrence_count": 2,
+      "nb_question_pattern": "When NB finds DQ-001, they typically ask for missing or insufficient documentation in: All Sections (formatting)",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in All Sections (formatting)",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for DQ-001 compliance",
+        "Ensure evidence is provided for all claims related to DQ-001",
+        "Cross-reference with NB expectations for DQ-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "DT-001",
+      "occurrence_count": 53,
+      "nb_question_pattern": "When NB finds DT-001, they typically ask for missing or insufficient documentation in: All Sections (cross-reference)",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in All Sections (cross-reference)",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for DT-001 compliance",
+        "Ensure evidence is provided for all claims related to DT-001",
+        "Cross-reference with NB expectations for DT-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "EQ-001",
+      "occurrence_count": 73,
+      "nb_question_pattern": "When NB finds EQ-001, they typically ask for missing or insufficient documentation in: §4.2 Equivalence Demonstration",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §4.2 Equivalence Demonstration",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Identify at least 2-3 potential equivalent devices",
+        "Complete three-pillar comparison: technical, biological, clinical — ALL must be present",
+        "Every difference must have explicit Impact Assessment"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "EV-001",
+      "occurrence_count": 126,
+      "nb_question_pattern": "When NB finds EV-001, they typically ask for missing or insufficient documentation in: §3 SOTA, §4 Clinical Evidence, §4.4 Literature Review",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §3 SOTA",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Document PICO-based search strategy in structured table",
+        "Search at least 2 databases (PubMed + Embase minimum)",
+        "Include PRISMA flow diagram"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "GS-001",
+      "occurrence_count": 72,
+      "nb_question_pattern": "When NB finds GS-001, they typically ask for missing or insufficient documentation in: §6 GSPR Compliance",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §6 GSPR Compliance",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Every 'N/A' GSPR needs 2+ sentence technical justification tied to device design",
+        "Justification must reference SPECIFIC device characteristic",
+        "Risk management file cross-reference for non-applicable items"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "IV-001",
+      "occurrence_count": 6,
+      "nb_question_pattern": "When NB finds IV-001, they typically ask for missing or insufficient documentation in: Periodic Review, Re-validation",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in Periodic Review",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for IV-001 compliance",
+        "Ensure evidence is provided for all claims related to IV-001",
+        "Cross-reference with NB expectations for IV-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "LB-001",
+      "occurrence_count": 162,
+      "nb_question_pattern": "When NB finds LB-001, they typically ask for missing or insufficient documentation in: IFU, Labeling, SSCP",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in IFU",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "IFU must include: intended purpose, contraindications, warnings, precautions",
+        "Symbols per ISO 15223-1",
+        "Language requirements per MDR Art 10(11)"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "MF-001",
+      "occurrence_count": 108,
+      "nb_question_pattern": "When NB finds MF-001, they typically ask for missing or insufficient documentation in: Manufacturing Documentation, Sterilization, Biocompatibility",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in Manufacturing Documentation",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for MF-001 compliance",
+        "Ensure evidence is provided for all claims related to MF-001",
+        "Cross-reference with NB expectations for MF-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "PM-001",
+      "occurrence_count": 312,
+      "nb_question_pattern": "When NB finds PM-001, they typically ask for missing or insufficient documentation in: §7 PMS/PMCF",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §7 PMS/PMCF",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "PMCF plan must specify: next evaluation date, planned studies, data sources",
+        "Trigger conditions for unscheduled re-evaluation must be defined",
+        "PMCF-CER feedback loop must be described"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "RM-001",
+      "occurrence_count": 59,
+      "nb_question_pattern": "When NB finds RM-001, they typically ask for missing or insufficient documentation in: Risk Management File",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in Risk Management File",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for RM-001 compliance",
+        "Ensure evidence is provided for all claims related to RM-001",
+        "Cross-reference with NB expectations for RM-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "SC-001",
+      "occurrence_count": 3,
+      "nb_question_pattern": "When NB finds SC-001, they typically ask for missing or insufficient documentation in: Supplier Documentation",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in Supplier Documentation",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for SC-001 compliance",
+        "Ensure evidence is provided for all claims related to SC-001",
+        "Cross-reference with NB expectations for SC-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "SW-001",
+      "occurrence_count": 49,
+      "nb_question_pattern": "When NB finds SW-001, they typically ask for missing or insufficient documentation in: §6 GSPR 17, Software Documentation",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in §6 GSPR 17",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for SW-001 compliance",
+        "Ensure evidence is provided for all claims related to SW-001",
+        "Cross-reference with NB expectations for SW-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    },
+    {
+      "defect_type": "TR-001",
+      "occurrence_count": 102,
+      "nb_question_pattern": "When NB finds TR-001, they typically ask for missing or insufficient documentation in: Test Reports, Verification/Validation",
+      "recommended_remediation_steps": [
+        "Step 1: Identify the specific gap in Test Reports",
+        "Step 2: Gather primary evidence (test reports, literature, certificates)",
+        "Step 3: Update the CER section with explicit evidence references",
+        "Step 4: Cross-reference with IFU/RMF for consistency",
+        "Step 5: Pre-review against the authoring defense checklist"
+      ],
+      "evidence_needed": [
+        "Review the CER section for TR-001 compliance",
+        "Ensure evidence is provided for all claims related to TR-001",
+        "Cross-reference with NB expectations for TR-001"
+      ],
+      "typical_timeline": "2-4 weeks for evidence gathering + document update",
+      "sample_manufacturer_responses": []
+    }
+  ]
+}

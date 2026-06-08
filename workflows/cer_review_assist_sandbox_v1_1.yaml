@@ -1,0 +1,560 @@
+# CER Review Assist Sandbox Workflow v1.1
+# Generated: 2026-04-27 | Updated: 2026-04-27 (full V1.1 agent set)
+# Mode: sandbox_pilot — advisory output only, no production impact
+# Based on: V1.0 pilot run feedback (103_jiuxin + 020_wuxidingdian)
+# Changes from V1.0: See SANDBOX_AGENT_TUNING_PLAN_V1_1.md + WORKFLOW_TUNING_BACKLOG_V1_1.md
+
+workflow_name: cer_review_assist_sandbox
+workflow_version: "1.1"
+workflow_status: sandbox_pilot
+mode: cer_cross_document_review_assist
+
+description: >
+  CER Review Assist Sandbox v1.1 — FULL V1.1 AGENT SET. All 5 agents at V1.1.
+  P0+P1+P2 fixes from V1.0 pilot: no terminal PASS/FAIL verdicts, PRIMARY
+  evidence requirement for HIGH/CRITICAL findings, evidence_depth classification
+  on all findings, external dependency three-state classification, project type
+  boundary handling (W1), Stage 6 output format constraint (W2), evidence depth
+  propagation chain (W3 partial). Reviews completed Track B project bundles for
+  cross-document consistency, gap detection, regulatory boundary compliance,
+  evidence quality, and recommendation synthesis. 8-stage pipeline with human
+  gate at every stage. Output is advisory only — no production impact.
+
+scope:
+  project_scope: single_project
+  review_object: cer_project_bundle
+  review_types:
+    - cross_document_consistency
+    - gap_detection
+    - regulatory_boundary_compliance
+    - evidence_quality_audit
+    - recommendation_synthesis
+  final_decision_requires_human_gate: true
+  advisory_only: true
+  no_terminal_verdicts: true
+
+contracts:
+  review_finding_schema: schemas/review_finding.schema.json
+  review_report_schema: schemas/review_report.schema.json
+  human_gate_decision_schema: schemas/human_gate_decision.schema.json
+
+runtime_defaults:
+  artifact_root: artifacts/cer_review_assist/${run_id}
+  project_root: ${project_path}
+  enforce_human_gate: true
+  sandbox_mode: true
+  evidence_depth_required: true
+  evidence_confidence_required: true
+  primary_evidence_required_for_high_severity: true
+  secondary_evidence_capped_at_medium: true
+  no_terminal_verdicts: true
+
+# === V1.1 EVIDENCE DEPTH GATE (Cross-Stage Policy) ===
+# This gate applies ACROSS all stages. Every finding in every stage must comply.
+evidence_depth_policy:
+  levels:
+    - PRIMARY_VERBATIM    # Verbatim excerpt from original source document — full confidence
+    - PRIMARY_DERIVED     # Derived/paraphrased from original source — high confidence
+    - SECONDARY_SUMMARY   # From Track B agent summary — MEDIUM cap
+    - MISSING_PRIMARY     # Primary source not accessible — LOW cap, UNVERIFIED_GAP
+  severity_caps:
+    PRIMARY_VERBATIM: CRITICAL
+    PRIMARY_DERIVED: HIGH
+    SECONDARY_SUMMARY: MEDIUM
+    MISSING_PRIMARY: LOW
+  rules:
+    - "CRITICAL severity requires PRIMARY_VERBATIM evidence — no exceptions"
+    - "HIGH severity requires PRIMARY_VERBATIM or PRIMARY_DERIVED evidence — no exceptions"
+    - "SECONDARY_SUMMARY evidence caps severity at MEDIUM"
+    - "MISSING_PRIMARY evidence → UNVERIFIED_GAP, severity capped at LOW"
+    - "All findings must carry evidence_depth field"
+    - "All findings based on SECONDARY_SUMMARY must state: 'Verify against primary source at [path]'"
+
+# === V1.1 TERMINAL VERDICT GATE (Cross-Stage Policy) ===
+# No agent at any stage may output terminal verdict language.
+terminal_verdict_policy:
+  prohibited_language:
+    - "PASS"
+    - "FAIL"
+    - "APPROVED"
+    - "REJECTED"
+    - "CERTIFIED"
+    - "COMPLIANT"
+    - "NON-COMPLIANT"
+    - "CONDITIONAL"
+    - "Decision:"
+    - "Verdict:"
+  allowed_language:
+    - "NO CRITICAL ISSUES IDENTIFIED (advisory only)"
+    - "GAPS REQUIRING ATTENTION (advisory only)"
+    - "SIGNIFICANT GAPS IDENTIFIED (advisory only)"
+    - "Assessment (advisory only):"
+  mandatory_header: "ADVISORY OUTPUT — NOT A REGULATORY DECISION"
+  mandatory_footer: "This assessment is advisory only. It does not constitute a regulatory decision, certification opinion, or NB review substitute. All findings require independent human review."
+
+stages:
+  # === STAGE 1: Source Discovery (V1.1) ===
+  - stage_id: source_discovery
+    stage_name: "Source Discovery — File Inventory + Evidence Depth Map"
+    agent: evidence-artifact-curator.v1_1.sandbox
+    agent_path: .claude/agents/sandbox/evidence-artifact-curator.v1_1.sandbox.md
+    parallel_with: []
+    depends_on: []
+    description: >
+      Inventory all project files in the Track B output directory.
+      Identify intake report, project profile, closeout, cross-document
+      consistency report, candidates JSON, document family map, and any
+      supporting files. Classify by document type and evidence pack.
+      V1.1: Classify project type scope (CER_BUNDLE/SOFTWARE_LIFECYCLE/etc).
+      Classify external dependencies (PRESENT/EXTERNAL_CONFIRMED_HANDOFF/MISSING).
+      Distinguish pipeline limitations from document quality issues.
+      **CRITICAL V1.1 OUTPUT: evidence_depth_map** — classifies every file
+      as PRIMARY (original source) or SECONDARY (Track B agent summary).
+      This map is the foundation for all downstream evidence depth gating.
+    inputs:
+      - project_path: ${project_path}
+    outputs:
+      - file_inventory
+      - document_type_classification
+      - project_type_scope_note
+      - evidence_pack_status
+      - external_dependency_classification
+      - pipeline_limitation_notes
+      - missing_expected_types
+      - evidence_depth_map                # V1.1 NEW: PRIMARY/SECONDARY per file
+      - primary_source_access_report      # V1.1 NEW: which primary sources are/aren't accessible
+    human_gate: conditional
+    auto_pass_conditions:
+      - file_count >= 3
+      - all_expected_types_present: true
+      - no_empty_files: true
+    human_gate_triggers:
+      - file_count < 3
+      - unexpected_file_types_detected
+      - empty_or_corrupt_file_detected
+      - project_type_not_cer_bundle
+      - primary_source_count_below_50_percent   # V1.1 NEW
+
+  # === STAGE 2: Source Quality (V1.1) ===
+  - stage_id: source_quality
+    stage_name: "Source Quality Assessment — Confidence Heatmap + Project Type"
+    agent: canonical-recommendation-engine.v1_1.sandbox
+    agent_path: .claude/agents/sandbox/canonical-recommendation-engine.v1_1.sandbox.md
+    depends_on:
+      - source_discovery
+    description: >
+      V1.1: Project type classifier runs FIRST (CER_BUNDLE/SOFTWARE_LIFECYCLE/
+      RMF_ONLY/MIXED/UNKNOWN). PROJECT_TYPE_SCOPE_NOTE emitted if not CER_BUNDLE.
+      Source type confidence caps applied: Track B summaries capped at MEDIUM.
+      Version type classifier: REVISION vs EXTRACTION_COPY.
+      Assess source quality for each project document. Apply V5 negative
+      signal taxonomy. Generate confidence heatmap across all source files.
+    inputs:
+      - file_inventory: from source_discovery
+      - evidence_depth_map: from source_discovery
+      - project_files: ${project_path}
+      - v5_calibration: knowledge/cer_review_assist_context_v1_1.json
+    outputs:
+      - project_type_classification
+      - project_type_scope_note
+      - source_quality_assessment
+      - confidence_heatmap
+      - source_type_confidence_caps
+      - version_type_classification
+      - negative_signal_flags
+      - per_file_confidence
+    human_gate: conditional
+    auto_pass_conditions:
+      - all_documents_confidence: HIGH
+      - negative_signals_count: 0
+      - project_type: CER_BUNDLE
+    human_gate_triggers:
+      - any_document_confidence: MEDIUM
+      - any_document_confidence: LOW
+      - any_negative_signal_detected
+      - project_type_not_cer_bundle
+
+  # === STAGE 3: Cross-Document Consistency (PARALLEL, BOTH V1.1) ===
+  - stage_id: cross_doc_consistency
+    stage_name: "Cross-Document Consistency Review — V1.1 Parallel"
+    agents:
+      - gap-analysis-specialist.v1_1.sandbox
+      - cer-rmf-review-logic-qa.v1_1.sandbox
+    agent_paths:
+      - .claude/agents/sandbox/gap-analysis-specialist.v1_1.sandbox.md
+      - .claude/agents/sandbox/cer-rmf-review-logic-qa.v1_1.sandbox.md
+    parallel_execution: true
+    depends_on:
+      - source_quality
+    description: >
+      Cross-check document consistency across CER, CEP, IFU, SSCP, PSUR,
+      PMCF, RMF, and literature search documents. PARALLEL execution with
+      BOTH agents at V1.1:
+      - gap-analysis-specialist.v1_1: INFORMATIONAL tier, UNVERIFIED_GAP subtype,
+        evidence_depth inheritance with severity caps
+      - cer-rmf-review-logic-qa.v1_1: No terminal verdicts, evidence_confidence
+        classification (DIRECT/INDIRECT/HEARSAY), benefit-risk calibration
+      Both agents inherit evidence_depth_map from Stage 1.
+      V1.1 GATE: HIGH/CRITICAL findings require PRIMARY evidence.
+    inputs:
+      - project_files: ${project_path}
+      - source_quality_assessment: from source_quality
+      - evidence_depth_map: from source_discovery
+      - project_type_scope_note: from source_quality
+      - v5_calibration: knowledge/cer_review_assist_context_v1_1.json
+    outputs:
+      - cross_document_inconsistency_flags
+      - g_points
+      - actionable_gap_paths
+      - review_state_classifications
+      - gap_severity_distribution
+      - per_finding_evidence_depth
+      - per_finding_evidence_confidence
+      - unverified_gap_list
+      - informational_findings_list
+    human_gate: conditional
+    auto_pass_conditions:
+      - inconsistencies_count: 0
+      - gaps_count: 0
+    human_gate_triggers:
+      - any_inconsistency_detected
+      - any_gap_flagged
+      - any_critical_or_high_severity_gap
+      - any_finding_with_secondary_or_missing_primary_evidence
+      - any_unverified_gap
+
+  # === STAGE 4: Regulatory Boundary (MANDATORY GATE, V1.1) ===
+  - stage_id: regulatory_boundary
+    stage_name: "Regulatory Boundary Compliance Check — V1.1"
+    agent: regulatory-boundary-qa.v1_1.sandbox
+    agent_path: .claude/agents/sandbox/regulatory-boundary-qa.v1_1.sandbox.md
+    depends_on:
+      - cross_doc_consistency
+    description: >
+      V1.1: Validate MDR regulatory boundary compliance with:
+      - Evidence depth awareness: SECONDARY evidence caps boundary violations at MEDIUM
+      - MDD/MDR transitional provision check (MDR Article 120)
+      - Systematic standards currency check (partial — full manifest in Context Pack V2)
+      - Prohibited claims scanning per CLAUDE.md
+      - Limited-review language correctness
+      MANDATORY human gate — ALL regulatory findings require human review.
+    inputs:
+      - project_files: ${project_path}
+      - cross_doc_consistency_findings: from cross_doc_consistency
+      - evidence_depth_map: from source_discovery
+      - project_type_scope_note: from source_quality
+      - d1_requirement_hierarchy: track_a_output/D1_REQUIREMENT_HIERARCHY_ANALYSIS.md
+      - d8_gate_boundary: track_a_output/D8_HUMAN_GATE_BOUNDARY_MAP.md
+      - v5_calibration: knowledge/cer_review_assist_context_v1_1.json
+    outputs:
+      - boundary_compliance_report
+      - prohibited_claims_list
+      - boundary_violation_flags
+      - evidence_traceability_assessment
+      - mdr_transitional_provision_assessment
+      - standards_currency_check_results
+      - per_finding_evidence_depth
+    human_gate: mandatory
+    human_gate_rationale: "Regulatory boundary decisions require human judgment. Per CLAUDE.md: Human Gate is required before source confirmation, rule promotion, or backflow."
+
+  # === STAGE 4.5: EVIDENCE DEPTH GATE (V1.1 NEW) ===
+  - stage_id: evidence_depth_gate
+    stage_name: "Evidence Depth Gate — Severity vs Evidence Depth Compliance Check"
+    agent: system_gate
+    depends_on:
+      - regulatory_boundary
+    description: >
+      V1.1 NEW: Automated gate that validates evidence_depth policy compliance
+      across all findings from Stages 1-4. Checks:
+      1. Every CRITICAL finding has PRIMARY_VERBATIM evidence
+      2. Every HIGH finding has PRIMARY_VERBATIM or PRIMARY_DERIVED evidence
+      3. No SECONDARY_SUMMARY finding exceeds MEDIUM severity
+      4. All MISSING_PRIMARY findings are classified as UNVERIFIED_GAP
+      5. All findings carry evidence_depth field
+      Findings that violate these rules are auto-downgraded before Stage 5.
+    inputs:
+      - all_findings: from stages 1-4
+      - evidence_depth_map: from source_discovery
+    outputs:
+      - evidence_depth_compliance_report
+      - auto_downgraded_findings
+      - policy_violation_log
+    human_gate: false
+    auto_actions:
+      - "CRITICAL with SECONDARY evidence → downgrade to MEDIUM, flag for human review"
+      - "HIGH with SECONDARY evidence → downgrade to MEDIUM, flag for human review"
+      - "HIGH with MISSING_PRIMARY → downgrade to LOW, reclassify as UNVERIFIED_GAP"
+      - "Missing evidence_depth field → add MISSING_PRIMARY, downgrade to LOW"
+
+  # === STAGE 5: Evidence Audit (V1.1) ===
+  - stage_id: evidence_audit
+    stage_name: "Evidence Quality Audit — Second Pass V1.1"
+    agent: evidence-artifact-curator.v1_1.sandbox
+    agent_path: .claude/agents/sandbox/evidence-artifact-curator.v1_1.sandbox.md
+    depends_on:
+      - evidence_depth_gate
+    description: >
+      Second pass verification. Verify evidence completeness against findings
+      from all prior stages. V1.1: Classify evidence_depth (PRIMARY/SECONDARY/
+      INDIRECT) for every excerpt. Distinguish EXTERNAL_CONFIRMED_HANDOFF
+      from MISSING. Flag PIPELINE_LIMITATION separately from document quality
+      issues. Confirm all cross-references are backed by real verbatim excerpts.
+      Detect synthetic summaries. Re-verify evidence_depth compliance post-gate.
+    inputs:
+      - project_files: ${project_path}
+      - findings_from_stages_1_4: all prior stage outputs
+      - evidence_depth_compliance_report: from evidence_depth_gate
+      - auto_downgraded_findings: from evidence_depth_gate
+      - v5_calibration: knowledge/cer_review_assist_context_v1_1.json
+    outputs:
+      - evidence_audit_report
+      - verbatim_excerpt_verification
+      - evidence_depth_breakdown
+      - synthetic_summary_flags
+      - completeness_score
+      - external_dependency_notes
+      - pipeline_limitation_notes
+      - per_finding_evidence_trace
+      - post_gate_evidence_depth_verification
+    human_gate: conditional
+    auto_pass_conditions:
+      - completeness_score: 100
+      - all_excerpts_verbatim: true
+      - all_evidence_depth: PRIMARY_VERBATIM
+      - synthetic_summaries_count: 0
+    human_gate_triggers:
+      - completeness_score < 100
+      - any_synthetic_summary_detected
+      - any_excerpt_not_verbatim
+      - any_secondary_or_indirect_evidence
+      - any_evidence_depth_policy_violation_remaining
+
+  # === STAGE 6: Final Review (MANDATORY GATE, V1.1) ===
+  - stage_id: final_review
+    stage_name: "Final Review Synthesis — V1.1 No Terminal Verdicts"
+    agent: cer-rmf-review-logic-qa.v1_1.sandbox
+    agent_path: .claude/agents/sandbox/cer-rmf-review-logic-qa.v1_1.sandbox.md
+    depends_on:
+      - evidence_audit
+    description: >
+      Synthesize all findings from Stages 1-5 into a structured final review
+      report. V1.1 REQUIREMENTS:
+      - NO terminal PASS/FAIL/APPROVED/REJECTED/CONDITIONAL verdicts (W2 enforced)
+      - All assessments are advisory only with mandatory header and footer
+      - Classify each finding by type, severity, evidence_confidence, evidence_depth
+      - Evidence confidence summary: "X DIRECT, Y INDIRECT, Z HEARSAY"
+      - Evidence depth summary: "X PRIMARY_VERBATIM, Y PRIMARY_DERIVED, Z SECONDARY_SUMMARY, W MISSING_PRIMARY"
+      - Generate overall project assessment with scores
+      - Apply V5 repair pair calibration for recommendations
+      - W2: Output schema ENFORCES advisory-only language — prohibited verdict terms blocked
+    inputs:
+      - all_stage_findings: from stages 1-5
+      - evidence_depth_compliance_report: from evidence_depth_gate
+      - v5_calibration: knowledge/cer_review_assist_context_v1_1.json
+      - v5_repair_pairs: knowledge/cer_review_assist_context_v1_1.json
+    outputs:
+      - final_review_report_draft
+      - finding_classifications
+      - severity_distribution
+      - evidence_confidence_summary
+      - evidence_depth_summary
+      - primary_evidence_ratio
+      - cross_document_consistency_score
+      - regulatory_compliance_score
+      - evidence_quality_score
+      - recommendations_list
+    human_gate: mandatory
+    human_gate_rationale: "Final review report synthesizes all findings into a structured assessment. Per CLAUDE.md: Sandbox validation is not approval. Human sign-off required. V1.1: No terminal PASS/FAIL verdict — assessment is advisory only."
+    output_schema_constraints:        # V1.1 W2: Enforced output format
+      prohibited_fields:
+        - "Decision:"
+        - "Verdict:"
+        - "Overall Assessment: PASS"
+        - "Overall Assessment: FAIL"
+        - "Overall Assessment: CONDITIONAL"
+      required_fields:
+        - "ADVISORY OUTPUT — NOT A REGULATORY DECISION"
+        - "Assessment (advisory only):"
+        - "evidence_confidence_summary"
+        - "evidence_depth_summary"
+        - "primary_evidence_ratio"
+      allowed_assessment_values:
+        - "NO CRITICAL ISSUES IDENTIFIED (advisory only)"
+        - "GAPS REQUIRING ATTENTION (advisory only)"
+        - "SIGNIFICANT GAPS IDENTIFIED (advisory only)"
+
+  # === STAGE 7: Human Gate ===
+  - stage_id: human_gate
+    stage_name: "Human Gate — Reviewer Decision"
+    agent: human_gate
+    depends_on:
+      - final_review
+    description: >
+      Human reviewer reviews all findings from all stages. Applies gate
+      decision template (ACCEPT/REJECT/NEEDS_MORE_EVIDENCE/ESCALATE)
+      to each finding. Signs off on final report.
+      V1.1: Reviewer is presented with evidence_depth summary to assess
+      finding reliability. SECONDARY_SUMMARY findings are explicitly flagged
+      as "needs primary source verification."
+    inputs:
+      - final_review_report_draft: from final_review
+      - all_stage_outputs: from stages 1-6
+      - evidence_depth_summary: from final_review
+    outputs:
+      - gate_decisions_per_finding
+      - reviewer_notes
+      - final_report_signed
+      - review_corrections
+    human_gate: mandatory
+    reviewer_roles:
+      - regulatory_reviewer:
+          scope: [regulatory_boundary, final_review]
+          authority: "Accept/reject/override regulatory findings"
+      - clinical_reviewer:
+          scope: [cross_doc_consistency, evidence_audit]
+          authority: "Accept/reject/override clinical and evidence findings"
+      - technical_reviewer:
+          scope: [source_discovery, source_quality]
+          authority: "Accept/reject/override technical findings"
+    gate_decisions:
+      - ACCEPT: "Finding is valid as reported. Include in final report."
+      - REJECT: "Finding is not valid or incorrectly classified. Exclude. Log correction."
+      - NEEDS_MORE_EVIDENCE: "Finding may be valid but insufficient evidence (check evidence_depth). Mark pending."
+      - ESCALATE: "Finding requires higher-level regulatory review. Route to regulatory reviewer."
+
+  # === STAGE 8: Report Generation (V1.1) ===
+  - stage_id: report_generation
+    stage_name: "Report Generation — V1.1 Advisory-Only Format"
+    agent: report_generation
+    depends_on:
+      - human_gate
+    description: >
+      After all gate decisions are made, generate structured outputs:
+      human-readable markdown report and machine-readable JSON sidecar.
+      Include evidence audit trail with evidence_depth and evidence_confidence.
+      V1.1 REQUIREMENTS:
+      - Report header includes "ADVISORY OUTPUT — NOT A REGULATORY DECISION"
+      - Report footer includes mandatory advisory disclaimer
+      - No terminal PASS/FAIL/APPROVED/REJECTED language in any output
+      - Evidence depth summary table included
+      - PRIMARY evidence ratio prominently displayed
+      - SECONDARY_SUMMARY findings explicitly flagged for primary verification
+    inputs:
+      - gate_decisions: from human_gate
+      - final_review_report: from final_review
+      - all_stage_outputs: from stages 1-6
+    outputs:
+      - review_report.md
+      - review_report.json
+      - evidence_audit_trail.md
+      - evidence_depth_report.md
+      - human_gate_decisions.json
+    human_gate: false
+    output_format_constraints:
+      prohibited_in_any_output:
+        - "PASS"
+        - "FAIL"
+        - "APPROVED"
+        - "REJECTED"
+        - "CERTIFIED"
+        - "COMPLIANT"
+        - "NON-COMPLIANT"
+        - "CONDITIONAL"
+        - "Decision:"
+        - "Verdict:"
+      required_in_all_outputs:
+        - "ADVISORY OUTPUT — NOT A REGULATORY DECISION"
+
+governance:
+  sandbox_output_only: true
+  no_nocodb_writes: true
+  no_state_db_writes: true
+  no_runtime_modification: true
+  advisory_only: true
+  no_terminal_verdicts: true
+  evidence_depth_gate_enabled: true
+  primary_evidence_required_for_high_severity: true
+  human_gate_mandatory_at:
+    - regulatory_boundary
+    - final_review
+    - human_gate
+  auto_pass_enabled: true
+  auto_pass_conditions:
+    - quality_tier: PASS
+    - confidence: HIGH
+    - finding_type: non_regulatory
+    - evidence_depth: PRIMARY_VERBATIM
+  severity_evidence_requirements:
+    CRITICAL: PRIMARY_VERBATIM
+    HIGH: [PRIMARY_VERBATIM, PRIMARY_DERIVED]
+    MEDIUM: [PRIMARY_VERBATIM, PRIMARY_DERIVED, SECONDARY_SUMMARY]
+    LOW: [PRIMARY_VERBATIM, PRIMARY_DERIVED, SECONDARY_SUMMARY, MISSING_PRIMARY]
+    INFORMATIONAL: [PRIMARY_VERBATIM, PRIMARY_DERIVED, SECONDARY_SUMMARY, MISSING_PRIMARY]
+  p0_quarantine:
+    maintained: true
+    detection_enabled: true
+    no_auto_import: true
+    no_auto_approval: true
+    no_binding_promotion: true
+    flag_format: HOLD_FOR_HUMAN_REVIEW
+
+on_fail:
+  default_action: emit_failure_artifact_and_stop
+  failure_artifact: artifacts/cer_review_assist/${run_id}/failure_report.json
+  preserve_partial_artifacts: true
+  escalate_to_human_when:
+    - agent_fails_at_stage
+    - schema_validation_fails
+    - unexpected_project_structure
+    - hard_boundary_violation_detected
+    - evidence_depth_policy_violation_unresolved
+    - primary_evidence_ratio_below_30_percent
+
+hard_boundaries:
+  - no_nocodb_writes
+  - no_approved_true
+  - no_runtime_call_allowed_true
+  - no_production_agent_modification
+  - no_production_workflow_modification
+  - no_deerflow_runtime_modification
+  - no_p0_quarantine_lift
+  - no_git_commit
+  - candidate_knowledge_as_internal_review_assist_context_only
+  - all_findings_must_have_evidence_trace
+  - all_findings_must_have_evidence_depth_classification
+  - all_findings_must_have_evidence_confidence_classification
+  - no_terminal_pass_fail_verdicts
+  - critical_severity_requires_primary_verbatim_evidence
+  - high_severity_requires_primary_evidence
+  - secondary_evidence_capped_at_medium_severity
+  - human_gate_marking_and_routing_only_not_blocking_this_pilot_run
+
+knowledge_context:
+  pack_path: knowledge/cer_review_assist_context_v1_1.json
+  pack_version: "1.1"
+  calibration_source: track_c_consolidation_v5/TRACK_C_CALIBRATION_PACK_V5.json
+  pass_candidates_used: 242
+  track_a_dimensions: [D1, D2, D4, D7, D8]
+  convergence_rounds: [R1, R2, R3]
+  v1_1_additions:
+    - evidence_depth_taxonomy
+    - standards_manifest
+    - transitional_provision_reference
+    - external_dependency_taxonomy
+    - project_type_classification_matrix
+
+agent_inventory:
+  sandbox_agents_v1_1:
+    - evidence-artifact-curator.v1_1.sandbox
+    - canonical-recommendation-engine.v1_1.sandbox
+    - gap-analysis-specialist.v1_1.sandbox
+    - regulatory-boundary-qa.v1_1.sandbox
+    - cer-rmf-review-logic-qa.v1_1.sandbox
+  sandbox_agents_v1_0_preserved:
+    - evidence-artifact-curator.sandbox
+    - canonical-recommendation-engine.sandbox
+    - gap-analysis-specialist.sandbox
+    - regulatory-boundary-qa.sandbox
+    - cer-rmf-review-logic-qa.sandbox
+  runtime_agents_untouched: 24
+  v1_0_files_preserved: true

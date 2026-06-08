@@ -1,0 +1,54 @@
+{
+  "scenario_id": "S-06",
+  "scenario_name": "Cannot Support Claim",
+  "rule_category": "Writer Release Logic + Gap Disposition",
+  "rules_tested": ["GAP-02", "GAP-05", "CON-05", "WRT-07"],
+  "description": "Available evidence contradicts the claim. Writer must be BLOCKED for this claim or must mark it as not_supported.",
+
+  "input": {
+    "ifu_text": "Device eliminates all risk of post-procedural hematoma.",
+    "available_evidence": [
+      {
+        "evidence_id": "E-001", "pmid": "66666666",
+        "study_design": "RCT", "sample_size": 200,
+        "findings": "Hematoma rate: 8% (16/200) in device group vs 12% (24/200) in control. Difference not statistically significant (p=0.12).",
+        "support_type": "direct"
+      }
+    ],
+    "claim_issue": "IFU claims 'eliminates all risk' but evidence shows 8% hematoma rate with non-significant difference from control."
+  },
+
+  "expected_expert_reasoning": {
+    "conclusion_strength": "not_supported",
+    "reason": "Evidence shows 8% hematoma rate and non-significant difference from control (p=0.12). IFU claim of 'eliminates all risk' is contradicted by data.",
+    "gap_disposition": "cannot_support",
+    "should_block_writer_for_this_claim": true,
+    "marketing_language_detected": true,
+    "claim_is_overreach": true
+  },
+
+  "expected_ledger": {
+    "cer_reasoning_ledger": {
+      "conclusion_strength": "not_supported",
+      "evidence_support_type": "direct",
+      "gap_disposition": "cannot_support",
+      "gap_rationale": "Evidence contradicts claim: 8% hematoma rate, p=0.12 vs control. 'Eliminates all risk' is not evidence-supported."
+    },
+    "ifu_claim_evolution_ledger": {
+      "evolution_flags": {
+        "marketing_language_detected": true,
+        "requires_human_review": true
+      }
+    }
+  },
+
+  "expected_gate_behavior": {
+    "G46": {
+      "claim_evidence": "PASS",
+      "CER_REASONING_LEDGER": "PASS"
+    }
+  },
+
+  "expected_writer_permission": "blocked",
+  "writer_must_include": ["claim marked as NOT SUPPORTED", "reference to 8% hematoma rate data", "recommendation to revise IFU"]
+}

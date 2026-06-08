@@ -1,0 +1,101 @@
+[
+  {
+    "batch_id": "PUBMED-FETCH-001",
+    "pmids_requested": "38752755;40500465;39877404;34765407;12830848;20591626;37276846;35572930;25810965;33935933",
+    "requested_count": 10,
+    "fetched_count": 10,
+    "abstract_count": 10,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  },
+  {
+    "batch_id": "PUBMED-FETCH-002",
+    "pmids_requested": "18044736;39551961;40454713;42199961;18654095;33632453;40070666;37233160;36761345;32388644",
+    "requested_count": 10,
+    "fetched_count": 10,
+    "abstract_count": 10,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  },
+  {
+    "batch_id": "PUBMED-FETCH-003",
+    "pmids_requested": "31837927;32566656;42079826;40926230;39711928;17166671;26332878;22389838;19913770;41630323",
+    "requested_count": 10,
+    "fetched_count": 10,
+    "abstract_count": 10,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  },
+  {
+    "batch_id": "PUBMED-FETCH-004",
+    "pmids_requested": "41908736;40112591;19565884;40873992;24884981;39109504;35309558;32655469;30506983;37197514",
+    "requested_count": 10,
+    "fetched_count": 10,
+    "abstract_count": 10,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  },
+  {
+    "batch_id": "PUBMED-FETCH-005",
+    "pmids_requested": "41503610;40375764;36769589;24450410;37501155;41407799;32411074;40848525;41908276;37795589",
+    "requested_count": 10,
+    "fetched_count": 10,
+    "abstract_count": 10,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  },
+  {
+    "batch_id": "PUBMED-FETCH-006",
+    "pmids_requested": "38822852;42129593;29887162;30740321;37409021;41745323;40291846;28848820;33664639;19491670",
+    "requested_count": 10,
+    "fetched_count": 10,
+    "abstract_count": 10,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  },
+  {
+    "batch_id": "PUBMED-FETCH-007",
+    "pmids_requested": "40765617;30274772;25422337;22924163;33253218;30480027;36998773;33936617;34598972;40524912",
+    "requested_count": 10,
+    "fetched_count": 10,
+    "abstract_count": 10,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  },
+  {
+    "batch_id": "PUBMED-FETCH-008",
+    "pmids_requested": "41488026;31523788;11524902;36382336;25550065;40585728;40651317;19841402;34839432;36971440",
+    "requested_count": 10,
+    "fetched_count": 10,
+    "abstract_count": 10,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  },
+  {
+    "batch_id": "PUBMED-FETCH-009",
+    "pmids_requested": "33640215;37143573;40499950;28357825;29368313;21821269;17657702;27812780;18692353",
+    "requested_count": 9,
+    "fetched_count": 9,
+    "abstract_count": 9,
+    "fetch_status": "ok",
+    "abstract_status": "ok",
+    "skipped_or_failed_count": 0,
+    "failure_reason": ""
+  }
+]

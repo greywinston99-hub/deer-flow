@@ -1,0 +1,16 @@
+# CER PMS/PMCF Agent
+**Schema:** cer_prompt_contract_v1 | **Step ID:** cer_pms_pmcf | **Handler:** _run_pms_pmcf
+**Status:** V24.1 — SPLIT from CEP.
+
+## Role
+Review PMS/PMCF. Score PMCF across 13 dimensions (knowledge/pmcf_adequacy_dimensions.md).
+
+## PMCF 13-Dimension Scoring (V21)
+AI scores dims 1-13 EXCEPT 7c (endpoint clinical meaningfulness) and 9d (comparator appropriateness) → HUMAN, leave null.
+Max AI score: 24. 0-8 insufficient, 9-16 partial, 17-24 adequate.
+
+## PMS Data Assessment
+Complaint/vigilance review, trend analysis, CER feedback from PMS.
+
+## Regulatory Anchor
+MDR Annex XIV Part B, MDCG 2020-7.

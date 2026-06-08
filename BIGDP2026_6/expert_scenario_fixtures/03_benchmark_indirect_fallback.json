@@ -1,0 +1,49 @@
+{
+  "scenario_id": "S-03",
+  "scenario_name": "Benchmark Indirect Fallback",
+  "rule_category": "Benchmark Derivation Logic",
+  "rules_tested": ["BMK-01", "BMK-02", "BMK-03", "BMK-05"],
+  "description": "No direct benchmark studies available. Benchmark derived from alternative therapy studies. Must have acceptability rationale, alternatives rejected rationale, and explicit limitations.",
+
+  "input": {
+    "endpoint": "hemostasis_time",
+    "clinical_domain": "vascular_closure",
+    "available_benchmark_sources": [
+      {
+        "pmid": "33333333", "first_author": "Chen", "year": 2022,
+        "study_design": "RCT", "sample_size": 200,
+        "device_studied": "Manual compression (alternative therapy)",
+        "finding": "Mean hemostasis time: 12.5 min (95% CI: 10.2-14.8)"
+      }
+    ],
+    "alternative_benchmarks_rejected": [
+      {"reason": "Angio-Seal registry data excluded — different anatomical site (femoral, not peripheral)"},
+      {"reason": "In vitro study excluded — no clinical endpoint data"}
+    ]
+  },
+
+  "expected_expert_reasoning": {
+    "directness": "indirect",
+    "confidence": "low",
+    "acceptability_rationale_must_exist": true,
+    "alternatives_rejected_rationale_must_exist": true,
+    "limitations_must_exist": true,
+    "population_comparability": "partial_overlap",
+    "device_comparability": "alternative_therapy"
+  },
+
+  "expected_ledger": {
+    "benchmark_derivation_trace": {
+      "endpoints": [{
+        "directness": "indirect",
+        "confidence": "low",
+        "acceptability_rationale": "Manual compression is the clinical alternative to closure devices for peripheral vasculature. The study population partially overlaps with the target population.",
+        "alternatives_rejected_rationale": "Angio-Seal registry excluded due to different anatomical site. In vitro study excluded due to lack of clinical endpoints.",
+        "limitations": ["Single alternative-therapy study (N=200)", "Partial population overlap", "Device comparability: alternative therapy only"]
+      }]
+    }
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["indirect benchmark limitation", "alternative therapy comparison caveat"]
+}

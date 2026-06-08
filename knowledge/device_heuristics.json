@@ -1,0 +1,616 @@
+{
+  "schema": "device_heuristics",
+  "version": "v1.0",
+  "generated_at": "2026-05-29T22:48:53.871249",
+  "device_categories": {
+    "Cardiovascular_Imaging_Software": {
+      "device_type": "Cardiovascular_Imaging_Software",
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "Software_Cybersecurity",
+        "Risk_Management_Gap",
+        "Clinical_Evidence_Insufficiency",
+        "General_Regulatory",
+        "General_Regulatory"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "Software/cybersecurity gap",
+          "category": "Software_Cybersecurity",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 145,
+            "resolved_count": 43
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "Risk management gap",
+          "category": "Risk_Management_Gap",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 92,
+            "resolved_count": 0
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "Clinical evidence gap",
+          "category": "Clinical_Evidence_Insufficiency",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 60,
+            "resolved_count": 3
+          },
+          "confidence": 0.85
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "HIGH",
+        "§5 Benefit-Risk": "HIGH"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "Vascular_Catheter": {
+      "device_type": "Vascular_Catheter",
+      "device_class": "III",
+      "regulatory_focus": [
+        "IFU_Labeling_Gap",
+        "Statistical_Methodology",
+        "General_Regulatory",
+        "IFU_Labeling_Gap",
+        "General_Regulatory"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "IFU/labeling gap",
+          "category": "IFU_Labeling_Gap",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 8,
+            "resolved_count": 8
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "Test report missing or incomplete",
+          "category": "Statistical_Methodology",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 2,
+            "resolved_count": 2
+          },
+          "confidence": 0.82
+        },
+        {
+          "concern": "[CN] General_Regulatory: This product is intended for the treatment of pulmonary arte",
+          "category": "General_Regulatory",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 1,
+            "resolved_count": 1
+          },
+          "confidence": 0.7
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "MEDIUM",
+        "§5 Benefit-Risk": "MEDIUM"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "VAD_Controller_System": {
+      "device_type": "VAD_Controller_System",
+      "device_class": "Unknown",
+      "regulatory_focus": [],
+      "typical_nb_concerns": [],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "MEDIUM",
+        "§5 Benefit-Risk": "MEDIUM"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "Insulin_Pump": {
+      "device_type": "Insulin_Pump",
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "Administrative",
+        "Administrative",
+        "Design/Manufacturing",
+        "Biocompatibility",
+        "Administrative"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "Document signatures/dates missing (文件签字/日期缺失)",
+          "category": "Administrative",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 6,
+            "resolved_count": 6
+          },
+          "confidence": 0.7
+        },
+        {
+          "concern": "Certificate or lab qualification expired/invalid",
+          "category": "Administrative",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 3,
+            "resolved_count": 3
+          },
+          "confidence": 0.7
+        },
+        {
+          "concern": "Process flowchart/manufacturing process documentation gap",
+          "category": "Design/Manufacturing",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 3,
+            "resolved_count": 3
+          },
+          "confidence": 0.7
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "MEDIUM",
+        "§5 Benefit-Risk": "MEDIUM"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "Connecting_Tube": {
+      "device_type": "Connecting_Tube",
+      "device_class": "IIa",
+      "regulatory_focus": [
+        "General_Regulatory",
+        "General_Regulatory",
+        "General_Regulatory"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "Device variant/model relationship unclear",
+          "category": "General_Regulatory",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 2,
+            "resolved_count": 0
+          },
+          "confidence": 0.75
+        },
+        {
+          "concern": "Design and development documentation gap",
+          "category": "General_Regulatory",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 1,
+            "resolved_count": 0
+          },
+          "confidence": 0.65
+        },
+        {
+          "concern": "Test report missing or incomplete",
+          "category": "General_Regulatory",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 1,
+            "resolved_count": 0
+          },
+          "confidence": 0.82
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "MEDIUM",
+        "§5 Benefit-Risk": "MEDIUM"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "Cold_Pack": {
+      "device_type": "Cold_Pack",
+      "device_class": "IIa",
+      "regulatory_focus": [
+        "Clinical_Evidence_Insufficiency",
+        "Biocompatibility",
+        "Device_Specific_Clinical",
+        "IFU_Labeling_Gap",
+        "Design_Verification_Validation"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "Clinical evidence gap",
+          "category": "Clinical_Evidence_Insufficiency",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 19,
+            "resolved_count": 0
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "Biocompatibility evidence gap",
+          "category": "Biocompatibility",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 4,
+            "resolved_count": 1
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "Similar-device / external vigilance evidence is actively monitored and has not identified new risks\nThe CER includes pos",
+          "category": "Device_Specific_Clinical",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 3,
+            "resolved_count": 0
+          },
+          "confidence": 0.65
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "HIGH",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "HIGH",
+        "§5 Benefit-Risk": "MEDIUM"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "Surgical_Gloves": {
+      "device_type": "Surgical_Gloves",
+      "device_class": "I/IIa",
+      "regulatory_focus": [
+        "IFU_Labeling_Gap",
+        "GSPR_Standards_Compliance",
+        "Equivalence_Gap",
+        "Sterilization_Reprocessing",
+        "Biocompatibility"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "IFU/labeling gap",
+          "category": "IFU_Labeling_Gap",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 12,
+            "resolved_count": 12
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "Standards/GSPR compliance gap",
+          "category": "GSPR_Standards_Compliance",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 7,
+            "resolved_count": 7
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "Equivalence justification gap",
+          "category": "Equivalence_Gap",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 5,
+            "resolved_count": 5
+          },
+          "confidence": 0.82
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "MEDIUM",
+        "§5 Benefit-Risk": "MEDIUM"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "Enteral_Feeding_Sets": {
+      "device_type": "Enteral_Feeding_Sets",
+      "device_class": "IIa",
+      "regulatory_focus": [
+        "Substantive",
+        "Administrative",
+        "Administrative",
+        "Substantive",
+        "Substantive"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "[CN] Substantive: 拆分国内和国内标签--输出给王奎",
+          "category": "Substantive",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 6,
+            "resolved_count": 0
+          },
+          "confidence": 0.65
+        },
+        {
+          "concern": "Document translation incomplete (Chinese→EU languages)",
+          "category": "Administrative",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 6,
+            "resolved_count": 4
+          },
+          "confidence": 0.82
+        },
+        {
+          "concern": "Worst-case/representative model selection rationale",
+          "category": "Administrative",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 4,
+            "resolved_count": 2
+          },
+          "confidence": 0.7
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "MEDIUM",
+        "§5 Benefit-Risk": "MEDIUM"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "SPECT_CT_System": {
+      "device_type": "SPECT_CT_System",
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "Clinical Evidence",
+        "Clinical Evidence",
+        "Risk Management",
+        "Risk Management",
+        "Clinical Evidence"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "The CER section 'Safety Issue with regard to patient population' is insufficient — it presents a 'bald statement' with n",
+          "category": "Clinical Evidence",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 1,
+            "resolved_count": 1
+          },
+          "confidence": 0.7
+        },
+        {
+          "concern": "Please provide evidence that for ALL populations the benefit outweighs the risk. Add caution to IFU that should the devi",
+          "category": "Clinical Evidence",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 1,
+            "resolved_count": 1
+          },
+          "confidence": 0.7
+        },
+        {
+          "concern": "Using the IFU Warning & Caution Hazard Trace List, it is not possible to confirm that IFU warnings have mitigations for ",
+          "category": "Risk Management",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 1,
+            "resolved_count": 1
+          },
+          "confidence": 0.7
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "HIGH",
+        "§5 Benefit-Risk": "HIGH"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "HF_Surgical_Generator": {
+      "device_type": "HF_Surgical_Generator",
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "IFU/Labeling",
+        "IFU/Labeling",
+        "IFU/Labeling",
+        "Sterility/Cleanroom",
+        "Shelf Life/Stability"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "Test report missing or incomplete",
+          "category": "IFU/Labeling",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 13,
+            "resolved_count": 13
+          },
+          "confidence": 0.7
+        },
+        {
+          "concern": "Label/UDI information missing",
+          "category": "IFU/Labeling",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 5,
+            "resolved_count": 5
+          },
+          "confidence": 0.82
+        },
+        {
+          "concern": "Market/country listing incomplete",
+          "category": "IFU/Labeling",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 4,
+            "resolved_count": 4
+          },
+          "confidence": 0.7
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "MEDIUM",
+        "§5 Benefit-Risk": "MEDIUM"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "Orthopedic_Joint_Implant": {
+      "device_type": "Orthopedic_Joint_Implant",
+      "device_class": "III",
+      "regulatory_focus": [
+        "Clinical_Evidence_Insufficiency",
+        "Risk_Management_Gap",
+        "IFU_Labeling_Gap",
+        "Clinical_Evidence_Insufficiency",
+        "Software_Cybersecurity"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "Clinical evidence gap",
+          "category": "Clinical_Evidence_Insufficiency",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 2114,
+            "resolved_count": 436
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "Risk management gap",
+          "category": "Risk_Management_Gap",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 266,
+            "resolved_count": 78
+          },
+          "confidence": 0.85
+        },
+        {
+          "concern": "IFU/labeling gap",
+          "category": "IFU_Labeling_Gap",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 200,
+            "resolved_count": 82
+          },
+          "confidence": 0.85
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "HIGH",
+        "§5 Benefit-Risk": "HIGH"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    },
+    "Powered_Surgical_Stapler": {
+      "device_type": "Powered_Surgical_Stapler",
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "General_Regulatory",
+        "General_Regulatory",
+        "IFU_Labeling_Gap",
+        "Risk_Management_Gap",
+        "Process_Validation"
+      ],
+      "typical_nb_concerns": [
+        {
+          "concern": "Test report missing or incomplete",
+          "category": "General_Regulatory",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 12,
+            "resolved_count": 4
+          },
+          "confidence": 0.82
+        },
+        {
+          "concern": "Packaging information/documentation missing",
+          "category": "General_Regulatory",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 7,
+            "resolved_count": 2
+          },
+          "confidence": 0.7
+        },
+        {
+          "concern": "IFU/labeling gap",
+          "category": "IFU_Labeling_Gap",
+          "frequency": {
+            "projects": 1,
+            "total_occurrences": 4,
+            "resolved_count": 2
+          },
+          "confidence": 0.85
+        }
+      ],
+      "cer_section_emphasis": {
+        "§2 Device Description": "MEDIUM",
+        "§3 SOTA": "HIGH",
+        "§4 Clinical Evidence": "MEDIUM",
+        "§5 Benefit-Risk": "HIGH"
+      },
+      "equivalence_strategy": "Clinical investigation path for innovative devices; equivalence path if predicate available",
+      "common_standards": [
+        "ISO 13485",
+        "ISO 14971"
+      ]
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Human Gate Schema",
+  "description": "Schema for human gate packet with HG-01 through HG-09",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_human_gate"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "human_gate_packet"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_human_boundary"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_human_boundary"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "all_preceding_artifacts_ref": {
+          "type": "string"
+        },
+        "qa_synthesis_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDR_Article_83",
+        "MDCG_2020_13",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "requires_human_review": {
+      "type": "boolean",
+      "const": true
+    },
+    "human_gate_topic": {
+      "type": "string"
+    },
+    "reviewer_question_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "no_final_decision_made": {
+      "type": "boolean"
+    },
+    "human_gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gate_ref": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "triggered_by_step": {
+            "type": ["integer", "string"]
+          },
+          "human_gate_required": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected",
+              "needs_information"
+            ]
+          },
+          "reviewer_decision": {
+            "type": "string"
+          },
+          "reviewer_rationale": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gate_count": {
+      "type": "integer"
+    },
+    "pending_gates": {
+      "type": "integer"
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

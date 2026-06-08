@@ -1,0 +1,340 @@
+# CER Review Assist Sandbox Workflow v1.0
+# Generated: 2026-04-27
+# Mode: sandbox_pilot — advisory output only, no production impact
+# Based on: cer_review_assist_pilot_plan/SANDBOX_WORKFLOW_CHANGE_PLAN.md
+
+workflow_name: cer_review_assist_sandbox
+workflow_version: "1.0"
+workflow_status: sandbox_pilot
+mode: cer_cross_document_review_assist
+
+description: >
+  CER Review Assist Sandbox v1.0. Reviews completed Track B project bundles
+  for cross-document consistency, gap detection, regulatory boundary compliance,
+  evidence quality, and recommendation synthesis. 8-stage pipeline with
+  human gate at every stage. Output is advisory only — no production impact.
+  Uses 5 sandbox agents with V5 Track C calibration knowledge injection.
+
+scope:
+  project_scope: single_project
+  review_object: cer_project_bundle
+  review_types:
+    - cross_document_consistency
+    - gap_detection
+    - regulatory_boundary_compliance
+    - evidence_quality_audit
+    - recommendation_synthesis
+  final_decision_requires_human_gate: true
+
+contracts:
+  review_finding_schema: schemas/review_finding.schema.json
+  review_report_schema: schemas/review_report.schema.json
+  human_gate_decision_schema: schemas/human_gate_decision.schema.json
+
+runtime_defaults:
+  artifact_root: artifacts/cer_review_assist/${run_id}
+  project_root: ${project_path}
+  enforce_human_gate: true
+  sandbox_mode: true
+
+stages:
+  # === STAGE 1: Source Discovery ===
+  - stage_id: source_discovery
+    stage_name: "Source Discovery — File Inventory"
+    agent: evidence-artifact-curator.sandbox
+    agent_path: .claude/agents/sandbox/evidence-artifact-curator.sandbox.md
+    parallel_with: []
+    depends_on: []
+    description: >
+      Inventory all project files in the Track B output directory.
+      Identify intake report, project profile, closeout, cross-document
+      consistency report, candidates JSON, document family map, and any
+      supporting files. Classify by document type and evidence pack.
+    inputs:
+      - project_path: ${project_path}
+    outputs:
+      - file_inventory
+      - document_type_classification
+      - evidence_pack_status
+      - missing_expected_types
+    human_gate: conditional
+    auto_pass_conditions:
+      - file_count >= 3
+      - all_expected_types_present: true
+      - no_empty_files: true
+    human_gate_triggers:
+      - file_count < 3
+      - unexpected_file_types_detected
+      - empty_or_corrupt_file_detected
+
+  # === STAGE 2: Source Quality ===
+  - stage_id: source_quality
+    stage_name: "Source Quality Assessment — Confidence Heatmap"
+    agent: canonical-recommendation-engine.sandbox
+    agent_path: .claude/agents/sandbox/canonical-recommendation-engine.sandbox.md
+    depends_on:
+      - source_discovery
+    description: >
+      Assess source quality for each project document. Apply V5 negative
+      signal taxonomy (empty files, placeholder content, synthetic summaries,
+      over-generalization, plan-without-execution, version inconsistency).
+      Generate confidence heatmap across all source files.
+    inputs:
+      - file_inventory: from source_discovery
+      - project_files: ${project_path}
+      - v5_calibration: knowledge/cer_review_assist_context_v1.json
+    outputs:
+      - source_quality_assessment
+      - confidence_heatmap
+      - negative_signal_flags
+      - per_file_confidence
+    human_gate: conditional
+    auto_pass_conditions:
+      - all_documents_confidence: HIGH
+      - negative_signals_count: 0
+    human_gate_triggers:
+      - any_document_confidence: MEDIUM
+      - any_document_confidence: LOW
+      - any_negative_signal_detected
+
+  # === STAGE 3: Cross-Document Consistency (PARALLEL) ===
+  - stage_id: cross_doc_consistency
+    stage_name: "Cross-Document Consistency Review"
+    agents:
+      - gap-analysis-specialist.sandbox
+      - cer-rmf-review-logic-qa.sandbox
+    agent_paths:
+      - .claude/agents/sandbox/gap-analysis-specialist.sandbox.md
+      - .claude/agents/sandbox/cer-rmf-review-logic-qa.sandbox.md
+    parallel_execution: true
+    depends_on:
+      - source_quality
+    description: >
+      Cross-check document consistency across CER, CEP, IFU, SSCP, PSUR,
+      PMCF, RMF, and literature search documents. PARALLEL execution:
+      gap-analysis-specialist generates G-Points and Actionable Gap Paths
+      while cer-rmf-review-logic-qa checks cross-document consistency and
+      review state classification.
+    inputs:
+      - project_files: ${project_path}
+      - source_quality_assessment: from source_quality
+      - v5_calibration: knowledge/cer_review_assist_context_v1.json
+    outputs:
+      - cross_document_inconsistency_flags
+      - g_points
+      - actionable_gap_paths
+      - review_state_classifications
+      - gap_severity_distribution
+    human_gate: conditional
+    auto_pass_conditions:
+      - inconsistencies_count: 0
+      - gaps_count: 0
+    human_gate_triggers:
+      - any_inconsistency_detected
+      - any_gap_flagged
+      - any_critical_or_high_severity_gap
+
+  # === STAGE 4: Regulatory Boundary (MANDATORY GATE) ===
+  - stage_id: regulatory_boundary
+    stage_name: "Regulatory Boundary Compliance Check"
+    agent: regulatory-boundary-qa.sandbox
+    agent_path: .claude/agents/sandbox/regulatory-boundary-qa.sandbox.md
+    depends_on:
+      - cross_doc_consistency
+    description: >
+      Validate MDR regulatory boundary compliance. Check for prohibited claims,
+      limited-review language correctness, boundary violations. Apply V5
+      reviewer decision calibration and D1 requirement hierarchy.
+    inputs:
+      - project_files: ${project_path}
+      - cross_doc_consistency_findings: from cross_doc_consistency
+      - d1_requirement_hierarchy: track_a_output/D1_REQUIREMENT_HIERARCHY_ANALYSIS.md
+      - d8_gate_boundary: track_a_output/D8_HUMAN_GATE_BOUNDARY_MAP.md
+      - v5_calibration: knowledge/cer_review_assist_context_v1.json
+    outputs:
+      - boundary_compliance_report
+      - prohibited_claims_list
+      - boundary_violation_flags
+      - evidence_traceability_assessment
+    human_gate: mandatory
+    human_gate_rationale: "Regulatory boundary decisions require human judgment. Per CLAUDE.md: Human Gate is required before source confirmation, rule promotion, or backflow."
+
+  # === STAGE 5: Evidence Audit ===
+  - stage_id: evidence_audit
+    stage_name: "Evidence Quality Audit — Second Pass"
+    agent: evidence-artifact-curator.sandbox
+    agent_path: .claude/agents/sandbox/evidence-artifact-curator.sandbox.md
+    depends_on:
+      - regulatory_boundary
+    description: >
+      Second pass verification. Verify evidence completeness against findings
+      from all prior stages. Confirm all cross-references are backed by real
+      verbatim excerpts. Detect synthetic summaries. Calculate evidence
+      completeness score.
+    inputs:
+      - project_files: ${project_path}
+      - findings_from_stages_1_4: all prior stage outputs
+      - v5_calibration: knowledge/cer_review_assist_context_v1.json
+    outputs:
+      - evidence_audit_report
+      - verbatim_excerpt_verification
+      - synthetic_summary_flags
+      - completeness_score
+      - per_finding_evidence_trace
+    human_gate: conditional
+    auto_pass_conditions:
+      - completeness_score: 100
+      - all_excerpts_verbatim: true
+      - synthetic_summaries_count: 0
+    human_gate_triggers:
+      - completeness_score < 100
+      - any_synthetic_summary_detected
+      - any_excerpt_not_verbatim
+
+  # === STAGE 6: Final Review (MANDATORY GATE) ===
+  - stage_id: final_review
+    stage_name: "Final Review Synthesis"
+    agent: cer-rmf-review-logic-qa.sandbox
+    agent_path: .claude/agents/sandbox/cer-rmf-review-logic-qa.sandbox.md
+    depends_on:
+      - evidence_audit
+    description: >
+      Synthesize all findings from Stages 1-5 into a structured final review
+      report. Classify each finding by type (anti_pattern, gap, inconsistency,
+      boundary_violation, evidence_weakness) and severity (CRITICAL, HIGH,
+      MEDIUM, LOW). Generate overall project assessment with scores. Apply
+      V5 repair pair calibration for recommendations.
+    inputs:
+      - all_stage_findings: from stages 1-5
+      - v5_calibration: knowledge/cer_review_assist_context_v1.json
+      - v5_repair_pairs: knowledge/cer_review_assist_context_v1.json
+    outputs:
+      - final_review_report_draft
+      - finding_classifications
+      - severity_distribution
+      - cross_document_consistency_score
+      - regulatory_compliance_score
+      - evidence_quality_score
+      - recommendations_list
+    human_gate: mandatory
+    human_gate_rationale: "Final review report synthesizes all findings into a structured assessment. Per CLAUDE.md: Sandbox validation is not approval. Human sign-off required."
+
+  # === STAGE 7: Human Gate ===
+  - stage_id: human_gate
+    stage_name: "Human Gate — Reviewer Decision"
+    agent: human_gate
+    depends_on:
+      - final_review
+    description: >
+      Human reviewer reviews all findings from all stages. Applies gate
+      decision template (ACCEPT/REJECT/NEEDS_MORE_EVIDENCE/ESCALATE)
+      to each finding. Signs off on final report.
+    inputs:
+      - final_review_report_draft: from final_review
+      - all_stage_outputs: from stages 1-6
+    outputs:
+      - gate_decisions_per_finding
+      - reviewer_notes
+      - final_report_signed
+      - review_corrections
+    human_gate: mandatory
+    reviewer_roles:
+      - regulatory_reviewer:
+          scope: [regulatory_boundary, final_review]
+          authority: "Accept/reject/override regulatory findings"
+      - clinical_reviewer:
+          scope: [cross_doc_consistency, evidence_audit]
+          authority: "Accept/reject/override clinical and evidence findings"
+      - technical_reviewer:
+          scope: [source_discovery, source_quality]
+          authority: "Accept/reject/override technical findings"
+    gate_decisions:
+      - ACCEPT: "Finding is valid as reported. Include in final report."
+      - REJECT: "Finding is not valid or incorrectly classified. Exclude. Log correction."
+      - NEEDS_MORE_EVIDENCE: "Finding may be valid but insufficient evidence. Mark pending."
+      - ESCALATE: "Finding requires higher-level regulatory review. Route to regulatory reviewer."
+
+  # === STAGE 8: Report Generation ===
+  - stage_id: report_generation
+    stage_name: "Report Generation"
+    agent: report_generation
+    depends_on:
+      - human_gate
+    description: >
+      After all gate decisions are made, generate structured outputs:
+      human-readable markdown report and machine-readable JSON sidecar.
+      Include evidence audit trail.
+    inputs:
+      - gate_decisions: from human_gate
+      - final_review_report: from final_review
+      - all_stage_outputs: from stages 1-6
+    outputs:
+      - review_report.md
+      - review_report.json
+      - evidence_audit_trail.md
+      - human_gate_decisions.json
+    human_gate: false
+
+governance:
+  sandbox_output_only: true
+  no_nocodb_writes: true
+  no_state_db_writes: true
+  no_runtime_modification: true
+  human_gate_mandatory_at:
+    - regulatory_boundary
+    - final_review
+    - human_gate
+  auto_pass_enabled: true
+  auto_pass_conditions:
+    - quality_tier: PASS
+    - confidence: HIGH
+    - finding_type: non_regulatory
+  p0_quarantine:
+    maintained: true
+    detection_enabled: true
+    no_auto_import: true
+    no_auto_approval: true
+    no_binding_promotion: true
+    flag_format: HOLD_FOR_HUMAN_REVIEW
+
+on_fail:
+  default_action: emit_failure_artifact_and_stop
+  failure_artifact: artifacts/cer_review_assist/${run_id}/failure_report.json
+  preserve_partial_artifacts: true
+  escalate_to_human_when:
+    - agent_fails_at_stage
+    - schema_validation_fails
+    - unexpected_project_structure
+    - hard_boundary_violation_detected
+
+hard_boundaries:
+  - no_nocodb_writes
+  - no_approved_true
+  - no_runtime_call_allowed_true
+  - no_production_agent_modification
+  - no_production_workflow_modification
+  - no_deerflow_runtime_modification
+  - no_p0_quarantine_lift
+  - no_git_commit
+  - candidate_knowledge_as_internal_review_assist_context_only
+  - all_findings_must_have_evidence_trace
+  - human_gate_marking_and_routing_only_not_blocking_this_pilot_run
+
+knowledge_context:
+  pack_path: knowledge/cer_review_assist_context_v1.json
+  pack_version: "1.0"
+  calibration_source: track_c_consolidation_v5/TRACK_C_CALIBRATION_PACK_V5.json
+  pass_candidates_used: 242
+  track_a_dimensions: [D1, D2, D4, D7, D8]
+  convergence_rounds: [R1, R2, R3]
+
+agent_inventory:
+  sandbox_agents:
+    - canonical-recommendation-engine.sandbox
+    - evidence-artifact-curator.sandbox
+    - gap-analysis-specialist.sandbox
+    - regulatory-boundary-qa.sandbox
+    - cer-rmf-review-logic-qa.sandbox
+  runtime_agents_untouched: 24
+  new_files_created: 8
+  files_untouched: 42

@@ -1,0 +1,18 @@
+{
+  "schema_name": "cer_authoring_final_gate_closure_report",
+  "decision": "HUMAN_HOLD",
+  "qa_gate_report": {},
+  "ws_gate_summary": {
+    "ws1_coverage_absorption": 1.0,
+    "ws1_p0_gaps": 0,
+    "ws2_ifu_overclaim": "PASS",
+    "ws3_unsupported_claims": 0,
+    "ws4_prisma_reproducible": false,
+    "ws5_evidence_ceiling": "MODERATE",
+    "ws6_endpoint_heterogeneous": 1,
+    "ws7_equivalence_decision": "equivalence_not_claimed",
+    "ws8_br_section_present": false,
+    "ws9_rmf_warnings_unlinked": 4,
+    "ws10_style_status": "FAIL"
+  }
+}

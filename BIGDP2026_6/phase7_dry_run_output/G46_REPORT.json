@@ -1,0 +1,217 @@
+{
+  "gate_id": "G46",
+  "gate_name": "Pre-Writer Readiness",
+  "status": "BLOCKED",
+  "decision": "G46_BLOCKED",
+  "failure_pattern": "claim_evidence",
+  "upstream_node_to_reroute": "",
+  "spiral_round": "",
+  "blocked_reason": "One or more pre-writer readiness conditions are BLOCKED.",
+  "reroute_context": {
+    "route_condition": "claim_evidence",
+    "failing_sub_conditions": [
+      "claim_evidence"
+    ],
+    "upstream_causality_priority": [
+      "identity",
+      "retrieval_domain",
+      "retrieval_completeness",
+      "screening_pool",
+      "fulltext_basis",
+      "evidence_sufficiency",
+      "SOTA",
+      "claim_evidence",
+      "BR",
+      "alignment"
+    ]
+  },
+  "conditions": [
+    {
+      "condition_name": "identity",
+      "status": "PASS",
+      "message": "Condition 'identity' \u2014 controlled_deferral. Evaluated by upstream gate or explicit override. No silent PASS.",
+      "upstream_route": "device_profile",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "evidence_sufficiency",
+      "status": "PASS",
+      "message": "G42 evidence sufficiency: not_evaluated. Controlled deferral \u2014 G42 evaluates sufficiency upstream.",
+      "upstream_route": "sota_search",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "retrieval_domain",
+      "status": "PASS",
+      "message": "Retrieval domain: not_evaluated. Controlled deferral \u2014 evaluated by upstream retrieval_domain_gate.",
+      "upstream_route": "sota_search",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "retrieval_completeness",
+      "status": "PASS",
+      "message": "All 3 search(es) completed successfully.",
+      "upstream_route": "sota_search",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "screening_pool",
+      "status": "PASS",
+      "message": "Screening pool: not_evaluated. Controlled deferral \u2014 evaluated by upstream screening_depth_gate.",
+      "upstream_route": "sota_search",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "fulltext_basis",
+      "status": "PASS",
+      "message": "Full-text evidence basis is sufficient.",
+      "upstream_route": "evidence_appraisal",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "SOTA",
+      "status": "PASS",
+      "message": "SOTA benchmark established with 2 entries.",
+      "upstream_route": "endpoint_extraction",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "claim_evidence",
+      "status": "BLOCKED",
+      "message": "1 claim(s) lack evidence linkage: C-03. Writer cannot produce substantiated CER sections without evidence-claim traceability.",
+      "upstream_route": "pre_g42_claim_evidence_candidate_linking",
+      "failure_pattern": "claim_evidence_link_missing",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "BR",
+      "status": "PASS",
+      "message": "Benefit-risk analysis justifies clinical benefit.",
+      "upstream_route": "writer_synthesis",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "alignment",
+      "status": "PASS",
+      "message": "GSPR/RMF/IFU alignment verified.",
+      "upstream_route": "risk_gspr_mapping",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "endpoint_framework_locked",
+      "status": "PASS",
+      "message": "Endpoint framework locked with 2 primary endpoint(s).",
+      "upstream_route": "endpoint_extraction",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "clinical_data_consolidated",
+      "status": "PASS",
+      "message": "Clinical data consolidated from 2 source(s).",
+      "upstream_route": "evidence_registry",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    },
+    {
+      "condition_name": "eu_market_status_set",
+      "status": "PASS",
+      "message": "EU market status is 'not_approved'.",
+      "upstream_route": "device_profile",
+      "failure_pattern": "",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    }
+  ],
+  "failing_sub_conditions": [
+    {
+      "condition_name": "claim_evidence",
+      "status": "BLOCKED",
+      "message": "1 claim(s) lack evidence linkage: C-03. Writer cannot produce substantiated CER sections without evidence-claim traceability.",
+      "upstream_route": "pre_g42_claim_evidence_candidate_linking",
+      "failure_pattern": "claim_evidence_link_missing",
+      "source_gate_ids": "",
+      "evidence_basis": ""
+    }
+  ],
+  "route_condition": "claim_evidence",
+  "reroute_target": "",
+  "compromise_reason": "One or more pre-writer readiness conditions are BLOCKED.",
+  "writer_invoked": false,
+  "next_node": "controlled_compromise",
+  "message": "G46 BLOCKED; route to controlled_compromise.",
+  "v3_1_gate_aggregation": {
+    "v3_1_gates_aggregated": true,
+    "v3_1_gate_results": {
+      "clinical_fact_registry_lock": {
+        "gate_id": "G-CLINICAL-FACT-REGISTRY-LOCK",
+        "status": "REWORK_REQUIRED",
+        "failure_reason": "Clinical Fact Registry is empty or not built"
+      },
+      "pmcf_decision_presence": {
+        "gate_id": "G-PMCF-DECISION-PRESENCE",
+        "status": "REWORK_REQUIRED",
+        "pmcf_decision": null,
+        "eu_market_status_independent": false,
+        "failure_reason": "PMCF decision not explicit"
+      }
+    },
+    "v3_1_gate_failures": [
+      "clinical_fact_registry_lock",
+      "pmcf_decision_presence"
+    ],
+    "v3_1_gate_status": "REWORK_REQUIRED",
+    "v3_1_gate_failure_reason": "Failed gates: clinical_fact_registry_lock, pmcf_decision_presence"
+  },
+  "gate_routing_trace": [
+    {
+      "gate_id": "G46",
+      "invocation_order": 4,
+      "status": "BLOCKED",
+      "failure_pattern": "claim_evidence",
+      "upstream_node_to_reroute": "",
+      "upstream_node_routed_to": "",
+      "spiral_round": "",
+      "blocked_reason": "One or more pre-writer readiness conditions are BLOCKED.",
+      "reroute_context": {
+        "route_condition": "claim_evidence",
+        "failing_sub_conditions": [
+          "claim_evidence"
+        ],
+        "upstream_causality_priority": [
+          "identity",
+          "retrieval_domain",
+          "retrieval_completeness",
+          "screening_pool",
+          "fulltext_basis",
+          "evidence_sufficiency",
+          "SOTA",
+          "claim_evidence",
+          "BR",
+          "alignment"
+        ]
+      }
+    }
+  ]
+}

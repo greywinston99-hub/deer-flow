@@ -6,7 +6,7 @@ from pathlib import Path, PureWindowsPath
 # Virtual path prefix seen by agents inside the sandbox
 VIRTUAL_PATH_PREFIX = "/mnt/user-data"
 
-_SAFE_THREAD_ID_RE = re.compile(r"^[A-Za-z0-9_\-]+$")
+_SAFE_THREAD_ID_RE = re.compile(r"^[\w\-]+$")
 
 
 def _default_local_base_dir() -> Path:

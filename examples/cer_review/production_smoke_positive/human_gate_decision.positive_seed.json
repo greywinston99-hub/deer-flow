@@ -1,0 +1,11 @@
+{
+  "decision": "conditional_pass",
+  "reviewer": "positive-smoke-fixture-seed",
+  "reason": "Positive production smoke run with quantified Class IIa CER fixture. All 10 steps completed, all artifacts schema-valid, findings are non-empty and source-bound. The benefit-risk profile is ACCEPTABLE with quantified evidence claims (EV-001 through EV-005), explicit binary acceptability for all residual risks (R1-R4), and clear benefit-risk balance statement. Seeded human review input for gate closure validation — not an automated determination.",
+  "source": "seed_positive",
+  "is_seed": true,
+  "seeded_at": "2026-04-26T00:00:00Z",
+  "notes": "This is a seeded human gate decision for positive production smoke validation using a quantified/structured CER fixture. In a real review, this decision would be rendered by a qualified clinical evaluator. The seed enables the gate closure path to complete normally without blocking on interactive human input.",
+  "automated": false,
+  "simulated": false
+}

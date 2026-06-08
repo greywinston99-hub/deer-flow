@@ -1,0 +1,173 @@
+{
+  "PILOT_01_启灏_PlasmaElectrode": {
+    "pilot": "PILOT_01_启灏_PlasmaElectrode",
+    "label": "Disposable Radiofrequency Plasma Electrode",
+    "expected_domain": "plasma_surgical_electrode",
+    "actual_domain": "plasma_surgical_electrode",
+    "cer_length_chars": 1066741,
+    "gates": {
+      "gate_1_domain_consistency": {
+        "status": "HARD_FAIL",
+        "findings_count": 1,
+        "warnings_count": 0,
+        "top_forbidden_terms": [
+          "ureteral access sheath"
+        ],
+        "message": "HARD_FAIL: 1 forbidden term(s) found in non-exception context."
+      },
+      "gate_2_ifu_consumption": {
+        "status": "HARD_FAIL",
+        "has_ifu_source": true,
+        "placeholder_count": 202,
+        "message": "HARD_FAIL: 202 IFU placeholder(s) found despite available IFU source data."
+      },
+      "gate_3_evidence_conclusion": {
+        "status": "HARD_FAIL",
+        "policy_level": "INSUFFICIENT",
+        "hard_fail_count": 4,
+        "message": "HARD_FAIL: 4 forbidden phrase(s) found in conclusion text without negation (policy level: INSUFFICIENT)."
+      },
+      "gate_4_body_cleanliness": {
+        "status": "HARD_FAIL",
+        "finding_count": 70,
+        "top_banned": [
+          "Claude",
+          "DeerFlow",
+          "MCP",
+          "not_allowed",
+          "not_allowed"
+        ],
+        "message": "HARD_FAIL: 70 banned internal string(s) found in CER body."
+      },
+      "gate_5_remediated_qa": {
+        "status": "FAIL",
+        "score": 0,
+        "failing_dimensions": [
+          "domain_consistency",
+          "evidence_conclusion_consistency",
+          "ifu_consumption",
+          "body_cleanliness"
+        ],
+        "warning_dimensions": [],
+        "message": "QA FAIL (score 0): 4 dimension(s) failed — domain_consistency, evidence_conclusion_consistency, ifu_consumption, body_cleanliness. Report is NOT ready for release."
+      }
+    },
+    "overall": {
+      "quarantined": true,
+      "release_candidate": false
+    }
+  },
+  "PILOT_02_米道斯_CardiacStabilizer": {
+    "pilot": "PILOT_02_米道斯_CardiacStabilizer",
+    "label": "Cardiac Tissue Stabilizer",
+    "expected_domain": "cardiac_tissue_stabilizer",
+    "actual_domain": "cardiac_tissue_stabilizer",
+    "cer_length_chars": 780599,
+    "gates": {
+      "gate_1_domain_consistency": {
+        "status": "HARD_FAIL",
+        "findings_count": 1,
+        "warnings_count": 0,
+        "top_forbidden_terms": [
+          "ureteroscope"
+        ],
+        "message": "HARD_FAIL: 1 forbidden term(s) found in non-exception context."
+      },
+      "gate_2_ifu_consumption": {
+        "status": "HARD_FAIL",
+        "has_ifu_source": true,
+        "placeholder_count": 112,
+        "message": "HARD_FAIL: 112 IFU placeholder(s) found despite available IFU source data."
+      },
+      "gate_3_evidence_conclusion": {
+        "status": "HARD_FAIL",
+        "policy_level": "INSUFFICIENT",
+        "hard_fail_count": 4,
+        "message": "HARD_FAIL: 4 forbidden phrase(s) found in conclusion text without negation (policy level: INSUFFICIENT)."
+      },
+      "gate_4_body_cleanliness": {
+        "status": "HARD_FAIL",
+        "finding_count": 27,
+        "top_banned": [
+          "Claude",
+          "DeerFlow",
+          "MCP",
+          "not_allowed",
+          "not_allowed"
+        ],
+        "message": "HARD_FAIL: 27 banned internal string(s) found in CER body."
+      },
+      "gate_5_remediated_qa": {
+        "status": "FAIL",
+        "score": 0,
+        "failing_dimensions": [
+          "domain_consistency",
+          "evidence_conclusion_consistency",
+          "ifu_consumption",
+          "body_cleanliness"
+        ],
+        "warning_dimensions": [],
+        "message": "QA FAIL (score 0): 4 dimension(s) failed — domain_consistency, evidence_conclusion_consistency, ifu_consumption, body_cleanliness. Report is NOT ready for release."
+      }
+    },
+    "overall": {
+      "quarantined": true,
+      "release_candidate": false
+    }
+  },
+  "PILOT_03_永新_ImagingSoftware": {
+    "pilot": "PILOT_03_永新_ImagingSoftware",
+    "label": "Medical Imaging Software",
+    "expected_domain": "medical_imaging_software",
+    "actual_domain": "ai_diagnostic_software",
+    "cer_length_chars": 767805,
+    "gates": {
+      "gate_1_domain_consistency": {
+        "status": "SKIPPED",
+        "findings_count": 0,
+        "warnings_count": 0,
+        "top_forbidden_terms": [],
+        "message": ""
+      },
+      "gate_2_ifu_consumption": {
+        "status": "HARD_FAIL",
+        "has_ifu_source": true,
+        "placeholder_count": 112,
+        "message": "HARD_FAIL: 112 IFU placeholder(s) found despite available IFU source data."
+      },
+      "gate_3_evidence_conclusion": {
+        "status": "HARD_FAIL",
+        "policy_level": "INSUFFICIENT",
+        "hard_fail_count": 4,
+        "message": "HARD_FAIL: 4 forbidden phrase(s) found in conclusion text without negation (policy level: INSUFFICIENT)."
+      },
+      "gate_4_body_cleanliness": {
+        "status": "HARD_FAIL",
+        "finding_count": 27,
+        "top_banned": [
+          "Claude",
+          "DeerFlow",
+          "MCP",
+          "not_allowed",
+          "not_allowed"
+        ],
+        "message": "HARD_FAIL: 27 banned internal string(s) found in CER body."
+      },
+      "gate_5_remediated_qa": {
+        "status": "FAIL",
+        "score": 25,
+        "failing_dimensions": [
+          "evidence_conclusion_consistency",
+          "ifu_consumption",
+          "body_cleanliness"
+        ],
+        "warning_dimensions": [],
+        "message": "QA FAIL (score 25): 3 dimension(s) failed — evidence_conclusion_consistency, ifu_consumption, body_cleanliness. Report is NOT ready for release."
+      }
+    },
+    "overall": {
+      "quarantined": true,
+      "release_candidate": false
+    }
+  }
+}

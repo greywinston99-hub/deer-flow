@@ -1,0 +1,67 @@
+{
+  "overall": "FAIL",
+  "checks": {
+    "STY-001": {
+      "status": "SKIP",
+      "detail": "Device name or abbreviation not in metadata"
+    },
+    "STY-002": {
+      "status": "FAIL",
+      "detail": "Multiple terms found: {'complication', 'adverse event'}. Prefer: 'adverse event'"
+    },
+    "STY-005": {
+      "status": "FAIL",
+      "detail": "442 naked percentages found",
+      "issues": [
+        "00_CER_V3_COMPLETE:L67 '4.5%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L67 '95%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L67 '2.4%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L67 '8.4%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L70 '3.4%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L70 '3.1%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L71 '5.1%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L71 '4.8%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L72 '3.8%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L72 '5.2%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L77 '37%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L187 '40%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L187 '25%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L194 '40%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L197 '60%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L198 '30%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L199 '10%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L201 '24.3%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L201 '87%' lacks denominator (n/N)",
+        "00_CER_V3_COMPLETE:L201 '25%' lacks denominator (n/N)"
+      ]
+    },
+    "sample_size": {
+      "status": "FAIL",
+      "detail": "Sample size 100 found in {'00_CER_V3_COMPLETE', '07_pmcf', '05_conclusions'} but not in {'04_clinical_evidence', '03_clinical_background_sota'}; Sample size 456 found in {'00_CER_V3_COMPLETE', '05_conclusions'} but not in {'07_pmcf', '04_clinical_evidence', '03_clinical_background_sota'}; Sample size 50 found in {'00_CER_V3_COMPLETE', '07_pmcf'} but not in {'04_clinical_evidence', '05_conclusions', '03_clinical_background_sota'}; Sample size 85 found in {'00_CER_V3_COMPLETE', '07_pmcf'} but not in {'04_clinical_evidence', '05_conclusions', '03_clinical_background_sota'}; Sample size 245 found in {'00_CER_V3_COMPLETE', '04_clinical_evidence'} but not in {'07_pmcf', '05_conclusions', '03_clinical_background_sota'}; Sample size 257 found in {'00_CER_V3_COMPLETE', '05_conclusions', '03_clinical_background_sota'} but not in {'07_pmcf', '04_clinical_evidence'}"
+    },
+    "indication": {
+      "status": "SKIP",
+      "detail": "No indication in metadata"
+    },
+    "pmcf": {
+      "status": "PASS",
+      "detail": "PMCF chapter consistent with market status"
+    },
+    "limitation": {
+      "status": "PASS",
+      "detail": "Conclusion references limitations"
+    },
+    "endpoint": {
+      "status": "SKIP",
+      "detail": "No locked endpoints defined"
+    },
+    "DO-001": {
+      "status": "PASS",
+      "detail": "Single variant — no difference matrix needed"
+    },
+    "TM-001": {
+      "status": "PASS",
+      "detail": "No template residues"
+    }
+  }
+}

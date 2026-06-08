@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/rmf_precheck.schema.json",
+  "title": "RMF Precheck",
+  "description": "RMF precheck stage output — section-presence matrix and rule-based findings. Shared schema for fmea_precheck_report.json (mode=fmea) and rmf_precheck_report.json (mode=rmf).",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "run_id",
+    "mode",
+    "findings"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "rmf_precheck"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "fmea",
+        "rmf"
+      ]
+    },
+    "section_presence_matrix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "section_id",
+          "presence"
+        ],
+        "properties": {
+          "section_id": {
+            "type": "string"
+          },
+          "section_name": {
+            "type": "string"
+          },
+          "presence": {
+            "type": "string",
+            "enum": [
+              "missing",
+              "weakly_evidenced",
+              "present",
+              "contradictory"
+            ]
+          },
+          "source_ref": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    },
+    "terminology_consistency_findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "source_traceability": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "document_id"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "finding_id",
+        "severity",
+        "description"
+      ],
+      "properties": {
+        "finding_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocking",
+            "advisory",
+            "informational"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "weakly_evidenced",
+            "contradictory",
+            "terminology",
+            "other"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    }
+  }
+}

@@ -15,7 +15,11 @@
           "batch1",
           "batch2",
           "batch3"
-        ]
+        ],
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "CL-001": 69
+        }
       },
       "review_model": {
         "type": "modular_parallel",
@@ -31,7 +35,13 @@
               "GS-001",
               "DO-001"
             ],
-            "characteristics": "Focuses on foundational device identity and regulatory compliance baseline"
+            "characteristics": "Focuses on foundational device identity and regulatory compliance baseline",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "TR-001": 102,
+              "GS-001": 72,
+              "CV-001": 54
+            }
           },
           {
             "dimension_id": "BSI-MOD-02",
@@ -44,7 +54,14 @@
               "CL-001",
               "EV-001"
             ],
-            "characteristics": "Deep dive into clinical evidence sufficiency and MDCG 2020-5 compliance"
+            "characteristics": "Deep dive into clinical evidence sufficiency and MDCG 2020-5 compliance",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "TR-001": 102,
+              "EQ-001": 73,
+              "CL-001": 69,
+              "CV-001": 54
+            }
           },
           {
             "dimension_id": "BSI-MOD-03",
@@ -58,7 +75,14 @@
               "DT-001",
               "GS-001"
             ],
-            "characteristics": "Cross-functional technical scrutiny; often issues the most detailed questions"
+            "characteristics": "Cross-functional technical scrutiny; often issues the most detailed questions",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "BR-001": 148,
+              "RM-001": 59,
+              "CV-001": 54,
+              "DT-001": 53
+            }
           },
           {
             "dimension_id": "BSI-MOD-04",
@@ -69,7 +93,13 @@
             "dominant_defect_types": [
               "MF-001"
             ],
-            "characteristics": "Specialized review for devices with sterilization/microbial control requirements"
+            "characteristics": "Specialized review for devices with sterilization/microbial control requirements",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "MF-001": 108,
+              "TR-001": 102,
+              "CV-001": 54
+            }
           },
           {
             "dimension_id": "BSI-MOD-05",
@@ -82,7 +112,11 @@
               "DT-001",
               "GS-001"
             ],
-            "characteristics": "Each feedback builds on previous findings; issues compound if not fully addressed"
+            "characteristics": "Each feedback builds on previous findings; issues compound if not fully addressed",
+            "v5_linked_defects": {
+              "CV-001": 54,
+              "DT-001": 53
+            }
           },
           {
             "dimension_id": "BSI-MOD-06",
@@ -97,9 +131,18 @@
               "EV-001",
               "CL-001"
             ],
-            "characteristics": "Full-scope audit covering TDAR, CEAR, and SVR dimensions simultaneously"
+            "characteristics": "Full-scope audit covering TDAR, CEAR, and SVR dimensions simultaneously",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "TR-001": 102,
+              "CV-001": 54
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "CV-001": 54
+        }
       },
       "defect_focus_heatmap": {
         "by_type": [
@@ -109,7 +152,11 @@
             "percentage": 34.0,
             "rank": 1,
             "label": "器械描述缺陷",
-            "trend": "跨领域共性"
+            "trend": "跨领域共性",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "DO-001": 153
+            }
           },
           {
             "defect_code": "GS-001",
@@ -117,7 +164,11 @@
             "percentage": 18.0,
             "rank": 2,
             "label": "GSPR覆盖不全",
-            "trend": "BSI标志性关注点"
+            "trend": "BSI标志性关注点",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "GS-001": 72
+            }
           },
           {
             "defect_code": "LB-001",
@@ -125,7 +176,10 @@
             "percentage": 8.0,
             "rank": 3,
             "label": "标签/说明书问题",
-            "trend": "NCR维度集中"
+            "trend": "NCR维度集中",
+            "v5_linked_defects": {
+              "LB-001": 162
+            }
           },
           {
             "defect_code": "PM-001",
@@ -133,7 +187,11 @@
             "percentage": 6.0,
             "rank": 4,
             "label": "PMCF/PMS计划缺陷",
-            "trend": ""
+            "trend": "",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "LB-001": 162
+            }
           },
           {
             "defect_code": "CL-001",
@@ -141,7 +199,11 @@
             "percentage": 6.0,
             "rank": 4,
             "label": "临床数据质量缺陷",
-            "trend": "骨科机器人引入"
+            "trend": "骨科机器人引入",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "EV-001": 126
+            }
           },
           {
             "defect_code": "EQ-001",
@@ -149,7 +211,12 @@
             "percentage": 6.0,
             "rank": 4,
             "label": "等同器械论证缺陷",
-            "trend": "Review Questions集中"
+            "trend": "Review Questions集中",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "DO-001": 153,
+              "EQ-001": 73
+            }
           },
           {
             "defect_code": "SW-001",
@@ -157,7 +224,11 @@
             "percentage": 6.0,
             "rank": 4,
             "label": "软件/网络安全缺陷",
-            "trend": "有源设备/影像诊断"
+            "trend": "有源设备/影像诊断",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "SW-001": 49
+            }
           },
           {
             "defect_code": "EV-001",
@@ -165,7 +236,11 @@
             "percentage": 4.0,
             "rank": 8,
             "label": "临床证据不足",
-            "trend": ""
+            "trend": "",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "EV-001": 126
+            }
           },
           {
             "defect_code": "MF-001",
@@ -173,7 +248,11 @@
             "percentage": 4.0,
             "rank": 8,
             "label": "制造/灭菌验证缺陷",
-            "trend": "骨科机器人引入"
+            "trend": "骨科机器人引入",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "MF-001": 108
+            }
           },
           {
             "defect_code": "BR-001",
@@ -181,7 +260,11 @@
             "percentage": 4.0,
             "rank": 8,
             "label": "获益风险分析不充分",
-            "trend": ""
+            "trend": "",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "BR-001": 148
+            }
           },
           {
             "defect_code": "DT-001",
@@ -189,7 +272,11 @@
             "percentage": 4.0,
             "rank": 8,
             "label": "数据不一致",
-            "trend": "Feedback维度集中"
+            "trend": "Feedback维度集中",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "DT-001": 53
+            }
           }
         ],
         "by_cer_section": [
@@ -197,88 +284,146 @@
             "section": "UNKNOWN",
             "count": 17,
             "percentage": 34.0,
-            "note": "Feedback/DR类跨模块文档，需引入二级子分类"
+            "note": "Feedback/DR类跨模块文档，需引入二级子分类",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "section": "CER-02",
             "count": 12,
             "percentage": 24.0,
-            "note": "§1 Device Description — 与DO-001高度相关"
+            "note": "§1 Device Description — 与DO-001高度相关",
+            "v5_linked_defects": {
+              "DO-001": 153
+            }
           },
           {
             "section": "CER-05",
             "count": 8,
             "percentage": 16.0,
-            "note": "§2 Intended Purpose — NCR维度集中"
+            "note": "§2 Intended Purpose — NCR维度集中",
+            "v5_linked_defects": {
+              "DO-001": 153
+            }
           },
           {
             "section": "CER-06",
             "count": 8,
             "percentage": 16.0,
-            "note": "§5 Clinical Evidence — Clinical Review维度"
+            "note": "§5 Clinical Evidence — Clinical Review维度",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "CL-001": 69
+            }
           },
           {
             "section": "CER-05",
             "count": 3,
             "percentage": 6.0,
-            "note": "§4 Equivalence — Review Questions维度"
+            "note": "§4 Equivalence — Review Questions维度",
+            "v5_linked_defects": {
+              "EQ-001": 73
+            }
           },
           {
             "section": "CER-10",
             "count": 1,
             "percentage": 2.0,
-            "note": "§6 Benefit-Risk"
+            "note": "§6 Benefit-Risk",
+            "v5_linked_defects": {
+              "BR-001": 148
+            }
           },
           {
             "section": "CER-05",
             "count": 1,
             "percentage": 2.0,
-            "note": "§3 Clinical Background & SOTA"
+            "note": "§3 Clinical Background & SOTA",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "CL-001": 69
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "severity_profile": {
         "major_ratio": 98.0,
         "minor_ratio": 2.0,
         "observation_ratio": 0.0,
-        "interpretation": "BSI issues almost exclusively Major findings. Minor items are rare (only 1/50). This indicates BSI operates a high-threshold review model where only substantive issues are escalated to formal findings."
+        "interpretation": "BSI issues almost exclusively Major findings. Minor items are rare (only 1/50). This indicates BSI operates a high-threshold review model where only substantive issues are escalated to formal findings.",
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
       },
       "source_type_distribution": [
         {
           "type": "Review Questions",
           "count": 25,
           "percentage": 50.0,
-          "characteristics": "Structured question list; often the first-round interaction"
+          "characteristics": "Structured question list; often the first-round interaction",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         {
           "type": "Deficiency Report",
           "count": 10,
           "percentage": 20.0,
-          "characteristics": "Formal deficiency document with mandatory response format"
+          "characteristics": "Formal deficiency document with mandatory response format",
+          "v5_linked_defects": {
+            "TR-001": 102,
+            "CV-001": 54
+          }
         },
         {
           "type": "NCR",
           "count": 6,
           "percentage": 12.0,
-          "characteristics": "Turkish NOTICE audit; covers TDAR/CEAR/SVR"
+          "characteristics": "Turkish NOTICE audit; covers TDAR/CEAR/SVR",
+          "v5_linked_defects": {
+            "LB-001": 162
+          }
         },
         {
           "type": "Feedback",
           "count": 5,
           "percentage": 10.0,
-          "characteristics": "Progressive numbered feedback (8th, 9th, 10th...)"
+          "characteristics": "Progressive numbered feedback (8th, 9th, 10th...)",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         {
           "type": "Deficiency Report Annotated",
           "count": 3,
           "percentage": 6.0,
-          "characteristics": "DR with inline annotations or response tracking"
+          "characteristics": "DR with inline annotations or response tracking",
+          "v5_linked_defects": {
+            "TR-001": 102
+          }
         },
         {
           "type": "NCR_Response",
           "count": 1,
           "percentage": 2.0,
-          "characteristics": "Response to NCR findings"
+          "characteristics": "Response to NCR findings",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         }
       ],
       "round_behavior": {
@@ -300,7 +445,10 @@
               "R3"
             ],
             "persistent_defect": "DO-001",
-            "root_cause": "企业对NB核心关切理解偏差——'软组织凝固'预期用途缺乏临床证据支撑"
+            "root_cause": "企业对NB核心关切理解偏差——'软组织凝固'预期用途缺乏临床证据支撑",
+            "v5_linked_defects": {
+              "EV-001": 126
+            }
           },
           {
             "project": "苏州晶乐",
@@ -310,53 +458,90 @@
               "R3"
             ],
             "persistent_defect": "GS-001",
-            "root_cause": "GSPR清单非适用性理由的系统性编制能力不足"
+            "root_cause": "GSPR清单非适用性理由的系统性编制能力不足",
+            "v5_linked_defects": {
+              "GS-001": 72
+            }
           }
         ],
-        "interpretation": "BSI multi-round persistence indicates fundamental misunderstanding of regulatory requirements rather than simple documentation gaps. When the same defect type appears across 3+ rounds, it signals a cognitive gap at the manufacturer level."
+        "interpretation": "BSI multi-round persistence indicates fundamental misunderstanding of regulatory requirements rather than simple documentation gaps. When the same defect type appears across 3+ rounds, it signals a cognitive gap at the manufacturer level.",
+        "v5_linked_defects": {
+          "CV-001": 54,
+          "DT-001": 53
+        }
       },
       "regulatory_reference_preference": [
         {
           "ref_code": "REG-MDR-01",
           "count": 28,
           "percentage": 56.0,
-          "description": "MDR Article 10 (General obligations of manufacturers) — most cited"
+          "description": "MDR Article 10 (General obligations of manufacturers) — most cited",
+          "v5_linked_defects": {
+            "DO-001": 153
+          }
         },
         {
           "ref_code": "REG-MDCG-01",
           "count": 25,
           "percentage": 50.0,
-          "description": "MDCG 2020-5 (Clinical evaluation — equivalence) — clinical dimension"
+          "description": "MDCG 2020-5 (Clinical evaluation — equivalence) — clinical dimension",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "EQ-001": 73,
+            "CL-001": 69
+          }
         },
         {
           "ref_code": "REG-ISO-01",
           "count": 17,
           "percentage": 34.0,
-          "description": "ISO 13485 / ISO 14971 — quality management and risk management"
+          "description": "ISO 13485 / ISO 14971 — quality management and risk management",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "BR-001": 148,
+            "RM-001": 59
+          }
         },
         {
           "ref_code": "REG-MDR-02",
           "count": 10,
           "percentage": 20.0,
-          "description": "MDR Annex I (GSPR) — GSPR-related findings"
+          "description": "MDR Annex I (GSPR) — GSPR-related findings",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "GS-001": 72
+          }
         },
         {
           "ref_code": "REG-MDCG-02",
           "count": 8,
           "percentage": 16.0,
-          "description": "MDCG guidance documents — secondary clinical guidance"
+          "description": "MDCG guidance documents — secondary clinical guidance",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "CL-001": 69,
+            "CV-001": 54
+          }
         },
         {
           "ref_code": "REG-MDR-03",
           "count": 6,
           "percentage": 12.0,
-          "description": "MDR Article 61 (Clinical evaluation requirements)"
+          "description": "MDR Article 61 (Clinical evaluation requirements)",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "CL-001": 69
+          }
         },
         {
           "ref_code": "REG-MEDDEV-01",
           "count": 4,
           "percentage": 8.0,
-          "description": "MEDDEV 2.7/1 rev.4 — legacy clinical evaluation guidance"
+          "description": "MEDDEV 2.7/1 rev.4 — legacy clinical evaluation guidance",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "CL-001": 69
+          }
         }
       ],
       "text_characteristics": {
@@ -375,7 +560,12 @@
           "NCR bilingual format may confuse language detection",
           "Feedback documents span multiple technical domains — single CER section mapping insufficient",
           "Review Questions often reference external document IDs that must be cross-checked"
-        ]
+        ],
+        "v5_linked_defects": {
+          "LB-001": 162,
+          "BR-001": 148,
+          "GS-001": 72
+        }
       },
       "device_category_sensitivity": [
         {
@@ -383,35 +573,55 @@
           "records": 5,
           "dominant_defect": "DO-001",
           "sensitivity": "high",
-          "note": "预期用途描述需要详细临床证据支撑"
+          "note": "预期用途描述需要详细临床证据支撑",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         {
           "category": "外科耗材/输注连接",
           "records": 5,
           "dominant_defect": "GS-001",
           "sensitivity": "high",
-          "note": "GSPR清单非适用性理由是核心关注点"
+          "note": "GSPR清单非适用性理由是核心关注点",
+          "v5_linked_defects": {
+            "GS-001": 72
+          }
         },
         {
           "category": "影像诊断/SPECT-CT",
           "records": 8,
           "dominant_defect": "SW-001/DT-001",
           "sensitivity": "high",
-          "note": "有源设备需同时满足软件、数据一致性、辐射安全"
+          "note": "有源设备需同时满足软件、数据一致性、辐射安全",
+          "v5_linked_defects": {
+            "SW-001": 49
+          }
         },
         {
           "category": "心室辅助",
           "records": 8,
           "dominant_defect": "DO-001",
           "sensitivity": "critical",
-          "note": "高风险器械的设备描述完整性是准入第一道门槛"
+          "note": "高风险器械的设备描述完整性是准入第一道门槛",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "BR-001": 148
+          }
         },
         {
           "category": "骨科/关节置换机器人",
           "records": 6,
           "dominant_defect": "CL-001/MF-001",
           "sensitivity": "critical",
-          "note": "多维度并行审评——机械/软件/灭菌/临床四重标准"
+          "note": "多维度并行审评——机械/软件/灭菌/临床四重标准",
+          "v5_linked_defects": {
+            "EV-001": 126,
+            "MF-001": 108,
+            "GS-001": 72,
+            "SW-001": 49
+          }
         }
       ],
       "deerflow_pre_check_rules": {
@@ -423,7 +633,11 @@
             "trigger": "ALL submissions",
             "action": "Verify every GSPR item has either: (a) full compliance evidence, or (b) justified non-applicability with detailed rationale",
             "severity_if_failed": "Blocker",
-            "rationale": "BSI flags GS-001 in 18% of findings; GSPR checklist is their #2 overall concern"
+            "rationale": "BSI flags GS-001 in 18% of findings; GSPR checklist is their #2 overall concern",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "GS-001": 72
+            }
           },
           {
             "check_id": "BSI-PC-02",
@@ -431,7 +645,10 @@
             "trigger": "ALL submissions",
             "action": "Confirm §2 contains: device name, model/variant list, EMDN code, MDR Class+Rule, intended purpose with patient population, contraindications, AND novel feature description",
             "severity_if_failed": "Blocker",
-            "rationale": "DO-001 is BSI's #1 defect at 34%; Technical Review Questions frequently challenge device identity completeness"
+            "rationale": "DO-001 is BSI's #1 defect at 34%; Technical Review Questions frequently challenge device identity completeness",
+            "v5_linked_defects": {
+              "DO-001": 153
+            }
           },
           {
             "check_id": "BSI-PC-03",
@@ -439,7 +656,13 @@
             "trigger": "Submissions claiming equivalence",
             "action": "Verify equivalence table follows MDCG 2020-5 three-pillar structure; clinical/technical/biological evidence each has standalone justification",
             "severity_if_failed": "Major",
-            "rationale": "EQ-001 concentrated in Review Questions; BSI Clinical Review dimension explicitly checks MDCG 2020-5 compliance"
+            "rationale": "EQ-001 concentrated in Review Questions; BSI Clinical Review dimension explicitly checks MDCG 2020-5 compliance",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "MF-001": 108,
+              "EQ-001": 73,
+              "CL-001": 69
+            }
           },
           {
             "check_id": "BSI-PC-04",
@@ -447,7 +670,14 @@
             "trigger": "Active devices with software",
             "action": "Verify software lifecycle documentation list includes all referenced files; traceability from test reports to design records is demonstrable",
             "severity_if_failed": "Major",
-            "rationale": "SW-001 and DT-001 cluster in Feedback rounds for complex active devices like SPECT-CT"
+            "rationale": "SW-001 and DT-001 cluster in Feedback rounds for complex active devices like SPECT-CT",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "TR-001": 102,
+              "RM-001": 59,
+              "CV-001": 54,
+              "DT-001": 53
+            }
           },
           {
             "check_id": "BSI-PC-05",
@@ -455,7 +685,12 @@
             "trigger": "Resubmission (R2+)",
             "action": "If same defect type appeared in previous round, require explicit root-cause analysis and systemic fix evidence (not just document update)",
             "severity_if_failed": "Blocker",
-            "rationale": "Persistent defects across R1→R3 indicate fundamental misunderstanding; BSI escalates severity in subsequent rounds"
+            "rationale": "Persistent defects across R1→R3 indicate fundamental misunderstanding; BSI escalates severity in subsequent rounds",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "CV-001": 54,
+              "DT-001": 53
+            }
           },
           {
             "check_id": "BSI-PC-06",
@@ -463,7 +698,13 @@
             "trigger": "ALL submissions",
             "action": "Verify PMCF plan includes: study objectives, patient population, endpoints, sample size justification, follow-up schedule, AND statistical analysis plan",
             "severity_if_failed": "Major",
-            "rationale": "PM-001 appears across NCR and Clinical Review; insufficient PMCF justification is a recurring BSI finding"
+            "rationale": "PM-001 appears across NCR and Clinical Review; insufficient PMCF justification is a recurring BSI finding",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "CL-001": 69,
+              "RM-001": 59,
+              "DT-001": 53
+            }
           },
           {
             "check_id": "BSI-PC-07",
@@ -471,13 +712,88 @@
             "trigger": "Implantable or surgically invasive devices",
             "action": "For devices requiring sterilization: verify microbial control evidence and cleanroom certification are included and current",
             "severity_if_failed": "Major",
-            "rationale": "MF-001 introduced by 鑫君特 Microbiologist Review; BSI modular system includes dedicated microbiologist panel"
+            "rationale": "MF-001 introduced by 鑫君特 Microbiologist Review; BSI modular system includes dedicated microbiologist panel",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "EV-001": 126,
+              "MF-001": 108,
+              "RM-001": 59
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
       },
       "writer_guard_injection": {
         "injection_point": "Before Writer Agent generates any CER section for BSI submission",
-        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to BSI (British Standards Institution). BSI employs a MODULAR REVIEW system with parallel expert panels (Main Job, Clinical, Technical, Microbiologist). Each panel evaluates different dimensions independently.\n\nCRITICAL BSI-SPECIFIC RULES:\n1. GSPR checklist MUST have every item addressed — non-applicable items require detailed justification, not just 'N/A'\n2. Device description in §2 MUST include: name, all models/variants, EMDN code, MDR Class+Rule, intended purpose WITH patient population definition, contraindications, AND description of any novel features\n3. If claiming equivalence: MDCG 2020-5 three-pillar structure (clinical/technical/biological) is MANDATORY; each pillar needs standalone evidence summary\n4. For active devices: software lifecycle documentation list must be complete; every test report must trace to a design record\n5. PMCF plan must be substantive — include objectives, population, endpoints, sample size justification, follow-up schedule, statistical plan\n6. For implantable/invasive devices: include microbial control evidence and cleanroom certification\n7. If this is R2+ resubmission: explicitly address HOW the root cause was fixed systemically, not just WHAT documents were updated\n\nBSI REVIEW STYLE: BSI issues almost exclusively MAJOR findings (98%). They do not waste time on minor formatting issues. Every finding is substantive. Write as if every sentence will be scrutinized by a domain expert."
+        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to BSI (British Standards Institution). BSI employs a MODULAR REVIEW system with parallel expert panels (Main Job, Clinical, Technical, Microbiologist). Each panel evaluates different dimensions independently.\n\nCRITICAL BSI-SPECIFIC RULES:\n1. GSPR checklist MUST have every item addressed — non-applicable items require detailed justification, not just 'N/A'\n2. Device description in §2 MUST include: name, all models/variants, EMDN code, MDR Class+Rule, intended purpose WITH patient population definition, contraindications, AND description of any novel features\n3. If claiming equivalence: MDCG 2020-5 three-pillar structure (clinical/technical/biological) is MANDATORY; each pillar needs standalone evidence summary\n4. For active devices: software lifecycle documentation list must be complete; every test report must trace to a design record\n5. PMCF plan must be substantive — include objectives, population, endpoints, sample size justification, follow-up schedule, statistical plan\n6. For implantable/invasive devices: include microbial control evidence and cleanroom certification\n7. If this is R2+ resubmission: explicitly address HOW the root cause was fixed systemically, not just WHAT documents were updated\n\nBSI REVIEW STYLE: BSI issues almost exclusively MAJOR findings (98%). They do not waste time on minor formatting issues. Every finding is substantive. Write as if every sentence will be scrutinized by a domain expert.",
+        "v5_linked_defects": {
+          "TR-001": 102,
+          "GS-001": 72,
+          "CL-001": 69
+        }
+      },
+      "v5_enriched": true,
+      "v5_defect_statistics": {
+        "DO-001": 153,
+        "EV-001": 126,
+        "GS-001": 72,
+        "EQ-001": 73
+      },
+      "v5_enhanced": true,
+      "known_reviewers": [
+        {
+          "name": "Dr Daniel Taylor",
+          "role": "Clinical Oversight",
+          "patterns": [
+            "Challenges contraindication claims as 'bald statements' without evidence",
+            "Expects radiation safety explicitly addressed for vulnerable populations",
+            "Verifies IFU warnings are traceable to Risk Analysis hazard controls",
+            "Asks for specific test report page numbers as evidence",
+            "Expects PRISMA-compliant literature search documentation"
+          ],
+          "v5_linked_defects": {
+            "CL-001": 69
+          }
+        },
+        {
+          "name": "Sreenath Sukumaran",
+          "role": "Technical Reviewer",
+          "patterns": [
+            "Focus on device description completeness across all variants",
+            "Scrutinizes GSPR non-applicability justifications",
+            "Expects PRISMA-compliant literature review",
+            "Verifies standards version currency"
+          ],
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
+        }
+      ],
+      "review_format_detail": {
+        "form": "MDF 5004",
+        "dimensions": [
+          "Clinical Oversight",
+          "Technical",
+          "Main Job",
+          "Microbiologist"
+        ],
+        "max_rounds": 3,
+        "early_termination": "BSI reserves right to terminate early if insurmountable gaps found",
+        "unresolved_outcome": "Non-conformities (Major/Minor) → Refusal",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      },
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "GS-001": 72,
+        "RM-001": 59
       }
     },
     "TUV_SUD": {
@@ -495,7 +811,12 @@
           "batch1",
           "batch3"
         ],
-        "data_quality_note": "TÜV SÜD sample currently dominated by 青岛德迈迪 (14/14 records). One additional project (普美康, 2 records from batch1) contributes to BSI profile due to BSI assignment. Need 1-2 more TÜV SÜD projects to validate generalizability."
+        "data_quality_note": "TÜV SÜD sample currently dominated by 青岛德迈迪 (14/14 records). One additional project (普美康, 2 records from batch1) contributes to BSI profile due to BSI assignment. Need 1-2 more TÜV SÜD projects to validate generalizability.",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "CL-001": 69,
+          "RM-001": 59
+        }
       },
       "review_model": {
         "type": "sequential_dr",
@@ -512,7 +833,12 @@
               "EV-001",
               "CL-001"
             ],
-            "characteristics": "Highly standardized template; 'Dear Sir or Madame' + 'Documents assessed' table + numbered DEF items"
+            "characteristics": "Highly standardized template; 'Dear Sir or Madame' + 'Documents assessed' table + numbered DEF items",
+            "v5_linked_defects": {
+              "TR-001": 102,
+              "GS-001": 72,
+              "CV-001": 54
+            }
           },
           {
             "dimension_id": "TUV-MOD-02",
@@ -523,9 +849,18 @@
             "dominant_defect_types": [
               "EV-001"
             ],
-            "characteristics": "Tracks closure status of previous findings; may reveal persistent unresolved issues"
+            "characteristics": "Tracks closure status of previous findings; may reveal persistent unresolved issues",
+            "v5_linked_defects": {
+              "CV-001": 54
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "TR-001": 102,
+          "GS-001": 72,
+          "CV-001": 54
+        }
       },
       "defect_focus_heatmap": {
         "by_type": [
@@ -535,7 +870,11 @@
             "percentage": 64.3,
             "rank": 1,
             "label": "器械描述缺陷",
-            "trend": "压倒性首位，三轮回补均围绕此缺陷"
+            "trend": "压倒性首位，三轮回补均围绕此缺陷",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "DO-001": 153
+            }
           },
           {
             "defect_code": "EV-001",
@@ -543,7 +882,11 @@
             "percentage": 28.6,
             "rank": 2,
             "label": "临床证据不足",
-            "trend": "R2→R3递进出现"
+            "trend": "R2→R3递进出现",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "EV-001": 126
+            }
           },
           {
             "defect_code": "CL-001",
@@ -551,7 +894,11 @@
             "percentage": 7.1,
             "rank": 3,
             "label": "临床数据质量缺陷",
-            "trend": "R3出现"
+            "trend": "R3出现",
+            "v5_linked_defects": {
+              "LB-001": 162,
+              "EV-001": 126
+            }
           }
         ],
         "by_cer_section": [
@@ -559,40 +906,66 @@
             "section": "CER-02",
             "count": 9,
             "percentage": 64.3,
-            "note": "§1 Device Description — TÜV SÜD的绝对核心关注"
+            "note": "§1 Device Description — TÜV SÜD的绝对核心关注",
+            "v5_linked_defects": {
+              "DO-001": 153
+            }
           },
           {
             "section": "CER-06",
             "count": 3,
             "percentage": 21.4,
-            "note": "§5 Clinical Evidence — 随轮次递进"
+            "note": "§5 Clinical Evidence — 随轮次递进",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "CL-001": 69
+            }
           },
           {
             "section": "CER-05",
             "count": 2,
             "percentage": 14.3,
-            "note": "§4 Equivalence — 与临床证据关联"
+            "note": "§4 Equivalence — 与临床证据关联",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "EQ-001": 73
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "severity_profile": {
         "major_ratio": 92.9,
         "minor_ratio": 7.1,
         "observation_ratio": 0.0,
-        "interpretation": "TÜV SÜD issues predominantly Major findings (92.9%). The single Minor finding suggests a consistent high-threshold model, similar to BSI but with slightly more tolerance for minor observations in later rounds."
+        "interpretation": "TÜV SÜD issues predominantly Major findings (92.9%). The single Minor finding suggests a consistent high-threshold model, similar to BSI but with slightly more tolerance for minor observations in later rounds.",
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
       },
       "source_type_distribution": [
         {
           "type": "DR",
           "count": 13,
           "percentage": 92.9,
-          "characteristics": "Formal Deficiency Report with standardized template; single dominant format"
+          "characteristics": "Formal Deficiency Report with standardized template; single dominant format",
+          "v5_linked_defects": {
+            "TR-001": 102,
+            "GS-001": 72
+          }
         },
         {
           "type": "DR_Response",
           "count": 1,
           "percentage": 7.1,
-          "characteristics": "Response document tracking closure of previous DR findings"
+          "characteristics": "Response document tracking closure of previous DR findings",
+          "v5_linked_defects": {
+            "CV-001": 54
+          }
         }
       ],
       "round_behavior": {
@@ -602,19 +975,32 @@
             "round": "R1",
             "count": 3,
             "dominant_defect": "DO-001",
-            "focus": "Initial identification of device description gaps"
+            "focus": "Initial identification of device description gaps",
+            "v5_linked_defects": {
+              "DO-001": 153
+            }
           },
           {
             "round": "R2",
             "count": 6,
             "dominant_defect": "DO-001",
-            "focus": "Deepening inquiry — 'reason not clearly defined / explained in detail'"
+            "focus": "Deepening inquiry — 'reason not clearly defined / explained in detail'",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "round": "R3",
             "count": 4,
             "dominant_defect": "DO-001 + EV-001",
-            "focus": "Escalation to clinical evidence when description fixes insufficient"
+            "focus": "Escalation to clinical evidence when description fixes insufficient",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "EV-001": 126,
+              "CL-001": 69
+            }
           }
         ],
         "persistent_defect_pattern": [
@@ -628,47 +1014,80 @@
             "persistent_defect": "DO-001",
             "specific_issue": "两种夹子形状 TIGA-LOK 和 LIGA-LOK 的设计原因/区别未阐明",
             "progression": "R1: 'reason not clearly defined' → R2: 'not explained in detail' → R3: 'incomplete' + escalation to clinical evidence",
-            "root_cause": "企业对产品变型的设计rationale缺乏法规视角的系统性阐述"
+            "root_cause": "企业对产品变型的设计rationale缺乏法规视角的系统性阐述",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "CL-001": 69
+            }
           }
         ],
-        "interpretation": "TÜV SÜD's sequential DR model means they will NOT move on to the next topic until the current one is fully resolved. A defect that persists to R3 is a signal of either (a) manufacturer's inability to articulate the design rationale, or (b) actual design history documentation gaps."
+        "interpretation": "TÜV SÜD's sequential DR model means they will NOT move on to the next topic until the current one is fully resolved. A defect that persists to R3 is a signal of either (a) manufacturer's inability to articulate the design rationale, or (b) actual design history documentation gaps.",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "DT-001": 53
+        }
       },
       "regulatory_reference_preference": [
         {
           "ref_code": "REG-MDCG-01",
           "count": 11,
           "percentage": 78.6,
-          "description": "MDCG 2020-5 (Clinical evaluation — equivalence) — most cited by far"
+          "description": "MDCG 2020-5 (Clinical evaluation — equivalence) — most cited by far",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "EQ-001": 73,
+            "CL-001": 69
+          }
         },
         {
           "ref_code": "REG-MDR-01",
           "count": 10,
           "percentage": 71.4,
-          "description": "MDR Article 10 (General obligations of manufacturers)"
+          "description": "MDR Article 10 (General obligations of manufacturers)",
+          "v5_linked_defects": {
+            "DO-001": 153
+          }
         },
         {
           "ref_code": "REG-MDR-03",
           "count": 2,
           "percentage": 14.3,
-          "description": "MDR Article 61 (Clinical evaluation requirements)"
+          "description": "MDR Article 61 (Clinical evaluation requirements)",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "CL-001": 69
+          }
         },
         {
           "ref_code": "REG-MDCG-02",
           "count": 2,
           "percentage": 14.3,
-          "description": "MDCG guidance documents"
+          "description": "MDCG guidance documents",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "CV-001": 54
+          }
         },
         {
           "ref_code": "REG-MDR-04",
           "count": 1,
           "percentage": 7.1,
-          "description": "MDR Annex XIV (Clinical evaluation and post-market clinical follow-up)"
+          "description": "MDR Annex XIV (Clinical evaluation and post-market clinical follow-up)",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "GS-001": 72,
+            "CL-001": 69
+          }
         },
         {
           "ref_code": "REG-MDR-02",
           "count": 1,
           "percentage": 7.1,
-          "description": "MDR Annex I (GSPR)"
+          "description": "MDR Annex I (GSPR)",
+          "v5_linked_defects": {
+            "DO-001": 153,
+            "GS-001": 72
+          }
         }
       ],
       "text_characteristics": {
@@ -694,7 +1113,12 @@
         "extraction_fixes_applied": [
           "TÜV SÜD detection: if text contains 'TÜV SÜD Product Service GmbH' AND 'Documents assessed', locate first 'DEF 1' and truncate preceding text",
           "Skip patterns expanded: TÜV SÜD-specific template lines (salutation, document list, legal text)"
-        ]
+        ],
+        "v5_linked_defects": {
+          "LB-001": 162,
+          "BR-001": 148,
+          "GS-001": 72
+        }
       },
       "device_category_sensitivity": [
         {
@@ -702,14 +1126,22 @@
           "records": 14,
           "dominant_defect": "DO-001",
           "sensitivity": "critical",
-          "note": "产品结构看似简单，但设计选择的临床依据是TÜV SÜD的核心关切"
+          "note": "产品结构看似简单，但设计选择的临床依据是TÜV SÜD的核心关切",
+          "v5_linked_defects": {
+            "EV-001": 126
+          }
         },
         {
           "category": "急救/AED",
           "records": 0,
           "dominant_defect": "N/A",
           "sensitivity": "unknown",
-          "note": "普美康2条记录实际由BSI审评，TÜV SÜD样本未覆盖AED领域"
+          "note": "普美康2条记录实际由BSI审评，TÜV SÜD样本未覆盖AED领域",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         }
       ],
       "deerflow_pre_check_rules": {
@@ -721,7 +1153,13 @@
             "trigger": "ALL submissions",
             "action": "For EVERY product variant, model, or shape difference: explicitly document (a) the clinical/engineering reason for the difference, (b) how it impacts safety/performance/usability, (c) which variant is used in which clinical scenario",
             "severity_if_failed": "Blocker",
-            "rationale": "DO-001 dominates at 64.3%; TÜV SÜD will persist across R1→R3 until design rationale is fully articulated"
+            "rationale": "DO-001 dominates at 64.3%; TÜV SÜD will persist across R1→R3 until design rationale is fully articulated",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "CL-001": 69,
+              "CV-001": 54,
+              "DT-001": 53
+            }
           },
           {
             "check_id": "TUV-PC-02",
@@ -729,7 +1167,12 @@
             "trigger": "ALL submissions",
             "action": "Verify ALL available clinical data is considered/collected/provided; gap analysis must explain why any omitted data is not relevant",
             "severity_if_failed": "Major",
-            "rationale": "EV-001 at 28.6% and increases with each round; TÜV SÜD escalates to clinical evidence when description is insufficient"
+            "rationale": "EV-001 at 28.6% and increases with each round; TÜV SÜD escalates to clinical evidence when description is insufficient",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "EV-001": 126,
+              "CL-001": 69
+            }
           },
           {
             "check_id": "TUV-PC-03",
@@ -737,7 +1180,12 @@
             "trigger": "Submissions relying on literature-based clinical evidence",
             "action": "Verify SOTA search covers all relevant databases with documented search strategy, inclusion/exclusion criteria, AND PRISMA-style flow diagram",
             "severity_if_failed": "Major",
-            "rationale": "青岛德迈迪 DR3 explicitly challenged SOTA search adequacy"
+            "rationale": "青岛德迈迪 DR3 explicitly challenged SOTA search adequacy",
+            "v5_linked_defects": {
+              "EV-001": 126,
+              "CL-001": 69,
+              "CV-001": 54
+            }
           },
           {
             "check_id": "TUV-PC-04",
@@ -745,7 +1193,11 @@
             "trigger": "ALL submissions",
             "action": "Verify CEP objectives, parameters, and endpoints are fully addressed in CER; any deviation requires explicit justification",
             "severity_if_failed": "Major",
-            "rationale": "TÜV SÜD checks CEP→CER alignment rigorously; DR3 found clinical evaluation plan deficiencies"
+            "rationale": "TÜV SÜD checks CEP→CER alignment rigorously; DR3 found clinical evaluation plan deficiencies",
+            "v5_linked_defects": {
+              "CL-001": 69,
+              "RM-001": 59
+            }
           },
           {
             "check_id": "TUV-PC-05",
@@ -753,7 +1205,10 @@
             "trigger": "Resubmission (R2+)",
             "action": "If same defect appeared in previous DR, require complete redesign rationale (not incremental update). TÜV SÜD will NOT accept partial fixes.",
             "severity_if_failed": "Blocker",
-            "rationale": "TÜV SÜD sequential model: they do NOT move to next topic until current is FULLY resolved"
+            "rationale": "TÜV SÜD sequential model: they do NOT move to next topic until current is FULLY resolved",
+            "v5_linked_defects": {
+              "DO-001": 153
+            }
           },
           {
             "check_id": "TUV-PC-06",
@@ -761,13 +1216,25 @@
             "trigger": "Clinical submissions",
             "action": "Verify ALL safety and performance parameters in CEP have corresponding clinical data with adequate patient numbers",
             "severity_if_failed": "Major",
-            "rationale": "青岛德迈迪 DR3: 'Insufficient patient number in Safety/Performance parameter (e.g. rebleeding)'"
+            "rationale": "青岛德迈迪 DR3: 'Insufficient patient number in Safety/Performance parameter (e.g. rebleeding)'",
+            "v5_linked_defects": {
+              "CL-001": 69
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
       },
       "writer_guard_injection": {
         "injection_point": "Before Writer Agent generates any CER section for TÜV SÜD submission",
-        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to TÜV SÜD. TÜV SÜD uses a SEQUENTIAL DEFICIENCY REPORT model with extremely high template standardization. They will NOT proceed to the next review topic until the current finding is FULLY resolved.\n\nCRITICAL TÜV SÜD-SPECIFIC RULES:\n1. EVERY product variant, model, or shape difference MUST have explicit design rationale: WHY does this variant exist? HOW does it differ clinically? WHICH scenario uses WHICH variant?\n2. Device description must be exhaustive — TÜV SÜD will question any aspect not explicitly documented; 'obvious' or 'implied' is not acceptable\n3. ALL available clinical data must be collected and provided; gap analysis must justify any omissions with explicit reasoning\n4. SOTA literature search must follow documented strategy with inclusion/exclusion criteria and PRISMA-style flow\n5. Clinical Evaluation Plan (CEP) objectives MUST be fully addressed in CER; any deviation requires explicit justification\n6. Safety and performance parameters must have adequate patient numbers in clinical data\n7. If this is R2+ resubmission: do NOT provide incremental fixes. TÜV SÜD requires COMPLETE resolution. Restructure the entire section if needed.\n\nTÜV SÜD REVIEW STYLE: Sequential, persistent, template-driven. They will ask the same question three times with increasing specificity. Write as if every design decision will be questioned."
+        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to TÜV SÜD. TÜV SÜD uses a SEQUENTIAL DEFICIENCY REPORT model with extremely high template standardization. They will NOT proceed to the next review topic until the current finding is FULLY resolved.\n\nCRITICAL TÜV SÜD-SPECIFIC RULES:\n1. EVERY product variant, model, or shape difference MUST have explicit design rationale: WHY does this variant exist? HOW does it differ clinically? WHICH scenario uses WHICH variant?\n2. Device description must be exhaustive — TÜV SÜD will question any aspect not explicitly documented; 'obvious' or 'implied' is not acceptable\n3. ALL available clinical data must be collected and provided; gap analysis must justify any omissions with explicit reasoning\n4. SOTA literature search must follow documented strategy with inclusion/exclusion criteria and PRISMA-style flow\n5. Clinical Evaluation Plan (CEP) objectives MUST be fully addressed in CER; any deviation requires explicit justification\n6. Safety and performance parameters must have adequate patient numbers in clinical data\n7. If this is R2+ resubmission: do NOT provide incremental fixes. TÜV SÜD requires COMPLETE resolution. Restructure the entire section if needed.\n\nTÜV SÜD REVIEW STYLE: Sequential, persistent, template-driven. They will ask the same question three times with increasing specificity. Write as if every design decision will be questioned.",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "TR-001": 102,
+          "GS-001": 72,
+          "CL-001": 69
+        }
       },
       "template_fingerprint": {
         "description": "TÜV SÜD DR template has a distinct fingerprint useful for automated extraction",
@@ -783,15 +1250,47 @@
           {
             "start_marker": "Dear Sir or Madame",
             "end_marker": "DEF 1",
-            "description": "Salutation + document list + legal text"
+            "description": "Salutation + document list + legal text",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "CV-001": 54
+            }
           },
           {
             "start_marker": "Documents assessed",
             "end_marker": "DEF 1",
-            "description": "Assessed documents table"
+            "description": "Assessed documents table",
+            "v5_linked_defects": {
+              "DO-001": 153,
+              "CV-001": 54
+            }
           }
         ],
-        "meaningful_content_start": "First occurrence of 'DEF 1' or 'Deficiency 1'"
+        "meaningful_content_start": "First occurrence of 'DEF 1' or 'Deficiency 1'",
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
+      },
+      "v5_enriched": true,
+      "v5_defect_statistics": {
+        "DO-001": 153,
+        "MF-001": 108,
+        "TR-001": 102
+      },
+      "v5_enhanced": true,
+      "review_format_detail": {
+        "form": "Deficiency Report (DR)",
+        "characteristic": "Persistent DR numbering across rounds — unresolved issues accumulate",
+        "focus": "Document-specific updates rather than general questions",
+        "v5_linked_defects": {
+          "TR-001": 102,
+          "CV-001": 54,
+          "DT-001": 53
+        }
+      },
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "RM-001": 59
       }
     },
     "DEKRA": {
@@ -802,25 +1301,58 @@
       "strictness": "medium",
       "review_model": {
         "type": "focus_area_review",
-        "description": "DEKRA reviewers emphasize literature search methodology and SOTA justification. Strong focus on search protocol reproducibility and database selection rationale."
+        "description": "DEKRA reviewers emphasize literature search methodology and SOTA justification. Strong focus on search protocol reproducibility and database selection rationale.",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       "defect_focus_heatmap": {
         "literature_search": 40,
         "sota": 35,
         "equivalence": 15,
-        "clinical_data": 10
+        "clinical_data": 10,
+        "v5_linked_defects": {
+          "EV-001": 126,
+          "EQ-001": 73,
+          "CL-001": 69
+        }
       },
-      "focus_areas": ["literature_search", "sota"],
-      "severity_profile": {"critical": 15, "high": 40, "medium": 35, "low": 10},
+      "focus_areas": [
+        "literature_search",
+        "sota"
+      ],
+      "severity_profile": {
+        "critical": 15,
+        "high": 40,
+        "medium": 35,
+        "low": 10,
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      },
       "writer_guard_injection": {
         "injection_point": "Before Writer Agent generates SOTA and literature search sections for DEKRA submission",
-        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to DEKRA. DEKRA reviewers place exceptional emphasis on literature search methodology and SOTA justification.\n\nCRITICAL DEKRA-SPECIFIC RULES:\n1. Every database selection must have explicit rationale (why PubMed + Embase + CT.gov, not just what databases).\n2. Search protocol must be fully reproducible: include exact query strings, date stamps, filters, and hit counts per database.\n3. SOTA benchmarks must clearly show the deduction chain: disease background -> endpoint selection -> benchmark value derivation -> clinical meaning.\n4. Literature exclusion reasons must be individually documented, not summarized in aggregate."
+        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to DEKRA. DEKRA reviewers place exceptional emphasis on literature search methodology and SOTA justification.\n\nCRITICAL DEKRA-SPECIFIC RULES:\n1. Every database selection must have explicit rationale (why PubMed + Embase + CT.gov, not just what databases).\n2. Search protocol must be fully reproducible: include exact query strings, date stamps, filters, and hit counts per database.\n3. SOTA benchmarks must clearly show the deduction chain: disease background -> endpoint selection -> benchmark value derivation -> clinical meaning.\n4. Literature exclusion reasons must be individually documented, not summarized in aggregate.",
+        "v5_linked_defects": {
+          "EV-001": 126,
+          "TR-001": 102,
+          "CL-001": 69
+        }
       },
       "deerflow_pre_check_rules": [
         "Verify search protocol reproducibility before Writer invocation",
         "Check SOTA deduction chain completeness (all 7 steps)",
         "Validate database selection rationale per device class"
-      ]
+      ],
+      "v5_enriched": true,
+      "v5_defect_statistics": {},
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "RM-001": 59
+      }
     },
     "IMQ": {
       "profile_id": "NB-IMQ-001",
@@ -830,25 +1362,63 @@
       "strictness": "medium",
       "review_model": {
         "type": "clinical_focus_review",
-        "description": "IMQ reviewers focus on clinical evaluation methodology and PMCF planning. They expect clear demonstration of clinical benefit and structured post-market follow-up."
+        "description": "IMQ reviewers focus on clinical evaluation methodology and PMCF planning. They expect clear demonstration of clinical benefit and structured post-market follow-up.",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "BR-001": 148,
+          "CL-001": 69,
+          "RM-001": 59
+        }
       },
       "defect_focus_heatmap": {
         "clinical_evaluation": 45,
         "pmcf": 35,
         "benefit_risk": 15,
-        "equivalence": 5
+        "equivalence": 5,
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "BR-001": 148,
+          "EQ-001": 73,
+          "CL-001": 69
+        }
       },
-      "focus_areas": ["clinical_evaluation", "pmcf"],
-      "severity_profile": {"critical": 10, "high": 45, "medium": 35, "low": 10},
+      "focus_areas": [
+        "clinical_evaluation",
+        "pmcf"
+      ],
+      "severity_profile": {
+        "critical": 10,
+        "high": 45,
+        "medium": 35,
+        "low": 10,
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      },
       "writer_guard_injection": {
         "injection_point": "Before Writer Agent generates clinical evaluation and PMCF sections for IMQ submission",
-        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to IMQ. IMQ reviewers emphasize clinical evaluation methodology and PMCF planning completeness.\n\nCRITICAL IMQ-SPECIFIC RULES:\n1. Clinical benefit must be demonstrated with quantitative endpoints, not narrative descriptions.\n2. PMCF plan must specify objectives, endpoints, sample size justification, and timeline — generic PMCF statements are rejected.\n3. Every clinical claim must be traceable to a specific evidence record with appraisal result.\n4. Benefit-risk conclusions must reference both clinical data and PMCF data separately."
+        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to IMQ. IMQ reviewers emphasize clinical evaluation methodology and PMCF planning completeness.\n\nCRITICAL IMQ-SPECIFIC RULES:\n1. Clinical benefit must be demonstrated with quantitative endpoints, not narrative descriptions.\n2. PMCF plan must specify objectives, endpoints, sample size justification, and timeline — generic PMCF statements are rejected.\n3. Every clinical claim must be traceable to a specific evidence record with appraisal result.\n4. Benefit-risk conclusions must reference both clinical data and PMCF data separately.",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "TR-001": 102,
+          "CL-001": 69,
+          "RM-001": 59
+        }
       },
       "deerflow_pre_check_rules": [
         "Verify PMCF plan has specific objectives and timelines",
         "Check all clinical claims have evidence record traceability",
         "Validate benefit-risk analysis references PMCF data"
-      ]
+      ],
+      "v5_enriched": true,
+      "v5_defect_statistics": {},
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "RM-001": 59
+      }
     },
     "MEDCERT": {
       "profile_id": "NB-MEDCERT-001",
@@ -858,28 +1428,101 @@
       "strictness": "high",
       "review_model": {
         "type": "equivalence_br_focus_review",
-        "description": "MEDCERT reviewers are known for rigorous equivalence demonstration requirements and benefit-risk quantification. They expect numerical comparison where possible."
+        "description": "MEDCERT reviewers are known for rigorous equivalence demonstration requirements and benefit-risk quantification. They expect numerical comparison where possible.",
+        "v5_linked_defects": {
+          "DO-001": 153,
+          "BR-001": 148,
+          "EQ-001": 73
+        }
       },
       "defect_focus_heatmap": {
         "equivalence": 50,
         "benefit_risk": 35,
         "clinical_data": 10,
-        "sota": 5
+        "sota": 5,
+        "v5_linked_defects": {
+          "BR-001": 148,
+          "EV-001": 126,
+          "EQ-001": 73,
+          "CL-001": 69
+        }
       },
-      "focus_areas": ["equivalence", "benefit_risk"],
-      "severity_profile": {"critical": 20, "high": 50, "medium": 25, "low": 5},
+      "focus_areas": [
+        "equivalence",
+        "benefit_risk"
+      ],
+      "severity_profile": {
+        "critical": 20,
+        "high": 50,
+        "medium": 25,
+        "low": 5,
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
+      },
       "writer_guard_injection": {
         "injection_point": "Before Writer Agent generates equivalence and benefit-risk sections for MEDCERT submission",
-        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to MEDCERT. MEDCERT reviewers demand rigorous equivalence demonstration and quantitative benefit-risk analysis.\n\nCRITICAL MEDCERT-SPECIFIC RULES:\n1. Equivalence must be demonstrated across ALL THREE dimensions (technical, biological, clinical) with measurable comparisons.\n2. Any difference between subject and equivalent device must have a documented impact analysis (difference -> mechanism -> evidence -> clinical impact).\n3. Benefit-risk analysis must include quantitative comparison where data permits — narrative BR is insufficient.\n4. Equivalence cannot be claimed if any dimension has missing data — mark as 'not demonstrated' instead."
+        "prompt_prefix": "You are authoring a Clinical Evaluation Report for submission to MEDCERT. MEDCERT reviewers demand rigorous equivalence demonstration and quantitative benefit-risk analysis.\n\nCRITICAL MEDCERT-SPECIFIC RULES:\n1. Equivalence must be demonstrated across ALL THREE dimensions (technical, biological, clinical) with measurable comparisons.\n2. Any difference between subject and equivalent device must have a documented impact analysis (difference -> mechanism -> evidence -> clinical impact).\n3. Benefit-risk analysis must include quantitative comparison where data permits — narrative BR is insufficient.\n4. Equivalence cannot be claimed if any dimension has missing data — mark as 'not demonstrated' instead.",
+        "v5_linked_defects": {
+          "BR-001": 148,
+          "TR-001": 102,
+          "EQ-001": 73,
+          "CL-001": 69
+        }
       },
       "deerflow_pre_check_rules": [
         "Verify 3D equivalence comparison completeness",
         "Check difference impact analysis for each dimension",
         "Validate quantitative benefit-risk comparison where data exists"
-      ]
+      ],
+      "v5_enriched": true,
+      "v5_defect_statistics": {},
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "RM-001": 59
+      }
+    },
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
     }
   },
   "version": "V2.2",
   "total_nb_bodies": 5,
-  "source": "AUDIT_ARCHIVE R7 enriched profiles + 64 real NB records"
+  "source": "AUDIT_ARCHIVE R7 enriched profiles + 64 real NB records",
+  "v5_enrichment": {
+    "applied_at": "2026-05-30T12:50:31.925202",
+    "reviewers_added": 2,
+    "deepened_r2": true,
+    "cross_refs_added_r2": 121,
+    "total_v5_refs": 121,
+    "all_defect_stats": {
+      "PM-001": 312,
+      "LB-001": 162,
+      "DO-001": 153,
+      "BR-001": 148,
+      "EV-001": 126,
+      "MF-001": 108,
+      "TR-001": 102,
+      "EQ-001": 73,
+      "GS-001": 72,
+      "CL-001": 69,
+      "RM-001": 59,
+      "CV-001": 54,
+      "DT-001": 53,
+      "SW-001": 49,
+      "AU-001": 10,
+      "CM-001": 9,
+      "IV-001": 6,
+      "SC-001": 3,
+      "DQ-001": 2
+    }
+  },
+  "v5_linked_defects": {
+    "LB-001": 162,
+    "RM-001": 59
+  }
 }

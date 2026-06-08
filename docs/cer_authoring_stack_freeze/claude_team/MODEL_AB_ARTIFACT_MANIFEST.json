@@ -1,0 +1,51 @@
+{
+  "manifest": "MODEL_AB_ARTIFACT_MANIFEST",
+  "date": "2026-05-15",
+  "status": "MODEL_AB_RUNTIME_BLOCKED_ACCESS",
+  "execution_environment": "VS Code Claude Code (NO DeerFlow LLM runtime)",
+  "what_was_completed": {
+    "model_routing_config": "VERIFIED — 7/7 agents resolve to correct models",
+    "trace_infrastructure": "IMPLEMENTED — record_resolution_trace() + write_resolution_trace_json() in agent_runtime.py + artifacts.py",
+    "forbidden_model_enforcement": "VERIFIED — kimi-code/minimax blocked for Writer/QA/Evidence",
+    "ab_config_package": "READY — 6-run matrix with exact commands",
+    "scoring_templates": "READY — Writer 8-dimension, QA 4-dimension",
+    "full_regression": "323 PASS",
+    "forbidden_files": "graph/gates/agents ZERO DIFF"
+  },
+  "what_requires_deerflow_runtime": {
+    "ab_0_preflight": {
+      "command": "run_cer_authoring.py --strict-v7 --project-id PILOT_02_MIDOS_AB_0",
+      "expected_output": "MODEL_RESOLUTION_TRACE.json with 7 agent traces",
+      "status": "NOT_EXECUTED"
+    },
+    "ab_1_writer_deepseek": {
+      "command": "CER_AUTHORING_MODEL_CER_WRITER=deepseek-v4-pro run_cer_authoring.py ...",
+      "expected_output": "CER_draft.md + gate results + resolution trace",
+      "status": "NOT_EXECUTED"
+    },
+    "ab_2_writer_kimi_api": {
+      "status": "NOT_EXECUTED"
+    },
+    "ab_3_writer_baseline": {
+      "status": "NOT_EXECUTED"
+    },
+    "ab_4_qa_deepseek": {
+      "status": "NOT_EXECUTED"
+    },
+    "ab_5_qa_kimi_api": {
+      "status": "NOT_EXECUTED"
+    }
+  },
+  "deliverables_produced": [
+    "MODEL_AB_RUNTIME_EXECUTION_CLOSEOUT.md",
+    "MODEL_RESOLUTION_TRACE_AB0.json",
+    "WRITER_MODEL_AB_RESULT.md",
+    "QA_MODEL_AB_RESULT.md",
+    "MODEL_AB_SCORING_TABLE.md",
+    "MODEL_AB_ARTIFACT_MANIFEST.json",
+    "MODEL_SELECTION_RECOMMENDATION_FOR_OWNER.md",
+    "RUNTIME_ERRORS_AND_BLOCKERS.md",
+    "RESUME_COMMAND.md"
+  ],
+  "next_action": "DeerFlow operator executes AB-0 through AB-5 in DeerFlow runtime, fills scoring tables, presents to owner for model selection."
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "cer_device_classification_lock_v1",
+  "status": "UNCONFIRMED",
+  "device_class": "",
+  "source": "source_preflight",
+  "conflicts": [
+    "I",
+    "IIa",
+    "IIb"
+  ]
+}

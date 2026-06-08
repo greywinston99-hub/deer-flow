@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Structure Compliance Schema",
+  "description": "Schema for CER structure compliance validation against Annex XIV requirements",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_structure_compliance"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "structure_compliance_report"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_structure_compliance"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_structure_compliance"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "cer_docstruct_ref": {
+          "type": "string"
+        },
+        "annex_xiv_version": {
+          "type": "string"
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDR_Annex_XIV",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean",
+      "const": false
+    },
+    "structure_validation": {
+      "type": "object",
+      "properties": {
+        "required_sections_present": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_sections_missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "annex_xiv_compliance_status": {
+          "type": "string",
+          "enum": [
+            "compliant",
+            "partial",
+            "partially_compliant",
+            "non_compliant",
+            "pending"
+          ]
+        }
+      }
+    },
+    "section_mapping": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "annex_xiv_section": {
+            "type": "string"
+          },
+          "cer_section_ref": {
+            "type": "string"
+          },
+          "mapping_status": {
+            "type": "string",
+            "enum": [
+              "mapped",
+              "unmapped",
+              "partial"
+            ]
+          }
+        }
+      }
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

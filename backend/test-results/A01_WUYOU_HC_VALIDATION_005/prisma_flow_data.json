@@ -1,0 +1,17 @@
+{
+  "identification": {
+    "database_records": 324,
+    "other_source_records": 0
+  },
+  "screening": {
+    "deduplicated_records": 223,
+    "title_abstract_screened": 319,
+    "title_abstract_excluded": 0,
+    "full_text_assessed": 319,
+    "full_text_excluded": 0
+  },
+  "included": {
+    "sota_included": 319,
+    "due_included": 0
+  }
+}

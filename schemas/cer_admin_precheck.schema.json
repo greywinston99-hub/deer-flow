@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Admin Precheck Schema",
+  "description": "Schema for V28.4 pre-flight admin gate — document inventory, date/signature, certificate, version, language checks",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_admin_precheck"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "admin_precheck_report"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_admin_precheck"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_admin_precheck"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["scaffold_complete", "draft", "validated", "real_analysis"]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object"
+    },
+    "regulatory_anchor_id": {
+      "type": "string"
+    },
+    "human_gate_required": {
+      "type": "boolean"
+    },
+    "checks_performed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "check_id": { "type": "string" },
+          "check_name": { "type": "string" },
+          "dimension": { "type": "string", "enum": ["DIM-1","DIM-2","DIM-3","DIM-4","DIM-5","DIM-6","DIM-7","DIM-BASELINE"] },
+          "status": { "type": "string", "enum": ["PASS", "WARN", "FAIL", "SKIP"] },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "check_results": {
+      "type": "object"
+    },
+    "blocking_issues": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "prompt_contract_loaded": {
+      "type": "boolean"
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": ["scaffold_complete", "validated", "real_analysis"]
+    }
+  }
+}

@@ -1,0 +1,29 @@
+checklist_id,checklist_text,claimed_status,audited_status,code_evidence_path,test_evidence_path,runtime_wiring_evidence,artifact_evidence,auditor_notes,required_repair
+A.1.1,claim_evidence real evaluator,NOT_CHECKED,PASS,gates.py:1134-1186,,G46 calls _check_claim_evidence_linkage,test_g46.py,Checks every claim has evidence_id. BLOCKED when missing.,None
+A.1.2,retrieval_completeness real evaluator,NOT_CHECKED,PASS,gates.py:1187-1220,,G46 calls _check_retrieval_completeness,test_g46.py,Checks search_run_registry vs planned databases. BLOCKED when empty.,None
+A.1.3,auto-downgrade removed,NOT_CHECKED,PASS,gates.py:244-364,,No downgrade block. L263 confirms.,test_g46.py,No _PLACEHOLDER_ONLY_CONDITIONS found.,None
+A.1.4,G46 BLOCKED when claim lacks evidence_id,NOT_CHECKED,PASS,gates.py:1154-1165,,Returns BLOCKED,test_g46.py,Unlinked claims collected and reported.,None
+A.1.5,G46 BLOCKED when retrieval incomplete,NOT_CHECKED,PASS,gates.py:1199-1207,,Returns BLOCKED,test_g46.py,Empty registry → BLOCKED with upstream_route=sota_search.,None
+A.1.6,G46 report includes per-condition details,NOT_CHECKED,PASS,gates.py:304-314,,Full row with status message upstream_route failure_pattern,test_g46.py,Report structure verified.,None
+A.1.7,export NOT reachable when G46 BLOCKED,NOT_CHECKED,PASS,graph.py:2952-2960,,G46 conditional edge routes BLOCKED→compromise not export,graph.py edges,G46 PASS→export. BLOCKED→compromise.,None
+A.1.8,test_g46.py exists tests downgrade path,NOT_CHECKED,PASS,,test_g46.py:1-300,,,Exists with test_no_auto_downgrade. pytest NOT_RUN.,Install pytest and run
+A.2.1,REWORK_TARGETS['device_profile'] non-empty,NOT_CHECKED,PASS,graph.py:164,,['input_gate' 'intake_pack_review'],test_hc_rework.py,Was empty. Now fixed.,None
+A.2.2,targets include input_gate or intake_pack_review,NOT_CHECKED,PASS,graph.py:164,,Both present,test_hc_rework.py,Both verified.,None
+A.2.3,_check_hc_rework returns Command for valid target,NOT_CHECKED,PASS,graph.py:176-193,,Returns Command(goto=target),test_hc_rework.py,Verified for device_profile.,None
+A.2.4,_check_hc_rework raises ValueError for unknown,NOT_CHECKED,PASS,graph.py:187-192,,Raises ValueError,test_hc_rework.py,Silently ignored before. Now errors.,None
+A.2.5,HC-01 card displays rework targets,NOT_CHECKED,PARTIAL,graph.py:495,,interrupt_payload includes rework_targets,,UI side not verified,Verify frontend
+A.2.6,Checkpoint records rework action,NOT_CHECKED,NOT_CHECKED,,,,,No evidence of checkpoint logging for rework actions.,Add state_log entry
+A.2.7,test_hc_rework.py exists,NOT_CHECKED,PASS,,test_hc_rework.py:1-120,,,Exists. pytest NOT_RUN.,Install pytest and run
+A.3.1,MAX_SPIRAL_ROUNDS constant exists,NOT_CHECKED,PASS,gates.py:26,,MAX_SPIRAL_ROUNDS: int = 3,test_g42.py,Centralized in gates.py.,None
+A.3.2,All call sites reference constant,NOT_CHECKED,PASS,graph.py:1136 1196 1271 2455,,All use MAX_SPIRAL_ROUNDS,test_g42.py,4 call sites verified.,None
+A.3.3,gates.py L797 references constant,NOT_CHECKED,PASS,gates.py:863 1245 1265,,current_round >= MAX_SPIRAL_ROUNDS,test_g42.py,G42 evaluator uses constant.,None
+A.3.4,Documentation matches constant,NOT_CHECKED,NOT_CHECKED,,,,,SYSTEM_EXECUTION_LOGIC.md not inspected for this audit.,Verify doc
+A.3.5,Contract test changes behavior,NOT_CHECKED,PASS,,test_g42.py:158-180,,test_max_spiral_rounds_contract,Tests graph and gates share same value.,None
+A.3.6,No hardcoded 3 or 5 in spiral routing,NOT_CHECKED,PASS,gates.py graph.py,,Grep confirmed no standalone 3 or 5,test_g42.py,No literal integers in routing decisions.,None
+A.4.1,State snapshot before Event Bus,NOT_CHECKED,PASS,graph.py:917,,_pre_bus_snapshot = dict(state),test_event_bus_fallback.py,Snapshot taken before attempt.,None
+A.4.2,Fallback restores pre-attempt state,NOT_CHECKED,PASS,graph.py:926,,pipeline.appraise_evidence(dict(_pre_bus_snapshot)),test_event_bus_fallback.py,Uses snapshot not mutated state.,None
+A.4.3,Fallback merge dedupes by evidence_id,NOT_CHECKED,PASS,graph.py:932-946,,Dedupe loop with seen_ids set,test_event_bus_fallback.py,Dedupe logic extracted and unit-tested.,None
+A.4.4,test_event_bus_fallback.py tests dedupe,NOT_CHECKED,PASS,,test_event_bus_fallback.py:1-200,,,Exists. pytest NOT_RUN.,Install pytest and run
+A.4.5,Test covers partial success fallback,NOT_CHECKED,PARTIAL,,test_event_bus_fallback.py,,,Partial success scenario mentioned but full test coverage unclear.,Complete test
+B.1.1,benchmark_domains.yaml exists,NOT_CHECKED,PASS,,,config/cer/benchmark_domains.yaml,schema file,Exists with domain definitions.,None
+B.1.2,Builders load from config,NOT_CHECKED,PARTIAL,benchmark_domain_loader.py,,Import pattern found,,

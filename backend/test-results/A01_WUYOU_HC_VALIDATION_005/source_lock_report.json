@@ -1,0 +1,52 @@
+{
+  "schema": "cer_source_lock_report_v1",
+  "status": "REWORK_REQUIRED",
+  "created_at": "2026-05-29T05:08:04.898509+00:00",
+  "primary_ifu_source_ids": [
+    "SRC-018",
+    "SRC-030",
+    "SRC-230"
+  ],
+  "locked_domain": "contrast_imaging_bubble_study_system",
+  "domain_signals": {
+    "contrast_imaging_bubble_study_system": 16,
+    "plasma_surgical_equipment": 2,
+    "plasma_surgical_electrode": 0,
+    "urology_uas": 0,
+    "cardiac_pfa": 1
+  },
+  "classification_signals": [
+    "IIb",
+    "IIa",
+    "I",
+    "III"
+  ],
+  "locked_classification": "IIb",
+  "blocking_issues": [],
+  "controlled_gaps": [
+    {
+      "gap_id": "SOURCE-CONTROLLED-GAP-MIXED-DOMAIN-LOCKED",
+      "severity": "major",
+      "message": "Mixed source-domain signals remain present, but manufacturer intake supplied a confirmed subject-device domain lock.",
+      "domains": [
+        "contrast_imaging_bubble_study_system",
+        "plasma_surgical_equipment"
+      ],
+      "locked_domain": "contrast_imaging_bubble_study_system"
+    },
+    {
+      "gap_id": "CLASS-CONTROLLED-GAP-SOURCE-CONFLICT-LOCKED",
+      "severity": "major",
+      "message": "Conflicting source classification signals remain present, but manufacturer intake supplied a confirmed MDR classification lock.",
+      "classes": [
+        "I",
+        "III",
+        "IIa",
+        "IIb"
+      ],
+      "locked_classification": "IIb"
+    }
+  ],
+  "manufacturer_intake_status": "PASS",
+  "manufacturer_intake_path": "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/MANUFACTURER_INTAKE_PACK_TEMPLATE_2026-05-28_FILLED_v2.xlsx"
+}

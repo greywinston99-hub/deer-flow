@@ -1,0 +1,87 @@
+# HUMAN_GATE_TRIGGER_RULES.yaml
+# When must the system stop and request human expert review?
+schema_version: "1.0.0"
+
+triggers:
+  - trigger_id: "HG-PRODUCT-IDENTITY"
+    condition: "device_profile is incomplete (missing device_name, intended_use, device_class, or target_population)"
+    gate: "HC-01"
+    severity: "critical"
+    message_template: "Product identity incomplete. Missing: {missing_fields}. Human must confirm before CER proceeds."
+    implemented: true
+    rule_ref: "HG-01"
+
+  - trigger_id: "HG-CLAIM-NARROWED"
+    condition: "claim scope reduced by >30% from IFU text OR claim_type changed"
+    gate: "HC-03 (claim_decomposition rework)"
+    severity: "major"
+    message_template: "Claim '{claim_id}' materially changed. Original: '{original}'. Narrowed: '{narrowed}'. Human must confirm."
+    implemented: false
+    rule_ref: "HG-02"
+    deferral_reason: "Requires NLP-level scope comparison; claim_evidence_matrix provides explicit gap_disposition as proxy."
+
+  - trigger_id: "HG-CANNOT-SUPPORT"
+    condition: "conclusion_strength == not_supported OR gap_disposition == cannot_support"
+    gate: "HC-06.5 (pre_writer_summary)"
+    severity: "critical"
+    message_template: "Claim '{claim_id}' cannot be supported. Human must decide: remove, downgrade, or accept risk."
+    implemented: true
+    rule_ref: "HG-03"
+
+  - trigger_id: "HG-FALLBACK-BENCHMARK"
+    condition: "benchmark_directness == fallback AND claim_criticality == high"
+    gate: "HC-06 (claim_sota_alignment)"
+    severity: "major"
+    message_template: "Fallback benchmark used for high-criticality claim '{claim_id}'. Human must review benchmark acceptability."
+    implemented: false
+    rule_ref: "HG-04"
+    deferral_reason: "BENCHMARK_DERIVATION_TRACE provides directness/confidence; human review triggered via HC-06 existing flow."
+
+  - trigger_id: "HG-BR-UNCLEAR"
+    condition: "benefit_risk_closure_matrix.closure_status == NOT_CONCLUDABLE"
+    gate: "HC-07 (br_justified_gate)"
+    severity: "critical"
+    message_template: "Benefit-risk balance cannot be concluded. Human must review BR ledger."
+    implemented: true
+    rule_ref: "HG-05"
+
+  - trigger_id: "HG-RMF-GSPR-GAP"
+    condition: "claim_type == clinical_safety AND (rmf_alignment == false OR gspr_alignment == false)"
+    gate: "alignment_gate → HC rework"
+    severity: "major"
+    message_template: "Safety claim '{claim_id}' lacks RMF/GSPR alignment. Human must provide risk documentation."
+    implemented: true
+    rule_ref: "GAP-04"
+
+  - trigger_id: "HG-MARKETING-LANGUAGE"
+    condition: "ifu_claim_evolution_ledger.marketing_language_detected == true"
+    gate: "HC-03 (claim_decomposition)"
+    severity: "major"
+    message_template: "Marketing language detected in IFU claim '{claim_id}'. Keywords: {keywords}. Human must approve reworded claim."
+    implemented: true
+    rule_ref: "IFU-01"
+
+  - trigger_id: "HG-EQUIVALENCE-EVIDENCE"
+    condition: "evidence_support_type == equivalent AND claim_type == clinical_performance AND conclusion_strength == strong"
+    gate: "HC-04 (evidence_appraisal)"
+    severity: "major"
+    message_template: "Strong conclusion based on equivalent device evidence. Human must confirm equivalence validity."
+    implemented: false
+    rule_ref: "EVS-03"
+    deferral_reason: "Conclusion strength rules cap equivalent evidence at moderate; strong should not be reachable. Trigger is a safety net."
+
+  - trigger_id: "HG-PMCF-CARRYING-UNCERTAINTY"
+    condition: "conclusion_strength IN (limited, not_supported) AND gap_disposition == PMCF AND claim_criticality == high"
+    gate: "HC-06.5 (pre_writer_summary)"
+    severity: "major"
+    message_template: "High-criticality claim '{claim_id}' has limited evidence; PMCF carries core uncertainty. Human must confirm risk acceptance."
+    implemented: true
+    rule_ref: "HG-03"
+
+  - trigger_id: "HG-HIGH-RISK-UNCERTAINTY"
+    condition: "claim_criticality == high AND conclusion_strength != strong AND device_class IN (III, IIb)"
+    gate: "HC-06.5 (pre_writer_summary)"
+    severity: "critical"
+    message_template: "High-risk device with uncertain evidence for critical claim. Human expert decision required before Writer."
+    implemented: true
+    rule_ref: "HG-03"

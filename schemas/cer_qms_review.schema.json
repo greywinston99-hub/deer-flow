@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER QMS Review Schema",
+  "description": "Schema for QMS documentation review against ISO 13485:2016 §4-§8",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_qms_review"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "qms_review_findings"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_qms_review"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_qms_review"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "cer_docstruct_ref": {
+          "type": "string"
+        },
+        "qms_documentation_ref": {
+          "type": "string"
+        },
+        "all_preceding_artifacts_ref": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "ISO_13485_2016",
+        "ISO_13485_2016_7.5.2",
+        "ISO_13485_2016_7.3",
+        "ISO_13485_2016_7.4",
+        "ISO_13485_2016_8",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean"
+    },
+    "qms_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_id": {
+            "type": "string",
+            "pattern": "^QMS-\\d+-\\d+$"
+          },
+          "iso_section": {
+            "type": "string",
+            "enum": ["§4", "§5", "§6", "§7.3", "§7.4", "§7.5", "§7.5.2", "§8"]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL"]
+          },
+          "finding_text": {
+            "type": "string"
+          },
+          "evidence_gap": {
+            "type": "string"
+          },
+          "source_location": {
+            "type": "string"
+          },
+          "regulatory_anchor": {
+            "type": "string"
+          },
+          "recommended_action": {
+            "type": "string"
+          }
+        },
+        "required": ["finding_id", "iso_section", "severity", "finding_text"]
+      }
+    },
+    "iso_13485_sections_covered": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["§4", "§5", "§6", "§7.3", "§7.4", "§7.5", "§7.5.2", "§8"]
+      }
+    },
+    "prompt_contract_loaded": {
+      "type": "boolean"
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

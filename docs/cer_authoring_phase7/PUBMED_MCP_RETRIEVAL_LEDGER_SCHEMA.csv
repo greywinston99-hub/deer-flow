@@ -1,0 +1,19 @@
+field,required,description
+retrieval_id,yes,Stable row identifier for a retrieval attempt.
+search_id,yes,Search run identifier linked to search_run_registry.
+query_id,yes,Query construction trace identifier.
+query_string,yes,Exact query submitted to the MCP/public evidence tool.
+database,yes,Database or public source returning the records.
+mcp_source,yes,MCP source name; expected cer-public-evidence.
+mcp_tool,yes,Tool used such as pubmed_search or europe_pmc_search.
+timestamp,yes,Search date or runtime timestamp.
+device_domain_lock,yes,Locked device/domain context used for query construction.
+retrieval_domain,yes,Retrieval domain inferred from locked identity and IFU/intended-use terms.
+intended_use_terms,yes,Intended use terms used in query construction.
+inclusion_terms,yes,Domain/procedure terms required for retrieval grounding.
+exclusion_terms,yes,Wrong-domain terms used to prevent drift.
+returned_pmids,yes,PMIDs returned by the retrieval attempt when available.
+returned_titles,yes,Titles returned by the retrieval attempt when available.
+retrieval_count,yes,Result count or returned count.
+errors,yes,Errors or source limitation reasons.
+status,yes,Tool execution status.

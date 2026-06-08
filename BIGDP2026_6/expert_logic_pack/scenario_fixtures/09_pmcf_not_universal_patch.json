@@ -1,0 +1,33 @@
+{
+  "scenario_id": "ELP-09",
+  "scenario_name": "PMCF Is Not a Universal Patch",
+  "rule_category": "Gap Disposition Logic",
+  "rules_tested": ["GAP-02", "WRT-05"],
+  "description": "PMCF should not be the default disposition when evidence is merely limited. Some gaps require claim_narrowing or cannot_support, not PMCF. PMCF is for 'promising but insufficient', not for 'contradicted or absent'.",
+
+  "input": {
+    "ifu_text": "Device eliminates postoperative bleeding complications.",
+    "available_evidence": [
+      {
+        "evidence_id": "E-001", "pmid": "11111111",
+        "study_design": "RCT", "sample_size": 200,
+        "findings": "Bleeding complication rate: 5% device vs 6% control. p=0.45. No significant difference.",
+        "support_type": "direct"
+      }
+    ],
+    "gap_analysis": {
+      "pattern": "evidence_shows_no_benefit",
+      "pmcf_appropriate": false,
+      "reason": "Evidence shows no significant difference from control. PMCF would not resolve this — the claim itself is unsupported by available data. Claim narrowing or cannot_support is more appropriate than PMCF."
+    }
+  },
+
+  "expected_expert_reasoning": {
+    "gap_disposition": "cannot_support",
+    "must_not_be": "PMCF",
+    "reason": "Evidence shows no significant benefit (p=0.45). PMCF is not appropriate — additional study is unlikely to change the conclusion. Claim should be narrowed or rejected.",
+    "conclusion_strength": "not_supported"
+  },
+
+  "expected_writer_permission": "blocked"
+}

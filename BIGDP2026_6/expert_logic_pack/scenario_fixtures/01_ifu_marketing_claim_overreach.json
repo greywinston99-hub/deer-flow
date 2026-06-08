@@ -1,0 +1,60 @@
+{
+  "scenario_id": "S-01",
+  "scenario_name": "IFU Marketing Claim Overreach",
+  "rule_category": "IFU is Working Input, Not Gold Standard",
+  "rules_tested": ["IFU-05", "IFU-06", "WRT-08"],
+  "description": "IFU text contains marketing language ('revolutionary', 'guarantees'). CER must detect, flag, and prevent direct use of marketing claims.",
+
+  "input": {
+    "ifu_text": "Our revolutionary closure device guarantees perfect hemostasis in all surgical procedures with unmatched speed and precision.",
+    "available_evidence": [
+      {
+        "evidence_id": "E-001",
+        "pmid": "12345678",
+        "study_design": "RCT",
+        "sample_size": 120,
+        "findings": "Hemostasis achieved in 92% of cases within 3 minutes. No device-related serious adverse events.",
+        "support_type": "direct"
+      }
+    ]
+  },
+
+  "expected_expert_reasoning": {
+    "marketing_language_detected": true,
+    "detected_keywords": ["revolutionary", "guarantees", "perfect", "unmatched"],
+    "claim_should_be_narrowed": true,
+    "claim_should_be_qualified": true,
+    "final_claim_should_not_contain": ["revolutionary", "guarantees", "perfect", "unmatched"],
+    "final_claim_example": "The closure device achieves hemostasis in 92% of cases within 3 minutes, based on a single RCT (N=120)."
+  },
+
+  "expected_ledger": {
+    "ifu_claim_evolution_ledger": {
+      "evolution_flags": {
+        "marketing_language_detected": true,
+        "marketing_language_downgraded": true,
+        "claim_narrowed": true,
+        "requires_human_review": true
+      },
+      "stage_5_final_cer_claim": {
+        "conclusion_strength": "moderate"
+      }
+    },
+    "cer_reasoning_ledger": {
+      "claim_classification": "clinical_performance",
+      "evidence_support_type": "direct",
+      "conclusion_strength": "moderate",
+      "gap_disposition": "PMCF"
+    }
+  },
+
+  "expected_gate_behavior": {
+    "G46": {
+      "CER_REASONING_LEDGER": "PASS",
+      "claim_evidence": "PASS"
+    }
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["PMCF recommendation", "single-study limitation", "92% not 100%"]
+}

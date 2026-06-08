@@ -1,0 +1,12 @@
+{
+  "schema": "model_resolution_trace_v1",
+  "run_id": "A02_QDMD_V30_VALIDATION_001",
+  "project": "A02_QDMD_V30_VALIDATION_001",
+  "timestamp": "2026-05-29T14:12:31.117252+00:00",
+  "global_model_env": "kimi-k2.6-code",
+  "per_agent_overrides": {},
+  "agents": [],
+  "agent_count": 0,
+  "all_resolved_correctly": true,
+  "any_fallback_used": false
+}

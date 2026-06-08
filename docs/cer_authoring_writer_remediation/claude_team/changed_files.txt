@@ -1,0 +1,25 @@
+# Changed files — CER Writer Remediation W0-W5
+
+## New files (6 Python modules)
+backend/packages/harness/deerflow/runtime/cer_authoring/writer_remediation/__init__.py
+backend/packages/harness/deerflow/runtime/cer_authoring/writer_remediation/domain_term_matrix.py
+backend/packages/harness/deerflow/runtime/cer_authoring/writer_remediation/evidence_conclusion_policy.py
+backend/packages/harness/deerflow/runtime/cer_authoring/writer_remediation/writer_gates.py
+backend/packages/harness/deerflow/runtime/cer_authoring/writer_remediation/quarantine.py
+
+## New files (1 test file)
+backend/tests/test_writer_remediation_gates.py
+
+## Modified files (1 file)
+backend/packages/harness/deerflow/runtime/cer_authoring/artifacts.py
+  - Imported writer_remediation module (2 lines)
+  - Added gate check + quarantine routing in write_authoring_artifacts() (~25 lines)
+  - Fixed _render_cer_markdown() fallback text (1 line)
+
+## Forbidden files (zero diff)
+backend/packages/harness/deerflow/runtime/cer_authoring/graph.py  — UNCHANGED
+backend/packages/harness/deerflow/runtime/cer_authoring/gates.py — UNCHANGED
+backend/packages/harness/deerflow/runtime/cer_authoring/agents.py — UNCHANGED
+
+## Documentation files (16 files)
+docs/cer_authoring_writer_remediation/claude_team/*.md, *.json, *.txt

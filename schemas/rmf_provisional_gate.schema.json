@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/rmf_provisional_gate.schema.json",
+  "title": "RMF Provisional Gate Recommendation",
+  "description": "Advisory provisional gate recommendation produced by the human-boundary stage. Never a final regulatory decision — closure requires a human-signed gate decision.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "run_id",
+    "recommended_gate",
+    "rationale",
+    "items_for_human"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "rmf_provisional_gate"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "recommended_gate": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "conditional_pass",
+        "rework_required"
+      ]
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "is_advisory": {
+      "type": "boolean",
+      "const": true
+    },
+    "items_for_human": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item_id",
+          "topic",
+          "reason_human_only",
+          "evidence_sources"
+        ],
+        "properties": {
+          "item_id": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "reason_human_only": {
+            "type": "string"
+          },
+          "reviewer_focus": {
+            "type": "string"
+          },
+          "evidence_sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/sourceRef"
+            }
+          }
+        }
+      }
+    },
+    "source_traceability": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "document_id"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

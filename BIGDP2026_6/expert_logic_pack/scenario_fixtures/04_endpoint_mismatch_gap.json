@@ -1,0 +1,49 @@
+{
+  "scenario_id": "S-04",
+  "scenario_name": "Endpoint Mismatch Gap",
+  "rule_category": "Gap Disposition Logic",
+  "rules_tested": ["GAP-01", "GAP-04", "EVS-05"],
+  "description": "Claim is about 'reduced blood loss' but available evidence measures 'hemostasis time'. Endpoint mismatch triggers gap disposition.",
+
+  "input": {
+    "ifu_text": "Device significantly reduces intraoperative blood loss.",
+    "claim_classification": "clinical_performance",
+    "available_evidence": [
+      {
+        "evidence_id": "E-001", "pmid": "44444444",
+        "endpoint_measured": "hemostasis_time",
+        "finding": "Mean hemostasis time 2.8 min",
+        "support_type": "direct"
+      }
+    ],
+    "claim_endpoint_mapping": {
+      "claimed_endpoint": "blood_loss_volume",
+      "evidence_endpoint": "hemostasis_time",
+      "is_surrogate": true,
+      "surrogate_validity": "moderate — shorter hemostasis time correlates with reduced blood loss but does not directly measure it"
+    }
+  },
+
+  "expected_expert_reasoning": {
+    "endpoint_mismatch_detected": true,
+    "gap_disposition": "PMCF",
+    "reason": "No direct measurement of blood loss volume. Hemostasis time is a surrogate endpoint with moderate validity. PMCF study should directly measure blood loss.",
+    "conclusion_strength": "limited"
+  },
+
+  "expected_ledger": {
+    "cer_reasoning_ledger": {
+      "gap_disposition": "PMCF",
+      "gap_rationale": "Endpoint mismatch: claimed outcome 'blood loss' vs measured endpoint 'hemostasis time'. Surrogate validity is moderate.",
+      "conclusion_strength": "limited"
+    }
+  },
+
+  "expected_gate_behavior": {
+    "G46": {"claim_evidence": "PASS"},
+    "G43": {"status": "PASS"}
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["surrogate endpoint caveat", "PMCF to measure blood loss directly"]
+}

@@ -1,0 +1,1238 @@
+{
+  "patterns": [
+    {
+      "id": "DP-001",
+      "name": "domain_contamination",
+      "severity": "critical",
+      "category": "content",
+      "detection": "forbidden_term_in_body",
+      "fix": "trace_source_and_reroute",
+      "cer_section": "2 Scope",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024943"
+      }
+    },
+    {
+      "id": "DP-002",
+      "name": "template_residue",
+      "severity": "critical",
+      "category": "content",
+      "detection": "banned_string_in_body",
+      "fix": "strip_template_and_regenerate",
+      "cer_section": "1-9 All",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024949"
+      }
+    },
+    {
+      "id": "DP-003",
+      "name": "evidence_conclusion_mismatch",
+      "severity": "critical",
+      "category": "logic",
+      "detection": "support_level_vs_wording",
+      "fix": "downgrade_wording",
+      "cer_section": "5 Conclusions",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024951"
+      }
+    },
+    {
+      "id": "DP-004",
+      "name": "circular_reasoning",
+      "severity": "high",
+      "category": "logic",
+      "detection": "claim_citing_claim",
+      "fix": "add_external_evidence",
+      "cer_section": "4.2 Equivalence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024952"
+      }
+    },
+    {
+      "id": "DP-005",
+      "name": "missing_sota_benchmark",
+      "severity": "high",
+      "category": "data",
+      "detection": "claim_without_sota",
+      "fix": "trigger_alignment_check",
+      "cer_section": "3 SOTA",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024954"
+      }
+    },
+    {
+      "id": "DP-006",
+      "name": "insufficient_evidence",
+      "severity": "high",
+      "category": "data",
+      "detection": "g42_insufficient",
+      "fix": "endpoint_substitution_then_pmcf",
+      "cer_section": "4 Evidence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024956"
+      }
+    },
+    {
+      "id": "DP-007",
+      "name": "over_strong_conclusion",
+      "severity": "high",
+      "category": "logic",
+      "detection": "oxford_vs_wording",
+      "fix": "downgrade_to_oxford_level",
+      "cer_section": "5 Conclusions",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024957"
+      }
+    },
+    {
+      "id": "DP-008",
+      "name": "missing_rmf_coverage",
+      "severity": "critical",
+      "category": "data",
+      "detection": "no_rmf_for_warning",
+      "fix": "flag_gap_and_downgrade",
+      "cer_section": "4.7 GSPR",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024959"
+      }
+    },
+    {
+      "id": "DP-009",
+      "name": "endpoint_context_lost",
+      "severity": "high",
+      "category": "data",
+      "detection": "fact_without_claim_link",
+      "fix": "add_claim_context_hint",
+      "cer_section": "3 SOTA, 4.7 GSPR",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024960"
+      }
+    },
+    {
+      "id": "DP-010",
+      "name": "br_quality_asymmetry",
+      "severity": "high",
+      "category": "logic",
+      "detection": "benefit_risk_diff_quality",
+      "fix": "separate_quality_tiers",
+      "cer_section": "5 Conclusions",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024961"
+      }
+    },
+    {
+      "id": "DP-011",
+      "name": "ifu_quality_degraded",
+      "severity": "medium",
+      "category": "input",
+      "detection": "scanned_unreadable_ifu",
+      "fix": "flag_for_human_review",
+      "cer_section": "2 Scope",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024962"
+      }
+    },
+    {
+      "id": "DP-012",
+      "name": "screening_pool_shallow",
+      "severity": "medium",
+      "category": "data",
+      "detection": "pool_below_threshold",
+      "fix": "expand_search_or_document",
+      "cer_section": "4.4 Literature",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024963"
+      }
+    },
+    {
+      "id": "DP-013",
+      "name": "spiral_exhausted",
+      "severity": "high",
+      "category": "process",
+      "detection": "max_rounds_reached",
+      "fix": "controlled_compromise",
+      "cer_section": "4 Evidence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024965"
+      }
+    },
+    {
+      "id": "DP-014",
+      "name": "equivalence_not_justified",
+      "severity": "high",
+      "category": "logic",
+      "detection": "missing_3d_comparison",
+      "fix": "add_technical_bio_clinical",
+      "cer_section": "4.2 Equivalence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024967"
+      }
+    },
+    {
+      "id": "DP-015",
+      "name": "gspr_coverage_gap",
+      "severity": "medium",
+      "category": "data",
+      "detection": "gspr_without_evidence",
+      "fix": "flag_gap_or_route_to_rmf",
+      "cer_section": "4.7 GSPR",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024968"
+      }
+    },
+    {
+      "id": "DP-016",
+      "name": "pmcf_premature",
+      "severity": "medium",
+      "category": "process",
+      "detection": "pmcf_before_alternatives",
+      "fix": "try_endpoint_substitution_first",
+      "cer_section": "6 PMCF",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024969"
+      }
+    },
+    {
+      "id": "DP-017",
+      "name": "pico_over_generation",
+      "severity": "low",
+      "category": "efficiency",
+      "detection": "pico_for_ifu_warning",
+      "fix": "skip_pico_for_non_clinical",
+      "cer_section": "3 SOTA",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024971"
+      }
+    },
+    {
+      "id": "DP-018",
+      "name": "keyword_mismatch_regional",
+      "severity": "medium",
+      "category": "data",
+      "detection": "term_not_found",
+      "fix": "expand_with_regional_variants",
+      "cer_section": "4.4 Literature",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024972"
+      }
+    },
+    {
+      "id": "DP-019",
+      "name": "confidence_overstated",
+      "severity": "medium",
+      "category": "logic",
+      "detection": "low_confidence_strong_wording",
+      "fix": "apply_confidence_wording_map",
+      "cer_section": "5 Conclusions",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024973"
+      }
+    },
+    {
+      "id": "DP-020",
+      "name": "model_resolution_fallback",
+      "severity": "low",
+      "category": "system",
+      "detection": "default_model_used",
+      "fix": "log_and_proceed",
+      "cer_section": "System",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024974"
+      }
+    },
+    {
+      "id": "DP-021",
+      "name": "annex_traceability_gap",
+      "severity": "medium",
+      "category": "data",
+      "detection": "claim_without_annex_ref",
+      "fix": "add_cross_reference",
+      "cer_section": "Annex",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024976"
+      }
+    },
+    {
+      "id": "DP-022",
+      "name": "human_confirmation_skipped",
+      "severity": "critical",
+      "category": "process",
+      "detection": "interrupt_not_triggered",
+      "fix": "enforce_interrupt_flow",
+      "cer_section": "HC Interrupts",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024977"
+      }
+    },
+    {
+      "id": "DP-023",
+      "name": "alignment_conflict",
+      "severity": "high",
+      "category": "logic",
+      "detection": "equivalence_vs_vigilance_mismatch",
+      "fix": "flag_and_document",
+      "cer_section": "4.7 GSPR",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024978"
+      }
+    },
+    {
+      "id": "DP-024",
+      "name": "sota_benchmark_low_confidence",
+      "severity": "medium",
+      "category": "data",
+      "detection": "benchmark_confidence_low",
+      "fix": "downgrade_wording",
+      "cer_section": "3 SOTA",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024979"
+      }
+    },
+    {
+      "id": "DP-025",
+      "name": "data_source_type_undifferentiated",
+      "severity": "medium",
+      "category": "data",
+      "detection": "manufacturer_vs_literature_mixed",
+      "fix": "add_data_source_type",
+      "cer_section": "4 Evidence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024980"
+      }
+    },
+    {
+      "id": "DP-026",
+      "name": "follow_up_inadequate",
+      "severity": "high",
+      "category": "data",
+      "detection": "short_follow_up_for_implant",
+      "fix": "flag_pmcf_long_term",
+      "cer_section": "6 PMCF",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024982"
+      }
+    },
+    {
+      "id": "DP-027",
+      "name": "rare_event_underpowered",
+      "severity": "high",
+      "category": "data",
+      "detection": "sample_too_small_for_rare_event",
+      "fix": "flag_pmcf_large_sample",
+      "cer_section": "4 Evidence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024983"
+      }
+    },
+    {
+      "id": "DP-028",
+      "name": "cer_update_missing",
+      "severity": "low",
+      "category": "process",
+      "detection": "no_update_mode",
+      "fix": "reserved_for_future",
+      "cer_section": "6 Next Evaluation",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024984"
+      }
+    },
+    {
+      "id": "DP-029",
+      "name": "skill_not_integrated",
+      "severity": "medium",
+      "category": "system",
+      "detection": "skill_file_no_prompt_ref",
+      "fix": "add_skill_reference",
+      "cer_section": "System",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024985"
+      }
+    },
+    {
+      "id": "DP-030",
+      "name": "gate_weight_misconfigured",
+      "severity": "medium",
+      "category": "system",
+      "detection": "critical_treated_as_minor",
+      "fix": "check_critical_gates_list",
+      "cer_section": "System",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024987"
+      }
+    },
+    {
+      "id": "DP-031",
+      "name": "equivalence_performance_data_missing",
+      "severity": "medium",
+      "category": "data",
+      "detection": "performance_comparison_empty_but_equivalence_claimed",
+      "fix": "remove_comparison_clause_and_declare_missing",
+      "note": "工程师反馈：客户拒绝提供性能对比数据时，删除等效性表格中的性能对比条款，仅保留技术/生物学/临床特性对比，在差异论证中声明 Performance data not publicly available。MDR 未要求公开所有性能数据，但要求论证逻辑自洽。",
+      "cer_section": "4.2 Equivalence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024988"
+      }
+    },
+    {
+      "id": "DP-032",
+      "name": "population_study_mismatch",
+      "severity": "high",
+      "category": "logic",
+      "detection": "study_population_vs_ifu_target_population",
+      "fix": "document_differences_assess_generalizability",
+      "note": "工程师反馈：当纳入研究的患者群体与 IFU 声明的目标人群不匹配时，必须记录人群差异、评估推广性、添加局限性声明、并规划针对性 PMCF。不可忽略差异直接引用。",
+      "cer_section": "4 Evidence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024989"
+      }
+    },
+    {
+      "id": "DP-033",
+      "name": "statistical_power_insufficient",
+      "severity": "high",
+      "category": "data",
+      "detection": "study_underpowered_without_justification",
+      "fix": "recalculate_power_flag_limitation_plan_pmcf",
+      "note": "工程师反馈：纳入的研究若样本量不足且未提供统计功效分析，需重新计算或引用功效分析、在 CER 中标记为局限性、规划足量样本的 PMCF、适当降低证据权重。",
+      "cer_section": "4 Evidence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024990"
+      }
+    },
+    {
+      "id": "DP-034",
+      "name": "annex_body_inconsistency",
+      "severity": "high",
+      "category": "logic",
+      "detection": "annex_counts_vs_body_references_mismatch",
+      "fix": "extract_annex_metadata_reconcile_with_body",
+      "note": "工程师反馈：附件表格/流程图中的数字（如文献数量、不良事件数）与正文叙述不一致是最常见的审核发现之一。需提取附件元数据、与正文叙述和登记表对比、调和差异后重新生成。",
+      "cer_section": "Annex, 4",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024991"
+      }
+    },
+    {
+      "id": "DP-035",
+      "name": "dependency_chain_broken",
+      "severity": "critical",
+      "category": "logic",
+      "detection": "upstream_chapter_data_missing_in_downstream",
+      "fix": "trace_dependency_chain_regenerate",
+      "note": "工程师反馈：CER 有三条刚性依赖链（§2→§3→§4→§5），上游数据必须在下游可见。若 §2 设备规格未被 §4.2 等效性引用，或 §4.7 分析未引用 §4.6 警戒数据，即为依赖链断裂。",
+      "cer_section": "2-3-4-5",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024993"
+      }
+    },
+    {
+      "id": "DP-036",
+      "name": "citation_density_low",
+      "severity": "medium",
+      "category": "data",
+      "detection": "references_per_1000_words_below_threshold",
+      "fix": "add_cross_references_and_table_figure_citations",
+      "note": "工程师反馈：5 份真实 CER 报告中引用密度差异显著（帕姆 62 次 vs 亚宏 13 次）。最小要求：§4.2 引用 §2 ≥3 处，§4.7 引用 §4.4 ≥5 处，§5 引用 §4.7 ≥3 处，Annex 文献列表 100% 对应。",
+      "cer_section": "3 SOTA, 4 Evidence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024994"
+      }
+    },
+    {
+      "id": "DP-037",
+      "name": "gspr_traceability_gap",
+      "severity": "critical",
+      "category": "logic",
+      "detection": "clinical_data_not_mapped_to_gspr",
+      "fix": "build_gspr_to_evidence_cross_reference_table",
+      "nb_defect_type": "GS-001",
+      "nb_frequency": "9 of 64 real NB records (14%)",
+      "note": "来自 64 条真实 NB 审评记录。BSI 和 TUV SUD 均高频发现：临床数据未显式映射到具体 GSPR 条款。修复：为每条临床数据建立 GSPR→证据交叉引用表。",
+      "cer_section": "4.7 GSPR",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024995"
+      }
+    },
+    {
+      "id": "DP-038",
+      "name": "documentation_insufficiency_nb",
+      "severity": "critical",
+      "category": "data",
+      "detection": "annexes_unpopulated_or_placeholder_tables",
+      "fix": "populate_all_annexes_with_actual_data",
+      "nb_defect_type": "DO-001",
+      "nb_frequency": "26 of 64 real NB records (41%) — most common NB finding",
+      "note": "来自 64 条真实 NB 审评记录。这是 NB 发现中最常见的缺陷类型（41%）。CER 附件未填充实际数据或只有占位表格。修复：所有附件必须填充真实运行数据，检索协议必须包含 PRISMA 流程图。",
+      "cer_section": "Annex",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024996"
+      }
+    },
+    {
+      "id": "DP-039",
+      "name": "labeling_ifu_inconsistency_nb",
+      "severity": "critical",
+      "category": "content",
+      "detection": "cer_device_description_mismatches_ifu",
+      "fix": "cross_reference_cer_21_against_ifu_text",
+      "nb_defect_type": "LB-001",
+      "nb_frequency": "4 of 64 real NB records (6%)",
+      "note": "来自 64 条真实 NB 审评记录。CER §2.1 中设备描述、预期用途或禁忌症与 IFU 原文不一致。修复：逐项交叉核验 CER 设备描述与 IFU 正文。",
+      "cer_section": "2 Scope",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024998"
+      }
+    },
+    {
+      "id": "DP-040",
+      "name": "pmcf_plan_inadequate_nb",
+      "severity": "high",
+      "category": "data",
+      "detection": "pmcf_lacks_specific_objectives_endpoints_timelines",
+      "fix": "specify_pmcf_objectives_endpoints_sample_size_timeline",
+      "nb_defect_type": "PM-001",
+      "nb_frequency": "3 of 64 real NB records (5%)",
+      "note": "来自 64 条真实 NB 审评记录。PMCF 计划缺少具体目标、可度量终点、样本量和时间表。修复：为每个已识别缺口定义具体的 PMCF 目标、终点、样本量和时间线。",
+      "cer_section": "6 PMCF",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.024999"
+      }
+    },
+    {
+      "id": "DP-041",
+      "name": "evidence_appraisal_inconsistent_nb",
+      "severity": "high",
+      "category": "data",
+      "detection": "appraisal_criteria_not_documented_or_inconsistently_applied",
+      "fix": "document_appraisal_methodology_and_apply_consistently",
+      "nb_defect_type": "EV-001",
+      "nb_frequency": "6 of 64 real NB records (9%)",
+      "note": "来自 64 条真实 NB 审评记录。文献评价方法未文档化或评价标准应用不一致。修复：文档化评价方法（研究设计、人群、终点、结果、质量评分、局限性），并一致应用于所有证据条目。",
+      "cer_section": "4.5 Appraisal",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.025000"
+      }
+    },
+    {
+      "id": "DP-042",
+      "name": "equivalence_argument_incomplete_nb",
+      "severity": "high",
+      "category": "logic",
+      "detection": "equivalence_comparison_missing_dimensions",
+      "fix": "complete_3d_comparison_per_mdcg_2020_5",
+      "nb_defect_type": "EQ-001",
+      "nb_frequency": "3 of 64 real NB records (5%)",
+      "note": "来自 64 条真实 NB 审评记录。等效性论证未按 MDCG 2020-5 覆盖全部三个维度（技术/生物学/临床），或差异影响评估缺失。",
+      "cer_section": "4.2 Equivalence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.025002"
+      }
+    },
+    {
+      "id": "DP-043",
+      "name": "software_document_control_nb",
+      "severity": "medium",
+      "category": "system",
+      "detection": "version_history_or_traceability_gaps",
+      "fix": "document_software_version_and_change_history",
+      "nb_defect_type": "SW-001",
+      "nb_frequency": "3 of 64 real NB records (5%)",
+      "note": "来自 64 条真实 NB 审评记录。版本历史、追溯性或变更管理文档存在缺口。CER 必须明确记录所评估的软件版本及变更历史。",
+      "cer_section": "2 Scope",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.025003"
+      }
+    },
+    {
+      "id": "DP-044",
+      "name": "manufacturer_data_gap_nb",
+      "severity": "high",
+      "category": "data",
+      "detection": "pms_complaints_sales_data_not_provided",
+      "fix": "request_manufacturer_pms_and_sales_exposure_data",
+      "nb_defect_type": "MF-001",
+      "nb_frequency": "2 of 64 real NB records (3%)",
+      "note": "来自 64 条真实 NB 审评记录。制造商未提供 PMS 数据、投诉记录或销售暴露数据。CER 必须声明数据缺口并降级相关结论。",
+      "cer_section": "4.3 Manufacturer Data",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.025004"
+      }
+    },
+    {
+      "id": "DP-045",
+      "name": "benefit_risk_quantitative_gap_nb",
+      "severity": "high",
+      "category": "logic",
+      "detection": "br_conclusion_not_supported_by_quantitative_comparison",
+      "fix": "add_quantitative_benefit_vs_risk_comparison_with_defined_metrics",
+      "nb_defect_type": "BR-001",
+      "nb_frequency": "2 of 64 real NB records (3%)",
+      "note": "来自 64 条真实 NB 审评记录。获益-风险结论缺乏定量比较支持。修复：使用定义度量标准（如获益幅度、风险严重度、发生率）做定量获益-风险对比。",
+      "cer_section": "5 Conclusions",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.025005"
+      }
+    },
+    {
+      "id": "DP-046",
+      "name": "data_transferability_gap_nb",
+      "severity": "medium",
+      "category": "logic",
+      "detection": "study_population_or_device_version_not_justified",
+      "fix": "document_transferability_rationale_or_downgrade_evidence",
+      "nb_defect_type": "DT-001",
+      "nb_frequency": "2 of 64 real NB records (3%)",
+      "note": "来自 64 条真实 NB 审评记录。研究人群或设备版本与当前评价设备的可转移性未充分论证。修复：文档化可转移性理由或降低证据权重。",
+      "cer_section": "4 Evidence",
+      "v5_enrichment": {
+        "total_v5_findings": 0,
+        "per_defect_type": {},
+        "enriched_at": "2026-05-29T22:53:53.025007"
+      }
+    },
+    {
+      "pattern_id": "V5-AU-001",
+      "pattern_name": "V5 AU-001 — 10 NB findings",
+      "linked_nb_codes": [
+        "AU-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (10 findings)",
+      "cer_sections_affected": [
+        "Audit"
+      ],
+      "authoring_defense_rules": [
+        "Verify AU-001 compliance in CER",
+        "Ensure evidence supports all AU-001-related claims",
+        "Cross-reference AU-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "n) SSCP 8.1：请更新以与 GSPRC 中的标准和指南的完整列表保持一致。o) 修订历史：请参考 MDCG 2019-9 第 9 节及附录中关于修订历史的相关内容，以纳入格式规范的修订历史表格。请注意：NB 验证复选框应保持为空且处于草稿状态，直至上述修正完全解决（之后将要求提供最终的、已通过 QMS 审核的 SSCP 版本）。",
+        "n) SSCP 8.1：请更新以与 GSPRC 中的标准和指南的完整列表保持一致。o) 修订历史：请参考 MDCG 2019-9 第 9 节及附录中关于修订历史的相关内容，以纳入格式规范的修订历史表格。请注意：NB 验证复选框应保持为空且处于草稿状态，直至上述修正完全解决（之后将要求提供最终的、已通过 QMS 审核的 SSCP 版本）。",
+        "总要求 | 目前NB已经完成审核报告的编写，故以下非官方审核问题的处置，不应对现有技术文件的章节结构进行调整； |  |  |  |"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 10,
+        "per_defect_type": {
+          "AU-001": 10
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025022"
+      }
+    },
+    {
+      "pattern_id": "V5-BR-001",
+      "pattern_name": "V5 BR-001 — 148 NB findings",
+      "linked_nb_codes": [
+        "BR-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (148 findings)",
+      "cer_sections_affected": [
+        "§5"
+      ],
+      "authoring_defense_rules": [
+        "Verify BR-001 compliance in CER",
+        "Ensure evidence supports all BR-001-related claims",
+        "Cross-reference BR-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS",
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 148,
+        "per_defect_type": {
+          "BR-001": 148
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025029"
+      }
+    },
+    {
+      "pattern_id": "V5-CL-001",
+      "pattern_name": "V5 CL-001 — 69 NB findings",
+      "linked_nb_codes": [
+        "CL-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (69 findings)",
+      "cer_sections_affected": [
+        "§4"
+      ],
+      "authoring_defense_rules": [
+        "Verify CL-001 compliance in CER",
+        "Ensure evidence supports all CL-001-related claims",
+        "Cross-reference CL-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 69,
+        "per_defect_type": {
+          "CL-001": 69
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025034"
+      }
+    },
+    {
+      "pattern_id": "V5-CM-001",
+      "pattern_name": "V5 CM-001 — 9 NB findings",
+      "linked_nb_codes": [
+        "CM-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (9 findings)",
+      "cer_sections_affected": [
+        "§4"
+      ],
+      "authoring_defense_rules": [
+        "Verify CM-001 compliance in CER",
+        "Ensure evidence supports all CM-001-related claims",
+        "Cross-reference CM-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "请注意4.5.1是临床试验数据展开并进行总结，而4.3章节主要是放临床试验摘要信息。 |  | 1. 审评提出的MDR附件XIV第1部分第1c节，应在CEP中明确我们所使用的临床数据和范围（器械范围如3000的临床试验数据，6000型号的PSUR数据；）",
+        "请注意4.5.1是临床试验数据展开并进行总结，而4.3章节主要是放临床试验摘要信息。 |  | 1. 审评提出的MDR附件XIV第1部分第1c节，应在CEP中明确我们所使用的临床数据和范围（器械范围如3000的临床试验数据，6000型号的PSUR数据；）",
+        "请注意4.5.1是临床试验数据展开并进行总结，而4.3章节主要是放临床试验摘要信息。 |  | 1. 审评提出的MDR附件XIV第1部分第1c节，应在CEP中明确我们所使用的临床数据和范围（器械范围如3000的临床试验数据，6000型号的PSUR数据；）"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 9,
+        "per_defect_type": {
+          "CM-001": 9
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025038"
+      }
+    },
+    {
+      "pattern_id": "V5-CV-001",
+      "pattern_name": "V5 CV-001 — 54 NB findings",
+      "linked_nb_codes": [
+        "CV-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (54 findings)",
+      "cer_sections_affected": [
+        "Certificates"
+      ],
+      "authoring_defense_rules": [
+        "Verify CV-001 compliance in CER",
+        "Ensure evidence supports all CV-001-related claims",
+        "Cross-reference CV-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "若是配合使用器械的话，对于无右最好的方式的话就是说明确接口要求后，作为组合使用器械去进行定义，明确接口的规格。注：BSI有可能要求提供配合使用器械的CE证书。 | 无右 |",
+        "4. 这些图像应由独立且合格的临床专家（即具有至少5年认证后经验的ABR认证放射科医师）进行评估，并证明其诊断质量。有关临床专家要求的更多信息，请参见上述指南的第VII节临床考虑，第B小节合格专家评估。没有这些图像，我们无法充分评估您的设备是否适合预期用途，以及是否与对比设备具有实质性相似性（21 CFR 807.100(b)(2)(ii)(C)）。 |  | 1. 按照VII的要求，根据1.2发",
+        "2.2 | Declaration of Conformity | A statement in folder 00 - 00-01 Statement of Conformity assessment procedure, dated 2024-09-25 was provided, indicated conformity assessment procedure was Annex XI P"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 54,
+        "per_defect_type": {
+          "CV-001": 54
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025042"
+      }
+    },
+    {
+      "pattern_id": "V5-DO-001",
+      "pattern_name": "V5 DO-001 — 153 NB findings",
+      "linked_nb_codes": [
+        "DO-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (153 findings)",
+      "cer_sections_affected": [
+        "§2"
+      ],
+      "authoring_defense_rules": [
+        "Verify device name identical across all sections",
+        "List every model/variant with design rationale",
+        "Intended purpose: patient population, clinical setting, users",
+        "Contraindications must reference clinical evidence",
+        "EMDN + MDR classification justified"
+      ],
+      "sample_nb_quotes": [
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS",
+        "Regarding indications, contraindications, and intended patient populations, we have provided additional information in section 4.1 of the PSUR (CE-01-0803, A/3.0), as detailed below:\nIndication: It pr",
+        "Regarding indications, contraindications, and intended patient populations, we have provided additional information in section 4.1 of the PSUR (CE-01-0803, A/3.0), as detailed below:\nIndication: It pr"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 153,
+        "per_defect_type": {
+          "DO-001": 153
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025046"
+      }
+    },
+    {
+      "pattern_id": "V5-DT-001",
+      "pattern_name": "V5 DT-001 — 53 NB findings",
+      "linked_nb_codes": [
+        "DT-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (53 findings)",
+      "cer_sections_affected": [
+        "all"
+      ],
+      "authoring_defense_rules": [
+        "Verify DT-001 compliance in CER",
+        "Ensure evidence supports all DT-001-related claims",
+        "Cross-reference DT-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 53,
+        "per_defect_type": {
+          "DT-001": 53
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025050"
+      }
+    },
+    {
+      "pattern_id": "V5-EQ-001",
+      "pattern_name": "V5 EQ-001 — 73 NB findings",
+      "linked_nb_codes": [
+        "EQ-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (73 findings)",
+      "cer_sections_affected": [
+        "§4.2"
+      ],
+      "authoring_defense_rules": [
+        "2-3 potential equivalent devices",
+        "Three-pillar comparison: technical/biological/clinical ALL present",
+        "Every difference has Impact Assessment",
+        "Expected purpose MUST be identical",
+        "Evidence of data access to equivalent device"
+      ],
+      "sample_nb_quotes": [],
+      "v5_enrichment": {
+        "total_v5_findings": 73,
+        "per_defect_type": {
+          "EQ-001": 73
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025054"
+      }
+    },
+    {
+      "pattern_id": "V5-EV-001",
+      "pattern_name": "V5 EV-001 — 126 NB findings",
+      "linked_nb_codes": [
+        "EV-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (126 findings)",
+      "cer_sections_affected": [
+        "§3",
+        "§4"
+      ],
+      "authoring_defense_rules": [
+        "PICO search strategy in structured table",
+        "≥2 databases searched",
+        "PRISMA flow diagram",
+        "Safety/Performance Endpoint table with benchmarks and sources",
+        "SOTA: standard of care + benchmarks + device gap"
+      ],
+      "sample_nb_quotes": [],
+      "v5_enrichment": {
+        "total_v5_findings": 126,
+        "per_defect_type": {
+          "EV-001": 126
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025057"
+      }
+    },
+    {
+      "pattern_id": "V5-GS-001",
+      "pattern_name": "V5 GS-001 — 72 NB findings",
+      "linked_nb_codes": [
+        "GS-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (72 findings)",
+      "cer_sections_affected": [
+        "§6"
+      ],
+      "authoring_defense_rules": [
+        "Verify GS-001 compliance in CER",
+        "Ensure evidence supports all GS-001-related claims",
+        "Cross-reference GS-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [],
+      "v5_enrichment": {
+        "total_v5_findings": 72,
+        "per_defect_type": {
+          "GS-001": 72
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025060"
+      }
+    },
+    {
+      "pattern_id": "V5-IV-001",
+      "pattern_name": "V5 IV-001 — 6 NB findings",
+      "linked_nb_codes": [
+        "IV-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (6 findings)",
+      "cer_sections_affected": [
+        "Periodic"
+      ],
+      "authoring_defense_rules": [
+        "Verify IV-001 compliance in CER",
+        "Ensure evidence supports all IV-001-related claims",
+        "Cross-reference IV-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "均主要通过器械企业相关人员，去收集医院医师的随访记录，定期的随访时间详见timeline表格，失访也将记录，失访的风险也通过统计学方式考量到（clinical drop-out rate γ= 0.20）。详细的PMCF survey整改请详见C.4.1章节",
+        "审评中仅提供了针对每台灭菌柜的半周期运行再确认资料。请提供最新的全面再确认或初始验证资料以供审阅。 |  |  |  |  |  |  请提供新的再确认灭菌证据。 |  | 健世 | 质量-周俊佟 |  2026-06-10 |  |  |  |  |  |  |  |  |",
+        "2）请立普补充开发阶段审评所要求的时间/周期信息；（主文件，3.1章节，a.至i条，其中h和i不属于开发的特定瀑布阶段，可以不做描述，双方会议沟通时，AP进行解释；同时对于每个阶段活动进行信息的充实；"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 6,
+        "per_defect_type": {
+          "IV-001": 6
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025064"
+      }
+    },
+    {
+      "pattern_id": "V5-LB-001",
+      "pattern_name": "V5 LB-001 — 162 NB findings",
+      "linked_nb_codes": [
+        "LB-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (162 findings)",
+      "cer_sections_affected": [
+        "IFU"
+      ],
+      "authoring_defense_rules": [
+        "IFU: intended purpose, contraindications, warnings, precautions",
+        "Symbols per ISO 15223-1",
+        "Language per MDR Art 10(11)",
+        "UDI labeling per MDR Art 27"
+      ],
+      "sample_nb_quotes": [
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 162,
+        "per_defect_type": {
+          "LB-001": 162
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025068"
+      }
+    },
+    {
+      "pattern_id": "V5-MF-001",
+      "pattern_name": "V5 MF-001 — 108 NB findings",
+      "linked_nb_codes": [
+        "MF-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (108 findings)",
+      "cer_sections_affected": [
+        "Manufacturing"
+      ],
+      "authoring_defense_rules": [
+        "Verify MF-001 compliance in CER",
+        "Ensure evidence supports all MF-001-related claims",
+        "Cross-reference MF-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS",
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 108,
+        "per_defect_type": {
+          "MF-001": 108
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025072"
+      }
+    },
+    {
+      "pattern_id": "V5-PM-001",
+      "pattern_name": "V5 PM-001 — 312 NB findings",
+      "linked_nb_codes": [
+        "PM-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (312 findings)",
+      "cer_sections_affected": [
+        "§7"
+      ],
+      "authoring_defense_rules": [
+        "PMCF plan: next evaluation date, planned studies, data sources",
+        "Trigger conditions for re-evaluation",
+        "PMCF-CER feedback loop",
+        "PMS: complaint trends, vigilance summary, CAPA"
+      ],
+      "sample_nb_quotes": [],
+      "v5_enrichment": {
+        "total_v5_findings": 312,
+        "per_defect_type": {
+          "PM-001": 312
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025076"
+      }
+    },
+    {
+      "pattern_id": "V5-RM-001",
+      "pattern_name": "V5 RM-001 — 59 NB findings",
+      "linked_nb_codes": [
+        "RM-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (59 findings)",
+      "cer_sections_affected": [
+        "Risk Management"
+      ],
+      "authoring_defense_rules": [
+        "Verify RM-001 compliance in CER",
+        "Ensure evidence supports all RM-001-related claims",
+        "Cross-reference RM-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "- IFU 中的剩余风险、禁忌症和警告无法追溯到风险管理。 | [帕母：folder：05_TDR01Q07 临床文档还有一个未关闭未关闭项，整改回复；AP确认]",
+        "- IFU 中的剩余风险、禁忌症和警告无法追溯到风险管理。 | [帕母：folder：05_TDR01Q07 临床文档还有一个未关闭未关闭项，整改回复；AP确认]",
+        "未提出未解决的问题，但与报告3011中的CAR 6.9b-2和CAR 6.14d相关联 |  |  |  |  |  |  |  |  |  | 风险管理整改部分 | [瑞博]基于非临床的发补意见继续整改，【11月8日】APLUS将会在后续评估RMR文件后给与整改思路；（刘成龑）"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 59,
+        "per_defect_type": {
+          "RM-001": 59
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025079"
+      }
+    },
+    {
+      "pattern_id": "V5-SW-001",
+      "pattern_name": "V5 SW-001 — 49 NB findings",
+      "linked_nb_codes": [
+        "SW-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (49 findings)",
+      "cer_sections_affected": [
+        "§6"
+      ],
+      "authoring_defense_rules": [
+        "Verify SW-001 compliance in CER",
+        "Ensure evidence supports all SW-001-related claims",
+        "Cross-reference SW-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /",
+        "The abbreviations used in the report will be explained and added in additional sections in SSCP. | The device is a legacy device. It will be checked whether there are any relevant descriptions of the ",
+        "The abbreviations used in the report will be explained and added in additional sections in SSCP. | The device is a legacy device. It will be checked whether there are any relevant descriptions of the "
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 49,
+        "per_defect_type": {
+          "SW-001": 49
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025083"
+      }
+    },
+    {
+      "pattern_id": "V5-TR-001",
+      "pattern_name": "V5 TR-001 — 102 NB findings",
+      "linked_nb_codes": [
+        "TR-001"
+      ],
+      "description": "New defect type discovered in V5 extraction (102 findings)",
+      "cer_sections_affected": [
+        "Test Reports"
+      ],
+      "authoring_defense_rules": [
+        "Verify TR-001 compliance in CER",
+        "Ensure evidence supports all TR-001-related claims",
+        "Cross-reference TR-001 with NB expectations"
+      ],
+      "sample_nb_quotes": [
+        "3.软件追溯表以及整机层面上的测试报告是具备的，编写回复给TUV老师 | 彭梦思 |  |  | AP&普美康 |  |  |  |  |  |  |  |  |",
+        "IEC 60601-1第15.1条参考了IEC 60601-1-6报告。IEC 60601-1-6和IEC 62366-1的报告缺失。请提供报告 |  |  |  |  |  | 改报告--TUV无锡",
+        "IEC 60601-1第8.8.3条的试验显然只进行了一次。在潮湿、清洁、进入和溢出后，必须重复进行试验。没有找到这些条件的测试结果。 |  |  |  |  |  | 1.补测，改报告--TUV无锡"
+      ],
+      "v5_enrichment": {
+        "total_v5_findings": 102,
+        "per_defect_type": {
+          "TR-001": 102
+        },
+        "is_new_v5": true,
+        "enriched_at": "2026-05-29T22:53:53.025086"
+      }
+    }
+  ],
+  "total": 63,
+  "nb_linked_patterns": 27,
+  "nb_data_source": "64 real NB review records from 11 CER projects (BSI: 50, TUV SUD: 14)",
+  "cross_references": {
+    "_note": "Each defect pattern links to corresponding remediation playbook entries for automated repair recommendation.",
+    "DP-031": {
+      "remediation": "equivalence_no_performance_data"
+    },
+    "DP-032": {
+      "remediation": "study_population_mismatch"
+    },
+    "DP-033": {
+      "remediation": "underpowered_study"
+    },
+    "DP-034": {
+      "remediation": "annex_inconsistency"
+    },
+    "DP-035": {
+      "remediation": "dependency_broken"
+    },
+    "DP-036": {
+      "remediation": "citation_gap"
+    },
+    "DP-037": {
+      "remediation": "missing_rmf",
+      "alt": "gspr_traceability"
+    },
+    "DP-038": {
+      "remediation": "insufficient_evidence"
+    },
+    "DP-039": {
+      "remediation": "wrong_claim_type"
+    },
+    "DP-040": {
+      "remediation": "insufficient_follow_up"
+    },
+    "DP-041": {
+      "remediation": "statistical_power"
+    },
+    "DP-042": {
+      "remediation": "overclaimed_equivalence"
+    },
+    "DP-043": {
+      "remediation": "template_residue"
+    },
+    "DP-044": {
+      "remediation": "missing_rmf"
+    },
+    "DP-045": {
+      "remediation": "br_asymmetry"
+    },
+    "DP-046": {
+      "remediation": "population_mismatch"
+    },
+    "V5": {
+      "defect_types": 19,
+      "total_findings": 1570,
+      "new_v5_patterns": 17,
+      "enriched_existing": 46
+    }
+  },
+  "version": "V2",
+  "last_updated": "2026-05-21",
+  "v5_enrichment": {
+    "version": "V5",
+    "applied_at": "2026-05-29T22:53:53.025093",
+    "new_patterns_added": 17
+  }
+}

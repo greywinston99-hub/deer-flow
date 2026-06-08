@@ -1,0 +1,72 @@
+{
+  "schema": "cer_ifu_fact_table_v1",
+  "status": "PASS",
+  "source_ids": [
+    "SRC-018",
+    "SRC-030",
+    "SRC-230"
+  ],
+  "fields": {
+    "model": {
+      "present": true,
+      "matched_terms": [
+        "model",
+        "specification"
+      ],
+      "manufacturer_intake_confirmed": true
+    },
+    "intended_purpose": {
+      "present": true,
+      "matched_terms": [
+        "intended purpose",
+        "indication"
+      ],
+      "manufacturer_intake_confirmed": true
+    },
+    "intended_user": {
+      "present": true,
+      "matched_terms": [
+        "operator"
+      ],
+      "manufacturer_intake_confirmed": true
+    },
+    "patient_population": {
+      "present": true,
+      "matched_terms": [],
+      "manufacturer_intake_confirmed": true
+    },
+    "clinical_benefit": {
+      "present": true,
+      "matched_terms": [],
+      "manufacturer_intake_confirmed": true
+    },
+    "side_effects": {
+      "present": true,
+      "matched_terms": [],
+      "manufacturer_intake_confirmed": true
+    },
+    "warnings": {
+      "present": true,
+      "matched_terms": [
+        "warning",
+        "precaution"
+      ],
+      "manufacturer_intake_confirmed": true
+    },
+    "contraindications": {
+      "present": true,
+      "matched_terms": [
+        "contraindication"
+      ],
+      "manufacturer_intake_confirmed": true
+    },
+    "document_control": {
+      "present": true,
+      "matched_terms": [
+        "revision"
+      ],
+      "manufacturer_intake_confirmed": true
+    }
+  },
+  "placeholder_hits": []
+}

@@ -1,0 +1,19 @@
+{
+  "batch": "5.8",
+  "cycle": 1,
+  "status": "TIER_1_REPAIR_ASSIGNED",
+  "cal001_target": "PASS_TO_DRAFT_DOCX with rendered body passing final semantic QA",
+  "open_issues": [
+    "FIX-1: writer_input_packet",
+    "FIX-2: contamination_trace",
+    "FIX-3: render_boundary",
+    "FIX-4: semantic_qa_gate",
+    "FIX-5: claim_br_text_consistency",
+    "FIX-6: evidence_count_labels"
+  ],
+  "resolved_issues": [],
+  "hard_blockers": [],
+  "pilot_status": "NOT_AUTHORIZED",
+  "updated_at": "2026-05-16T00:30:00Z",
+  "current_task": "Fix 1 (writer_input_packet) + Fix 3 (render_boundary)"
+}

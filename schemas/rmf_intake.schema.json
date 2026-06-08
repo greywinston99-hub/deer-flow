@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/rmf_intake.schema.json",
+  "title": "RMF Intake",
+  "description": "RMF intake stage output — run manifest, document inventory, and missing items register. Covers run_manifest.json / input_inventory.json / intake_summary.json shapes.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "run_id",
+    "workflow_version",
+    "primary_review_object",
+    "input_inventory"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "rmf_intake"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "workflow_version": {
+      "type": "string"
+    },
+    "institution_profile": {
+      "type": "string"
+    },
+    "primary_review_object": {
+      "type": "string"
+    },
+    "artifact_root": {
+      "type": "string"
+    },
+    "input_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "doc_type",
+          "presence",
+          "source_ref"
+        ],
+        "properties": {
+          "doc_type": {
+            "type": "string"
+          },
+          "doc_id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "presence": {
+            "type": "string",
+            "enum": [
+              "missing",
+              "present",
+              "present_but_unreadable",
+              "not_applicable"
+            ]
+          },
+          "source_ref": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    },
+    "missing_items_register": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item_id",
+          "blocking"
+        ],
+        "properties": {
+          "item_id": {
+            "type": "string"
+          },
+          "item_name": {
+            "type": "string"
+          },
+          "blocking": {
+            "type": "boolean"
+          },
+          "rationale": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "fmea_presence_status": {
+      "type": "string",
+      "enum": [
+        "explicitly_present",
+        "explicitly_missing",
+        "ambiguous"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "source_traceability": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "document_id"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "finding_id",
+        "severity",
+        "description"
+      ],
+      "properties": {
+        "finding_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocking",
+            "advisory",
+            "informational"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    }
+  }
+}

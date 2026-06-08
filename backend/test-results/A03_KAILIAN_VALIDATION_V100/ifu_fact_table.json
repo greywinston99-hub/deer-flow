@@ -1,0 +1,157 @@
+{
+  "schema": "cer_ifu_fact_table_v1",
+  "status": "INCOMPLETE",
+  "source_ids": [
+    "SRC-197",
+    "SRC-221",
+    "SRC-251",
+    "SRC-255",
+    "SRC-257",
+    "SRC-279",
+    "SRC-285",
+    "SRC-305",
+    "SRC-349",
+    "SRC-359",
+    "SRC-399",
+    "SRC-411",
+    "SRC-423",
+    "SRC-435",
+    "SRC-440",
+    "SRC-444",
+    "SRC-458",
+    "SRC-469",
+    "SRC-470",
+    "SRC-471",
+    "SRC-472",
+    "SRC-473",
+    "SRC-474",
+    "SRC-475",
+    "SRC-476",
+    "SRC-477",
+    "SRC-478",
+    "SRC-479",
+    "SRC-480",
+    "SRC-481",
+    "SRC-482",
+    "SRC-483",
+    "SRC-484",
+    "SRC-485",
+    "SRC-486",
+    "SRC-487",
+    "SRC-488",
+    "SRC-489",
+    "SRC-490",
+    "SRC-491",
+    "SRC-492",
+    "SRC-493",
+    "SRC-494",
+    "SRC-495",
+    "SRC-496",
+    "SRC-497",
+    "SRC-498",
+    "SRC-499",
+    "SRC-500",
+    "SRC-501",
+    "SRC-502",
+    "SRC-503",
+    "SRC-504",
+    "SRC-505",
+    "SRC-506",
+    "SRC-507",
+    "SRC-508",
+    "SRC-509",
+    "SRC-510",
+    "SRC-511",
+    "SRC-512",
+    "SRC-513",
+    "SRC-514",
+    "SRC-515",
+    "SRC-516",
+    "SRC-517",
+    "SRC-518",
+    "SRC-519",
+    "SRC-520",
+    "SRC-521",
+    "SRC-522",
+    "SRC-523",
+    "SRC-524",
+    "SRC-525"
+  ],
+  "fields": {
+    "model": {
+      "present": true,
+      "matched_terms": [
+        "型号",
+        "model",
+        "specification",
+        "规格"
+      ],
+      "manufacturer_intake_confirmed": false
+    },
+    "intended_purpose": {
+      "present": true,
+      "matched_terms": [
+        "适用范围",
+        "intended purpose",
+        "intended use",
+        "indication"
+      ],
+      "manufacturer_intake_confirmed": false
+    },
+    "intended_user": {
+      "present": true,
+      "matched_terms": [
+        "intended user",
+        "operator"
+      ],
+      "manufacturer_intake_confirmed": false
+    },
+    "patient_population": {
+      "present": false,
+      "matched_terms": [],
+      "manufacturer_intake_confirmed": false
+    },
+    "clinical_benefit": {
+      "present": true,
+      "matched_terms": [
+        "clinical benefit"
+      ],
+      "manufacturer_intake_confirmed": false
+    },
+    "side_effects": {
+      "present": true,
+      "matched_terms": [
+        "undesirable"
+      ],
+      "manufacturer_intake_confirmed": false
+    },
+    "warnings": {
+      "present": true,
+      "matched_terms": [
+        "警告",
+        "注意事项",
+        "warning",
+        "precaution"
+      ],
+      "manufacturer_intake_confirmed": false
+    },
+    "contraindications": {
+      "present": true,
+      "matched_terms": [
+        "禁忌",
+        "contraindication"
+      ],
+      "manufacturer_intake_confirmed": false
+    },
+    "document_control": {
+      "present": true,
+      "matched_terms": [
+        "版本",
+        "revision",
+        "effective date"
+      ],
+      "manufacturer_intake_confirmed": false
+    }
+  },
+  "placeholder_hits": []
+}

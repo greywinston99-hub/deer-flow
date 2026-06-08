@@ -26,12 +26,12 @@ from pathlib import Path
 from typing import Any
 
 from deerflow.mcp import cer_public_evidence_server as public_evidence
-from deerflow.utils.network import force_direct_api_network
+from deerflow.utils.network import build_api_url_opener, force_direct_api_network
 
 logger = logging.getLogger(__name__)
 
 force_direct_api_network()
-_DIRECT_URL_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+_DIRECT_URL_OPENER = build_api_url_opener()
 
 KIMI_CODE_ROOT = Path(os.getenv("CER_AUTHORING_KIMI_CODE_ROOT", "/Users/winstonwei/Documents/KIMI CODE"))
 KIMI_MCP_ROOT = KIMI_CODE_ROOT / "mcp-servers"
@@ -376,6 +376,7 @@ def call_clinical_source_adapter(adapter: str, arguments: dict[str, Any] | None 
         "pmc_fulltext_search": _adapter_pmc_fulltext_search,
         "europe_pmc_adapter_search": _adapter_europe_pmc_search,
         "clinicaltrials_gov_adapter_search": _adapter_clinicaltrials_gov_search,
+        "ncbi_elink": _adapter_ncbi_elink,
     }
     func = adapters.get(adapter)
     if not func:
@@ -822,13 +823,59 @@ def _ncbi_url(endpoint: str, params: dict[str, Any]) -> str:
     return f"{NCBI_BASE}/{endpoint}?{urllib.parse.urlencode(clean, doseq=True)}"
 
 
+def _adapter_ncbi_elink(query: str, dbfrom: str = "pubmed", db: str = "pmc", **_: Any) -> dict[str, Any]:
+    """NCBI ELink: convert IDs between databases (e.g. PMID → PMCID).
+
+    Used by _retrieve_pubmed_full_text_records when the direct PMC search
+    by PMID fails.  Returns a dict with ``linked_ids`` mapping from input
+    ID to linked ID(s) and per-PMID PMC records when full-text is fetched.
+    """
+    pmids = [x.strip() for x in query.split(",") if x.strip()] if query else []
+    if not pmids:
+        return _adapter_response("NCBI ELink", "ncbi_elink", query, "", 0, [])
+    pmid_str = ",".join(pmids)
+    elink_url = _ncbi_url("elink.fcgi", {
+        "dbfrom": dbfrom, "db": db, "id": pmid_str,
+        "retmode": "json", "cmd": "neighbor_history",
+    })
+    elink_data = _adapter_fetch_json(elink_url)
+    linksets = elink_data.get("linksets", [])
+    pmid_to_pmcid: dict[str, list[str]] = {}
+    for ls in linksets:
+        src_ids = [str(i) for i in ls.get("ids", [])]
+        linksetdbs = ls.get("linksetdbs", [])
+        for ldb in linksetdbs:
+            if ldb.get("linkname", "").startswith("pubmed_pmc"):
+                linked = [str(i) for i in ldb.get("links", [])]
+                for src in src_ids:
+                    pmid_to_pmcid.setdefault(src, []).extend(linked)
+    total_count = sum(len(v) for v in pmid_to_pmcid.values())
+    # Fetch full-text for all found PMCIDs
+    all_pmcids: list[str] = []
+    for pmcids in pmid_to_pmcid.values():
+        all_pmcids.extend(pmcids)
+    records: list[dict[str, Any]] = []
+    fetch_url = ""
+    if all_pmcids:
+        unique_pmcids = list(dict.fromkeys(all_pmcids))[:50]  # max 50 per batch
+        fetch_url = _ncbi_url("efetch.fcgi", {"db": "pmc", "id": ",".join(unique_pmcids), "retmode": "xml"})
+        xml_text = _adapter_fetch_text(fetch_url)
+        records = _pmc_records_from_xml(xml_text, query, fetch_url)
+    return _adapter_response(
+        "NCBI ELink", "ncbi_elink", query, elink_url, total_count, records,
+        extra={"elink_url": elink_url, "efetch_url": fetch_url, "pmid_to_pmcid": pmid_to_pmcid},
+    )
+
+
 def _adapter_pmc_fulltext_search(query: str, retmax: int = 20, date_from: str = "", date_to: str = "", **_: Any) -> dict[str, Any]:
+    retmax = max(1, min(int(retmax), 100))
     search_params: dict[str, Any] = {
         "db": "pmc",
         "term": query,
         "retmode": "json",
-        "retmax": max(1, min(int(retmax), 100)),
+        "retmax": retmax,
         "sort": "relevance",
+        "usehistory": "y",
     }
     if date_from or date_to:
         search_params["datetype"] = "pdat"
@@ -838,12 +885,29 @@ def _adapter_pmc_fulltext_search(query: str, retmax: int = 20, date_from: str = 
     search_data = _adapter_fetch_json(search_url)
     result = search_data.get("esearchresult", {})
     pmcids = [str(value) for value in result.get("idlist", [])]
+    total_count = int(result.get("count", 0))
+    retry = 0
+    while retry < 3 and total_count > 0 and not pmcids:
+        retry += 1
+        retry_params = dict(search_params)
+        retry_params["retstart"] = retry * retmax
+        search_url = _ncbi_url("esearch.fcgi", retry_params)
+        search_data = _adapter_fetch_json(search_url)
+        result = search_data.get("esearchresult", {})
+        pmcids = [str(value) for value in result.get("idlist", [])]
+        total_count = int(result.get("count", total_count))
     if not pmcids:
-        return _adapter_response("NCBI PMC", "pmc_fulltext_search", query, search_url, int(result.get("count", 0)), [])
+        response = _adapter_response("NCBI PMC", "pmc_fulltext_search", query, search_url, total_count, [])
+        if total_count > 0:
+            response["retrieval_gap_note"] = (
+                f"NCBI PMC returned count={total_count} but no idlist after {retry} retries; "
+                "recorded as retrieval gap, not as zero evidence."
+            )
+        return response
     fetch_url = _ncbi_url("efetch.fcgi", {"db": "pmc", "id": ",".join(pmcids), "retmode": "xml"})
     xml_text = _adapter_fetch_text(fetch_url)
     records = _pmc_records_from_xml(xml_text, query, fetch_url)
-    return _adapter_response("NCBI PMC", "pmc_fulltext_search", query, search_url, int(result.get("count", 0)), records, extra={"efetch_url": fetch_url})
+    return _adapter_response("NCBI PMC", "pmc_fulltext_search", query, search_url, total_count, records, extra={"efetch_url": fetch_url})
 
 
 def _pmc_records_from_xml(xml_text: str, query: str, source_url: str) -> list[dict[str, Any]]:
@@ -884,12 +948,28 @@ def _pmc_records_from_xml(xml_text: str, query: str, source_url: str) -> list[di
 
 
 def _adapter_europe_pmc_search(query: str, page_size: int = 25, **_: Any) -> dict[str, Any]:
-    params = {"query": query, "format": "json", "pageSize": max(1, min(int(page_size), 100))}
+    page_size = max(1, min(int(page_size), 100))
+    params = {"query": query, "format": "json", "pageSize": page_size}
     url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search?" + urllib.parse.urlencode(params)
     data = _adapter_fetch_json(url)
     raw_records = data.get("resultList", {}).get("result", [])
+    hit_count = int(data.get("hitCount", len(raw_records)) or 0)
+    retry = 0
+    while retry < 2 and hit_count > 0 and not raw_records:
+        retry += 1
+        retry_params = {**params, "cursorMark": "*", "pageSize": page_size}
+        url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search?" + urllib.parse.urlencode(retry_params)
+        data = _adapter_fetch_json(url)
+        raw_records = data.get("resultList", {}).get("result", [])
+        hit_count = int(data.get("hitCount", hit_count) or 0)
     records = [_europe_pmc_native_record(row, query, url) for row in raw_records]
-    return _adapter_response("Europe PMC", "europe_pmc_adapter_search", query, url, int(data.get("hitCount", len(records))), records)
+    response = _adapter_response("Europe PMC", "europe_pmc_adapter_search", query, url, hit_count, records)
+    if hit_count > 0 and not records:
+        response["retrieval_gap_note"] = (
+            f"Europe PMC returned hitCount={hit_count} but no records after {retry} retries; "
+            "recorded as retrieval gap, not as zero evidence."
+        )
+    return response
 
 
 def _europe_pmc_native_record(row: dict[str, Any], query: str, source_url: str) -> dict[str, Any]:

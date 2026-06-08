@@ -1,0 +1,605 @@
+# BIGDP2026.6 Expert Reasoning Rulebook
+# =====================================
+# Deterministic rules for CER expert reasoning that runtime code consumes.
+# Each rule has: rule_id, trigger, inputs, decision, rationale_template,
+# affected_ledger, affected_gate, severity, test_fixture_ref.
+#
+# Schema version: 1.0.0
+# Generated: 2026-06-08
+
+schema_version: "1.0.0"
+generated_by: "BIGDP2026.6 Expert Logic Pack"
+
+rules:
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 1: IFU Claim Transformation Rules (IFU-01 ~ IFU-07)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "IFU-01"
+    category: "ifu_transformation"
+    trigger: "ifu_text contains marketing language keywords"
+    inputs: ["ifu_text", "marketing_keywords_list"]
+    decision: "flag marketing_language_detected=true; require human review"
+    rationale_template: "IFU text '{ifu_text_truncated}' contains marketing language: {detected_keywords}. Cannot be used directly as CER conclusion."
+    affected_ledger: "ifu_claim_evolution_ledger"
+    affected_gate: "G46"
+    severity: "major"
+    test_fixture_ref: "S-01_ifu_marketing_claim_overreach"
+
+  - rule_id: "IFU-02"
+    category: "ifu_transformation"
+    trigger: "ifu_claim scope exceeds evidence scope"
+    inputs: ["ifu_claim_text", "evidence_findings_summary"]
+    decision: "narrow claim; set claim_narrowed=true"
+    rationale_template: "IFU claim scope '{original_scope}' exceeds evidence scope '{evidence_scope}'. Claim narrowed to '{narrowed_scope}'."
+    affected_ledger: "ifu_claim_evolution_ledger"
+    affected_gate: "G46"
+    severity: "major"
+    test_fixture_ref: "S-10_ifu_claim_narrowing"
+
+  - rule_id: "IFU-03"
+    category: "ifu_transformation"
+    trigger: "ifu_claim uses absolute language (100%, always, never, eliminates, guarantees)"
+    inputs: ["ifu_text"]
+    decision: "qualify claim with statistical language; set safety_qualifier_added=true"
+    rationale_template: "IFU uses absolute language '{absolute_term}'. Qualified to evidence-supported frequency '{qualified_frequency}'."
+    affected_ledger: "ifu_claim_evolution_ledger"
+    affected_gate: "G46"
+    severity: "major"
+    test_fixture_ref: "S-01_ifu_marketing_claim_overreach"
+
+  - rule_id: "IFU-04"
+    category: "ifu_transformation"
+    trigger: "evidence contradicts ifu_claim"
+    inputs: ["ifu_claim", "evidence_findings", "statistical_significance"]
+    decision: "reject claim; set final_cer_claim to not_supported; gap_disposition=cannot_support"
+    rationale_template: "Evidence contradicts IFU claim. Study '{pmid}' found {finding} (p={p_value}). IFU claim '{ifu_claim}' cannot be supported."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "critical"
+    test_fixture_ref: "S-06_cannot_support_claim"
+
+  - rule_id: "IFU-05"
+    category: "ifu_transformation"
+    trigger: "ifu_claim is strengthened beyond IFU wording"
+    inputs: ["ifu_original", "ifu_derived_claim"]
+    decision: "flag claim_strengthened=true; require human review"
+    rationale_template: "Derived claim '{derived}' is stronger than IFU original '{original}'. Human review required."
+    affected_ledger: "ifu_claim_evolution_ledger"
+    affected_gate: "HC_rework"
+    severity: "critical"
+    test_fixture_ref: "S-11_writer_cannot_exceed_ledger"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 2: Claim Classification Rules (CLS-01 ~ CLS-06)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "CLS-01"
+    category: "claim_classification"
+    trigger: "claim_text contains therapeutic outcome language (reduces, improves, achieves, treats)"
+    inputs: ["claim_text"]
+    decision: "classify as clinical_performance"
+    rationale_template: "Claim describes therapeutic outcome: '{claim_text_truncated}'. Classified as clinical_performance."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G43"
+    severity: "info"
+    test_fixture_ref: "S-02_weak_evidence"
+
+  - rule_id: "CLS-02"
+    category: "claim_classification"
+    trigger: "claim_text contains safety language (safe, no harm, AE rate, complication, risk)"
+    inputs: ["claim_text"]
+    decision: "classify as clinical_safety"
+    rationale_template: "Claim describes safety profile: '{claim_text_truncated}'. Classified as clinical_safety. Requires clinical evidence + RMF/GSPR support."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G43"
+    severity: "info"
+    test_fixture_ref: "S-09_safety_claim_rmf_gspr"
+
+  - rule_id: "CLS-03"
+    category: "claim_classification"
+    trigger: "claim_text contains usability/ergonomics language (easy, intuitive, comfortable, ergonomic, handle)"
+    inputs: ["claim_text"]
+    decision: "classify as usability"
+    rationale_template: "Claim describes usability: '{claim_text_truncated}'. Classified as usability. May use manufacturer data with limitations."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G43"
+    severity: "info"
+    test_fixture_ref: "none"
+
+  - rule_id: "CLS-04"
+    category: "claim_classification"
+    trigger: "claim_text contains warning/contraindication language (do not, contraindicated, warning, precaution, caution)"
+    inputs: ["claim_text"]
+    decision: "classify as warning"
+    rationale_template: "Statement is a warning/precaution. Classified as warning. Derives from RMF, not PubMed literature."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G43"
+    severity: "info"
+    test_fixture_ref: "S-09_safety_claim_rmf_gspr"
+
+  - rule_id: "CLS-05"
+    category: "claim_classification"
+    trigger: "claim_text contains overreach patterns (all, every, guaranteed, 100%, perfect, eliminates, never)"
+    inputs: ["claim_text"]
+    decision: "flag as potential marketing_overclaim; trigger human review"
+    rationale_template: "Claim uses absolute/overreach language: '{keyword}'. Flagged as potential overclaim. Requires evidence verification."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "HC_rework"
+    severity: "major"
+    test_fixture_ref: "S-01_ifu_marketing_claim_overreach"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 3: Evidence Support Rules (EVS-01 ~ EVS-06)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "EVS-01"
+    category: "evidence_support"
+    trigger: "evidence is from a clinical study on the SUBJECT device"
+    inputs: ["evidence_device", "subject_device_name"]
+    decision: "support_type=direct"
+    rationale_template: "Study conducted on subject device '{subject_device}'. Classified as direct clinical evidence."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G43"
+    severity: "info"
+    test_fixture_ref: "S-02_weak_evidence"
+
+  - rule_id: "EVS-02"
+    category: "evidence_support"
+    trigger: "evidence is from a clinical study on a DIFFERENT device in same clinical domain"
+    inputs: ["evidence_device", "subject_device_name"]
+    decision: "support_type=indirect"
+    rationale_template: "Study on '{evidence_device}', not subject device '{subject_device}'. Classified as indirect evidence."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G43"
+    severity: "info"
+    test_fixture_ref: "S-03_indirect_evidence"
+
+  - rule_id: "EVS-03"
+    category: "evidence_support"
+    trigger: "evidence is from an equivalent device with documented equivalence"
+    inputs: ["evidence_device", "equivalent_device_name", "equivalence_claimed"]
+    decision: "support_type=equivalent"
+    rationale_template: "Study on equivalent device '{equivalent}'. Equivalence claimed under MDR Annex XIV. Classified as equivalent device evidence."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G43"
+    severity: "info"
+    test_fixture_ref: "S-04_equivalence_not_direct"
+
+  - rule_id: "EVS-04"
+    category: "evidence_support"
+    trigger: "evidence is manufacturer bench testing or internal data"
+    inputs: ["evidence_source_type"]
+    decision: "support_type=manufacturer; conclusion ceiling=limited"
+    rationale_template: "Manufacturer data without independent clinical validation. Conclusion strength capped at 'limited'."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G43"
+    severity: "warning"
+    test_fixture_ref: "S-02_weak_evidence"
+
+  - rule_id: "EVS-05"
+    category: "evidence_support"
+    trigger: "no evidence available for a claim"
+    inputs: ["claim_id", "evidence_ids"]
+    decision: "support_type=insufficient; conclusion_strength=limited; gap_disposition=PMCF"
+    rationale_template: "No evidence linked to claim '{claim_id}'. Marked as insufficient. PMCF recommended."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "major"
+    test_fixture_ref: "S-05_pmcf_required"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 4: Conclusion Strength Rules (CON-01 ~ CON-07)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "CON-01"
+    category: "conclusion_strength"
+    trigger: "support_type=direct AND evidence_count >= 2 AND evidence_is_consistent=true"
+    inputs: ["support_type", "evidence_count", "evidence_consistency"]
+    decision: "conclusion_strength=strong"
+    rationale_template: "{evidence_count} direct studies with consistent findings. Conclusion: strong."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "info"
+    test_fixture_ref: "S-02_weak_evidence"
+
+  - rule_id: "CON-02"
+    category: "conclusion_strength"
+    trigger: "support_type=direct AND evidence_count == 1"
+    inputs: ["support_type", "evidence_count"]
+    decision: "conclusion_strength=moderate"
+    rationale_template: "Single direct study (N={sample_size}). Conclusion: moderate with single-study limitation."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "info"
+    test_fixture_ref: "S-05_pmcf_required"
+
+  - rule_id: "CON-03"
+    category: "conclusion_strength"
+    trigger: "support_type IN (indirect, equivalent, PMS)"
+    inputs: ["support_type", "evidence_count"]
+    decision: "conclusion_strength=moderate (if >=2) OR limited (if 1)"
+    rationale_template: "{support_type} evidence ({evidence_count} sources). Conclusion capped at moderate/limited."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "info"
+    test_fixture_ref: "S-03_indirect_evidence, S-04_equivalence_not_direct"
+
+  - rule_id: "CON-04"
+    category: "conclusion_strength"
+    trigger: "support_type=manufacturer"
+    inputs: ["support_type"]
+    decision: "conclusion_strength=limited"
+    rationale_template: "Manufacturer-only data. Conclusion cannot exceed 'limited' for clinical claims."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "warning"
+    test_fixture_ref: "S-02_weak_evidence"
+
+  - rule_id: "CON-05"
+    category: "conclusion_strength"
+    trigger: "support_type=insufficient"
+    inputs: ["support_type"]
+    decision: "conclusion_strength=limited; gap_disposition MUST be set"
+    rationale_template: "Insufficient evidence for conclusion. Gap disposition required."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "major"
+    test_fixture_ref: "S-07_unsupported_claim"
+
+  - rule_id: "CON-06"
+    category: "conclusion_strength"
+    trigger: "evidence is contradictory (studies show opposite directions)"
+    inputs: ["evidence_direction_consistency"]
+    decision: "conclusion_strength=limited OR not_supported; gap_disposition=cannot_support"
+    rationale_template: "Evidence is contradictory across studies. Cannot conclude strongly. Gap: cannot_support."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "critical"
+    test_fixture_ref: "S-06_cannot_support_claim"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 5: Benchmark Derivation Rules (BMK-01 ~ BMK-06)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "BMK-01"
+    category: "benchmark_derivation"
+    trigger: "benchmark_endpoint has >=3 direct source studies"
+    inputs: ["source_study_count", "directness"]
+    decision: "directness=direct; confidence=high"
+    rationale_template: "{count} direct source studies available. Benchmark: direct, high confidence."
+    affected_ledger: "benchmark_derivation_trace"
+    affected_gate: "G42"
+    severity: "info"
+    test_fixture_ref: "S-05_fallback_benchmark"
+
+  - rule_id: "BMK-02"
+    category: "benchmark_derivation"
+    trigger: "benchmark_endpoint has some studies but partial comparability"
+    inputs: ["source_study_count", "population_comparability", "device_comparability"]
+    decision: "directness=indirect; confidence=medium"
+    rationale_template: "Partial population/device comparability. Benchmark: indirect, medium confidence."
+    affected_ledger: "benchmark_derivation_trace"
+    affected_gate: "G42"
+    severity: "warning"
+    test_fixture_ref: "S-05_fallback_benchmark"
+
+  - rule_id: "BMK-03"
+    category: "benchmark_derivation"
+    trigger: "benchmark_endpoint has NO adequate source studies"
+    inputs: ["source_study_count"]
+    decision: "directness=fallback; confidence=low; acceptability_rationale REQUIRED; alternatives_rejected_rationale REQUIRED; limitations REQUIRED"
+    rationale_template: "No adequate source studies for benchmark. Fallback benchmark with documented limitations."
+    affected_ledger: "benchmark_derivation_trace"
+    affected_gate: "G42"
+    severity: "major"
+    test_fixture_ref: "S-05_fallback_benchmark"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 6: Gap Disposition Rules (GAP-01 ~ GAP-05)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "GAP-01"
+    category: "gap_disposition"
+    trigger: "evidence_ids list is empty"
+    inputs: ["evidence_ids"]
+    decision: "gap_disposition=PMCF"
+    rationale_template: "No evidence linked to claim. PMCF study recommended to generate evidence."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "major"
+    test_fixture_ref: "S-05_pmcf_required"
+
+  - rule_id: "GAP-02"
+    category: "gap_disposition"
+    trigger: "evidence exists but is insufficient for strong conclusion AND is not contradictory"
+    inputs: ["conclusion_strength", "evidence_contradiction"]
+    decision: "gap_disposition=PMCF"
+    rationale_template: "Evidence insufficient for strong conclusion. PMCF recommended for additional data."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "major"
+    test_fixture_ref: "S-08_pmcf_not_universal"
+
+  - rule_id: "GAP-03"
+    category: "gap_disposition"
+    trigger: "evidence contradicts claim"
+    inputs: ["evidence_vs_claim_direction"]
+    decision: "gap_disposition=cannot_support; conclusion_strength=not_supported"
+    rationale_template: "Available evidence contradicts the claim. Claim cannot be supported."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "G46"
+    severity: "critical"
+    test_fixture_ref: "S-06_cannot_support_claim"
+
+  - rule_id: "GAP-04"
+    category: "gap_disposition"
+    trigger: "safety claim without RMF/GSPR alignment"
+    inputs: ["claim_type", "rmf_alignment", "gspr_alignment"]
+    decision: "gap_disposition=risk_control"
+    rationale_template: "Safety claim requires RMF hazard analysis and GSPR alignment. Risk control documentation required."
+    affected_ledger: "cer_reasoning_ledger"
+    affected_gate: "alignment_gate"
+    severity: "major"
+    test_fixture_ref: "S-09_safety_claim_rmf_gspr"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 7: Human Gate Trigger Rules (HG-01 ~ HG-10)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "HG-01"
+    category: "human_gate_trigger"
+    trigger: "device_profile is incomplete (missing device_name, intended_use, or device_class)"
+    inputs: ["device_profile"]
+    decision: "trigger HC-01"
+    rationale_template: "Product identity incomplete. Human must confirm device profile before CER proceeds."
+    affected_gate: "HC-01"
+    severity: "critical"
+    test_fixture_ref: "S-12_high_risk_uncertainty"
+
+  - rule_id: "HG-02"
+    category: "human_gate_trigger"
+    trigger: "claim is narrowed materially (scope reduction >30%)"
+    inputs: ["original_claim_scope", "narrowed_claim_scope"]
+    decision: "trigger HC rework at claim_decomposition"
+    rationale_template: "Claim scope narrowed by {reduction_pct}%. Human must confirm narrowed claim."
+    affected_gate: "HC-03"
+    severity: "major"
+    test_fixture_ref: "S-10_ifu_claim_narrowing"
+
+  - rule_id: "HG-03"
+    category: "human_gate_trigger"
+    trigger: "conclusion_strength is not_supported or cannot_support"
+    inputs: ["conclusion_strength", "gap_disposition"]
+    decision: "trigger HC at pre_writer_summary"
+    rationale_template: "Claim cannot be supported by evidence. Human must decide: remove claim, downgrade, or accept risk."
+    affected_gate: "HC-06.5"
+    severity: "critical"
+    test_fixture_ref: "S-06_cannot_support_claim, S-07_unsupported_claim"
+
+  - rule_id: "HG-04"
+    category: "human_gate_trigger"
+    trigger: "fallback benchmark used for high-criticality claim"
+    inputs: ["benchmark_directness", "claim_criticality"]
+    decision: "trigger HC at claim_sota_alignment"
+    rationale_template: "Fallback benchmark ({directness}) used for high-criticality claim. Human must review acceptability."
+    affected_gate: "HC-06"
+    severity: "major"
+    test_fixture_ref: "S-05_fallback_benchmark"
+
+  - rule_id: "HG-05"
+    category: "human_gate_trigger"
+    trigger: "BR acceptability is unclear (benefit_risk_closure_matrix.closure_status == NOT_CONCLUDABLE)"
+    inputs: ["br_closure_status"]
+    decision: "trigger HC at br_justified_gate"
+    rationale_template: "Benefit-risk cannot be concluded. Human must review BR balance."
+    affected_gate: "HC-07"
+    severity: "critical"
+    test_fixture_ref: "S-12_high_risk_uncertainty"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 8: Writer Limitation Rules (WRT-01 ~ WRT-08)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "WRT-01"
+    category: "writer_limitation"
+    trigger: "G46 status != PASS"
+    inputs: ["g46_report.status"]
+    decision: "BLOCK Writer entirely"
+    rationale_template: "G46 status is '{status}'. Writer cannot proceed until all pre-writer conditions pass."
+    affected_gate: "G46"
+    severity: "critical"
+    test_fixture_ref: "S-11_writer_cannot_exceed_ledger"
+
+  - rule_id: "WRT-02"
+    category: "writer_limitation"
+    trigger: "any claim has conclusion_strength=not_supported"
+    inputs: ["cer_reasoning_ledger.claims[].conclusion_strength"]
+    decision: "BLOCK Writer for that claim"
+    rationale_template: "Claim '{claim_id}' has conclusion_strength=not_supported. Writer must flag as unsupported in CER text."
+    affected_gate: "G46"
+    severity: "critical"
+    test_fixture_ref: "S-07_unsupported_claim"
+
+  - rule_id: "WRT-03"
+    category: "writer_limitation"
+    trigger: "claim has gap_disposition=PMCF"
+    inputs: ["cer_reasoning_ledger.claims[].gap_disposition"]
+    decision: "ALLOW with PMCF note"
+    rationale_template: "Claim '{claim_id}' requires PMCF. Writer must include PMCF recommendation in CER."
+    affected_gate: "G46"
+    severity: "warning"
+    test_fixture_ref: "S-08_pmcf_not_universal"
+
+  - rule_id: "WRT-04"
+    category: "writer_limitation"
+    trigger: "Writer attempts to write 'strong' for claim where ledger says limited"
+    inputs: ["writer_claim_strength", "ledger_conclusion_strength"]
+    decision: "BLOCK; Writer must not strengthen conclusion beyond ledger"
+    rationale_template: "Writer claim strength '{writer}' exceeds ledger strength '{ledger}'. Writer must use ledger as ceiling."
+    affected_gate: "G46"
+    severity: "critical"
+    test_fixture_ref: "S-11_writer_cannot_exceed_ledger"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 9: Evidence Scoring & Appraisal (from 5-CER Engineer Feedback)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "APP-01"
+    category: "evidence_appraisal"
+    trigger: "evidence study_design is RCT"
+    inputs: ["study_design"]
+    decision: "Oxford CEBM Level 1b; weight_bonus +30%"
+    rationale_template: "RCT is highest-quality individual study design per Oxford CEBM."
+    affected_ledger: "evidence_registry"
+    affected_gate: "G41"
+    severity: "info"
+    source: "CER_04_ANSWERS §5B.2, CER_05_TABLES Type D"
+
+  - rule_id: "APP-02"
+    category: "evidence_appraisal"
+    trigger: "evidence study_design is prospective_cohort"
+    inputs: ["study_design"]
+    decision: "Oxford CEBM Level 2b; standard weight"
+    rationale_template: "Prospective cohort study. Moderate quality per Oxford CEBM."
+    affected_ledger: "evidence_registry"
+    affected_gate: "G41"
+    severity: "info"
+    source: "CER_05_TABLES §Type D"
+
+  - rule_id: "APP-03"
+    category: "evidence_appraisal"
+    trigger: "evidence study_design is case_series AND N < 10"
+    inputs: ["study_design", "sample_size"]
+    decision: "Oxford CEBM Level 4; EXCLUDE from primary evidence (N<10)"
+    rationale_template: "Case series with N<10 excluded per BIGDP2026.6 literature standards."
+    affected_ledger: "evidence_registry"
+    affected_gate: "G41"
+    severity: "major"
+    source: "CER_04_ANSWERS — Case reports N<10 insufficient for clinical evidence claims"
+
+  - rule_id: "APP-04"
+    category: "evidence_appraisal"
+    trigger: "evidence relevance is indirect (different device, same domain)"
+    inputs: ["relevance", "device_match"]
+    decision: "relevance_weight capped at 0.7"
+    rationale_template: "Indirect device relevance reduces evidence weight per MDCG 2020-6."
+    affected_ledger: "evidence_registry"
+    affected_gate: "G41"
+    severity: "info"
+    source: "CER_05_TABLES §Type D — Suitability scoring"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 10: Equivalence Rules (from 5-CER Engineer Feedback)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "EQV-01"
+    category: "equivalence"
+    trigger: "no equivalent device found after comprehensive search"
+    inputs: ["equivalent_device_search_result"]
+    decision: "equivalence_claimed=false; use non-equivalence path"
+    rationale_template: "No device meeting all three dimensions (technical/biological/clinical). Non-equivalence path: literature-based CER."
+    affected_ledger: "device_profile"
+    affected_gate: "HC-01"
+    severity: "critical"
+    source: "CER_04_ANSWERS §5A.1 — 心擎模式: Equivalence is not claimed"
+
+  - rule_id: "EQV-02"
+    category: "equivalence"
+    trigger: "equivalent device found but performance data not publicly available"
+    inputs: ["equivalence_performance_data_available"]
+    decision: "remove Performance Comparison from equivalence table; document data gap"
+    rationale_template: "Performance data not publicly available for equivalent device. Removing comparison clause. MDR does not require public performance data."
+    affected_ledger: "device_profile"
+    affected_gate: "HC-01"
+    severity: "warning"
+    source: "CER_04_ANSWERS §5A.2 — 性能对比数据缺失的灰色地带"
+
+  - rule_id: "EQV-03"
+    category: "equivalence"
+    trigger: "equivalence differences found in any dimension"
+    inputs: ["equivalence_differences"]
+    decision: "each difference requires impact assessment: 'does not affect clinical safety and performance because...'"
+    rationale_template: "Difference in {dimension}: {detail}. This does not affect clinical safety and performance because {reasoning}."
+    affected_gate: "HC-01"
+    severity: "major"
+    source: "CER_04_ANSWERS §5A.2 — 差异影响论证标准句式"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 11: Search Protocol Rules (from 5-CER Engineer Feedback)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "SRC-01"
+    category: "search_protocol"
+    trigger: "search database list contains only PubMed/MEDLINE"
+    inputs: ["search_databases"]
+    decision: "WARNING: minimum requires PubMed + Embase for EU submissions"
+    rationale_template: "PubMed/MEDLINE alone is insufficient for EU regulatory submissions. Embase required for European journal coverage."
+    affected_gate: "G30"
+    severity: "major"
+    source: "CER_04_ANSWERS §5B.2 — MEDLINE 排除问题"
+
+  - rule_id: "SRC-02"
+    category: "search_protocol"
+    trigger: "search terms use brand name as primary keyword"
+    inputs: ["search_terms", "device_brand_name", "device_generic_name"]
+    decision: "WARNING: generic/technical name has higher retrieval priority"
+    rationale_template: "Brand name '{brand}' used as primary keyword. Academic literature typically uses technical names. Reprioritize to generic name '{generic}'."
+    affected_gate: "G30"
+    severity: "warning"
+    source: "CER_04_ANSWERS §5B.2 — 检索词策略"
+
+  - rule_id: "SRC-03"
+    category: "search_protocol"
+    trigger: "search execution missing date or executor"
+    inputs: ["search_date", "search_executor"]
+    decision: "REWORK: search audit trail incomplete"
+    rationale_template: "Search execution record incomplete. NB requires exact search date and executor name for reproducibility."
+    affected_gate: "G30"
+    severity: "major"
+    source: "CER_04_ANSWERS §5B.1 — 检索执行记录"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 12: Chapter Dependency Rules (from 5-CER Engineer Feedback)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "DEP-01"
+    category: "chapter_dependency"
+    trigger: "§4 Evidence writing begins before §3 SOTA is complete"
+    inputs: ["sota_benchmark_table", "evidence_appraisal_started"]
+    decision: "BLOCK: §3 SOTA must complete before §4 evidence analysis"
+    rationale_template: "Rigid dependency: SOTA establishes the benchmark against which evidence is evaluated. Cannot appraise evidence without benchmark context."
+    affected_gate: "G46"
+    severity: "critical"
+    source: "CER_02_LOGIC §1.2 — 三条刚性依赖链"
+
+  - rule_id: "DEP-02"
+    category: "chapter_dependency"
+    trigger: "T0 critical table is empty or missing"
+    inputs: ["t0_tables_present"]
+    decision: "BLOCK: T0 tables are data anchors — CER cannot proceed without them"
+    rationale_template: "T0 table '{table_name}' missing. This is a data anchor — all downstream analysis depends on it."
+    affected_gate: "G46"
+    severity: "critical"
+    source: "SKILL_ELICITATION §6 — T0 核心表"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Category 13: CER Wording Rules (from 5-CER Engineer Feedback)
+  # ═══════════════════════════════════════════════════════════════════════
+  - rule_id: "WRN-01"
+    category: "cer_wording"
+    trigger: "support_level is STRONG"
+    inputs: ["support_level"]
+    decision: "permitted CER verbs: 'demonstrates', 'confirms', 'establishes'"
+    rationale_template: "Strong support allows definitive language per NB conventions."
+    affected_gate: "Writer"
+    severity: "info"
+    source: "SKILL_ELICITATION §3 — Support Level → CER 措辞映射"
+
+  - rule_id: "WRN-02"
+    category: "cer_wording"
+    trigger: "support_level is MODERATE"
+    inputs: ["support_level"]
+    decision: "permitted CER verbs: 'suggests', 'supports', 'indicates'"
+    rationale_template: "Moderate support requires measured language. Avoid 'demonstrates' or 'confirms'."
+    affected_gate: "Writer"
+    severity: "info"
+    source: "SKILL_ELICITATION §3"
+
+  - rule_id: "WRN-03"
+    category: "cer_wording"
+    trigger: "support_level is CAUTIOUS or INSUFFICIENT"
+    inputs: ["support_level"]
+    decision: "permitted CER verbs: 'may indicate', 'limited evidence suggests'; MUST include limitation statement"
+    rationale_template: "Cautious/insufficient support. Writer must explicitly acknowledge limitations."
+    affected_gate: "Writer"
+    severity: "major"
+    source: "SKILL_ELICITATION §3"

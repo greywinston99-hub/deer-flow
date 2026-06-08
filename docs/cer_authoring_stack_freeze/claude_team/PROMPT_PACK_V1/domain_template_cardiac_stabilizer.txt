@@ -1,0 +1,17 @@
+Section: 2.1 Device Description — Cardiac Tissue Stabilizer
+Instruction: Describe the cardiac tissue stabilizer device. Use IFU-extracted data for composition, working principle, performance, sterility, and model variants. The device is a mechanical stabilizer for cardiac tissue during CABG. Do NOT write about ureteroscopes, UAS, urology, stone burden, urinary tract, endourology, or PADN/pulmonary artery ablation. These are FORBIDDEN cross-domain terms for this device. Do NOT reuse template text from other device domains. Each field must have a source anchor from the IFU or state 'IFU source does not contain this information' if absent.
+
+---
+
+Section: 2.2 Intended Purpose — Cardiac Tissue Stabilizer
+Instruction: State the intended purpose as: mechanical stabilization of cardiac tissue during coronary artery bypass grafting (CABG), including off-pump (OPCAB) procedures. The device creates a stable working field on the beating heart at the target vessel. Target population: adult patients undergoing CABG. Do NOT mention ablation, energy delivery, ureteroscopy, or urological procedures. These are FORBIDDEN cross-domain terms.
+
+---
+
+Section: 3 Clinical Background — Cardiac Surgery / CABG
+Instruction: Describe the clinical background of coronary artery disease (CAD) and CABG surgery. Cover: prevalence of CAD, standard surgical treatment (CABG on-pump vs off-pump OPCAB), role of cardiac tissue stabilizers in off-pump surgery, clinical outcomes, guidelines (ESC/EACTS, AHA/ACC), and alternative treatments (PCI, medical management). Clinical domain is CARDIAC SURGERY. Do NOT write about urology, ureteroscopy, stone disease, PADN, or atrial fibrillation ablation.
+
+---
+
+Section: 5 Conclusions — Cardiac Tissue Stabilizer
+Instruction: Write conclusions consistent with claim_support_matrix support levels. If claims are INSUFFICIENT, state that evidence is insufficient to conclude. If claims are CAUTIOUS, use limited/conditional language. Do NOT write 'clinical data support' for INSUFFICIENT claims. Follow writer_conclusion_constraints for allowed and forbidden wording.

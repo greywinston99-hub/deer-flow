@@ -1,0 +1,1959 @@
+{
+  "metadata": {
+    "asset_id": "CER_04_ANSWERS",
+    "version": "2.0",
+    "title": "CER 第一性原理问题回答",
+    "format": "json_structured",
+    "source_markdown": "CER_04_ANSWERS_ENHANCED.md",
+    "generated_at": "2026-05-20T22:05:00.945587",
+    "defect_injection": true,
+    "total_tables_extracted": 26,
+    "total_sections": 102,
+    "total_checklists": 15
+  },
+  "structured_content": {
+    "sections": [
+      {
+        "level": 1,
+        "title": "CER 范本第一性原理问题回答 — 工程师落地操作版（增强版 v2.0）"
+      },
+      {
+        "level": 2,
+        "title": "使用说明"
+      },
+      {
+        "level": 2,
+        "title": "5A 等效性论证（Demonstration of Equivalence）"
+      },
+      {
+        "level": 3,
+        "title": "5A.1 何时必须进行等效性论证？何时可以跳过？"
+      },
+      {
+        "level": 4,
+        "title": "共性发现"
+      },
+      {
+        "level": 4,
+        "title": "缺陷案例（EQ-001）"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 三步决策法"
+      },
+      {
+        "level": 4,
+        "title": "填空模板"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 4,
+        "title": "常见陷阱"
+      },
+      {
+        "level": 3,
+        "title": "5A.2 等效性论证的比较维度有哪些？"
+      },
+      {
+        "level": 4,
+        "title": "共性发现"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 五字段表格法"
+      },
+      {
+        "level": 4,
+        "title": "填空模板"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 4,
+        "title": "常见陷阱 — 性能对比数据缺失的灰色地带"
+      },
+      {
+        "level": 3,
+        "title": "5A.3 等效性论证与文献检索的关系是什么？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 时间线管理"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 2,
+        "title": "5B 文献检索策略（Literature Search Strategy）"
+      },
+      {
+        "level": 3,
+        "title": "5B.1 检索策略应放在哪个章节？"
+      },
+      {
+        "level": 4,
+        "title": "共性发现"
+      },
+      {
+        "level": 4,
+        "title": "缺陷案例（EV-002）"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 根据项目复杂度选择模式"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 3,
+        "title": "5B.2 检索策略应包含哪些要素？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 六要素完整框架"
+      },
+      {
+        "level": 4,
+        "title": "填空模板"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 4,
+        "title": "常见陷阱"
+      },
+      {
+        "level": 3,
+        "title": "5B.3 检索数据库的最低要求是什么？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 三档配置"
+      },
+      {
+        "level": 4,
+        "title": "经验建议"
+      },
+      {
+        "level": 3,
+        "title": "5B.4 如何证明检索的完整性？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 五重保障机制"
+      },
+      {
+        "level": 2,
+        "title": "5C GSPR 分析（General Safety and Performance Requirements）"
+      },
+      {
+        "level": 3,
+        "title": "5C.1 GSPR 分析应放在哪个章节？"
+      },
+      {
+        "level": 4,
+        "title": "共性发现"
+      },
+      {
+        "level": 4,
+        "title": "缺陷案例（GS-001）"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 根据风险等级选择"
+      },
+      {
+        "level": 3,
+        "title": "5C.2 GSPR 分析的基本结构是什么？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 五段式 GSPR 分析模板"
+      },
+      {
+        "level": 4,
+        "title": "填空模板"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 3,
+        "title": "5C.3 如何处理 GSPR 条款的交叉引用？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 三种处理方式"
+      },
+      {
+        "level": 2,
+        "title": "5D 临床数据分析方法（Clinical Data Analysis）"
+      },
+      {
+        "level": 3,
+        "title": "5D.1 临床数据应如何分类呈现？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 标准数据分类树"
+      },
+      {
+        "level": 4,
+        "title": "缺陷案例（CL-001 / EV-001）"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 3,
+        "title": "5D.2 数据质量评价应如何进行？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 证据分级框架"
+      },
+      {
+        "level": 4,
+        "title": "填空模板"
+      },
+      {
+        "level": 3,
+        "title": "5D.3 定量分析与定性分析如何选择？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 决策矩阵"
+      },
+      {
+        "level": 2,
+        "title": "5E 风险管理与获益-风险分析（Risk Management & Benefit-Risk）"
+      },
+      {
+        "level": 3,
+        "title": "5E.1 风险管理文件与 CER 的关系是什么？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 职责边界表"
+      },
+      {
+        "level": 3,
+        "title": "5E.2 获益-风险分析应包含哪些要素？"
+      },
+      {
+        "level": 4,
+        "title": "缺陷案例（BR-001）"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 四要素分析框架"
+      },
+      {
+        "level": 4,
+        "title": "填空模板"
+      },
+      {
+        "level": 3,
+        "title": "5E.3 如何将风险矩阵引入 CER？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 心擎 Risk Matrix Mapping 法"
+      },
+      {
+        "level": 2,
+        "title": "5F 警戒数据（Vigilance Data）"
+      },
+      {
+        "level": 3,
+        "title": "5F.1 警戒数据库检索应覆盖哪些来源？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 三档配置"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 3,
+        "title": "5F.2 警戒数据检索的策略是什么？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 标准化检索流程"
+      },
+      {
+        "level": 3,
+        "title": "5F.3 警戒数据如何影响 CER 结论？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 三种场景处理"
+      },
+      {
+        "level": 2,
+        "title": "5G 结论结构（Conclusions）"
+      },
+      {
+        "level": 3,
+        "title": "5G.1 结论章节应包含哪些要素？"
+      },
+      {
+        "level": 4,
+        "title": "共性发现 — 重要观察"
+      },
+      {
+        "level": 4,
+        "title": "缺陷案例（DT-001 / BR-001）"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 标准结论六要素"
+      },
+      {
+        "level": 4,
+        "title": "填空模板"
+      },
+      {
+        "level": 4,
+        "title": "检查清单"
+      },
+      {
+        "level": 3,
+        "title": "5G.2 结论的措辞强度如何把握？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 措辞强度匹配表"
+      },
+      {
+        "level": 3,
+        "title": "5G.3 结论与摘要（Summary）的区别是什么？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 对比速查表"
+      },
+      {
+        "level": 2,
+        "title": "P1 SOTA（State of the Art）"
+      },
+      {
+        "level": 3,
+        "title": "P1.1 SOTA 章节的核心功能是什么？"
+      },
+      {
+        "level": 4,
+        "title": "缺陷案例（ST-001）"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 三功能验证法"
+      },
+      {
+        "level": 3,
+        "title": "P1.2 SOTA 检索与文献证据检索的区别是什么？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — 对比操作表"
+      },
+      {
+        "level": 3,
+        "title": "P1.3 SOTA 应如何支撑结论？"
+      },
+      {
+        "level": 4,
+        "title": "落地方法 — SOTA→结论的映射链"
+      },
+      {
+        "level": 2,
+        "title": "综合：CER 工程师实战手册（增强版）"
+      },
+      {
+        "level": 3,
+        "title": "一、CER 编写全流程检查清单"
+      },
+      {
+        "level": 4,
+        "title": "启动阶段"
+      },
+      {
+        "level": 4,
+        "title": "编写阶段 — §2 Scope"
+      },
+      {
+        "level": 4,
+        "title": "编写阶段 — §3 SOTA"
+      },
+      {
+        "level": 4,
+        "title": "编写阶段 — §4 Evidence"
+      },
+      {
+        "level": 4,
+        "title": "编写阶段 — §5 Conclusions"
+      },
+      {
+        "level": 4,
+        "title": "审核阶段"
+      },
+      {
+        "level": 3,
+        "title": "二、常见返修原因及预防"
+      },
+      {
+        "level": 3,
+        "title": "三、5 份报告能力评级（更新版）"
+      }
+    ],
+    "tables": [
+      {
+        "headers": [
+          "报告",
+          "是否进行等效性论证",
+          "原因"
+        ],
+        "rows": [
+          {
+            "报告": "帕姆",
+            "是否进行等效性论证": "✓",
+            "原因": "有已上市同类产品，需引用其文献数据"
+          },
+          {
+            "报告": "鱼跃",
+            "是否进行等效性论证": "✓",
+            "原因": "与 legacy device 存在设计变更"
+          },
+          {
+            "报告": "亚宏",
+            "是否进行等效性论证": "✓",
+            "原因": "有已上市同类产品"
+          },
+          {
+            "报告": "心擎",
+            "是否进行等效性论证": "✗",
+            "原因": "**明确声明 \"Equivalence is not claimed\"** — 创新器械，无可比产品"
+          },
+          {
+            "报告": "海杰亚",
+            "是否进行等效性论证": "✓",
+            "原因": "有已上市同类产品"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "项目",
+          "NB 原话",
+          "根因",
+          "修复方案"
+        ],
+        "rows": [
+          {
+            "项目": "湖北高德",
+            "NB 原话": "\"Similar devices were referenced but no formal equivalence demonstration per MDCG 2020-5 was provided.\"",
+            "根因": "混淆\"相似器械\"与\"等效器械\"，未提供 MDCG 2020-5 合规的三维度比较",
+            "修复方案": "补充正式等效性表格，按临床/技术/生物三维度逐一比较"
+          },
+          {
+            "项目": "湖北高德",
+            "NB 原话": "\"The clinical evaluation report referenced similar devices but did not provide a formal equivalence demonstration in accordance with MDCG 2020-5.\"",
+            "根因": "同上，强调法规依据缺失",
+            "修复方案": "在 §4.2 开头明确声明 \"Equivalence shall be demonstrated according to MDR Article 61 and MDCG 2020-5\""
+          }
+        ]
+      },
+      {
+        "headers": [
+          "陷阱",
+          "后果",
+          "正确做法"
+        ],
+        "rows": [
+          {
+            "陷阱": "等效设备选择范围过窄，只找一个",
+            "后果": "NB 质疑论证的全面性",
+            "正确做法": "至少比较 2-3 个潜在等效设备，选择最接近的一个详细论证"
+          },
+          {
+            "陷阱": "差异未充分论证",
+            "后果": "NB 要求补充差异影响分析",
+            "正确做法": "每个差异项都必须有 \"差异不影响安全性和有效性\" 的结论"
+          },
+          {
+            "陷阱": "等效性论证通过但未在文献检索中单独检索等效设备",
+            "后果": "证据链不完整",
+            "正确做法": "§4.4.2 必须单独设立等效设备文献检索子节"
+          },
+          {
+            "陷阱": "**无正式等效性证明（EQ-001）**",
+            "后果": "**NB 直接发补**",
+            "正确做法": "**必须提供 MDCG 2020-5 合规的正式等效性表格**"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "#",
+          "Characteristic",
+          "Subject Device",
+          "Equivalent Device",
+          "Comparison",
+          "Justification"
+        ],
+        "rows": [
+          {
+            "#": "1",
+            "Characteristic": "[技术特性1]",
+            "Subject Device": "[参数A]",
+            "Equivalent Device": "[参数B]",
+            "Comparison": "Same/Similar/Different",
+            "Justification": "[差异是否影响临床安全性和有效性]"
+          },
+          {
+            "#": "2",
+            "Characteristic": "[技术特性2]",
+            "Subject Device": "...",
+            "Equivalent Device": "...",
+            "Comparison": "...",
+            "Justification": "..."
+          },
+          {
+            "#": "...",
+            "Characteristic": "...",
+            "Subject Device": "...",
+            "Equivalent Device": "...",
+            "Comparison": "...",
+            "Justification": "..."
+          }
+        ]
+      },
+      {
+        "headers": [
+          "场景",
+          "工程师处理方案",
+          "系统应支持"
+        ],
+        "rows": [
+          {
+            "场景": "客户拒绝提供性能对比数据",
+            "工程师处理方案": "删除等效性表格中的性能对比条款（Performance Comparison），仅保留技术/生物学/临床特性对比；在差异论证中声明 \"Performance data not publicly available for equivalent device\"",
+            "系统应支持": "允许等效性表格存在空字段，不做强制填充校验"
+          },
+          {
+            "场景": "无 published performance data",
+            "工程师处理方案": "引用相似器械的 SOTA 文献数据作为间接基准，明确标注数据来源",
+            "系统应支持": "检索模块自动关联 SOTA 数据到等效性表格"
+          },
+          {
+            "场景": "客户坚持声称等效但无数据支撑",
+            "工程师处理方案": "**风险升级**：工程师需书面记录客户决策，接受审计风险；系统标记为 \"客户确认风险\"",
+            "系统应支持": "Gate 节点增加 \"数据缺失客户确认\" 分支，不阻塞流程但记录审计痕迹"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "报告",
+          "SOTA 检索位置",
+          "证据文献检索位置",
+          "策略"
+        ],
+        "rows": [
+          {
+            "报告": "帕姆",
+            "SOTA 检索位置": "§3（隐含）",
+            "证据文献检索位置": "§4.4.1",
+            "策略": "合并策略"
+          },
+          {
+            "报告": "鱼跃",
+            "SOTA 检索位置": "§3.1",
+            "证据文献检索位置": "§4.4",
+            "策略": "分开"
+          },
+          {
+            "报告": "亚宏",
+            "SOTA 检索位置": "§3.1",
+            "证据文献检索位置": "§3.1",
+            "策略": "合并"
+          },
+          {
+            "报告": "心擎",
+            "SOTA 检索位置": "独立 Search Protocol 章",
+            "证据文献检索位置": "独立 Search Protocol 章",
+            "策略": "最详细"
+          },
+          {
+            "报告": "海杰亚",
+            "SOTA 检索位置": "§3.1",
+            "证据文献检索位置": "§4.4.2",
+            "策略": "分开"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "项目",
+          "NB 原话",
+          "根因",
+          "修复方案"
+        ],
+        "rows": [
+          {
+            "项目": "浙江景嘉",
+            "NB 原话": "\"Clinical evaluation plan and report do not comply with MDR Chapter VI and MEDDEV 2.7/1 requirements.\"",
+            "根因": "文献检索策略不完整，不符合法规要求",
+            "修复方案": "补充完整的六要素检索策略框架"
+          },
+          {
+            "项目": "青岛德迈迪",
+            "NB 原话": "\"The clinical evaluation report should provide all relevant clinical data collected and analyzed according to the pre-planned CEP methodology.\"",
+            "根因": "检索策略与 CEP 不一致",
+            "修复方案": "确保检索策略与 Clinical Evaluation Plan 中预先定义的方法一致"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "PICO",
+          "内容",
+          "海杰亚示例"
+        ],
+        "rows": [
+          {
+            "PICO": "P (Population)",
+            "内容": "目标人群",
+            "海杰亚示例": "liver tumors, lung tumors, kidney tumors"
+          },
+          {
+            "PICO": "I (Intervention)",
+            "内容": "干预措施",
+            "海杰亚示例": "Microwave Ablation"
+          },
+          {
+            "PICO": "C (Comparison)",
+            "内容": "对照/替代方案",
+            "海杰亚示例": "RFA, Cryoablation, Surgery"
+          },
+          {
+            "PICO": "O (Outcome)",
+            "内容": "结局指标",
+            "海杰亚示例": "Efficacy, Safety, Tumor control"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "陷阱",
+          "后果",
+          "正确做法"
+        ],
+        "rows": [
+          {
+            "陷阱": "检索式过于宽泛，结果数千篇",
+            "后果": "筛选工作量巨大，质量参差",
+            "正确做法": "使用 MeSH terms 精确限定，增加过滤器"
+          },
+          {
+            "陷阱": "未记录检索日期",
+            "后果": "NB 质疑时效性",
+            "正确做法": "每次检索都记录精确日期"
+          },
+          {
+            "陷阱": "只检索 PubMed",
+            "后果": "可能遗漏欧洲/灰色文献",
+            "正确做法": "至少 PubMed + Embase + Cochrane"
+          },
+          {
+            "陷阱": "纳入标准不明确",
+            "后果": "主观筛选，可重复性差",
+            "正确做法": "明确列出研究类型、语言、时间、人群限制"
+          },
+          {
+            "陷阱": "**检索策略与 CEP 不一致**",
+            "后果": "**NB 质疑方法学合规性**",
+            "正确做法": "**确保 CEP、CER、实际执行三者一致**"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "配置级别",
+          "数据库组合",
+          "适用场景",
+          "报告示例"
+        ],
+        "rows": [
+          {
+            "配置级别": "**最低配置**",
+            "数据库组合": "PubMed/MEDLINE",
+            "适用场景": "低风险、成熟技术、简化路径",
+            "报告示例": "鱼跃、亚宏"
+          },
+          {
+            "配置级别": "**标准配置**",
+            "数据库组合": "PubMed + Embase + Cochrane",
+            "适用场景": "中风险、标准技术",
+            "报告示例": "帕姆、海杰亚"
+          },
+          {
+            "配置级别": "**增强配置**",
+            "数据库组合": "标准配置 + Scopus + Web of Science + 临床试验注册库",
+            "适用场景": "高风险、创新技术、NB 要求高",
+            "报告示例": "心擎"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "报告",
+          "GSPR 分析位置",
+          "结构方式",
+          "适用场景"
+        ],
+        "rows": [
+          {
+            "报告": "帕姆",
+            "GSPR 分析位置": "§4.7.1 / §4.7.2 / §4.7.3",
+            "结构方式": "按 GSPR 条款分小节",
+            "适用场景": "标准路径"
+          },
+          {
+            "报告": "鱼跃",
+            "GSPR 分析位置": "§4.7.3.1 - §4.7.3.7",
+            "结构方式": "按分析维度分小节，隐性覆盖",
+            "适用场景": "简化路径"
+          },
+          {
+            "报告": "亚宏",
+            "GSPR 分析位置": "§4.6",
+            "结构方式": "按 GSPR 条款分小节",
+            "适用场景": "标准路径"
+          },
+          {
+            "报告": "心擎",
+            "GSPR 分析位置": "**独立大章**",
+            "结构方式": "逐条详细分析 + 汇总表",
+            "适用场景": "高风险/MDR 深度响应"
+          },
+          {
+            "报告": "海杰亚",
+            "GSPR 分析位置": "§4.7.3.1 - §4.7.3.7",
+            "结构方式": "按分析维度分小节",
+            "适用场景": "标准路径"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "项目",
+          "NB 原话",
+          "根因",
+          "修复方案"
+        ],
+        "rows": [
+          {
+            "项目": "浙江景嘉",
+            "NB 原话": "\"Clinical evaluation plan and report do not comply with MDR Chapter VI and MEDDEV 2.7/1 requirements.\"",
+            "根因": "GSPR 覆盖不全，不符合法规要求",
+            "修复方案": "逐条覆盖 GSPR，建立 Evidence Mapping Table"
+          },
+          {
+            "项目": "湖北高德",
+            "NB 原话": "\"Evidence of compliance with the latest standards is required, including safe disposal information in IFU and biocompatibility testing.\"",
+            "根因": "GSPR 相关标准覆盖不全",
+            "修复方案": "补充所有适用标准的符合性证据"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "项目",
+          "NB 原话",
+          "根因",
+          "修复方案"
+        ],
+        "rows": [
+          {
+            "项目": "浙江景嘉",
+            "NB 原话": "\"Clinical data is insufficient, particularly lacking post-market clinical follow-up studies to demonstrate long-term safety and performance.\"",
+            "根因": "上市后临床数据缺失",
+            "修复方案": "补充 PMCF 计划或提供文献中的长期随访数据"
+          },
+          {
+            "项目": "青岛德迈迪",
+            "NB 原话": "\"Safety and performance data for specific patient groups (neonates, adolescents, pregnant women) is lacking in current literature.\"",
+            "根因": "亚组分析缺失",
+            "修复方案": "补充特定人群的安全性数据，或在 CER 中明确排除理由"
+          },
+          {
+            "项目": "鑫君特",
+            "NB 原话": "\"The clinical investigation report is inadequate and follow-up data is missing.\"",
+            "根因": "临床研究报告质量不足",
+            "修复方案": "补充完整的 CSR，包括随访数据和缺失数据处理"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "证据等级",
+          "研究类型",
+          "可信度",
+          "CER 中的表述"
+        ],
+        "rows": [
+          {
+            "证据等级": "1a",
+            "研究类型": "同质 RCT 的系统综述",
+            "可信度": "最高",
+            "CER 中的表述": "\"High-quality evidence\""
+          },
+          {
+            "证据等级": "1b",
+            "研究类型": "单个 RCT",
+            "可信度": "高",
+            "CER 中的表述": "\"High-quality evidence\""
+          },
+          {
+            "证据等级": "2a",
+            "研究类型": "同质队列研究的系统综述",
+            "可信度": "中高",
+            "CER 中的表述": "\"Moderate-quality evidence\""
+          },
+          {
+            "证据等级": "2b",
+            "研究类型": "单个队列研究",
+            "可信度": "中",
+            "CER 中的表述": "\"Moderate-quality evidence\""
+          },
+          {
+            "证据等级": "3a",
+            "研究类型": "同质病例对照研究的系统综述",
+            "可信度": "中",
+            "CER 中的表述": "\"Moderate-quality evidence\""
+          },
+          {
+            "证据等级": "3b",
+            "研究类型": "单个病例对照研究",
+            "可信度": "中低",
+            "CER 中的表述": "\"Limited evidence\""
+          },
+          {
+            "证据等级": "4",
+            "研究类型": "病例系列",
+            "可信度": "低",
+            "CER 中的表述": "\"Limited evidence\""
+          },
+          {
+            "证据等级": "5",
+            "研究类型": "专家意见",
+            "可信度": "最低",
+            "CER 中的表述": "\"Expert opinion only\""
+          }
+        ]
+      },
+      {
+        "headers": [
+          "条件",
+          "定量分析",
+          "定性分析",
+          "5 份报告实践"
+        ],
+        "rows": [
+          {
+            "条件": "多项同质 RCT",
+            "定量分析": "✓ Meta 分析",
+            "定性分析": "✓ 系统综述",
+            "5 份报告实践": "无（本组无此条件）"
+          },
+          {
+            "条件": "多项研究但异质性大",
+            "定量分析": "✗",
+            "定性分析": "✓ 叙述性综述",
+            "5 份报告实践": "鱼跃、亚宏"
+          },
+          {
+            "条件": "单项大样本研究",
+            "定量分析": "✓ 描述性统计",
+            "定性分析": "✓",
+            "5 份报告实践": "帕姆"
+          },
+          {
+            "条件": "多项小样本研究",
+            "定量分析": "✓ 描述性统计",
+            "定性分析": "✓",
+            "5 份报告实践": "海杰亚"
+          },
+          {
+            "条件": "证据极少",
+            "定量分析": "✗",
+            "定性分析": "✓",
+            "5 份报告实践": "心擎（部分分析）"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "内容",
+          "风险管理文件（ISO 14971）",
+          "CER",
+          "关系"
+        ],
+        "rows": [
+          {
+            "内容": "风险识别",
+            "风险管理文件（ISO 14971）": "全面识别（设计、制造、使用）",
+            "CER": "聚焦临床使用风险",
+            "关系": "CER 引用 RM 的风险清单"
+          },
+          {
+            "内容": "风险评价",
+            "风险管理文件（ISO 14971）": "基于风险可接受性准则",
+            "CER": "基于临床证据",
+            "关系": "CER 验证 RM 评价"
+          },
+          {
+            "内容": "风险控制",
+            "风险管理文件（ISO 14971）": "提出控制措施",
+            "CER": "验证控制措施有效性",
+            "关系": "CER 用证据验证"
+          },
+          {
+            "内容": "残余风险",
+            "风险管理文件（ISO 14971）": "理论评估",
+            "CER": "实际发生率评估",
+            "关系": "CER 补充实际数据"
+          },
+          {
+            "内容": "结论",
+            "风险管理文件（ISO 14971）": "风险可接受",
+            "CER": "获益-风险可接受",
+            "关系": "CER 结论覆盖 RM 结论"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "项目",
+          "NB 原话",
+          "根因",
+          "修复方案"
+        ],
+        "rows": [
+          {
+            "项目": "成都永新",
+            "NB 原话": "\"Statements regarding patient population safety in the clinical evaluation report lack evidence support, and there are version inconsistencies.\"",
+            "根因": "BR 分析缺乏证据支撑",
+            "修复方案": "补充量化的获益-风险数据，确保版本一致性"
+          },
+          {
+            "项目": "成都永新",
+            "NB 原话": "\"Evidence is required to demonstrate that the benefits outweigh the risks for all patient populations, and warnings for pregnant women and children should be added to the IFU.\"",
+            "根因": "特定人群的 BR 分析缺失",
+            "修复方案": "补充孕妇/儿童等特殊人群的 BR 分析，或在 IFU 中增加禁忌声明"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "Risk ID",
+          "Risk Description",
+          "RM Rating",
+          "Clinical Evidence",
+          "Evidence-Based Rating",
+          "Conclusion"
+        ],
+        "rows": [
+          {
+            "Risk ID": "R001",
+            "Risk Description": "[Description]",
+            "RM Rating": "High",
+            "Clinical Evidence": "[Literature: incidence X%]",
+            "Evidence-Based Rating": "Medium",
+            "Conclusion": "Controlled"
+          },
+          {
+            "Risk ID": "R002",
+            "Risk Description": "[Description]",
+            "RM Rating": "Medium",
+            "Clinical Evidence": "[Clinical study: incidence Y%]",
+            "Evidence-Based Rating": "Low",
+            "Conclusion": "Acceptable"
+          },
+          {
+            "Risk ID": "R003",
+            "Risk Description": "[Description]",
+            "RM Rating": "High",
+            "Clinical Evidence": "No events reported",
+            "Evidence-Based Rating": "Low",
+            "Conclusion": "Acceptable"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "配置",
+          "数据库",
+          "帕姆",
+          "海杰亚",
+          "建议"
+        ],
+        "rows": [
+          {
+            "配置": "基础",
+            "数据库": "MHRA",
+            "帕姆": "✓",
+            "海杰亚": "✓",
+            "建议": "**建议**"
+          },
+          {
+            "配置": "基础",
+            "数据库": "BfArM",
+            "帕姆": "✓",
+            "海杰亚": "✓",
+            "建议": "**建议**"
+          },
+          {
+            "配置": "增强",
+            "数据库": "FDA MAUDE",
+            "帕姆": "✓",
+            "海杰亚": "✓",
+            "建议": "**建议**"
+          },
+          {
+            "配置": "增强",
+            "数据库": "Swissmedic",
+            "帕姆": "✓",
+            "海杰亚": "—",
+            "建议": "可选"
+          },
+          {
+            "配置": "增强",
+            "数据库": "TGA",
+            "帕姆": "—",
+            "海杰亚": "—",
+            "建议": "澳大利亚市场时建议"
+          },
+          {
+            "配置": "增强",
+            "数据库": "NMPA",
+            "帕姆": "—",
+            "海杰亚": "—",
+            "建议": "中国市场时建议"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "项目",
+          "NB 原话",
+          "根因",
+          "修复方案"
+        ],
+        "rows": [
+          {
+            "项目": "成都永新",
+            "NB 原话": "\"There are version inconsistencies in the clinical evaluation report.\"",
+            "根因": "结论与证据版本不一致",
+            "修复方案": "确保 §5 结论与 §4 证据的版本一致"
+          },
+          {
+            "项目": "鑫君特",
+            "NB 原话": "\"Benefit-risk analysis is incomplete.\"",
+            "根因": "结论缺少 BR 分析支撑",
+            "修复方案": "补充量化的 BR 结论"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "证据强度",
+          "推荐措辞",
+          "避免措辞",
+          "示例场景"
+        ],
+        "rows": [
+          {
+            "证据强度": "强（多项 RCT / 大样本临床）",
+            "推荐措辞": "\"confirms\", \"demonstrates\", \"establishes\"",
+            "避免措辞": "\"suggests\"",
+            "示例场景": "帕姆模式"
+          },
+          {
+            "证据强度": "中（队列研究 / 小样本临床）",
+            "推荐措辞": "\"indicates\", \"supports\", \"shows\"",
+            "避免措辞": "\"proves\"",
+            "示例场景": "海杰亚模式"
+          },
+          {
+            "证据强度": "弱（病例系列 / 文献有限）",
+            "推荐措辞": "\"is consistent with\", \"does not contradict\"",
+            "避免措辞": "\"confirms\"",
+            "示例场景": "亚宏模式"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "维度",
+          "§1 Summary",
+          "§5 Conclusions"
+        ],
+        "rows": [
+          {
+            "维度": "位置",
+            "§1 Summary": "报告开头",
+            "§5 Conclusions": "报告结尾"
+          },
+          {
+            "维度": "读者",
+            "§1 Summary": "审核者快速了解全貌",
+            "§5 Conclusions": "审核者获取最终判定"
+          },
+          {
+            "维度": "内容",
+            "§1 Summary": "概述各章节内容",
+            "§5 Conclusions": "给出最终判断"
+          },
+          {
+            "维度": "证据",
+            "§1 Summary": "可简要提及关键证据",
+            "§5 Conclusions": "不重复证据，只给结论"
+          },
+          {
+            "维度": "新信息",
+            "§1 Summary": "无",
+            "§5 Conclusions": "可包含后续评价计划"
+          },
+          {
+            "维度": "长度",
+            "§1 Summary": "200-800 词",
+            "§5 Conclusions": "100-300 词"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "项目",
+          "NB 原话",
+          "根因",
+          "修复方案"
+        ],
+        "rows": [
+          {
+            "项目": "浙江景嘉",
+            "NB 原话": "\"SOTA not adequately addressed.\"",
+            "根因": "SOTA 基准值缺失",
+            "修复方案": "补充 Safety & Performance Endpoints 表格，明确 SOTA 基准"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "操作项",
+          "SOTA 检索",
+          "证据文献检索"
+        ],
+        "rows": [
+          {
+            "操作项": "检索词",
+            "SOTA 检索": "疾病名 + 治疗类别",
+            "证据文献检索": "设备名 + 技术名"
+          },
+          {
+            "操作项": "纳入类型",
+            "SOTA 检索": "指南、综述、流行病学",
+            "证据文献检索": "临床研究、临床试验"
+          },
+          {
+            "操作项": "时间范围",
+            "SOTA 检索": "通常 10-15 年",
+            "证据文献检索": "通常 10 年或上市以来"
+          },
+          {
+            "操作项": "输出",
+            "SOTA 检索": "基准值、治疗路径",
+            "证据文献检索": "设备安全性和有效性数据"
+          },
+          {
+            "操作项": "在 CER 中的位置",
+            "SOTA 检索": "§3",
+            "证据文献检索": "§4.4"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "返修原因",
+          "发生频率",
+          "预防方法",
+          "关联缺陷"
+        ],
+        "rows": [
+          {
+            "返修原因": "等效性论证不充分",
+            "发生频率": "高",
+            "预防方法": "确保三维度比较完整，差异有论证",
+            "关联缺陷": "EQ-001"
+          },
+          {
+            "返修原因": "文献检索策略不完整",
+            "发生频率": "高",
+            "预防方法": "使用六要素框架检查",
+            "关联缺陷": "EV-002"
+          },
+          {
+            "返修原因": "GSPR 分析缺乏证据支撑",
+            "发生频率": "高",
+            "预防方法": "每条 GSPR 引用 ≥2 类证据",
+            "关联缺陷": "GS-001"
+          },
+          {
+            "返修原因": "警戒数据库检索不足",
+            "发生频率": "中",
+            "预防方法": "至少检索 MHRA + BfArM + FDA",
+            "关联缺陷": "—"
+          },
+          {
+            "返修原因": "结论与证据不匹配",
+            "发生频率": "中",
+            "预防方法": "使用措辞强度匹配表",
+            "关联缺陷": "DT-001"
+          },
+          {
+            "返修原因": "SOTA 缺少基准值",
+            "发生频率": "中",
+            "预防方法": "设立 Safety & Performance Endpoints 子节",
+            "关联缺陷": "ST-001"
+          },
+          {
+            "返修原因": "正文-Annex 引用不一致",
+            "发生频率": "中",
+            "预防方法": "交叉验证所有引用",
+            "关联缺陷": "DT-001"
+          },
+          {
+            "返修原因": "**器械描述不完整**",
+            "发生频率": "**极高**",
+            "预防方法": "**使用 §2 完整性检查清单**",
+            "关联缺陷": "**DO-001**"
+          },
+          {
+            "返修原因": "**临床证据不足**",
+            "发生频率": "**高**",
+            "预防方法": "**补充 PMCF 计划或文献数据**",
+            "关联缺陷": "**EV-001**"
+          },
+          {
+            "返修原因": "**模板残留**",
+            "发生频率": "**低但致命**",
+            "预防方法": "**终稿前执行模板扫描**",
+            "关联缺陷": "**TM-001**"
+          }
+        ]
+      },
+      {
+        "headers": [
+          "能力维度",
+          "帕姆",
+          "鱼跃",
+          "亚宏",
+          "心擎",
+          "海杰亚"
+        ],
+        "rows": [
+          {
+            "能力维度": "等效性论证",
+            "帕姆": "★★★★",
+            "鱼跃": "★★★",
+            "亚宏": "★★★",
+            "心擎": "N/A",
+            "海杰亚": "★★★★"
+          },
+          {
+            "能力维度": "文献检索策略",
+            "帕姆": "★★★",
+            "鱼跃": "★★",
+            "亚宏": "★★",
+            "心擎": "★★★★★",
+            "海杰亚": "★★★★"
+          },
+          {
+            "能力维度": "GSPR 分析深度",
+            "帕姆": "★★★★",
+            "鱼跃": "★★",
+            "亚宏": "★★★",
+            "心擎": "★★★★★",
+            "海杰亚": "★★★"
+          },
+          {
+            "能力维度": "数据质量评价",
+            "帕姆": "★★★★",
+            "鱼跃": "★★",
+            "亚宏": "★★",
+            "心擎": "★★★★★",
+            "海杰亚": "★★★"
+          },
+          {
+            "能力维度": "获益-风险分析",
+            "帕姆": "★★★",
+            "鱼跃": "★★",
+            "亚宏": "★★",
+            "心擎": "★★★★★",
+            "海杰亚": "★★★"
+          },
+          {
+            "能力维度": "警戒数据检索",
+            "帕姆": "★★★★",
+            "鱼跃": "★★",
+            "亚宏": "★★★",
+            "心擎": "★★★",
+            "海杰亚": "★★★★"
+          },
+          {
+            "能力维度": "结论完整性",
+            "帕姆": "★★★★",
+            "鱼跃": "★★★",
+            "亚宏": "★★★",
+            "心擎": "★★★★",
+            "海杰亚": "★★★★"
+          },
+          {
+            "能力维度": "SOTA 基准值设定",
+            "帕姆": "★★★★",
+            "鱼跃": "★★★",
+            "亚宏": "★★★",
+            "心擎": "★★★★★",
+            "海杰亚": "★★★★"
+          },
+          {
+            "能力维度": "**缺陷预防能力**",
+            "帕姆": "**★★★**",
+            "鱼跃": "**★★**",
+            "亚宏": "**★★**",
+            "心擎": "**★★★★★**",
+            "海杰亚": "**★★★**"
+          },
+          {
+            "能力维度": "**综合推荐度**",
+            "帕姆": "**高**",
+            "鱼跃": "**中**",
+            "亚宏": "**中**",
+            "心擎": "**最高**",
+            "海杰亚": "**高**"
+          }
+        ]
+      }
+    ],
+    "checklists": [
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "是否已全面检索同类产品（不只查到一个）？",
+            "checked": false
+          },
+          {
+            "item": "等效设备是否已在欧盟/目标市场获得批准？",
+            "checked": false
+          },
+          {
+            "item": "是否确认计划引用等效设备的临床数据？",
+            "checked": false
+          },
+          {
+            "item": "是否在 §4.2 开头明确声明论证依据的法规条款？",
+            "checked": false
+          },
+          {
+            "item": "**是否提供了 MDCG 2020-5 合规的三维度比较表格？（新增）**",
+            "checked": false
+          },
+          {
+            "item": "**每个差异项是否有差异影响评估？（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "三维度比较表格是否完整？（技术/生物学/临床）",
+            "checked": false
+          },
+          {
+            "item": "每个差异项是否都有论证？",
+            "checked": false
+          },
+          {
+            "item": "论证是否引用标准或测试数据？（如 ISO 10993、台架测试）",
+            "checked": false
+          },
+          {
+            "item": "预期用途是否完全一致？（这是等效性的核心前提）",
+            "checked": false
+          },
+          {
+            "item": "**差异影响评估是否引用 published literature 数据？（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "§4.2 是否在 §4.4 之前完成？",
+            "checked": false
+          },
+          {
+            "item": "§4.4.2 是否单独列出等效设备的检索策略？",
+            "checked": false
+          },
+          {
+            "item": "等效设备文献是否在 Annex 中有独立列表？",
+            "checked": false
+          },
+          {
+            "item": "§4.7 分析时是否明确区分 \"自有数据\" 和 \"等效设备数据\"？",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "是否在 §3 中描述了 SOTA 检索策略？",
+            "checked": false
+          },
+          {
+            "item": "是否在 §4.4 中描述了证据文献检索策略？",
+            "checked": false
+          },
+          {
+            "item": "两个检索策略是否有明确区分？（检索目的、检索词、纳入标准不同）",
+            "checked": false
+          },
+          {
+            "item": "检索策略是否有执行日期和执行人记录？",
+            "checked": false
+          },
+          {
+            "item": "**检索策略是否与 CEP 中预先定义的方法一致？（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "是否有 PICO 格式的研究问题？",
+            "checked": false
+          },
+          {
+            "item": "是否列出了所有使用的数据库及 URL？",
+            "checked": false
+          },
+          {
+            "item": "是否记录了完整的 Boolean 检索式？",
+            "checked": false
+          },
+          {
+            "item": "是否有明确的纳入/排除标准？",
+            "checked": false
+          },
+          {
+            "item": "是否有筛选流程描述（标题/摘要 → 全文）？",
+            "checked": false
+          },
+          {
+            "item": "是否有质量评价工具说明？",
+            "checked": false
+          },
+          {
+            "item": "检索执行记录是否包含执行人和日期？",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "每条分析的 GSPR 是否有五段式结构？",
+            "checked": false
+          },
+          {
+            "item": "是否引用了 ≥2 类证据来源？（标准、临床前、临床、文献、警戒）",
+            "checked": false
+          },
+          {
+            "item": "合规判定是否明确使用 \"meets\" / \"complies with\" / \"conforms to\"？",
+            "checked": false
+          },
+          {
+            "item": "GSPR 6 是否单独有获益-风险权衡分析？",
+            "checked": false
+          },
+          {
+            "item": "GSPR 8 是否列出了已知副作用及其发生率？",
+            "checked": false
+          },
+          {
+            "item": "**GSPR 分析是否覆盖了 MDR Annex I 的所有适用条款？（新增）**",
+            "checked": false
+          },
+          {
+            "item": "**是否建立了 GSPR Evidence Mapping Table？（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "制造商数据和文献数据是否分开呈现？",
+            "checked": false
+          },
+          {
+            "item": "等效设备数据是否与自有设备数据分开？",
+            "checked": false
+          },
+          {
+            "item": "§4.5 是否有独立的质量评价节？",
+            "checked": false
+          },
+          {
+            "item": "§4.6 是否包含 ≥2 个警戒数据库的检索？",
+            "checked": false
+          },
+          {
+            "item": "**是否包含 PMCF/PMS 数据或计划？（新增）**",
+            "checked": false
+          },
+          {
+            "item": "**是否包含特定人群（儿童/孕妇/老年人）的数据分析？（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "是否检索了 ≥2 个主要数据库？（MHRA / BfArM / FDA）",
+            "checked": false
+          },
+          {
+            "item": "检索词是否覆盖设备商品名 + 通用名 + 制造商名？",
+            "checked": false
+          },
+          {
+            "item": "检索时间范围是否覆盖产品上市以来？",
+            "checked": false
+          },
+          {
+            "item": "是否记录了检索日期？",
+            "checked": false
+          },
+          {
+            "item": "是否对检索结果进行了汇总分析？",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "检查清单",
+        "items": [
+          {
+            "item": "是否有局限性声明？",
+            "checked": false
+          },
+          {
+            "item": "是否有总体合规判定？",
+            "checked": false
+          },
+          {
+            "item": "是否有安全性结论？",
+            "checked": false
+          },
+          {
+            "item": "是否有效性结论？",
+            "checked": false
+          },
+          {
+            "item": "是否有获益-风险结论？",
+            "checked": false
+          },
+          {
+            "item": "是否有后续评价计划？",
+            "checked": false
+          },
+          {
+            "item": "结论中的每一条是否都能在 §4 中找到证据支撑？",
+            "checked": false
+          },
+          {
+            "item": "**结论措辞强度是否与证据强度匹配？（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "启动阶段",
+        "items": [
+          {
+            "item": "已确认设备分类（Class I/IIa/IIb/III）",
+            "checked": false
+          },
+          {
+            "item": "已确认适用的符合性评估路径",
+            "checked": false
+          },
+          {
+            "item": "已获取风险管理文件（ISO 14971）",
+            "checked": false
+          },
+          {
+            "item": "已确认是否有已上市同类产品",
+            "checked": false
+          },
+          {
+            "item": "已制定 Clinical Evaluation Plan（CEP）",
+            "checked": false
+          },
+          {
+            "item": "**已检索同类产品并确定等效性路径（是/否）（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "编写阶段 — §2 Scope",
+        "items": [
+          {
+            "item": "设备描述包含：名称、分类、组成、工作原理、变体",
+            "checked": false
+          },
+          {
+            "item": "预期用途包含：适应症、目标人群、使用环境",
+            "checked": false
+          },
+          {
+            "item": "禁忌症和警告已列出",
+            "checked": false
+          },
+          {
+            "item": "前代产品和同类产品已描述",
+            "checked": false
+          },
+          {
+            "item": "上市历史已总结",
+            "checked": false
+          },
+          {
+            "item": "**型号差异已详细说明（预防 DO-001）（新增）**",
+            "checked": false
+          },
+          {
+            "item": "**材料信息已完整列出（预防 BC-001）（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "编写阶段 — §3 SOTA",
+        "items": [
+          {
+            "item": "疾病背景和流行病学已描述",
+            "checked": false
+          },
+          {
+            "item": "现有治疗方案已概述",
+            "checked": false
+          },
+          {
+            "item": "临床指南已引用",
+            "checked": false
+          },
+          {
+            "item": "安全性/有效性基准值已列出",
+            "checked": false
+          },
+          {
+            "item": "未满足临床需求已论证",
+            "checked": false
+          },
+          {
+            "item": "**SOTA 检索策略已记录（预防 EV-002）（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "编写阶段 — §4 Evidence",
+        "items": [
+          {
+            "item": "等效性论证已完成（如适用）",
+            "checked": false
+          },
+          {
+            "item": "制造商数据已分类呈现",
+            "checked": false
+          },
+          {
+            "item": "文献检索策略已记录",
+            "checked": false
+          },
+          {
+            "item": "文献数据已汇总评价",
+            "checked": false
+          },
+          {
+            "item": "警戒数据已检索分析",
+            "checked": false
+          },
+          {
+            "item": "GSPR 分析已完成",
+            "checked": false
+          },
+          {
+            "item": "获益-风险分析已完成",
+            "checked": false
+          },
+          {
+            "item": "**等效性表格符合 MDCG 2020-5（预防 EQ-001）（新增）**",
+            "checked": false
+          },
+          {
+            "item": "**GSPR 覆盖所有适用条款（预防 GS-001）（新增）**",
+            "checked": false
+          },
+          {
+            "item": "**PMCF/PMS 数据或计划已包含（预防 PM-001）（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "编写阶段 — §5 Conclusions",
+        "items": [
+          {
+            "item": "局限性已声明",
+            "checked": false
+          },
+          {
+            "item": "总体合规判定已给出",
+            "checked": false
+          },
+          {
+            "item": "安全性/有效性/获益-风险结论已给出",
+            "checked": false
+          },
+          {
+            "item": "后续评价计划已制定",
+            "checked": false
+          },
+          {
+            "item": "**措辞强度与证据强度匹配（新增）**",
+            "checked": false
+          }
+        ]
+      },
+      {
+        "title": "审核阶段",
+        "items": [
+          {
+            "item": "每条结论在 §4 中有证据支撑",
+            "checked": false
+          },
+          {
+            "item": "所有引用在 Annex 中有对应",
+            "checked": false
+          },
+          {
+            "item": "日期和签名页完整",
+            "checked": false
+          },
+          {
+            "item": "评估者资质已声明",
+            "checked": false
+          },
+          {
+            "item": "**§2 参数与 §4.2 表格一致（预防 DT-001）（新增）**",
+            "checked": false
+          },
+          {
+            "item": "**§4.4 纳入数 = §4.5 评价数 = Annex 列表数（预防 DT-001）（新增）**",
+            "checked": false
+          },
+          {
+            "item": "**无模板残留（预防 TM-001）（新增）**",
+            "checked": false
+          }
+        ]
+      }
+    ],
+    "code_blocks": [
+      {
+        "language": "text",
+        "content": "Step 1: 列出所有已上市的同类产品（≥1 个）？\n    └─ 否 → 跳过等效性论证，在 §4.2 中明确声明\n    └─ 是 → 进入 Step 2\n\nStep 2: 是否计划引用该类产品的临床数据？\n    └─ 否 → 可简化等效性论证，仅做背景对比\n    └─ 是 → 必须进行完整的等效性论证 → 进入 Step 3\n\nStep 3: 同类产品是否可通过 MDR Article 61 的三维度比较？\n    └─ 否 → 该产品不能作为等效设备，需寻找其他候选\n    └─ 是 → 完成等效性表格和论证"
+      },
+      {
+        "language": "text",
+        "content": "Equivalence shall be demonstrated according to the Regulation (EU) 2017/745.\nThe requirements from MEDDEV 2.7/1 Rev. 4 and MDCG 2020-5 would also be\n taken into consideration. MDR requires that technical, biological and\n clinical characteristics are considered when demonstrating equivalence\n to another device."
+      },
+      {
+        "language": "text",
+        "content": "Equivalence is not claimed for the device under evaluation.\nThe device represents a novel technology for which no equivalent device\n has been identified on the market. Therefore, the clinical evaluation\n relies solely on [clinical investigation data / literature data]."
+      },
+      {
+        "language": "text",
+        "content": "Technical characteristics（技术特性）\n    ├─ 设计（尺寸、结构、工作原理）\n    ├─ 材料（关键接触材料）\n    ├─ 规格和性能（功率、频率、输出参数）\n    └─ 软件/算法（如适用）\n\nBiological characteristics（生物学特性）\n    ├─ 人体接触材料（是否相同/已证实的等效材料）\n    ├─ 接触类型和持续时间\n    └─ 物质释放（如适用）\n\nClinical characteristics（临床特性）\n    ├─ 预期用途（必须完全相同）\n    ├─ 适应症\n    ├─ 目标人群\n    └─ 使用部位和使用方法"
+      },
+      {
+        "language": "text",
+        "content": "The [evaluated device / equivalent device] uses [material A / material B].\nAlthough there is a difference in [aspect], this does not affect the\n clinical safety and performance because [reasoning, e.g., both materials\n have been demonstrated to be biocompatible per ISO 10993-1 for the\n intended contact type and duration]."
+      },
+      {
+        "language": "text",
+        "content": "The evaluated device and the equivalent device use the same materials\n in contact with the same human tissues for similar kind and duration\n of contact. The biocompatibility of [device component] has also been\n evaluated per ISO 10993-1 and deemed to be biocompatible for the\n intended purpose. Therefore, the evaluated device is considered to be\n equivalent to [equivalent device name]."
+      },
+      {
+        "language": "text",
+        "content": "Phase 1: 等效性论证（§4.2）\n    └─ 输出：确定等效设备名单\n\nPhase 2: 等效设备专项文献检索\n    └─ 位置：§4.4.2 Literature searching of data of equivalent device\n    └─ 检索词：等效设备商品名 + 通用名 + 技术关键词\n    └─ 数据库：PubMed + Embase（最低）\n\nPhase 3: 证据整合\n    └─ 位置：§4.7 Analysis\n    └─ 等效设备数据与自有数据合并分析"
+      },
+      {
+        "language": "text",
+        "content": "项目复杂度评估：\n├─ 低风险 / 成熟技术 / 时间紧迫 → 帕姆模式（合并，简写）\n├─ 中风险 / 标准技术 → 海杰亚/鱼跃模式（分开，标准详述）\n└─ 高风险 / 创新技术 / NB 要求高 → 心擎模式（独立章节，分阶段详述）"
+      },
+      {
+        "language": "text",
+        "content": "├─ 数据库列表及 URL\n├─ 检索词（MeSH terms + Free text）\n├─ 完整检索式（Boolean 表达式）\n├─ 检索日期范围\n├─ 检索执行日期\n└─ 语言限制"
+      },
+      {
+        "language": "text",
+        "content": "├─ 研究类型（RCT, 队列, 病例系列, 病例报告）\n├─ 语言限制（通常 English）\n├─ 时间限制（通常近 10 年或上市以来）\n└─ 人群限制（Human only）"
+      },
+      {
+        "language": "text",
+        "content": "标题/摘要筛选 → 全文筛选 → 独立双筛 → 争议解决"
+      },
+      {
+        "language": "text",
+        "content": "作者 / 年份 / 研究类型 / 样本量 / 干预措施 / 主要终点 /\n次要终点 / 不良事件 / 随访时间 / 质量评分"
+      },
+      {
+        "language": "text",
+        "content": "RCT → Cochrane Risk of Bias (RoB 2)\n队列/病例对照 → Newcastle-Ottawa Scale (NOS)\n病例系列 → Maudsley/NIH 工具"
+      },
+      {
+        "language": "text",
+        "content": "Table X: Literature Search Execution Record\n┌─────────┬──────────┬─────────────────────────────┬─────────────┬──────────┬──────────┐\n│ Search  │ Database │ Search String               │ Date        │ Retrieved│ Included │\n│ #       │          │                             │             │ Results  │          │\n├─────────┼──────────┼─────────────────────────────┼─────────────┼──────────┼──────────┤\n│ 1#      │ PubMed   │ (\"[MeSH]\" OR \"[Free text]\") │ YYYY-MM-DD  │ N        │ n        │\n│         │          │ AND ...                     │             │          │          │\n└─────────┴──────────┴─────────────────────────────┴─────────────┴──────────┴──────────┘\n\nSearch performed by: [Name], [Title]\nSearch date: [YYYY-MM-DD]\nLanguage: English"
+      },
+      {
+        "language": "text",
+        "content": "1. PRISMA 流程图\n   └─ 展示：检索 → 去重 → 标题筛选 → 摘要筛选 → 全文筛选 → 纳入\n   └─ 每个环节标注数量\n\n2. 检索式 Annex\n   └─ 在 Annex 中保存每个数据库的完整检索式截图\n\n3. 手工补充检索\n   └─ 对 3-5 本核心期刊进行手工检索\n   └─ 记录期刊名、卷期、检索日期\n\n4. 引文追溯\n   └─ 对纳入文献的参考文献进行 backward citation tracking\n   └─ 记录追溯发现的补充文献\n\n5. 灰色文献检索\n   └─ ClinicalTrials.gov\n   └─ 制造商官网\n   └─ 会议摘要（如适用）"
+      },
+      {
+        "language": "text",
+        "content": "Class I / IIa / 成熟技术 → 鱼跃/海杰亚模式（隐性覆盖，按分析维度分节）\n    └─ §4.7.3.1 Safety Analysis\n    └─ §4.7.3.2 Performance Analysis\n    └─ §4.7.3.3 Benefit-Risk Analysis\n\nClass IIb / III / 创新技术 → 帕姆/亚宏模式（显性逐条，按 GSPR 分节）\n    └─ §4.7.1 Safety Analysis (GSPR 1 & 6)\n    └─ §4.7.2 Performance Analysis (GSPR 1)\n    └─ §4.7.3 Benefit-Risk Analysis (GSPR 1 & 8)\n\n高风险 / 全新技术 / NB 特殊要求 → 心擎模式（独立大章 + 汇总表）\n    └─ 独立章 \"Clinical Evidence Analysis – GSPRs\"\n    └─ 独立章 \"Clinical Evidence Analysis – Benefit-Risk Profile\""
+      },
+      {
+        "language": "text",
+        "content": "Paragraph 1: Requirement Restatement（要求重述）\n    \"GSPR X.X requires that [requirement description].\"\n\nParagraph 2: Evidence Source Identification（证据来源列举）\n    \"The following evidence sources are relevant to this requirement:\n     - [Standard/test report reference]\n     - [Pre-clinical evaluation report]\n     - [Clinical investigation data]\n     - [Literature reference]\n     - [Vigilance data]\"\n\nParagraph 3: Evidence Summary（证据内容摘要）\n    \"[Summary of key findings from each evidence source].\"\n\nParagraph 4: Analysis & Reasoning（分析推理）\n    \"Based on the above evidence, [reasoning that connects evidence to requirement].\"\n\nParagraph 5: Conformity Conclusion（合规判定）\n    \"Therefore, the device meets GSPR X.X.\""
+      },
+      {
+        "language": "text",
+        "content": "GSPR 1 (General Requirements) and GSPR 2 (Design and Manufacture Requirements)\nrequire that the device is designed and manufactured in such a way that,\nduring normal conditions of use, it is safe and performs as intended.\n\nThe following evidence supports compliance with these requirements:\n• Standards conformance: [List applicable standards, e.g., IEC 60601-1,\n  ISO 10993-1, etc.]\n• Pre-clinical evaluation: [Summary of bench testing, biocompatibility\n  testing, etc.]\n• Clinical investigations: [Summary of clinical study results]\n• Literature data: [Summary of published clinical evidence]\n• Vigilance data: [Summary of post-market surveillance findings]\n\nThe [standard/test] demonstrated that [specific result]. The clinical\ninvestigation ([reference]) enrolled [N] patients and demonstrated\n[efficacy/safety result]. The literature review identified [N] studies\nsupporting [conclusion]. No significant safety signals were identified\nin vigilance database searches.\n\nBased on the comprehensive evaluation of the above evidence, the device\nis designed and manufactured to ensure safety and performance during\nnormal conditions of use.\n\nTherefore, the device meets GSPR 1 and GSPR 2."
+      },
+      {
+        "language": "text",
+        "content": "GSPR 6 requires that the benefit-risk profile of the device is acceptable.\n\nClinical Benefits:\nThe clinical benefits of [Device Name] include [list benefits]. These\nbenefits are supported by [evidence sources]. In the clinical\ninvestigation, [efficacy endpoint] was achieved in [%] of patients.\nThe published literature reports similar efficacy rates ranging from\n[%] to [%].\n\nClinical Risks:\nThe known risks associated with [Device Name] include [list risks].\nIn the clinical investigation, the incidence of [adverse event] was\n[%], which is comparable to the SOTA rate of [%]. The vigilance\nsearch identified [N] events, with an estimated incidence of [%].\n\nRisk Mitigation:\nRisks are mitigated through [design controls, IFU warnings, training\nrequirements]. The residual risks are [description].\n\nBenefit-Risk Conclusion:\nWhen weighed against the clinical benefits, the risks associated with\nthe use of [Device Name] are acceptable. The benefit-risk profile is\nfavorable compared to [alternative treatments / SOTA].\n\nTherefore, the device meets GSPR 6."
+      },
+      {
+        "language": "text",
+        "content": "方式一：首次详述 + 后续引用（推荐）\n    GSPR 1 中详述标准和临床前证据\n    GSPR 2 中引用：\"As detailed in the analysis of GSPR 1 above,\n     the device conforms to [standard reference].\"\n\n方式二：独立证据汇总表（心擎模式，推荐用于高风险设备）\n    Annex X: GSPR Evidence Mapping Table\n    ┌─────────┬─────────────────┬─────────────────────────────┐\n    │ GSPR    │ Requirement     │ Evidence Sources            │\n    ├─────────┼─────────────────┼─────────────────────────────┤\n    │ 1.1     │ [Description]   │ ISO 10993, Clinical Study   │\n    │ 6.1     │ [Description]   │ Clinical Study, Literature  │\n    └─────────┴─────────────────┴─────────────────────────────┘\n\n方式三：并行详述（适用于证据来源不同的情况）\n    即使多条 GSPR 涉及类似主题，如果引用的具体证据不同，可分别详述"
+      },
+      {
+        "language": "text",
+        "content": "§4.3 Clinical Data Held by Manufacturer\n    ├─ 4.3.1 Standards Conformance（标准符合性）\n    │   └─ 列出适用的协调标准及符合性声明\n    ├─ 4.3.2 Pre-clinical Evaluation（临床前评价）\n    │   └─ 台架测试、生物相容性、动物实验、可用性测试\n    ├─ 4.3.3 Clinical Investigations（临床调查）\n    │   └─ 临床试验设计、结果、统计分析\n    ├─ 4.3.4 Market Authorization Data（上市授权数据）\n    │   └─ 已获批准国家的监管状态\n    └─ 4.3.5 Post-market Surveillance（上市后监测）\n        └─ PMS 数据、PMCF 计划\n\n§4.4 Clinical Data from Literature\n    ├─ 4.4.1 Literature Search Strategy\n    ├─ 4.4.2 Literature of Evaluated Device\n    ├─ 4.4.3 Literature of Equivalent Device（如适用）\n    └─ 4.4.4 Summary of Literature Data\n\n§4.5 Summary and Appraisal of Clinical Data\n    ├─ 数据质量评价\n    └─ 证据等级汇总\n\n§4.6 Medical Device Vigilance Data\n    ├─ MHRA 检索结果\n    ├─ BfArM 检索结果\n    ├─ FDA MAUDE 检索结果\n    └─ 汇总分析\n\n§4.7 Analysis of Clinical Data\n    ├─ Safety Analysis\n    ├─ Performance Analysis\n    ├─ Benefit-Risk Analysis\n    └─ Side-effects Analysis"
+      },
+      {
+        "language": "text",
+        "content": "The overall quality of the clinical evidence is [assessment].\nThe evidence includes [N] RCTs (Level 1b), [N] cohort studies\n(Level 2b), and [N] case series (Level 4). The main limitations\ninclude [list limitations, e.g., small sample sizes, lack of\nrandomization, short follow-up periods]."
+      },
+      {
+        "language": "text",
+        "content": "The risks associated with the use of [Device Name] have been\nidentified and assessed in the Risk Management File ([document\nreference]). The clinical evidence presented in this report\nvalidates that the risk control measures are effective in\nclinical use."
+      },
+      {
+        "language": "text",
+        "content": "Benefit-Risk Analysis\n    ├─ 1. Clinical Benefits（临床获益）\n    │   ├─ 主要有效性终点数据（量化）\n    │   ├─ 次要有效性终点数据\n    │   └─ 与 SOTA 基准的对比\n    │\n    ├─ 2. Clinical Risks（临床风险）\n    │   ├─ 不良事件总体发生率\n    │   ├─ 严重不良事件发生率\n    │   ├─ 器械相关不良事件\n    │   └─ 与 SOTA 风险的对比\n    │\n    ├─ 3. Risk Mitigation（风险缓解）\n    │   ├─ 设计层面控制\n    │   ├─ 标签/IFU 警告\n    │   └─ 培训/使用限制\n    │\n    └─ 4. Overall Benefit-Risk Conclusion\n        ├─ 获益-风险权衡论述\n        └─ 明确结论：Acceptable / Favorable"
+      },
+      {
+        "language": "text",
+        "content": "The safety and performance of the device from the evaluation with\nrespect to the intended use of the device as claimed have been\nestablished, and the risks associated with the use of the device\nare acceptable when weighed against the benefits to the patient."
+      },
+      {
+        "language": "text",
+        "content": "The risk/benefit analysis shows that the benefits when using the\n[device] outweigh the risks. The device provides a clinically\nsignificant benefit to patients with [indication], and the risks\nare adequately controlled through [risk control measures]."
+      },
+      {
+        "language": "text",
+        "content": "Step 1: 确定检索词\n    ├─ 设备商品名（完整 + 缩写）\n    ├─ 设备通用名/技术名称\n    ├─ 制造商名称\n    └─ 适应症相关术语（辅助）\n\nStep 2: 执行检索\n    ├─ 每个数据库分别检索\n    ├─ 记录检索日期和执行人\n    └─ 保存检索结果截图/记录\n\nStep 3: 结果筛选\n    ├─ 排除非本设备事件\n    ├─ 按严重度分类\n    └─ 按事件类型分类\n\nStep 4: 结果呈现\n    ├─ 汇总表：数据库 | 检索词 | 结果数 | 相关事件数\n    ├─ 相关事件摘要（匿名化）\n    └─ 对当前设备的启示"
+      },
+      {
+        "language": "text",
+        "content": "No relevant adverse events related to [Device Name] were identified\nin the searched vigilance databases (MHRA, BfArM, FDA MAUDE). This\nsupports the favorable safety profile established by the clinical\ninvestigation and published literature."
+      },
+      {
+        "language": "text",
+        "content": "[N] events related to [Device Name] were identified in [database].\nThe events primarily involved [event type], with an estimated\nincidence of [X] per [N] devices. This incidence is consistent\nwith the rates reported in the published literature ([reference]: \n[Y] per [N]). The existing risk control measures, including\n[measures], are considered adequate."
+      },
+      {
+        "language": "text",
+        "content": "[N] serious events were identified. Each event was assessed for\n causality, and [N] were determined to be device-related. The\n events have been addressed through [design change / IFU update /\n training enhancement]. The updated risk assessment confirms that\n the residual risk is acceptable."
+      },
+      {
+        "language": "text",
+        "content": "§5 Conclusions 必须包含：\n\n1. 局限性声明（Limitations）\n   \"The limitations of the study are that limited number of published\n    literatures are collected and unpublished documents about negative\n    result cannot be examined.\"\n   > 注：这是行业通用表述，帕姆/鱼跃/海杰亚完全相同。\n\n2. 总体合规判定（Overall Conformity）\n   \"Based on the evaluation of the available data, the [Device Name]\n    meets the relevant General Safety and Performance Requirements.\"\n\n3. 安全性结论（Safety）\n   \"The evaluation has established that the device is safe for its\n    claimed use.\"\n\n4. 有效性结论（Performance）\n   \"The device performs as intended for its claimed use.\"\n\n5. 获益-风险结论（Benefit-Risk）\n   \"The risks associated with the use of the device are acceptable\n    when weighed against the benefits to the patient.\"\n\n6. 后续评价计划（Next Evaluation）\n   \"The next clinical evaluation is planned for [date / trigger event].\""
+      },
+      {
+        "language": "text",
+        "content": "5. Conclusions\n\nThe limitations of the study are that limited number of published\nliteratures are collected and unpublished documents about negative\nresult cannot be examined. The collected literature mainly concerns\nthe assessment of the treatment efficacy and safety.\n\nBased on evaluation on identification of data, pre-clinical\nevaluation, literature of evaluated device [and equivalent device],\n[post-market surveillance of equivalent device] and risk analysis,\nthe evaluation conclusion is:\n\n• Established Safety and Performance: The evaluation has established\n  that the [Device Name] is safe and performs as intended for its\n  claimed use.\n\n• Acceptable Risk Profile: The risks associated with the use of the\n  device have been deemed acceptable when weighed against the\n  benefits to the patient.\n\n• [Additional conclusion if applicable, e.g., Equivalence confirmed]\n\nThe risk/benefit analysis shows that the benefits when using the\n[Device Name] outweigh the risks.\n\nThe next clinical evaluation is planned for [date / event]."
+      },
+      {
+        "language": "text",
+        "content": "验证问题 1：不熟悉该疾病的人读完后，能否理解这个设备解决什么问题？\n    └─ 如果不可以 → 补充疾病背景和流行病学数据\n\n验证问题 2：审核者能否从 SOTA 中找到评价该设备安全性和有效性的基准值？\n    └─ 如果不可以 → 补充 Safety & Performance Endpoints 子节\n\n验证问题 3：SOTA 是否论证了该设备存在的临床必要性？\n    └─ 如果不可以 → 补充未满足临床需求和现有治疗局限性"
+      },
+      {
+        "language": "text",
+        "content": "SOTA 输出                    →  §4 输入                    →  §5 结论\n─────────────────────────────────────────────────────────────────────────────\n疾病患病率 [X%]               →  目标人群规模确认           →  临床需求论证\n现有治疗方案及有效率          →  设备有效性对比基准         →  有效性结论\n现有治疗方案的不良事件率      →  设备安全性对比基准         →  安全性结论\n临床指南推荐路径              →  设备定位论证               →  获益-风险结论\n未满足需求                    →  设备创新价值论证           →  总体结论"
+      }
+    ]
+  },
+  "defect_patterns": [],
+  "deerflow_injection_references": []
+}

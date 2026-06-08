@@ -1,0 +1,63 @@
+project_id: CER-TS2K-POSITIVE-SMOKE
+project_name: ThermaScan PRO-2000 Positive Smoke
+
+institution_profile:
+  organization: DeerFlow Regulatory Simulation
+  assessment_body: DeerFlow Automated Review Engine
+  profile_version: "v2"
+
+review_scope:
+  mode: production_smoke_positive
+  review_language: en
+  jurisdiction: EU MDR / IVDR
+  human_gate_required: true
+
+primary_review_object: CER
+
+device_context:
+  device_name: ThermaScan PRO-2000 Digital Thermometer
+  device_family: Digital Infrared Ear Thermometer
+  device_class: Class IIa
+  intended_use: Intermittent measurement and monitoring of human body temperature in adult and pediatric patients (age 3 months and above) in clinical and home healthcare settings.
+  market_stage: technical_documentation_review
+  implantable_status: false
+  intended_purpose_confirmed: true
+  indication_scope_confirmed: true
+  document_inventory_confirmed: true
+
+project_protocol:
+  project_id: CER-TS2K-POSITIVE-SMOKE
+  cer_run_id: cer-ts2k-positive-smoke-001
+  product_name: ThermaScan PRO-2000
+  device_class: Class IIa
+  implantable_status: false
+  intended_purpose_confirmed: true
+  indication_scope_confirmed: true
+  document_inventory_confirmed: true
+  assessment_type: production_smoke_positive
+  formal_review_requested: false
+  gate_a_status: draft
+  gate_a_decision_by: null
+  gate_a_decision_at: null
+  gate_a_notes: Positive smoke run — synthetic fixture for non-production evidence
+
+input_package:
+  root_path: examples/cer_review/production_smoke_positive
+  documents:
+    - doc_type: CER
+      label: Clinical Evaluation Report
+      path: CER_quantified_low_risk_positive.txt
+      required_for_p0: true
+      source_ref:
+        document_id: cer_ts2k_positive_001
+        path: CER_quantified_low_risk_positive.txt
+
+artifact_policy:
+  artifact_root: /Users/winstonwei/Documents/Playground/deer-flow/backend/.tmp/cer_review_positive_smoke
+  persist_intermediate_artifacts: true
+  final_outputs:
+    - run_manifest.json
+    - task_ledger.json
+    - agent_invocation_trace.jsonl
+    - event_log.json
+    - run_summary.json

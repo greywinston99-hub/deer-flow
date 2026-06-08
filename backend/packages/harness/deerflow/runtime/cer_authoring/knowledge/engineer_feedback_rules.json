@@ -20,7 +20,13 @@
       "artifact_contract": "CER_draft.docx sections 1-6",
       "gate_contract": "gates.evaluate_pre_writer_readiness_gate identity condition",
       "test_contract": "test_pre_writer_hard_gates.py::test_required_chapter_structure",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-002",
@@ -32,7 +38,13 @@
       "artifact_contract": "CER_draft.docx §2 subsections",
       "gate_contract": "writer_gates.evaluate_device_domain_consistency_gate",
       "test_contract": "test_pre_writer_hard_gates.py::test_device_identity_consistency",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "DO-001": 153,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-003",
@@ -44,7 +56,14 @@
       "artifact_contract": "alignment_matrix, cer_section_trace_map",
       "gate_contract": "gates.evaluate_pre_writer_readiness_gate alignment condition",
       "test_contract": "test_pre_writer_hard_gates.py::test_alignment_gate_block",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126,
+        "TR-001": 102,
+        "CL-001": 69,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-004",
@@ -56,7 +75,13 @@
       "artifact_contract": "claim_evidence_matrix, writer_evidence_consumption_trace",
       "gate_contract": "writer_gates.evaluate_evidence_conclusion_consistency_gate",
       "test_contract": "test_writer_remediation_gates.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "EV-001": 126,
+        "TR-001": 102,
+        "CV-001": 54,
+        "DT-001": 53
+      }
     },
     {
       "feedback_id": "FB-005",
@@ -68,7 +93,14 @@
       "artifact_contract": "evidence_appraisal_table, benefit_risk_closure_matrix",
       "gate_contract": "gates._gate_benefit_risk_closure",
       "test_contract": "test_pre_writer_hard_gates.py::test_benefit_risk_gate",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "BR-001": 148,
+        "EV-001": 126,
+        "TR-001": 102,
+        "EQ-001": 73,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-006",
@@ -80,7 +112,14 @@
       "artifact_contract": "equivalence_route_lock.json, equivalence_comparison_matrix",
       "gate_contract": "gates._gate_equivalence_route",
       "test_contract": "test_equivalence_route_lock.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "TR-001": 102,
+        "EQ-001": 73,
+        "CL-001": 69,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-007",
@@ -92,7 +131,14 @@
       "artifact_contract": "equivalence_route_lock.json",
       "gate_contract": "gates._gate_equivalence_route",
       "test_contract": "test_equivalence_route_lock.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "MF-001": 108,
+        "TR-001": 102,
+        "EQ-001": 73,
+        "CL-001": 69,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-008",
@@ -104,7 +150,14 @@
       "artifact_contract": "claim_taxonomy_decision_table, claim_evidence_route_matrix",
       "gate_contract": "gates._gate_claim_taxonomy",
       "test_contract": "test_claim_taxonomy_routing.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "BR-001": 148,
+        "EV-001": 126,
+        "TR-001": 102,
+        "CL-001": 69
+      }
     },
     {
       "feedback_id": "FB-009",
@@ -116,7 +169,14 @@
       "artifact_contract": "claim_evidence_route_matrix",
       "gate_contract": "gates._gate_claim_evidence_routing",
       "test_contract": "test_claim_taxonomy_routing.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "LB-001": 162,
+        "BR-001": 148,
+        "EV-001": 126,
+        "TR-001": 102
+      }
     },
     {
       "feedback_id": "FB-010",
@@ -128,7 +188,14 @@
       "artifact_contract": "prisma_reproducibility_audit.json",
       "gate_contract": "gates._gate_prisma_reproducibility",
       "test_contract": "test_prisma_reproducibility_gate.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "EV-001": 126,
+        "TR-001": 102,
+        "CV-001": 54,
+        "DT-001": 53
+      }
     },
     {
       "feedback_id": "FB-011",
@@ -140,7 +207,13 @@
       "artifact_contract": "prisma_reproducibility_audit.json",
       "gate_contract": "gates._gate_prisma_reproducibility",
       "test_contract": "test_prisma_reproducibility_gate.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "EV-001": 126,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-012",
@@ -152,7 +225,12 @@
       "artifact_contract": "evidence_level_summary_matrix.xlsx",
       "gate_contract": "gates._gate_evidence_level_ceiling",
       "test_contract": "test_evidence_level_summary_matrix.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "EV-001": 126,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-013",
@@ -164,7 +242,12 @@
       "artifact_contract": "endpoint_homogeneity_matrix.xlsx",
       "gate_contract": "gates._gate_endpoint_homogeneity",
       "test_contract": "test_endpoint_homogeneity_gate.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "TR-001": 102,
+        "CL-001": 69,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-014",
@@ -176,7 +259,13 @@
       "artifact_contract": "endpoint_homogeneity_matrix.xlsx",
       "gate_contract": "gates._gate_endpoint_homogeneity",
       "test_contract": "test_endpoint_homogeneity_gate.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "TR-001": 102,
+        "CL-001": 69,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-015",
@@ -188,7 +277,12 @@
       "artifact_contract": "benefit_risk_closure_matrix.json, CER_draft.docx §4.8",
       "gate_contract": "gates._gate_benefit_risk_body_section_present",
       "test_contract": "test_benefit_risk_body_section.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "BR-001": 148,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-016",
@@ -200,7 +294,14 @@
       "artifact_contract": "benefit_risk_closure_matrix.json",
       "gate_contract": "gates._gate_benefit_risk_closure",
       "test_contract": "test_benefit_risk_body_section.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "BR-001": 148,
+        "EV-001": 126,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-017",
@@ -212,7 +313,14 @@
       "artifact_contract": "rmf_hazard_trace.json, ifu_warning_rmf_crosswalk.json",
       "gate_contract": "gates._gate_rmf_ifu_warning_linkage",
       "test_contract": "test_rmf_deep_linkage.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "BR-001": 148,
+        "TR-001": 102,
+        "CV-001": 54,
+        "DT-001": 53
+      }
     },
     {
       "feedback_id": "FB-018",
@@ -224,7 +332,11 @@
       "artifact_contract": "regulatory_style_fingerprint_report.json",
       "gate_contract": "writer_gates.evaluate_submission_body_cleanliness_gate",
       "test_contract": "test_regulatory_style_fingerprint.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-019",
@@ -236,7 +348,13 @@
       "artifact_contract": "regulatory_style_fingerprint_report.json",
       "gate_contract": "gates._gate_gspr_paragraph_completeness",
       "test_contract": "test_regulatory_style_fingerprint.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "EV-001": 126,
+        "TR-001": 102,
+        "GS-001": 72,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-020",
@@ -248,7 +366,12 @@
       "artifact_contract": "regulatory_style_fingerprint_report.json",
       "gate_contract": "gates._gate_literature_appraisal_completeness",
       "test_contract": "test_regulatory_style_fingerprint.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "EV-001": 126,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-021",
@@ -260,7 +383,11 @@
       "artifact_contract": "regulatory_style_fingerprint_report.json",
       "gate_contract": "gates._gate_style_passive_voice_range",
       "test_contract": "test_regulatory_style_fingerprint.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-022",
@@ -272,7 +399,11 @@
       "artifact_contract": "regulatory_style_fingerprint_report.json",
       "gate_contract": "gates._gate_body_annex_boundary",
       "test_contract": "test_regulatory_style_fingerprint.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-023",
@@ -284,7 +415,12 @@
       "artifact_contract": "FINAL_DRAFT_QA_REPORT.json",
       "gate_contract": "gates._gate_submission_cleanliness",
       "test_contract": "test_writer_remediation_gates.py::test_submission_cleanliness",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "TR-001": 102,
+        "CV-001": 54,
+        "DT-001": 53
+      }
     },
     {
       "feedback_id": "FB-024",
@@ -296,7 +432,12 @@
       "artifact_contract": "ifu_iteration_decision_ledger.json, ifu_claim_scope_delta_matrix.xlsx",
       "gate_contract": "gates._gate_ifu_iteration_closure",
       "test_contract": "test_ifu_iteration_loop.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-025",
@@ -308,7 +449,11 @@
       "artifact_contract": "claim_taxonomy_decision_table, claim_support_matrix",
       "gate_contract": "gates._gate_final_body_claim_eligibility",
       "test_contract": "test_claim_taxonomy_routing.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-026",
@@ -320,7 +465,13 @@
       "artifact_contract": "CER_draft.docx §5",
       "gate_contract": "gates._gate_conclusion_completeness",
       "test_contract": "test_benefit_risk_body_section.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "BR-001": 148,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-027",
@@ -332,7 +483,14 @@
       "artifact_contract": "Various .xlsx table artifacts",
       "gate_contract": "gates._gate_required_tables_present",
       "test_contract": "test_export_routing.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "BR-001": 148,
+        "EV-001": 126,
+        "TR-001": 102,
+        "EQ-001": 73
+      }
     },
     {
       "feedback_id": "FB-028",
@@ -344,7 +502,12 @@
       "artifact_contract": "claim_taxonomy_decision_table",
       "gate_contract": "gates._gate_claim_taxonomy",
       "test_contract": "test_claim_taxonomy_routing.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "EV-001": 126,
+        "TR-001": 102,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-029",
@@ -356,7 +519,14 @@
       "artifact_contract": "claim_taxonomy_decision_table",
       "gate_contract": "gates._gate_claim_taxonomy",
       "test_contract": "test_claim_taxonomy_routing.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "BR-001": 148,
+        "TR-001": 102,
+        "CL-001": 69,
+        "CV-001": 54
+      }
     },
     {
       "feedback_id": "FB-030",
@@ -368,7 +538,53 @@
       "artifact_contract": "ifu_iteration_decision_ledger.json",
       "gate_contract": "gates._gate_ifu_overclaim",
       "test_contract": "test_ifu_iteration_loop.py",
-      "coverage_status": "partial"
+      "coverage_status": "partial",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "BR-001": 148,
+        "EV-001": 126,
+        "TR-001": 102,
+        "CL-001": 69
+      }
     }
-  ]
+  ],
+  "v5_enrichment": {
+    "applied_at": "2026-05-30T12:50:31.935859",
+    "total_v5_findings_available": 63,
+    "defect_types_available": 27,
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    },
+    "deepened": true,
+    "cross_refs_added": 1,
+    "deepened_r2": true,
+    "cross_refs_added_r2": 31,
+    "total_v5_refs": 32,
+    "all_defect_stats": {
+      "PM-001": 312,
+      "LB-001": 162,
+      "DO-001": 153,
+      "BR-001": 148,
+      "EV-001": 126,
+      "MF-001": 108,
+      "TR-001": 102,
+      "EQ-001": 73,
+      "GS-001": 72,
+      "CL-001": 69,
+      "RM-001": 59,
+      "CV-001": 54,
+      "DT-001": 53,
+      "SW-001": 49,
+      "AU-001": 10,
+      "CM-001": 9,
+      "IV-001": 6,
+      "SC-001": 3,
+      "DQ-001": 2
+    }
+  },
+  "v5_linked_defects": {
+    "CV-001": 54
+  }
 }

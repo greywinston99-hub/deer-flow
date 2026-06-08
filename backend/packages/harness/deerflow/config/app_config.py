@@ -44,12 +44,11 @@ def _load_default_dotenv() -> None:
 
 
 def _force_direct_api_network() -> None:
-    """Keep DeerFlow model/API calls off system or shell proxy settings.
+    """Apply DeerFlow's model/API network policy.
 
-    Claude Code and DeerFlow API providers should connect directly to their
-    upstream endpoints.  Some launch paths inherit Clash/Clash Pro proxy
-    variables from shells or GUI apps; clear them at process bootstrap unless a
-    developer explicitly opts out with DEERFLOW_ALLOW_PROXY=1.
+    Default behavior bypasses proxies for direct Kimi/DeepSeek API access.
+    Use DEERFLOW_NETWORK_MODE=preserve / DEERFLOW_ALLOW_PROXY=1 only for
+    diagnostics that intentionally keep shell or provider-router proxy settings.
     """
 
     force_direct_api_network()

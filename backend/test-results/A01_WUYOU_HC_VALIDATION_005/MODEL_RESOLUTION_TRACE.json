@@ -1,0 +1,33 @@
+{
+  "schema": "model_resolution_trace_v1",
+  "run_id": "A01_WUYOU_HC_VALIDATION_005",
+  "project": "A01_WUYOU_HC_VALIDATION_005",
+  "timestamp": "2026-05-29T09:12:40.887731+00:00",
+  "global_model_env": "kimi-k2.6-code",
+  "per_agent_overrides": {},
+  "agents": [
+    {
+      "agent_name": "authoring-methodology-sota-agent",
+      "task_type": "evidence_reasoning",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "configured",
+      "model_invocation_success": false
+    },
+    {
+      "agent_name": "authoring-methodology-sota-agent",
+      "task_type": "evidence_reasoning",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "configured",
+      "model_invocation_success": false
+    }
+  ],
+  "agent_count": 2,
+  "all_resolved_correctly": true,
+  "any_fallback_used": false
+}

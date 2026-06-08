@@ -1,0 +1,264 @@
+{
+  "pack_id": "cer_review_assist_context_v1",
+  "date": "2026-04-27",
+  "version": "1.0",
+  "status": "sandbox_pilot_active",
+  "description": "Knowledge Context Pack V1 for CER Review Assist Sandbox Pilot. Provides structured calibration evidence injection for 5 sandbox agents. Packages relevant Track A, Track B, and Track C V5 knowledge assets.",
+
+  "calibration_summary": {
+    "source": "Track C Consolidation V5",
+    "total_candidates": 252,
+    "pass_quality": 242,
+    "warn_quality": 5,
+    "fail_quality": 5,
+    "p0_quarantined": 7,
+    "type_distribution": {
+      "AP": 62,
+      "BD": 38,
+      "GS": 72,
+      "RD": 23,
+      "RP": 21,
+      "SV": 36
+    },
+    "severity_distribution": {
+      "CRITICAL": 7,
+      "HIGH": 33,
+      "MEDIUM": 166,
+      "LOW": 9,
+      "N/A": 37
+    }
+  },
+
+  "track_a_assets": [
+    {
+      "asset_id": "D1",
+      "type": "requirement_hierarchy",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D1_REQUIREMENT_HIERARCHY_ANALYSIS.md",
+      "companion": "D1_REQUIREMENT_GRAPH_DRAFT.json",
+      "inclusion_reason": "MDR requirement hierarchy for validating device-specific claims against regulatory requirements",
+      "target_agents": ["regulatory-boundary-qa.sandbox", "cer-rmf-review-logic-qa.sandbox"],
+      "key_content": "MDR Annex I (GSPR) → Annex VIII (Classification) → Annex XIV (Clinical Evaluation) → Article 61 → Article 32 → MDCG 2023-7"
+    },
+    {
+      "asset_id": "D2",
+      "type": "concept_graph",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D2_CONCEPT_GRAPH.md",
+      "companions": ["D2_CONCEPT_GRAPH.json", "D2_KNOWLEDGE_GAPS.md"],
+      "inclusion_reason": "Concept relationship graph and identified knowledge gaps for gap detection patterns",
+      "target_agents": ["gap-analysis-specialist.sandbox"],
+      "key_content": "Equivalence chain gaps, SOTA benchmarking gaps, clinical data sufficiency gaps, PMS/PMCF feedback loop gaps"
+    },
+    {
+      "asset_id": "D4",
+      "type": "rule_mapping",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D4_RULE_TO_TEMPLATE_MAPPING.md",
+      "companion": "D4_RULE_TO_TEMPLATE_MAPPING.csv",
+      "inclusion_reason": "Regulatory rules to template structures mapping for verifying project output patterns",
+      "target_agents": ["cer-rmf-review-logic-qa.sandbox"]
+    },
+    {
+      "asset_id": "D7",
+      "type": "evaluation_logic",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D7_EVALUATION_LOGIC.md",
+      "companion": "D7_EVALUATION_LOGIC.json",
+      "inclusion_reason": "Severity framework for classifying findings (CRITICAL/HIGH/MEDIUM/LOW). Essential for all agents.",
+      "target_agents": [
+        "canonical-recommendation-engine.sandbox",
+        "evidence-artifact-curator.sandbox",
+        "gap-analysis-specialist.sandbox",
+        "regulatory-boundary-qa.sandbox",
+        "cer-rmf-review-logic-qa.sandbox"
+      ],
+      "severity_framework": {
+        "CRITICAL": "Blocks regulatory submission — empty source, prohibited claim, missing mandatory evidence",
+        "HIGH": "Requires remediation before next review — placeholder content, factual contradiction, plan-without-execution",
+        "MEDIUM": "Should be tracked and resolved — over-generalization, version inconsistency, template residue",
+        "LOW": "Informational — minor formatting issues, phrasing variants"
+      }
+    },
+    {
+      "asset_id": "D8",
+      "type": "gate_boundary",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/D8_HUMAN_GATE_BOUNDARY_MAP.md",
+      "companion": "D8_HUMAN_GATE_BOUNDARY.json",
+      "inclusion_reason": "Human gate boundary framework for validating gate compliance across all stages",
+      "target_agents": ["regulatory-boundary-qa.sandbox", "cer-rmf-review-logic-qa.sandbox"],
+      "key_content": "Human gate mandatory at: regulatory compliance decisions, severity classification (CRITICAL/HIGH), boundary_violation classification, MDR Article 61 compliance, NB communication"
+    }
+  ],
+
+  "track_c_assets": [
+    {
+      "asset_id": "V5_CALIBRATION_PACK",
+      "type": "calibration_pack",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/track_c_consolidation_v5/TRACK_C_CALIBRATION_PACK_V5.json",
+      "inclusion_reason": "Primary calibration evidence source for all 5 sandbox agents. 242 PASS-quality candidates.",
+      "target_agents": ["ALL"]
+    },
+    {
+      "asset_id": "V5_AGENT_BINDING_MATRIX",
+      "type": "binding_matrix",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/track_c_consolidation_v5/TRACK_C_AGENT_BINDING_MATRIX_V5.md",
+      "inclusion_reason": "Defines which calibration types are bound to which agents with access mode",
+      "target_agents": ["ALL"]
+    },
+    {
+      "asset_id": "V5_P0_FAST_REVIEW",
+      "type": "quarantine_reference",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/track_c_consolidation_v5/P0_FAST_REVIEW_PACKET_V5.md",
+      "inclusion_reason": "P0 quarantine awareness — 7 CRITICAL candidates from 016_baining and 017_demaidi",
+      "target_agents": ["ALL"],
+      "p0_patterns": [
+        "016_baining: IFU vs CER diameter contradiction (3mm vs 5mm)",
+        "017_demaidi: Wrong IFU reference + statistically improbable safety claim + PMS failure"
+      ]
+    }
+  ],
+
+  "convergence_assets": [
+    {
+      "asset_id": "CONVERGENCE_R1",
+      "type": "convergence_report",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/CONVERGENCE_ROUND_1.md",
+      "inclusion_reason": "Cross-validation patterns from Track A vs Track B comparison",
+      "target_agents": ["cer-rmf-review-logic-qa.sandbox", "gap-analysis-specialist.sandbox"]
+    },
+    {
+      "asset_id": "CONVERGENCE_R2",
+      "type": "convergence_report",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/CONVERGENCE_ROUND_2.md",
+      "inclusion_reason": "R2 cross-validation patterns",
+      "target_agents": ["cer-rmf-review-logic-qa.sandbox", "gap-analysis-specialist.sandbox"]
+    },
+    {
+      "asset_id": "CONVERGENCE_R3",
+      "type": "convergence_report",
+      "source_path": "/Users/winstonwei/CER-RAG/00_knowledge_extraction_build/dual_track_factory_v2_planning/track_a_output/CONVERGENCE_ROUND_3.md",
+      "inclusion_reason": "R3 cross-validation patterns",
+      "target_agents": ["cer-rmf-review-logic-qa.sandbox", "gap-analysis-specialist.sandbox"]
+    }
+  ],
+
+  "per_agent_calibration": {
+    "canonical-recommendation-engine.sandbox": {
+      "binding_id": "BD-0001",
+      "category": "Knowledge",
+      "calibration_types": ["GS", "AP"],
+      "max_confidence": "HIGH",
+      "use_mode": "system_prompt",
+      "key_anti_patterns": [
+        {"id": "KA-CAL-AP-RPR-0001", "type": "empty_file_accepted_as_source", "severity": "CRITICAL"},
+        {"id": "KA-CAL-AP-RPR-0002", "type": "copy_paste_template_artifact", "severity": "MEDIUM"},
+        {"id": "KA-CAL-AP-RPR-0003", "type": "placeholder_content", "severity": "HIGH"},
+        {"id": "KA-CAL-AP-RPR-0004", "type": "synthetic_summary_instead_of_excerpt", "severity": "CRITICAL"},
+        {"id": "KA-CAL-AP-RPR-0005", "type": "over_generalization", "severity": "MEDIUM"},
+        {"id": "KA-CAL-AP-RPR-0008", "type": "version_inconsistency", "severity": "MEDIUM"},
+        {"id": "KA-CAL-AP-RPR-0009", "type": "plan_without_execution", "severity": "HIGH"},
+        {"id": "KA-CAL-GS-RPR-0003", "type": "factual_contradiction", "severity": "HIGH"}
+      ]
+    },
+    "evidence-artifact-curator.sandbox": {
+      "binding_id": "BD-0004",
+      "category": "Knowledge",
+      "calibration_types": ["GS", "AP"],
+      "max_confidence": "HIGH",
+      "use_mode": "system_prompt",
+      "key_anti_patterns": [
+        {"id": "KA-CAL-AP-RPR-0001", "type": "empty_evidence_artifact", "severity": "CRITICAL"},
+        {"id": "KA-CAL-AP-RPR-0002", "type": "copy_paste_template_artifact", "severity": "MEDIUM"},
+        {"id": "KA-CAL-AP-RPR-0004", "type": "synthetic_summary_instead_of_excerpt", "severity": "CRITICAL"}
+      ],
+      "evidence_packs": {
+        "EP-001": "Project Identity",
+        "EP-002": "Clinical Evidence",
+        "EP-003": "Post-Market",
+        "EP-004": "Regulatory",
+        "EP-005": "Audit Trail"
+      }
+    },
+    "gap-analysis-specialist.sandbox": {
+      "binding_id": "BD-0002",
+      "category": "Knowledge",
+      "calibration_types": ["AP", "SV", "BD"],
+      "max_confidence": "MEDIUM",
+      "use_mode": "sys+context",
+      "key_gap_patterns": [
+        "missing_source_pattern",
+        "placeholder_content_gap",
+        "incomplete_evidence_chain",
+        "version_mismatch_gap",
+        "plan_without_execution",
+        "over_generalization_gap",
+        "factual_contradiction"
+      ]
+    },
+    "regulatory-boundary-qa.sandbox": {
+      "binding_id": "BD-0005+10",
+      "category": "Review Logic",
+      "calibration_types": ["AP", "RD"],
+      "max_confidence": "HIGH",
+      "use_mode": "sys+context",
+      "prohibited_claims": [
+        "official CEAR generated",
+        "final clinical/regulatory decision",
+        "production ready",
+        "full CER/RMF review completed",
+        "RMF complete",
+        "PMCF adequate",
+        "equivalence demonstrated",
+        "GSPR complete",
+        "SSCP complete"
+      ],
+      "reviewer_decision_patterns": [
+        "equivalence_rejection_pivot_to_standalone",
+        "quantitative_acceptance_criteria_required",
+        "sota_benchmarking_required",
+        "pmcf_study_design_required"
+      ]
+    },
+    "cer-rmf-review-logic-qa.sandbox": {
+      "binding_id": "BD-0003",
+      "category": "Review Logic",
+      "calibration_types": ["SV", "RP", "RD"],
+      "max_confidence": "MEDIUM",
+      "use_mode": "system_prompt",
+      "repair_pairs": [
+        {"pattern": "equivalence_rejected", "repair": "pivot_to_standalone_mdr_article_61_6a", "ref": "WO-103 BSI R1 Item 4"},
+        {"pattern": "sota_not_benchmarked", "repair": "add_quantitative_comparison", "ref": "WO-103 BSI R2 Item 5"},
+        {"pattern": "qualitative_safety_claim", "repair": "add_sota_derived_acceptance_criteria", "ref": "WO-103 BSI R2 Item 7"},
+        {"pattern": "cep_cer_claim_mismatch", "repair": "systematic_cross_reference_table", "ref": "WO-103 Consistency Check 2"},
+        {"pattern": "missing_pmcf_study_design", "repair": "add_study_protocol_with_endpoints", "ref": "WO-103 BSI R1 Item 8"},
+        {"pattern": "document_version_inconsistency", "repair": "identify_authoritative_nb_reviewed_version", "ref": "KA-CAL-AP-RPR-0008"},
+        {"pattern": "evaluation_route_change_undocumented", "repair": "document_both_routes_with_rationale", "ref": "WO-103 Consistency Check 7"}
+      ],
+      "cross_document_pairs": [
+        {"pair": "CER vs CEP", "check": "Clinical claims alignment"},
+        {"pair": "CER vs IFU", "check": "Intended purpose, warnings, contraindications"},
+        {"pair": "CER vs SSCP", "check": "Safety and performance summary"},
+        {"pair": "CER vs PSUR", "check": "Benefit-risk, safety data, incidents"},
+        {"pair": "CEP vs PSUR", "check": "PMCF findings vs planned data"},
+        {"pair": "IFU vs RMF", "check": "Risk controls in IFU warnings"},
+        {"pair": "Literature vs CER", "check": "SOTA conclusions currency"}
+      ]
+    }
+  },
+
+  "out_of_scope_v1": [
+    "P0 quarantined candidates (7 candidates — HOLD_FOR_HUMAN_REVIEW)",
+    "FAIL quality tier candidates (5 candidates — quality insufficient)",
+    "WARN quality tier candidates (5 candidates — quality concerns)",
+    "174_心擎 compacted records (large volume, requires compaction analysis)",
+    "NocoDB data (read-only boundary)",
+    "Unbound agents (11 agents — no calibration binding exists)"
+  ],
+
+  "hard_boundaries": {
+    "no_nocodb_writes": true,
+    "no_approved_true": true,
+    "no_runtime_call_allowed_true": true,
+    "no_production_agent_modification": true,
+    "no_p0_quarantine_lift": true,
+    "candidate_knowledge_as_internal_review_assist_context_only": true,
+    "all_findings_must_have_evidence_trace": true
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_name": "controlled_compromise_manifest",
+  "terminal_status": "REASONING_CHAIN_INCOMPLETE",
+  "blocked_reason": "Source preflight blocked Writer invocation.",
+  "blocked_conditions": [
+    {
+      "condition_name": "source_preflight",
+      "status": "BLOCKED",
+      "message": "Multiple primary IFU candidates are present; source lock must select one subject-device IFU.",
+      "failure_pattern": "SOURCE-P0-MULTI-IFU",
+      "details": {
+        "issue_id": "SOURCE-P0-MULTI-IFU",
+        "severity": "critical",
+        "message": "Multiple primary IFU candidates are present; source lock must select one subject-device IFU.",
+        "source_ids": [
+          "SRC-280",
+          "SRC-281",
+          "SRC-282",
+          "SRC-283",
+          "SRC-284",
+          "SRC-285",
+          "SRC-286",
+          "SRC-287",
+          "SRC-288",
+          "SRC-289",
+          "SRC-290",
+          "SRC-291",
+          "SRC-292",
+          "SRC-293",
+          "SRC-294",
+          "SRC-295",
+          "SRC-296"
+        ]
+      }
+    },
+    {
+      "condition_name": "source_preflight",
+      "status": "BLOCKED",
+      "message": "Conflicting MDR classification signals were found.",
+      "failure_pattern": "CLASS-P0-CONFLICT",
+      "details": {
+        "issue_id": "CLASS-P0-CONFLICT",
+        "severity": "critical",
+        "message": "Conflicting MDR classification signals were found.",
+        "classes": [
+          "I",
+          "IIa",
+          "IIb"
+        ]
+      }
+    }
+  ],
+  "spiral_rounds_exhausted": false,
+  "writer_invoked": false,
+  "cer_draft_generated": false
+}

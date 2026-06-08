@@ -1,0 +1,17 @@
+Section: 2.1 Device Description — RF Plasma Surgical Electrode
+Instruction: Describe the RF plasma surgical electrode. The electrode delivers radiofrequency energy in saline to create a plasma field for soft tissue resection, ablation, coagulation, and hemostasis. Intended for arthroscopic or open joint surgery (knee, shoulder, hip). Do NOT write about cardiac ablation, PADN, pulmonary artery, atrial fibrillation, ureteroscopy, urology, urinary tract, stone burden, or endourology. These are FORBIDDEN cross-domain terms for this device. Each field must have a source anchor from the IFU.
+
+---
+
+Section: 2.2 Intended Purpose — RF Plasma Electrode
+Instruction: State the intended purpose: resection, ablation, coagulation, and hemostasis of soft tissues in arthroscopic/open joint surgery under saline irrigation. The electrode is used with a compatible RF generator. Anatomical sites: knee, shoulder, hip (and other joints as IFU-specified). Do NOT mention cardiac ablation, PADN, ureteroscopy, or urological procedures.
+
+---
+
+Section: 3 Clinical Background — Orthopedic / Arthroscopic Surgery
+Instruction: Describe the clinical background of arthroscopic joint surgery. Cover: common joint procedures (meniscectomy, cartilage debridement, synovectomy), role of RF plasma devices in arthroscopy, clinical outcomes, guidelines, and alternative techniques (mechanical shaver, conventional electrosurgery). Clinical domain is ORTHOPEDIC / ARTHROSCOPIC SURGERY. Do NOT write about cardiac ablation, pulmonary vein isolation, ureteroscopy, or stone disease.
+
+---
+
+Section: 5 Conclusions — RF Plasma Electrode
+Instruction: Write conclusions consistent with claim_support_matrix support levels. Do NOT write 'clinical data support' for INSUFFICIENT claims. Follow writer_conclusion_constraints for allowed and forbidden wording.

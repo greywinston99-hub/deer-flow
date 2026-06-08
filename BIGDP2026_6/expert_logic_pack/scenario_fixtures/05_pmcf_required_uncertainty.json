@@ -1,0 +1,46 @@
+{
+  "scenario_id": "S-05",
+  "scenario_name": "PMCF Required — Evidence Uncertain but Not Fatal",
+  "rule_category": "Gap Disposition Logic",
+  "rules_tested": ["GAP-03", "WRT-05", "CON-03"],
+  "description": "Single small study (N=45) shows positive results but insufficient for strong conclusion. PMCF required, not blocked.",
+
+  "input": {
+    "ifu_text": "Device is effective for hemostasis in peripheral vascular procedures.",
+    "available_evidence": [
+      {
+        "evidence_id": "E-001", "pmid": "55555555",
+        "study_design": "Single-arm prospective", "sample_size": 45,
+        "findings": "Hemostasis success rate: 89% (40/45). No serious adverse events.",
+        "support_type": "direct",
+        "limitations": ["Small sample size (N=45)", "Single-arm design", "Single-center"]
+      }
+    ]
+  },
+
+  "expected_expert_reasoning": {
+    "conclusion_strength": "limited",
+    "reason": "Single small study (N=45), single-arm design. Results are positive but insufficient for moderate/strong conclusions.",
+    "gap_disposition": "PMCF",
+    "gap_rationale": "Larger multicenter study needed to confirm efficacy and safety. Current evidence is encouraging but limited.",
+    "should_not_block": true,
+    "should_recommend_pmcf": true
+  },
+
+  "expected_ledger": {
+    "cer_reasoning_ledger": {
+      "conclusion_strength": "limited",
+      "evidence_support_type": "direct",
+      "gap_disposition": "PMCF",
+      "gap_rationale": "Single small study (N=45) with single-arm design. PMCF with larger sample needed."
+    }
+  },
+
+  "expected_gate_behavior": {
+    "G46": {"claim_evidence": "PASS"},
+    "G43": {"status": "PASS"}
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["limited evidence caveat", "PMCF recommendation for larger study", "89% (40/45) with Wilson 95% CI"]
+}

@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Review Package Schema",
+  "description": "Schema for final review package",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_review_package"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "review_package"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_gate_closure"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_gate_closure"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "human_gate_decision_ref": {
+          "type": "string"
+        },
+        "all_preceding_artifacts_ref": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "review_package_components_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDR_Article_83",
+        "Annex_XIV",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "requires_human_review": {
+      "type": "boolean",
+      "const": true
+    },
+    "human_gate_topic": {
+      "type": "string",
+      "const": "Overall CER acceptability"
+    },
+    "reviewer_question_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "const": [
+        "HG-01",
+        "HG-02",
+        "HG-03",
+        "HG-04",
+        "HG-05",
+        "HG-06",
+        "HG-07",
+        "HG-08",
+        "HG-09"
+      ]
+    },
+    "no_final_decision_made": {
+      "type": "boolean",
+      "const": false
+    },
+    "review_package_assembled": {
+      "type": "boolean"
+    },
+    "all_human_gates_closed": {
+      "type": "boolean"
+    },
+    "final_recommendation_options": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "pass",
+          "conditional_pass",
+          "rework_required"
+        ]
+      }
+    },
+    "layer3_prohibition": {
+      "type": "string",
+      "const": "Clinical equivalence, data sufficiency, and benefit-risk final conclusions MUST be determined by human reviewer."
+    },
+    "official_cear_generation": {
+      "type": "boolean",
+      "const": false
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

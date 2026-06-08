@@ -1,0 +1,7 @@
+{
+  "schema": "cer_device_classification_lock_v1",
+  "status": "LOCKED",
+  "device_class": "IIb",
+  "source": "manufacturer_intake",
+  "conflicts": []
+}

@@ -6,7 +6,7 @@
   "required": ["schema_name", "schema_version", "review_run_id", "round_id", "agent_name"],
   "properties": {
     "schema_name": {"type": "string", "const": "cer_sota_evidence"},
-    "schema_version": {"type": "string", "const": "v1"},
+    "schema_version": {"type": "string", "const": "v2 — RCA A06_南驰 2026-06-04 (animal/cadaver exclusion + evidence hierarchy)"},
     "review_run_id": {"type": "string"},
     "round_id": {"type": "string"},
     "artifact_id": {"type": "string"},
@@ -36,6 +36,10 @@
         "properties": {
           "finding_id": {"type": "string"},
           "study_ref": {"type": "string"},
+          "human_or_animal": {"type": "string", "enum": ["human", "animal", "cadaver", "in_vitro"], "description": "P0 RCA A06_南驰 — animal/cadaver studies excluded from clinical evidence"},
+          "study_design": {"type": "string"},
+          "sample_size": {"type": "integer"},
+          "evidence_level_oxford": {"type": "string", "enum": ["1a_sr_ma", "1b_rct", "2a_cohort", "2b_retrospective", "3_case_control", "4_case_series", "5_expert"], "description": "P0 RCA A06_南驰 — SOTA hierarchy: Meta/SR > RCT > Prospective > Retrospective > Case series"},
           "quality_tier": {"type": "string", "enum": ["high", "medium", "low", "very_low"]},
           "bias_handling": {"type": "string"},
           "endpoint_extraction": {"type": "string"},

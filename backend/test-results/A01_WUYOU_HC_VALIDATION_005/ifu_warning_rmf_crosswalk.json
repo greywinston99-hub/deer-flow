@@ -1,0 +1,57 @@
+{
+  "total_warnings": 4,
+  "linked_count": 0,
+  "unlinked_count": 4,
+  "unlinked_warning_ids": [
+    "IFU-WARN-DEEP-001",
+    "IFU-WARN-DEEP-002",
+    "IFU-WARN-DEEP-003",
+    "IFU-WARN-DEEP-004"
+  ],
+  "rows": [
+    {
+      "ifu_warning_id": "IFU-WARN-DEEP-001",
+      "claim_id": "C-04",
+      "warning_text": "Patients with severe cardiac, hepatic, renal, or pulmonary impairment; malignant tumors; hematological or autoimmune diseases;",
+      "rmf_hazard_ids_linked": [],
+      "linkage_status": "unlinked",
+      "rmf_required": true,
+      "rmf_coverage_status": "unlinked_warning",
+      "residual_risk_status": "requires_rmf_acceptability_confirmation",
+      "vigilance_signal_id": ""
+    },
+    {
+      "ifu_warning_id": "IFU-WARN-DEEP-002",
+      "claim_id": "C-05",
+      "warning_text": "Patients unable to cooperate with the examination due to consciousness or cognitive disorders;",
+      "rmf_hazard_ids_linked": [],
+      "linkage_status": "unlinked",
+      "rmf_required": true,
+      "rmf_coverage_status": "unlinked_warning",
+      "residual_risk_status": "requires_rmf_acceptability_confirmation",
+      "vigilance_signal_id": ""
+    },
+    {
+      "ifu_warning_id": "IFU-WARN-DEEP-003",
+      "claim_id": "C-06",
+      "warning_text": "Patients with carotid artery stenosis, congenital intracranial segment vertebral artery (VA) dysplasia, or those without a temporal window and unable to locate the unilateral middle cerebral artery (MCA);",
+      "rmf_hazard_ids_linked": [],
+      "linkage_status": "unlinked",
+      "rmf_required": true,
+      "rmf_coverage_status": "unlinked_warning",
+      "residual_risk_status": "requires_rmf_acceptability_confirmation",
+      "vigilance_signal_id": ""
+    },
+    {
+      "ifu_warning_id": "IFU-WARN-DEEP-004",
+      "claim_id": "C-07",
+      "warning_text": "Pregnant or lactating women.",
+      "rmf_hazard_ids_linked": [],
+      "linkage_status": "unlinked",
+      "rmf_required": true,
+      "rmf_coverage_status": "unlinked_warning",
+      "residual_risk_status": "requires_rmf_acceptability_confirmation",
+      "vigilance_signal_id": ""
+    }
+  ]
+}

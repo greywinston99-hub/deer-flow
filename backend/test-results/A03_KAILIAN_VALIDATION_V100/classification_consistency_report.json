@@ -1,0 +1,13 @@
+{
+  "schema": "cer_classification_consistency_report_v1",
+  "status": "BLOCKED",
+  "classification_signals": [
+    "IIb",
+    "III",
+    "I",
+    "IIa",
+    "IV"
+  ],
+  "locked_classification": "",
+  "manufacturer_intake_lock": false
+}

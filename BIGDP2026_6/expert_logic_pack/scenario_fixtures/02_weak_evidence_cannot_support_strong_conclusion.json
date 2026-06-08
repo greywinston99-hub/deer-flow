@@ -1,0 +1,40 @@
+{
+  "scenario_id": "ELP-02",
+  "scenario_name": "Weak Evidence Cannot Support Strong Conclusion",
+  "rule_category": "Conclusion Strength Logic",
+  "rules_tested": ["CON-02", "CON-04", "CON-05"],
+  "description": "A single small manufacturer-sponsored study with N=30 cannot produce a 'strong' conclusion for a clinical performance claim. The system must cap the conclusion at 'limited'.",
+
+  "input": {
+    "ifu_text": "Device provides superior hemostasis in all vascular procedures.",
+    "device_context": {"device_name": "QuickSeal X1", "device_class": "IIb"},
+    "available_evidence": [
+      {
+        "evidence_id": "E-WEAK-01",
+        "study_design": "Single-arm pilot",
+        "sample_size": 30,
+        "sponsor": "Manufacturer-sponsored",
+        "findings": "Hemostasis achieved in 28/30 (93%). No control group.",
+        "support_type": "manufacturer"
+      }
+    ]
+  },
+
+  "expected_expert_reasoning": {
+    "conclusion_strength": "limited",
+    "must_not_be": ["strong", "moderate"],
+    "reason": "Single small (N=30) manufacturer-sponsored pilot study without control group. Manufacturer data alone cannot support strong or moderate clinical conclusions.",
+    "evidence_support_type": "manufacturer"
+  },
+
+  "expected_ledger": {
+    "cer_reasoning_ledger": {
+      "evidence_support_type": "manufacturer",
+      "conclusion_strength": "limited",
+      "gap_disposition": "PMCF"
+    }
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["manufacturer-data limitation", "single-arm design", "N=30 only", "PMCF recommendation"]
+}

@@ -1,0 +1,169 @@
+# V27 Agent-Document Routing Configuration
+# Maps each CER review agent to the document types it needs.
+# Document Loader uses this to find, convert, and inject documents at runtime.
+
+routing_version: v1
+routing_date: "2026-05-22"
+
+# Document type definitions
+document_types:
+  CER:
+    description: "Clinical Evaluation Report"
+    doc_type_tags: [CER]
+    priority_formats: [txt, docx, doc]
+    min_chars: 5000
+    max_chars: 60000
+    fallback: "head_tail"  # if too large: head 20K + tail 10K
+  CEP:
+    description: "Clinical Evaluation Plan"
+    doc_type_tags: [CEP]
+    priority_formats: [txt, docx, doc]
+    min_chars: 1000
+    max_chars: 30000
+  IFU:
+    description: "Instructions for Use / User Manual"
+    doc_type_tags: [IFU, Instruction_For_Use, Manual, User_Manual]
+    priority_formats: [txt, docx, doc]
+    min_chars: 500
+    max_chars: 30000
+    max_docs: 5
+  SSCP:
+    description: "Summary of Safety and Clinical Performance"
+    doc_type_tags: [SSCP]
+    priority_formats: [txt, docx, doc]
+    min_chars: 200
+    max_chars: 30000
+    max_docs: 5
+  LABELING:
+    description: "Labeling, UDI, packaging materials"
+    doc_type_tags: [Label, Labelling]
+    priority_formats: [txt, docx, doc]
+    min_chars: 100
+    max_chars: 30000
+    max_docs: 5
+  RMF:
+    description: "Risk Management File"
+    doc_type_tags: [RMF]
+    priority_formats: [txt, docx, doc]
+    min_chars: 500
+    max_chars: 30000
+  GSPR:
+    description: "General Safety and Performance Requirements checklist"
+    doc_type_tags: [GSPR]
+    priority_formats: [txt, docx, doc]
+    min_chars: 500
+    max_chars: 30000
+  PMS_PLAN:
+    description: "Post-Market Surveillance Plan"
+    doc_type_tags: [PMS_Plan, PMCF_Plan]
+    priority_formats: [txt, docx, doc]
+    min_chars: 200
+    max_chars: 20000
+  SOTA_LITERATURE:
+    description: "State of the Art literature"
+    doc_type_tags: [SOTA_Literature]
+    priority_formats: [txt, pdf]
+    min_chars: 500
+    max_chars: 40000
+    max_docs: 10
+
+# Agent → required document types mapping
+agent_routing:
+  cer_admin_precheck:
+    step_id: cer_admin_precheck
+    agent_name: cer-admin-precheck-reviewer
+    required_docs: [CER]
+    optional_docs: [IFU, RMF, CEP, PMS, PMCF, QMS_documentation]
+
+  cer_intake:
+    step_id: cer_intake
+    agent_name: cer-intake-reviewer
+    required_docs: [CER, CEP]
+    optional_docs: [IFU, GSPR]
+
+  cer_structure_compliance:
+    step_id: cer_structure_compliance
+    agent_name: cer-structure-compliance-reviewer
+    required_docs: [CER]
+    optional_docs: [CEP]
+
+  cer_intended_purpose:
+    step_id: cer_intended_purpose
+    agent_name: cer-intended-purpose-reviewer
+    required_docs: [CER, IFU]
+    optional_docs: [CEP]
+
+  cer_cep_methodology:
+    step_id: cer_cep_methodology
+    agent_name: cer-cep-methodology-reviewer
+    required_docs: [CER, CEP]
+    optional_docs: [SOTA_LITERATURE]
+
+  cer_clinical_evidence_panel:
+    step_id: cer_clinical_evidence_panel
+    agent_name: cer-clinical-evidence-panel-reviewer
+    required_docs: [CER]
+    optional_docs: [CEP, SOTA_LITERATURE, PMS_PLAN, GSPR, RMF]
+
+  cer_ifu_sscp_label:
+    step_id: cer_ifu_sscp_label
+    agent_name: cer-ifu-sscp-label-reviewer
+    required_docs: [CER, IFU]
+    optional_docs: [SSCP, LABELING]
+
+  cer_qa_gate:
+    step_id: cer_qa_gate
+    agent_name: cer-qa-gate-reviewer
+    required_docs: [CER]
+    optional_docs: [IFU]
+
+  cer_cear_style_finding_formatter:
+    step_id: cer_cear_style_finding_formatter
+    agent_name: cer-cear-formatter-reviewer
+    required_docs: []
+    optional_docs: []
+
+  cer_human_boundary:
+    step_id: cer_human_boundary
+    agent_name: cer-human-boundary-reviewer
+    required_docs: [CER]
+    optional_docs: [IFU]
+
+  cer_qms_review:
+    step_id: cer_qms_review
+    agent_name: cer-qms-reviewer
+    required_docs: [CER]
+    optional_docs: [IFU, QMS_documentation, RMF]
+    description: >
+      V28.2 — Reviews QMS documentation against ISO 13485:2016 §4-§8.
+      Covers process validation, design control, purchasing controls,
+      production, and measurement/analysis. Targets the gap zone between
+      CEP (clinical evidence), IFU (labeling), and Admin (file admin)
+      agents — specifically for consumable device manufacturing processes.
+
+  cer_gate_closure:
+    step_id: cer_gate_closure
+    agent_name: cer-gate-closure-reviewer
+    required_docs: [CER]
+    optional_docs: [IFU]
+
+# Binary format conversion tools
+converters:
+  docx:
+    tool: "internal"
+    method: "_read_docx_text"
+  doc:
+    tool: "antiword"
+    timeout_sec: 60
+  pdf:
+    tool: "skip"  # PDFs not currently converted; handled upstream
+    note: "PDF files should be pre-converted to .txt sidecar files"
+
+# Audit settings
+audit:
+  enabled: true
+  log_path_template: "{artifact_root}/document_routing_log.json"
+  log_document_sizes: true
+  log_readability_scores: true
+  warn_on_missing_required: true
+  warn_on_below_min_chars: true

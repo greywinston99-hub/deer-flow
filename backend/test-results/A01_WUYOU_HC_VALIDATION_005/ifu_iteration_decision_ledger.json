@@ -1,0 +1,123 @@
+{
+  "schema": "ifu_iteration_decision_ledger_v1",
+  "generated_at": "2026-05-29T09:12:39.035216+00:00",
+  "ifu_iteration_decision_ledger": {
+    "total_iterations": 0,
+    "open_count": 0,
+    "closed_count": 0,
+    "blocker_count": 0,
+    "all_closed": true,
+    "has_overclaim": false,
+    "has_missing_clinical_benefit": false,
+    "open_blockers": [],
+    "decisions": []
+  },
+  "ifu_claim_scope_delta_matrix": {
+    "total_claims_with_ifu_reference": 4,
+    "aligned_count": 0,
+    "gap_count": 4,
+    "deltas": [
+      {
+        "claim_id": "C-04",
+        "claim_text": "Patients with severe cardiac, hepatic, renal, or pulmonary impairment; malignant tumors; hematological or autoimmune diseases;",
+        "ifu_reference": "",
+        "delta_type": "scope_gap",
+        "aligned_with_ifu": false
+      },
+      {
+        "claim_id": "C-05",
+        "claim_text": "Patients unable to cooperate with the examination due to consciousness or cognitive disorders;",
+        "ifu_reference": "",
+        "delta_type": "scope_gap",
+        "aligned_with_ifu": false
+      },
+      {
+        "claim_id": "C-06",
+        "claim_text": "Patients with carotid artery stenosis, congenital intracranial segment vertebral artery (VA) dysplasia, or those without a temporal window and unable to locate the unilateral middle cerebral artery (M",
+        "ifu_reference": "",
+        "delta_type": "scope_gap",
+        "aligned_with_ifu": false
+      },
+      {
+        "claim_id": "C-07",
+        "claim_text": "Pregnant or lactating women.",
+        "ifu_reference": "",
+        "delta_type": "scope_gap",
+        "aligned_with_ifu": false
+      }
+    ]
+  },
+  "ifu_fact_table": {
+    "schema": "cer_ifu_fact_table_v1",
+    "status": "PASS",
+    "source_ids": [
+      "SRC-018",
+      "SRC-030",
+      "SRC-230"
+    ],
+    "fields": {
+      "model": {
+        "present": true,
+        "matched_terms": [
+          "model",
+          "specification"
+        ],
+        "manufacturer_intake_confirmed": true
+      },
+      "intended_purpose": {
+        "present": true,
+        "matched_terms": [
+          "intended purpose",
+          "indication"
+        ],
+        "manufacturer_intake_confirmed": true
+      },
+      "intended_user": {
+        "present": true,
+        "matched_terms": [
+          "operator"
+        ],
+        "manufacturer_intake_confirmed": true
+      },
+      "patient_population": {
+        "present": true,
+        "matched_terms": [],
+        "manufacturer_intake_confirmed": true
+      },
+      "clinical_benefit": {
+        "present": true,
+        "matched_terms": [],
+        "manufacturer_intake_confirmed": true
+      },
+      "side_effects": {
+        "present": true,
+        "matched_terms": [],
+        "manufacturer_intake_confirmed": true
+      },
+      "warnings": {
+        "present": true,
+        "matched_terms": [
+          "warning",
+          "precaution"
+        ],
+        "manufacturer_intake_confirmed": true
+      },
+      "contraindications": {
+        "present": true,
+        "matched_terms": [
+          "contraindication"
+        ],
+        "manufacturer_intake_confirmed": true
+      },
+      "document_control": {
+        "present": true,
+        "matched_terms": [
+          "revision"
+        ],
+        "manufacturer_intake_confirmed": true
+      }
+    },
+    "placeholder_hits": []
+  },
+  "preflight_status": "REWORK_REQUIRED"
+}

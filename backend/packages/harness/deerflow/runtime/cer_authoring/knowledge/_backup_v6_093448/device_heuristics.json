@@ -1,0 +1,832 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-20",
+  "data_basis": {
+    "source_reports": 5,
+    "source_projects": 11,
+    "nb_records": 64,
+    "product_families": 7,
+    "description": "跨 Product Family 共性启发式规则，基于 5 份 CER 范本横向比较 + 64 条 NB 审评缺陷模式提炼"
+  },
+  "heuristics": [
+    {
+      "heuristic_id": "HEU-001",
+      "heuristic_name": "Equivalence Demonstration Three-Step Decision",
+      "category": "clinical_evidence",
+      "description": "Universal decision framework for whether and how to conduct equivalence demonstration",
+      "applicability": {
+        "all_families": true,
+        "exceptions": [
+          "DEV-VAD"
+        ],
+        "exception_reason": "Innovative Class III devices with no comparable products should explicitly claim non-equivalence"
+      },
+      "cer_sections": [
+        "CER-02",
+        "CER-05",
+        "CER-06"
+      ],
+      "priority": "P0",
+      "rules": [
+        {
+          "rule_id": "HEU-001-R1",
+          "rule": "Step 1 — Market Scan: List ALL marketed similar devices (minimum 2-3 candidates)",
+          "rationale": "NB frequently challenges equivalence breadth when only one comparator is cited",
+          "enforcement": "Blocker",
+          "source": "CER_04_5A.1 + NB defect EQ-001 (4.7%)"
+        },
+        {
+          "rule_id": "HEU-001-R2",
+          "rule": "Step 2 — Data Intent: Confirm plan to reference equivalent device's clinical data; if NO, simplify to background comparison only",
+          "rationale": "Unnecessary equivalence论证 creates compliance burden without clinical value",
+          "enforcement": "Major",
+          "source": "CER_04_5A.1"
+        },
+        {
+          "rule_id": "HEU-001-R3",
+          "rule": "Step 3 — Three-Pillar Viability: Verify MDR Article 61 technical/biological/clinical comparability is achievable; if NO, select alternative candidate",
+          "rationale": "MDCG 2020-5 mandates three-pillar structure; incomplete pillars = direct NB finding",
+          "enforcement": "Blocker",
+          "source": "CER_04_5A.2 + NB defect EQ-001"
+        },
+        {
+          "rule_id": "HEU-001-R4",
+          "rule": "Expected purpose MUST be identical between subject and equivalent device — this is the non-negotiable core of equivalence",
+          "rationale": "Any deviation in intended purpose invalidates the entire equivalence claim",
+          "enforcement": "Blocker",
+          "source": "CER_04_5A.2 + CER_05_TypeB"
+        },
+        {
+          "rule_id": "HEU-001-R5",
+          "rule": "Each difference MUST have an Impact Assessment: 'This difference does not affect clinical safety and performance because [reasoning with standard/test data reference]'",
+          "rationale": "NB DO-001 findings frequently stem from unexplained design differences",
+          "enforcement": "Blocker",
+          "source": "NB defect DO-001 (40.6%)"
+        }
+      ],
+      "templates": [
+        {
+          "template_id": "HEU-001-T1",
+          "template_name": "Equivalence Claim Opening",
+          "content": "Equivalence shall be demonstrated according to the Regulation (EU) 2017/745. The requirements from MEDDEV 2.7/1 Rev. 4 and MDCG 2020-5 would also be taken into consideration. MDR requires that technical, biological and clinical characteristics are considered when demonstrating equivalence to another device.",
+          "source": "Common pattern across 帕姆/鱼跃/海杰亚",
+          "usage": "§4.2 opening paragraph"
+        },
+        {
+          "template_id": "HEU-001-T2",
+          "template_name": "Non-Equivalence Declaration",
+          "content": "Equivalence is not claimed for the device under evaluation. The device represents a novel technology for which no equivalent device has been identified on the market. Therefore, the clinical evaluation relies solely on [clinical investigation data / literature data].",
+          "source": "心擎报告",
+          "usage": "§4.2 when no equivalence is claimed"
+        },
+        {
+          "template_id": "HEU-001-T3",
+          "template_name": "Difference Impact Assessment",
+          "content": "The [evaluated device / equivalent device] uses [material A / material B]. Although there is a difference in [aspect], this does not affect the clinical safety and performance because [reasoning, e.g., both materials have been demonstrated to be biocompatible per ISO 10993-1 for the intended contact type and duration].",
+          "source": "帕姆/海杰亚模式",
+          "usage": "§4.2 equivalence table justification column"
+        }
+      ],
+      "checklist": [
+        "[ ] At least 2-3 potential equivalent devices identified through market scan",
+        "[ ] Equivalent device has CE mark or equivalent regulatory approval in target market",
+        "[ ] Plan to reference equivalent device's clinical data is confirmed",
+        "[ ] Three-pillar comparison table (technical/biological/clinical) is complete",
+        "[ ] Each difference has explicit Impact Assessment with reasoning",
+        "[ ] Expected purpose is identical (verbal confirmation)",
+        "[ ] §4.4.2 contains dedicated literature search subsection for equivalent device",
+        "[ ] Equivalent device literature listed separately in Annex"
+      ],
+      "common_pitfalls": [
+        {
+          "pitfall": "Equivalent device selection too narrow (only 1 candidate)",
+          "consequence": "NB questions comprehensiveness",
+          "fix": "Expand to 2-3 candidates, select closest for detailed论证"
+        },
+        {
+          "pitfall": "Differences not fully argued",
+          "consequence": "NB requests supplementary impact analysis",
+          "fix": "Every difference must have 'does not affect safety/performance' conclusion"
+        },
+        {
+          "pitfall": "Equivalence claimed but no separate literature search for equivalent device",
+          "consequence": "Incomplete evidence chain",
+          "fix": "§4.4.2 must have dedicated subsection"
+        },
+        {
+          "pitfall": "Using unpublished proprietary data of equivalent device",
+          "consequence": "Circular argument — NB rejects",
+          "fix": "Only use published literature data from SOTA search"
+        }
+      ],
+      "injection_point": "Writer Agent §4.2 and §4.4.2 — before generating equivalence section",
+      "writer_guard_snippet": "When writing the Equivalence Demonstration section: (1) ALWAYS open with regulatory basis statement, (2) Three-pillar table is MANDATORY if equivalence is claimed, (3) Every cell in 'Comparison' column must be Same/Similar/Different with justification, (4) Expected purpose row is NON-NEGOTIABLE — any difference here invalidates the entire claim."
+    },
+    {
+      "heuristic_id": "HEU-002",
+      "heuristic_name": "GSPR Five-Segment Analysis Template",
+      "category": "regulatory_compliance",
+      "description": "Universal GSPR analysis structure that satisfies NB review expectations across all device categories",
+      "applicability": {
+        "all_families": true,
+        "exceptions": [],
+        "exception_reason": ""
+      },
+      "cer_sections": [
+        "CER-02",
+        "CER-05",
+        "CER-10"
+      ],
+      "priority": "P0",
+      "rules": [
+        {
+          "rule_id": "HEU-002-R1",
+          "rule": "Every GSPR item must have ONE of: (a) Full compliance evidence, OR (b) Justified non-applicability with detailed rationale",
+          "rationale": "BSI flags GS-001 in 18% of findings; 'N/A' without justification is a direct Major finding",
+          "enforcement": "Blocker",
+          "source": "NB defect GS-001 (14.1%) + BSI_PROFILE pre-check"
+        },
+        {
+          "rule_id": "HEU-002-R2",
+          "rule": "GSPR analysis MUST follow five-segment structure: (1) Standard/Guideline reference, (2) Test/verification method, (3) Evidence summary, (4) Gap identification, (5) Risk control measure",
+          "rationale": "Structured GSPR analysis demonstrates systematic compliance thinking; unstructured lists invite NB scrutiny",
+          "enforcement": "Major",
+          "source": "CER_04_5D + CER_05 standard tables"
+        },
+        {
+          "rule_id": "HEU-002-R3",
+          "rule": "Non-applicable GSPR items require: (a) Explicit statement of non-applicability, (b) Technical justification tied to device design, (c) Reference to risk management file",
+          "rationale": "苏州晶乐 5/5 findings = GS-001 from inadequate non-applicability rationale; this is a systemic trap",
+          "enforcement": "Blocker",
+          "source": "NB defect GS-001 persistent pattern (苏州晶乐 R1→R3)"
+        },
+        {
+          "rule_id": "HEU-002-R4",
+          "rule": "GSPR checklist numbering must align with Annex I of MDR 2017/745; do NOT use internal company numbering without mapping",
+          "rationale": "NB reviewers reference MDR Annex I directly; non-standard numbering creates friction",
+          "enforcement": "Minor",
+          "source": "CER_02_logic_analysis"
+        }
+      ],
+      "templates": [
+        {
+          "template_id": "HEU-002-T1",
+          "template_name": "GSPR Compliance Segment",
+          "content": "**GSPR [X.X] — [Title]**\n\n1. **Regulatory Reference**: MDR 2017/745 Annex I, Chapter [X], GSPR [X.X]; [ISO/IEC standard reference]\n\n2. **Verification Method**: [Test method / design review / risk analysis / clinical evaluation]\n\n3. **Evidence Summary**: [Summary of test results / design documentation / clinical data supporting compliance]\n\n4. **Gap Assessment**: [None / Minor gap identified: [description] / See risk control measure below]\n\n5. **Risk Control**: [If gap exists: mitigation measure with verification plan]",
+          "source": "CER_04_5D five-segment template",
+          "usage": "§4.7 GSPR逐条分析 or standalone GSPR annex"
+        },
+        {
+          "template_id": "HEU-002-T2",
+          "template_name": "Non-Applicability Justification",
+          "content": "**GSPR [X.X] — [Title] — NOT APPLICABLE**\n\nJustification: This GSPR applies to [device category description]. The [device name] is [device type] and does not [specific characteristic that makes GSPR irrelevant]. This is documented in the Risk Management File (Ref: [doc ref]) under Hazard [H-XXX] analysis, which confirms that [specific risk] is controlled by [alternative measure] and does not require compliance with GSPR [X.X].",
+          "source": "Engineer clarification in CER_04",
+          "usage": "GSPR checklist non-applicable items"
+        }
+      ],
+      "checklist": [
+        "[ ] Every GSPR item has compliance status (Applicable / Not Applicable / Partially Applicable)",
+        "[ ] Every 'Not Applicable' has detailed technical justification",
+        "[ ] Justification references device design characteristics (not generic statements)",
+        "[ ] Risk management file cross-reference exists for non-applicable items",
+        "[ ] Five-segment structure followed for applicable items",
+        "[ ] GSPR numbering aligns with MDR Annex I (not internal numbering)",
+        "[ ] Evidence references are traceable to Annex or technical documentation"
+      ],
+      "common_pitfalls": [
+        {
+          "pitfall": "'N/A' without justification",
+          "consequence": "Direct GS-001 Major finding",
+          "fix": "Always provide technical rationale tied to device design"
+        },
+        {
+          "pitfall": "Generic justification ('not relevant to this device type')",
+          "consequence": "NB rejects as insufficient",
+          "fix": "Reference specific device characteristics and risk management analysis"
+        },
+        {
+          "pitfall": "GSPR checklist incomplete (missing chapters)",
+          "consequence": "GS-001 finding",
+          "fix": "Use MDR Annex I full chapter list as master checklist"
+        },
+        {
+          "pitfall": "Evidence references point to non-existent documents",
+          "consequence": "DT-001 data inconsistency finding",
+          "fix": "Pre-verify all referenced document IDs exist in technical file"
+        }
+      ],
+      "injection_point": "Writer Agent §4.7 or standalone GSPR annex — before generating GSPR analysis",
+      "writer_guard_snippet": "When writing GSPR analysis: (1) NEVER use 'N/A' without 2+ sentence technical justification, (2) Every justification must reference a SPECIFIC device characteristic, (3) Five-segment structure is MANDATORY for applicable items, (4) Non-applicable items require risk management file cross-reference. BSI will scrutinize EVERY non-applicability rationale."
+    },
+    {
+      "heuristic_id": "HEU-003",
+      "heuristic_name": "Conclusion Six-Element Structure",
+      "category": "document_structure",
+      "description": "Universal conclusion structure ensuring NB reviewers can verify every claim is evidence-backed",
+      "applicability": {
+        "all_families": true,
+        "exceptions": [],
+        "exception_reason": ""
+      },
+      "cer_sections": [
+        "CER-10"
+      ],
+      "priority": "P0",
+      "rules": [
+        {
+          "rule_id": "HEU-003-R1",
+          "rule": "Conclusion MUST contain six elements: (1) Evaluation scope restatement, (2) Evidence summary (quantity + quality), (3) GSPR compliance statement, (4) Benefit-risk conclusion, (5) PMCF/PMS commitment, (6) Overall acceptability verdict",
+          "rationale": "Incomplete conclusions are the #1 reason NB requests CER revision; missing any element creates a gap NB will exploit",
+          "enforcement": "Blocker",
+          "source": "CER_04_5F + CER_02_logic dependency chain"
+        },
+        {
+          "rule_id": "HEU-003-R2",
+          "rule": "Every conclusion claim MUST be traceable to a specific section in §4 with table/figure reference",
+          "rationale": "§4→§5 is a rigid dependency chain; conclusions without evidence anchors are 'bald statements' that NB rejects",
+          "enforcement": "Blocker",
+          "source": "NB defect BR-001 + CER_02_logic_analysis"
+        },
+        {
+          "rule_id": "HEU-003-R3",
+          "rule": "Benefit-risk conclusion must be quantitative where possible: cite specific endpoint values, patient numbers, confidence intervals",
+          "rationale": "Qualitative-only benefit-risk statements ('acceptable safety profile') are flagged as insufficient evidence",
+          "enforcement": "Major",
+          "source": "NB defect BR-001 (3.1%)"
+        },
+        {
+          "rule_id": "HEU-003-R4",
+          "rule": "PMCF/PMS commitment must specify: next evaluation date, planned studies (if any), data sources, trigger conditions for unscheduled re-evaluation",
+          "rationale": "PM-001 findings frequently stem from vague PMCF commitments; specificity is the defense",
+          "enforcement": "Major",
+          "source": "NB defect PM-001 (4.7%)"
+        }
+      ],
+      "templates": [
+        {
+          "template_id": "HEU-003-T1",
+          "template_name": "Six-Element Conclusion",
+          "content": "**1. Scope Restatement**: This Clinical Evaluation Report covers the [device name] ([model list]) for the intended purpose of [intended purpose], as described in §2.\n\n**2. Evidence Summary**: The clinical evaluation is based on [N] clinical studies ([total patients] patients), [M] literature sources, [P] years of post-market surveillance data, and [Q] vigilance database searches. The overall evidence quality is assessed as [high/moderate/low] per the appraisal in §4.5.\n\n**3. GSPR Compliance**: The device complies with the General Safety and Performance Requirements of MDR Annex I, as demonstrated in §4.7/[GSPR Annex Ref]. All applicable GSPRs are addressed with appropriate evidence.\n\n**4. Benefit-Risk Assessment**: Based on the analysis in §4.7.2, the clinical benefits of [specific benefits] outweigh the identified risks of [specific risks], with an acceptable benefit-risk ratio supported by [quantitative data reference: Table X].\n\n**5. PMCF/PMS Commitment**: Post-market clinical follow-up will be conducted through [data sources]. The next scheduled clinical evaluation will be performed on [date] or earlier if [trigger conditions]. [Planned PMCF study details if applicable].\n\n**6. Overall Verdict**: Based on the available clinical evidence, the [device name] is considered [state: acceptable for CE marking / requiring further evidence] for the intended purpose stated in §2.",
+          "source": "CER_04_5F conclusion template + cross-report synthesis",
+          "usage": "§5 Conclusions"
+        }
+      ],
+      "checklist": [
+        "[ ] All six elements present in §5",
+        "[ ] Every claim has §4 cross-reference with table/figure number",
+        "[ ] Benefit-risk statement includes quantitative data",
+        "[ ] PMCF commitment specifies date, data sources, triggers",
+        "[ ] Overall verdict uses standardized wording ('acceptable for CE marking')",
+        "[ ] No new claims introduced in §5 that are not supported in §4",
+        "[ ] Conclusion length proportionate to CER total length (~3-5% of total)"
+      ],
+      "common_pitfalls": [
+        {
+          "pitfall": "Introducing new claims in conclusion not supported in §4",
+          "consequence": "NB requests evidence addition or claim removal",
+          "fix": "Cross-check every conclusion sentence against §4"
+        },
+        {
+          "pitfall": "Qualitative-only benefit-risk statement",
+          "consequence": "BR-001 finding",
+          "fix": "Include specific endpoint values and patient numbers"
+        },
+        {
+          "pitfall": "Vague PMCF commitment ('will be monitored')",
+          "consequence": "PM-001 finding",
+          "fix": "Specify date, data sources, trigger conditions"
+        },
+        {
+          "pitfall": "Conclusion contradicts §4 analysis",
+          "consequence": "DT-001 data inconsistency finding",
+          "fix": "Final cross-chapter validation (CCV-04)"
+        }
+      ],
+      "injection_point": "Writer Agent §5 — after §4 is complete, before generating conclusions",
+      "writer_guard_snippet": "When writing §5 Conclusions: (1) This section ONLY summarizes what has ALREADY been proven in §4 — NO new claims allowed, (2) Every sentence must have a §4 cross-reference, (3) Benefit-risk MUST include numbers (not just 'acceptable'), (4) PMCF commitment needs specific date and triggers. The conclusion is NOT a place for persuasion — it is a compliance checkpoint."
+    },
+    {
+      "heuristic_id": "HEU-004",
+      "heuristic_name": "SOTA Three-Core Questions Framework",
+      "category": "clinical_evidence",
+      "description": "Universal framework for structuring SOTA section that satisfies both clinical rigor and NB review expectations",
+      "applicability": {
+        "all_families": true,
+        "exceptions": [],
+        "exception_reason": ""
+      },
+      "cer_sections": [
+        "CER-05"
+      ],
+      "priority": "P0",
+      "rules": [
+        {
+          "rule_id": "HEU-004-R1",
+          "rule": "SOTA section MUST answer three core questions: (Q1) What is the current standard of care? (Q2) What are the safety/performance benchmarks? (Q3) What gaps does this device address?",
+          "rationale": "SOTA is not a literature review — it is a strategic positioning of the device within clinical practice; missing any question leaves NB without context",
+          "enforcement": "Blocker",
+          "source": "CER_04_5C + NB defect EV-001 (9.4%)"
+        },
+        {
+          "rule_id": "HEU-004-R2",
+          "rule": "Search strategy must follow PICO framework and be documented in a structured table with: databases, search date, terms, filters, hits, relevant hits",
+          "rationale": "Undocumented search strategies are non-reproducible and invite NB challenge on SOTA adequacy",
+          "enforcement": "Blocker",
+          "source": "CER_05_TypeC + NB defect EV-001"
+        },
+        {
+          "rule_id": "HEU-004-R3",
+          "rule": "Safety/Performance Endpoints table must include: endpoint name, definition, measurement method, SOTA benchmark value, source reference",
+          "rationale": "§4.7 analysis depends on §3 benchmark values; missing benchmarks make analysis unverifiable",
+          "enforcement": "Major",
+          "source": "CER_01_§3 + CER_05 standard tables"
+        },
+        {
+          "rule_id": "HEU-004-R4",
+          "rule": "Alternative treatment options must cover: pharmacological, surgical, interventional, and device-based alternatives where applicable",
+          "rationale": "Incomplete alternative treatment coverage signals insufficient clinical context understanding",
+          "enforcement": "Major",
+          "source": "CER_01_§3.5 (5/5 reports include)"
+        }
+      ],
+      "templates": [
+        {
+          "template_id": "HEU-004-T1",
+          "template_name": "SOTA Search Protocol Table",
+          "content": "| Database | Search Date | Search Terms | Language | Date Range | Hits | Relevant Hits |\n|----------|-------------|--------------|----------|------------|------|---------------|\n| PubMed | YYYY-MM-DD | [Boolean search string] | English | [From-To] | [N] | [M] |\n| Embase | YYYY-MM-DD | [Boolean search string] | English | [From-To] | [N] | [M] |",
+          "source": "CER_05_TypeC",
+          "usage": "§3.1 or §4.4.2"
+        },
+        {
+          "template_id": "HEU-004-T2",
+          "template_name": "Safety/Performance Endpoint Table",
+          "content": "| Endpoint | Definition | Measurement | SOTA Benchmark | Source |\n|----------|------------|-------------|----------------|--------|\n| [Name] | [Clinical definition] | [Method] | [Value ± CI] | [Ref] |",
+          "source": "CER_05 standard structure",
+          "usage": "§3.9 / §4.7.3"
+        }
+      ],
+      "checklist": [
+        "[ ] Q1 answered: Current standard of care described with references",
+        "[ ] Q2 answered: Safety/performance benchmarks quantified with sources",
+        "[ ] Q3 answered: Device positioning gap clearly stated",
+        "[ ] PICO-based search strategy documented in structured table",
+        "[ ] At least 2 databases searched (PubMed + Embase minimum)",
+        "[ ] Search date recorded to day-level precision",
+        "[ ] PRISMA-style flow diagram or equivalent included",
+        "[ ] Alternative treatments cover all major therapeutic categories",
+        "[ ] Clinical practice guidelines from ≥2 regions cited"
+      ],
+      "common_pitfalls": [
+        {
+          "pitfall": "SOTA reads like a general disease review without device positioning",
+          "consequence": "NB questions clinical relevance",
+          "fix": "Frame every SOTA element around the three core questions"
+        },
+        {
+          "pitfall": "Search strategy not documented",
+          "consequence": "EV-001 finding",
+          "fix": "Include structured search protocol table"
+        },
+        {
+          "pitfall": "Benchmark values missing or unreferenced",
+          "consequence": "§4.7 analysis becomes unverifiable",
+          "fix": "Endpoint table with SOTA benchmark column"
+        },
+        {
+          "pitfall": "Only PubMed searched",
+          "consequence": "NB questions search comprehensiveness",
+          "fix": "Minimum PubMed + Embase; Class III should add Cochrane"
+        }
+      ],
+      "injection_point": "Writer Agent §3 — before generating SOTA section",
+      "writer_guard_snippet": "When writing §3 SOTA: (1) This is NOT a literature review — it is CLINICAL CONTEXT for the device, (2) Three questions MUST be answered: What is standard care? What are benchmarks? What gap does this device fill? (3) Search strategy table is MANDATORY — undocumented search = non-reproducible = NB challenge, (4) Every benchmark value needs a source. SOTA sets the foundation for everything in §4 — get it wrong and the entire CER collapses."
+    },
+    {
+      "heuristic_id": "HEU-005",
+      "heuristic_name": "Device Description Completeness Checklist",
+      "category": "document_structure",
+      "description": "Cross-domain universal checklist ensuring device description satisfies all NB bodies' #1 concern (DO-001 at 40.6%)",
+      "applicability": {
+        "all_families": true,
+        "exceptions": [],
+        "exception_reason": ""
+      },
+      "cer_sections": [
+        "CER-02"
+      ],
+      "priority": "P0",
+      "rules": [
+        {
+          "rule_id": "HEU-005-R1",
+          "rule": "Device identity anchor MUST include: name, model/variant list, EMDN code, MDR Class+Rule, intended purpose",
+          "rationale": "This is the #1 defect across ALL NB bodies (DO-001: 40.6%); missing any element triggers immediate Major finding",
+          "enforcement": "Blocker",
+          "source": "NB defect DO-001 + CER_01_§2 + BSI_PROFILE/TUV_PROFILE"
+        },
+        {
+          "rule_id": "HEU-005-R2",
+          "rule": "For EVERY product variant: document (a) clinical/engineering reason for existence, (b) impact on safety/performance/usability, (c) clinical scenario for use",
+          "rationale": "TÜV SÜD pursues variant rationale across R1→R3; BSI Technical Review challenges unexplained design differences",
+          "enforcement": "Blocker",
+          "source": "TÜV SÜD persistent DO-001 pattern (青岛德迈迪 R1→R3)"
+        },
+        {
+          "rule_id": "HEU-005-R3",
+          "rule": "Intended purpose must specify: patient population (age/gender/condition), clinical setting (hospital/ambulatory/home), intended users (physician/nurse/patient), AND contraindications",
+          "rationale": "Vague intended purpose ('for treatment of X') is the #2 trigger for DO-001; specificity is the defense",
+          "enforcement": "Blocker",
+          "source": "NB defect DO-001 analysis across all projects"
+        },
+        {
+          "rule_id": "HEU-005-R4",
+          "rule": "Novel features MUST be explicitly described with: what is novel, why it matters clinically, what evidence supports the novelty claim",
+          "rationale": "心擎 7/8 findings focused on device description because novel VAD technology required exhaustive documentation",
+          "enforcement": "Major",
+          "source": "NB defect DO-001 (苏州心擎)"
+        },
+        {
+          "rule_id": "HEU-005-R5",
+          "rule": "Marketing history must include: first approval date, markets authorized, sales volume (if available), vigilance summary (serious incidents, recalls)",
+          "rationale": "Marketing history is 5/5 consistent across reports but frequently under-detailed; NB checks for completeness",
+          "enforcement": "Major",
+          "source": "CER_01_§2.5 (5/5 reports include)"
+        }
+      ],
+      "templates": [
+        {
+          "template_id": "HEU-005-T1",
+          "template_name": "Device Identity Anchor",
+          "content": "| Attribute | Value |\n|-----------|-------|\n| Device Name | [通用名] |\n| Model/Variant | [型号列表] |\n| EMDN Code | [EMDN代码] |\n| MDR Classification | Class [I/IIa/IIb/III], Rule [X] |\n| Intended Purpose | [一句话描述] |\n| Patient Population | [年龄/性别/疾病状态] |\n| Clinical Setting | [医院/门诊/家庭] |\n| Intended Users | [医师/护士/患者] |",
+          "source": "CER_05_TypeA",
+          "usage": "§2.1 opening table"
+        },
+        {
+          "template_id": "HEU-005-T2",
+          "template_name": "Variant Design Rationale",
+          "content": "| Variant | Design Rationale | Safety Impact | Performance Impact | Clinical Scenario |\n|---------|-----------------|---------------|-------------------|-------------------|\n| [Variant A] | [为什么存在此变型] | [对安全性的影响] | [对性能的影响] | [使用场景] |\n| [Variant B] | [为什么存在此变型] | [对安全性的影响] | [对性能的影响] | [使用场景] |",
+          "source": "TÜV SÜD R1→R3 pattern synthesis",
+          "usage": "§2.1 when multiple variants exist"
+        }
+      ],
+      "checklist": [
+        "[ ] Device name is consistent across ALL CER sections",
+        "[ ] All models/variants listed with unique identifiers",
+        "[ ] EMDN code verified against latest EMDN nomenclature",
+        "[ ] MDR Class and Rule correctly assigned",
+        "[ ] Intended purpose includes patient population, setting, users",
+        "[ ] Contraindications listed (not just 'see IFU')",
+        "[ ] Every variant has design rationale",
+        "[ ] Novel features explicitly described with evidence",
+        "[ ] Previous generations / similar devices referenced",
+        "[ ] Marketing history includes approvals, markets, vigilance summary",
+        "[ ] Accessories and compatible devices listed",
+        "[ ] Principle of operation described in clinician-understandable terms"
+      ],
+      "common_pitfalls": [
+        {
+          "pitfall": "Device name inconsistent across CER sections",
+          "consequence": "DT-001 data inconsistency",
+          "fix": "Use find/replace to verify name consistency before submission"
+        },
+        {
+          "pitfall": "Variants listed but rationale missing",
+          "consequence": "DO-001 Major finding (TÜV SÜD will persist R1→R3)",
+          "fix": "Every variant row needs design rationale column"
+        },
+        {
+          "pitfall": "Intended purpose too vague",
+          "consequence": "DO-001 finding",
+          "fix": "Include population, setting, users, contraindications"
+        },
+        {
+          "pitfall": "Marketing history only lists countries without dates",
+          "consequence": "NB requests timeline clarification",
+          "fix": "Include first approval date for each market"
+        }
+      ],
+      "injection_point": "Writer Agent §2 — before generating device description; AND as Gate check before any downstream section",
+      "writer_guard_snippet": "When writing §2 Device Description: (1) This is the MOST SCRUTINIZED section — DO-001 is 40.6% of all NB findings, (2) Device identity anchor (name/model/EMDN/Class/Purpose) is NON-NEGOTIABLE, (3) EVERY variant needs design rationale — 'obvious' or 'implied' is NOT acceptable to NB, (4) Intended purpose must be specific enough that a regulator can verify it against clinical evidence in §4. TÜV SÜD will ask the same question THREE TIMES if the rationale is incomplete."
+    },
+    {
+      "heuristic_id": "HEU-006",
+      "heuristic_name": "Clinical Evidence Hierarchy Universal Requirements",
+      "category": "clinical_evidence",
+      "description": "Cross-domain rules for clinical evidence sufficiency based on MDR Article 61 and NB review patterns",
+      "applicability": {
+        "all_families": true,
+        "exceptions": [],
+        "exception_reason": ""
+      },
+      "cer_sections": [
+        "CER-05",
+        "CER-06"
+      ],
+      "priority": "P1",
+      "rules": [
+        {
+          "rule_id": "HEU-006-R1",
+          "rule": "Evidence hierarchy per MDR Article 61: (1) Clinical data from equivalent device → (2) Clinical investigations → (3) Published literature → (4) Post-market surveillance. Lower tiers must justify why higher tiers are insufficient.",
+          "rationale": "Evidence hierarchy inversion (e.g., relying on literature when CI data exists) is a direct NB challenge point",
+          "enforcement": "Blocker",
+          "source": "MDR Article 61 + CER_04_5E"
+        },
+        {
+          "rule_id": "HEU-006-R2",
+          "rule": "Literature-based evaluation must include: systematic search protocol, inclusion/exclusion criteria, PRISMA-style flow diagram, quality appraisal of included studies, quantitative synthesis where possible",
+          "rationale": "Unsystematic literature reviews are rejected as insufficient evidence; PRISMA compliance is the minimum bar",
+          "enforcement": "Blocker",
+          "source": "NB defect EV-001 (9.4%) + CER_05_TypeC"
+        },
+        {
+          "rule_id": "HEU-006-R3",
+          "rule": "Vigilance data must cover: MHRA, BfArM, FDA MAUDE (minimum); Swissmedic and TGA for Class III; search date must be within 6 months of CER date",
+          "rationale": "Incomplete vigilance coverage signals inadequate safety monitoring; stale data (>6 months) invites challenge on currency",
+          "enforcement": "Major",
+          "source": "CER_01_§4.6 + CER_04_5E"
+        },
+        {
+          "rule_id": "HEU-006-R4",
+          "rule": "Clinical investigation data must include: study design, patient population, endpoints, statistical analysis plan, results with confidence intervals, limitations, and conclusion",
+          "rationale": "Incomplete CI reporting is flagged as CL-001; 鑫君特 Clinical Oversight found sample size and follow-up deficiencies",
+          "enforcement": "Blocker",
+          "source": "NB defect CL-001 (6.3%)"
+        },
+        {
+          "rule_id": "HEU-006-R5",
+          "rule": "Safety data tables must stratify by: severity (serious/non-serious), relationship (related/unrelated/unknown), and outcome (resolved/ongoing/fatal)",
+          "rationale": "Unstratified safety data prevents meaningful benefit-risk analysis; this is a recurring NB challenge",
+          "enforcement": "Major",
+          "source": "CER_05_TypeA (safety data tables) + NB defect BR-001"
+        }
+      ],
+      "templates": [
+        {
+          "template_id": "HEU-006-T1",
+          "template_name": "PRISMA Flow Diagram Structure",
+          "content": "Records identified from databases (n=[N]):\n  PubMed (n=[N1])\n  Embase (n=[N2])\n  Cochrane (n=[N3])\n  ↓\nRecords after duplicate removal (n=[N4])\n  ↓\nRecords screened by title/abstract (n=[N5])\n  Excluded (n=[N6])\n  ↓\nFull-text articles assessed (n=[N7])\n  Excluded with reasons (n=[N8])\n  ↓\nStudies included in qualitative synthesis (n=[N9])\n  ↓\nStudies included in quantitative synthesis (n=[N10])",
+          "source": "CER_04_5B + standard PRISMA",
+          "usage": "§4.4 or Annex"
+        },
+        {
+          "template_id": "HEU-006-T2",
+          "template_name": "Safety Data Stratification Table",
+          "content": "| Event | Serious | Non-Serious | Related | Unrelated | Unknown | Resolved | Ongoing | Fatal | Total |\n|-------|---------|-------------|---------|-----------|---------|----------|---------|-------|-------|\n| [Event 1] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] |\n| [Event 2] | ... | ... | ... | ... | ... | ... | ... | ... | ... |",
+          "source": "CER_05_TypeA",
+          "usage": "§4.6 / §4.7.1"
+        }
+      ],
+      "checklist": [
+        "[ ] Evidence hierarchy followed (higher tiers prioritized)",
+        "[ ] Literature search protocol documented and reproducible",
+        "[ ] PRISMA flow diagram included",
+        "[ ] Quality appraisal method stated (e.g., Newcastle-Ottawa, GRADE)",
+        "[ ] MHRA + BfArM + FDA MAUDE searched (minimum)",
+        "[ ] Vigilance search date within 6 months of CER date",
+        "[ ] CI data includes: design, population, endpoints, SAP, results, limitations",
+        "[ ] Safety data stratified by severity/relationship/outcome",
+        "[ ] All data sources traceable to Annex or external document references"
+      ],
+      "common_pitfalls": [
+        {
+          "pitfall": "Evidence hierarchy inverted (literature preferred over available CI data)",
+          "consequence": "NB challenges evidence adequacy",
+          "fix": "Use highest available tier with justification for lower tier use"
+        },
+        {
+          "pitfall": "PRISMA diagram missing",
+          "consequence": "EV-001 finding",
+          "fix": "Include PRISMA flow in §4.4 or Annex"
+        },
+        {
+          "pitfall": "Vigilance search >6 months old",
+          "consequence": "NB questions data currency",
+          "fix": "Update vigilance search within 6 months of submission"
+        },
+        {
+          "pitfall": "Safety data unstratified",
+          "consequence": "BR-001 finding",
+          "fix": "Use three-dimensional stratification table"
+        }
+      ],
+      "injection_point": "Writer Agent §4.3-4.7 — before generating clinical evidence sections",
+      "writer_guard_snippet": "When writing clinical evidence sections: (1) Evidence hierarchy is LAW — MDR Article 61 defines the order; justify ANY deviation, (2) Literature review without PRISMA = unsystematic = rejected, (3) Vigilance data must be FRESH (<6 months) and COMPREHENSIVE (MHRA+BfArM+FDA minimum), (4) Safety data MUST be stratified — raw event lists are insufficient for benefit-risk analysis."
+    },
+    {
+      "heuristic_id": "HEU-007",
+      "heuristic_name": "CER Writing Style Uniform Rules",
+      "category": "document_quality",
+      "description": "Cross-domain writing style rules ensuring CER readability and regulatory professionalism",
+      "applicability": {
+        "all_families": true,
+        "exceptions": [],
+        "exception_reason": ""
+      },
+      "cer_sections": [
+        "ALL"
+      ],
+      "priority": "P2",
+      "rules": [
+        {
+          "rule_id": "HEU-007-R1",
+          "rule": "Sentence length: §2 device description ≤35 words; §4 evidence analysis 25-30 words; §5 conclusions ≤20 words",
+          "rationale": "Long sentences in conclusions reduce readability and clarity; NB reviewers prefer direct statements",
+          "enforcement": "Minor",
+          "source": "CER_03_1.1 sentence length analysis"
+        },
+        {
+          "rule_id": "HEU-007-R2",
+          "rule": "Paragraph length: 25-40 words per paragraph; table-adjacent paragraphs 10-20 words",
+          "rationale": "Overly long paragraphs reduce scannability; regulatory reviewers scan for key information",
+          "enforcement": "Minor",
+          "source": "CER_03_1.2 paragraph length analysis"
+        },
+        {
+          "rule_id": "HEU-007-R3",
+          "rule": "Passive voice: 15-25% of total sentences; higher in §2 device description, lower in §4 analysis",
+          "rationale": "Excessive passive voice obscures agency; insufficient passive voice sounds too assertive for evidence sections",
+          "enforcement": "Minor",
+          "source": "CER_03_1.4 passive voice analysis"
+        },
+        {
+          "rule_id": "HEU-007-R4",
+          "rule": "Tense consistency: §2 device description uses present tense; §4 evidence analysis uses past tense for completed studies, present tense for ongoing/general statements; §5 conclusions uses present tense",
+          "rationale": "Tense inconsistency signals poor editorial control and undermines credibility",
+          "enforcement": "Minor",
+          "source": "CER_03 style analysis"
+        },
+        {
+          "rule_id": "HEU-007-R5",
+          "rule": "PEEL paragraph structure: Point (1 sentence) → Evidence (1-2 sentences) → Explanation (1-2 sentences) → Link (1 sentence)",
+          "rationale": "PEEL structure ensures every paragraph makes a claim, supports it with evidence, explains relevance, and connects to next paragraph",
+          "enforcement": "Minor",
+          "source": "CER_03_2.3 PEEL template"
+        }
+      ],
+      "templates": [
+        {
+          "template_id": "HEU-007-T1",
+          "template_name": "PEEL Paragraph Structure",
+          "content": "**Point**: [Main claim of this paragraph]\n**Evidence**: [Data/study/reference supporting the claim]\n**Explanation**: [Why this evidence matters for the device evaluation]\n**Link**: [How this connects to the next paragraph or section]",
+          "source": "CER_03_2.3",
+          "usage": "All analytical paragraphs in §4"
+        }
+      ],
+      "checklist": [
+        "[ ] §2 sentences ≤35 words",
+        "[ ] §4 sentences 25-30 words",
+        "[ ] §5 sentences ≤20 words",
+        "[ ] Paragraphs 25-40 words (table-adjacent 10-20)",
+        "[ ] Passive voice 15-25% overall",
+        "[ ] Tense consistent within each section",
+        "[ ] PEEL structure followed for analytical paragraphs",
+        "[ ] No bullet-point-only sections (must have connecting prose)",
+        "[ ] Hedging language balanced (not too certain, not too vague)"
+      ],
+      "common_pitfalls": [
+        {
+          "pitfall": "§5 conclusions with sentences >30 words",
+          "consequence": "Reduced clarity; NB may misinterpret",
+          "fix": "Break into shorter declarative sentences"
+        },
+        {
+          "pitfall": "Tense inconsistency within a section",
+          "consequence": "Signals poor quality control",
+          "fix": "Section-level tense audit pass"
+        },
+        {
+          "pitfall": "Bullet lists without explanatory prose",
+          "consequence": "Reads as draft, not finalized document",
+          "fix": "Every list must be introduced and summarized in prose"
+        }
+      ],
+      "injection_point": "Writer Agent — style layer applied to all output; Gate TV-09 (Style Compliance Check)",
+      "writer_guard_snippet": "Writing style rules: (1) Sentence length varies by section: §2≤35w, §4=25-30w, §5≤20w, (2) Paragraphs 25-40w with PEEL structure, (3) Passive voice 15-25%, (4) Tense: §2=present, §4=past for studies/present for general, §5=present, (5) EVERY list needs prose introduction and summary. This is not creative writing — it is regulatory documentation. Clarity > Elegance."
+    },
+    {
+      "heuristic_id": "HEU-008",
+      "heuristic_name": "Cross-Chapter Consistency Validation Rules",
+      "category": "document_integrity",
+      "description": "Universal rules ensuring data consistency across CER chapters — prevents DT-001 data inconsistency findings",
+      "applicability": {
+        "all_families": true,
+        "exceptions": [],
+        "exception_reason": ""
+      },
+      "cer_sections": [
+        "ALL"
+      ],
+      "priority": "P0",
+      "rules": [
+        {
+          "rule_id": "HEU-008-R1",
+          "rule": "§2 device specifications MUST match §4.2 equivalence table specifications; any discrepancy must be explained with version control reference",
+          "rationale": "§2→§4.2 is a rigid dependency chain; specification mismatch is a direct DT-001 finding",
+          "enforcement": "Blocker",
+          "source": "CER_02_logic + NB defect DT-001 (3.1%)"
+        },
+        {
+          "rule_id": "HEU-008-R2",
+          "rule": "§3 SOTA benchmark values MUST be the same values used in §4.7 analysis; benchmark updates require explicit changelog entry",
+          "rationale": "SOTA benchmarks are the analytical foundation; changing them without documentation collapses analysis validity",
+          "enforcement": "Blocker",
+          "source": "CER_02_logic dependency chain"
+        },
+        {
+          "rule_id": "HEU-008-R3",
+          "rule": "§4.4 literature count MUST equal Annex literature list count; if different, explain exclusions",
+          "rationale": "Literature count mismatch is the most common DT-001 trigger; NB reviewers cross-check these numbers",
+          "enforcement": "Blocker",
+          "source": "NB defect DT-001 + CER_02_2.3"
+        },
+        {
+          "rule_id": "HEU-008-R4",
+          "rule": "§5 conclusion claims MUST have exact §4 cross-references; no conclusion claim without a corresponding §4 analysis paragraph",
+          "rationale": "§4→§5 is rigid dependency; orphan conclusions are 'bald statements' NB rejects",
+          "enforcement": "Blocker",
+          "source": "CER_02_logic + NB defect BR-001"
+        },
+        {
+          "rule_id": "HEU-008-R5",
+          "rule": "Device name MUST be identical across ALL chapters (including Annexes); use find/replace verification before submission",
+          "rationale": "Name inconsistency is the simplest DT-001 trigger and the easiest to prevent",
+          "enforcement": "Major",
+          "source": "NB defect DT-001 analysis"
+        }
+      ],
+      "templates": [
+        {
+          "template_id": "HEU-008-T1",
+          "template_name": "Cross-Chapter Validation Matrix",
+          "content": "| Data Element | §2 Value | §4 Value | §5 Value | Annex Value | Status |\n|-------------|----------|----------|----------|-------------|--------|\n| Device Name | [val] | [val] | [val] | [val] | ✓/✗ |\n| EMDN Code | [val] | [val] | N/A | [val] | ✓/✗ |\n| Intended Purpose | [val] | [val] | [val] | N/A | ✓/✗ |\n| Literature Count | N/A | [val] | N/A | [val] | ✓/✗ |\n| Benchmark Value X | N/A | [val] | [val] | N/A | ✓/✗ |",
+          "source": "CER_02 cross-chapter dependency synthesis",
+          "usage": "Pre-submission validation checklist"
+        }
+      ],
+      "checklist": [
+        "[ ] §2 specs = §4.2 equivalence table specs",
+        "[ ] §3 benchmark values = §4.7 analysis values",
+        "[ ] §4.4 literature count = Annex list count",
+        "[ ] §5 every claim has §4 cross-reference",
+        "[ ] Device name identical across ALL chapters",
+        "[ ] EMDN code identical across ALL chapters",
+        "[ ] MDR Class/Rule identical across ALL chapters",
+        "[ ] Version control log reflects all cross-chapter updates"
+      ],
+      "common_pitfalls": [
+        {
+          "pitfall": "§2 specs updated but §4.2 table not updated",
+          "consequence": "DT-001 finding",
+          "fix": "Use cross-chapter validation matrix"
+        },
+        {
+          "pitfall": "Literature count in text doesn't match Annex list",
+          "consequence": "DT-001 finding",
+          "fix": "Automated count verification script"
+        },
+        {
+          "pitfall": "Device name typo in one section",
+          "consequence": "DT-001 finding",
+          "fix": "Find/replace verification before submission"
+        },
+        {
+          "pitfall": "§5 conclusion stronger than §4 analysis supports",
+          "consequence": "BR-001 finding",
+          "fix": "Conclusion-to-analysis traceability audit"
+        }
+      ],
+      "injection_point": "Gate layer — AFTER Writer Agent completes all sections, BEFORE submission packaging",
+      "writer_guard_snippet": "Cross-chapter consistency is NOT optional — it is a Blocker-level Gate check. Run the validation matrix on: device name, EMDN code, MDR Class/Rule, §2 specs vs §4.2 table, §3 benchmarks vs §4.7 values, §4.4 literature count vs Annex count, §5 claims vs §4 paragraphs. ANY mismatch = rewrite, not exception. DT-001 findings are 100% preventable with systematic validation."
+    }
+  ],
+  "injection_config": {
+    "description": "Heuristics are injected as a unified rule layer that applies across ALL Product Families and CER chapters",
+    "injection_point": "Between Slot Rules (Family-specific) and Section Defense (Chapter-specific)",
+    "layer_name": "Universal Heuristics Layer",
+    "precedence": "Slot Rules override Heuristics for family-specific conflicts; Heuristics override defaults",
+    "activation": "Always active for all CER generation tasks"
+  },
+  "v5_enrichment": {
+    "applied_at": "2026-05-29T22:56:02.475901",
+    "defect_type_coverage": {
+      "AU-001": 10,
+      "BR-001": 148,
+      "CL-001": 69,
+      "CM-001": 9,
+      "CV-001": 54,
+      "DO-001": 153,
+      "DQ-001": 2,
+      "DT-001": 53,
+      "EQ-001": 73,
+      "EV-001": 126,
+      "GS-001": 72,
+      "IV-001": 6,
+      "LB-001": 162,
+      "MF-001": 108,
+      "PM-001": 312,
+      "RM-001": 59,
+      "SC-001": 3,
+      "SW-001": 49,
+      "TR-001": 102
+    }
+  }
+}

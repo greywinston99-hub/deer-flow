@@ -3,8 +3,26 @@
 **Schema:** cer_prompt_contract_v1
 **Step ID:** cer_clinical_evidence_panel
 **Handler:** _run_cep
-**Prompt Version:** prompt_v1_draft
-**Status:** HARDENED — V27 clinical context loading added (L2 knowledge)
+**Prompt Version:** prompt_v2 — RCA A06_南驰 2026-06-04 rules embedded
+**Status:** HARDENED — V27 clinical context loading added (L2 knowledge) + RCA A06_南驰 rules
+
+## RCA A06_南驰 Rules (2026-06-04 — MANDATORY)
+
+The following rules were derived from root cause analysis of the A06_南驰 skin closure device CER project and apply to ALL subsequent CER reviews:
+
+**R1 — Rigid 3-Dimension Rule (P0):** Equivalence candidates must match on Structure, Mechanism, AND Indication simultaneously. Scenario-only match (indication matches but structure/mechanism differ) → classify as ALTERNATIVE THERAPY, not equivalence candidate. Output: 3-dim table with ✅/❌ per candidate.
+
+**R2 — Equivalence ≥1 (P0):** A single device passing all 3 dimensions is sufficient to claim equivalence. The previous "≥2 similar devices" rule was an over-constraint with no MDR basis.
+
+**R3 — Negative Confirmation Search (P0):** Before concluding "0 equivalence candidates", search: PubMed (no indication constraint), FDA 510(k), historical/legacy devices, veterinary/experimental devices, NMPA/PMDA.
+
+**R4 — Animal/Cadaver Exclusion (P0):** Exclude all animal (swine, porcine, rat, murine, canine), cadaver, and in vitro studies from clinical evidence. Only human clinical data supports equivalence claims. Animal data may only be cited as supportive mechanism evidence.
+
+**R5 — SOTA Evidence Hierarchy (P0):** Meta-analysis/SR > RCT > Prospective > Retrospective > Case series (≥10) > Expert review. SOTA quantitative comparisons MUST prioritize Level 1-2 evidence.
+
+**R6 — PMID Master List Gate (P0):** Before writing any clinical claims, compile a categorized PMID master list (equivalence / alternatives / SOTA / guidelines) and present for user approval. Do NOT proceed until user confirms inclusion/exclusion.
+
+**R7 — CER Page Target (P0):** IIa device CER = 80-120 DOCX pages (≈40-60 pages Markdown). Verify per-section page budgets at outline stage.
 
 ## V27 L2 Clinical Context Loading (MANDATORY)
 

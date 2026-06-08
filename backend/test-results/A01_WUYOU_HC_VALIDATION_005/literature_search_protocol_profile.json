@@ -1,0 +1,12 @@
+{
+  "schema_name": "cer_literature_search_protocol_profile",
+  "standardized_from": "AP CER LSP methodology and engineer SOTA feedback",
+  "research_question_formulation": "IFU claim -> clinical uncertainty -> SOTA/DuE PICO -> searchable concepts -> database query -> appraisal -> benchmark/claim conclusion.",
+  "sota_purpose": "Define current knowledge, clinical pathway, alternatives, hazards, endpoints and acceptance criteria.",
+  "due_purpose": "Identify subject/equivalent/similar device clinical data using trade names, manufacturer names and model identifiers.",
+  "database_selection": "PubMed, Europe PMC, ClinicalTrials.gov, Embase and Cochrane are attempted or limitation-recorded; internet/regulatory/vigilance sources are handled in their dedicated steps.",
+  "duplicate_handling": "Duplicate records are screened by article/source identifiers and title; duplicates are not counted as independent clinical evidence.",
+  "full_text_rule": "No article may be pivotal unless PMID/DOI/citation is verified and full text or source-document data are available for endpoint extraction.",
+  "appraisal_method": "SOTA evidence uses CK1-CK6; device evidence uses IMDRF suitability/contribution plus Oxford/CEBM-style evidence level.",
+  "deviation_rule": "Unavailable subscription databases, language/date restrictions and missing full texts are recorded in protocol_deviation_log and cannot be interpreted as no evidence."
+}

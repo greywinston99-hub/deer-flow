@@ -1,0 +1,614 @@
+{
+  "cer_input_package_exported": true,
+  "package_schema_version": "1.0.0",
+  "pre_writer_readiness_gate_report": {
+    "status": "PASS"
+  },
+  "claim_ledger": [
+    {
+      "claim_id": "C-01",
+      "claim_text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+      "claim_type": "clinical_performance",
+      "criticality": "high"
+    },
+    {
+      "claim_id": "C-02",
+      "claim_text": "Device-related major adverse event rate <2%",
+      "claim_type": "clinical_safety",
+      "criticality": "high"
+    },
+    {
+      "claim_id": "C-03",
+      "claim_text": "Ergonomic handle design reduces operator fatigue",
+      "claim_type": "usability",
+      "criticality": "low"
+    },
+    {
+      "claim_id": "C-04",
+      "claim_text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+      "claim_type": "clinical_performance",
+      "criticality": "high",
+      "ifu_source_text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients"
+    }
+  ],
+  "claim_evidence_matrix": [
+    {
+      "claim_id": "C-01",
+      "evidence_ids": [
+        "E-001",
+        "E-002",
+        "E-003"
+      ],
+      "support_type": "direct"
+    },
+    {
+      "claim_id": "C-02",
+      "evidence_ids": [
+        "E-004"
+      ],
+      "support_type": "direct",
+      "conclusion_strength": "moderate"
+    },
+    {
+      "claim_id": "C-03",
+      "evidence_ids": [],
+      "support_type": "insufficient",
+      "gap_disposition": "PMCF"
+    },
+    {
+      "claim_id": "C-04",
+      "evidence_ids": [
+        "E-001",
+        "E-002"
+      ],
+      "support_type": "direct",
+      "gap_disposition": "claim_narrowing"
+    }
+  ],
+  "evidence_registry": [
+    {
+      "evidence_id": "E-001",
+      "pmid": "34567890",
+      "first_author": "Anderson",
+      "year": 2024,
+      "study_design": "RCT",
+      "sample_size": 350
+    },
+    {
+      "evidence_id": "E-002",
+      "pmid": "34567891",
+      "first_author": "Bennett",
+      "year": 2023,
+      "study_design": "Prospective",
+      "sample_size": 500
+    },
+    {
+      "evidence_id": "E-003",
+      "pmid": "34567892",
+      "first_author": "Chen",
+      "year": 2024,
+      "study_design": "Meta-analysis",
+      "sample_size": 1200
+    },
+    {
+      "evidence_id": "E-004",
+      "pmid": "34567893",
+      "first_author": "Davis",
+      "year": 2023,
+      "study_design": "Registry",
+      "sample_size": 2000
+    }
+  ],
+  "benefit_risk_ledger": [],
+  "alignment_matrix": [],
+  "cer_reasoning_ledger": {
+    "schema_version": "1.0.0",
+    "generated_at": "2026-06-08T00:00:35.791635+00:00",
+    "generated_by": "_node_build_reasoning_ledger",
+    "product_identity_reasoning": {
+      "device_name": "VasoSeal Pro X",
+      "device_class": "IIb",
+      "intended_use_summary": "Percutaneous closure of femoral artery access sites following diagnostic or interventional catheterization procedures.",
+      "mechanism_of_action": "Mechanical compression via absorbable collagen plug.",
+      "target_population": "Adult patients (>=18 years) undergoing femoral arterial catheterization.",
+      "anatomical_site": "Common femoral artery",
+      "equivalence_claimed": false,
+      "equivalent_device_name": ""
+    },
+    "claims": [
+      {
+        "claim_id": "C-01",
+        "claim_text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+        "claim_classification": "clinical_performance",
+        "claim_criticality": "high",
+        "evidence_support_type": "direct",
+        "endpoint_rationale": "Endpoints derived from 2 registered endpoints for this clinical domain.",
+        "linked_endpoints": [
+          "hemostasis_time",
+          "major_adverse_events"
+        ],
+        "benchmark_rationale": "Benchmark derived from 2 SOTA studies for this clinical domain.",
+        "linked_benchmark_ids": [
+          "B-001",
+          "B-002"
+        ],
+        "gap_disposition": "no_gap",
+        "gap_rationale": "",
+        "conclusion_strength": "strong",
+        "linked_evidence_ids": [
+          "E-001",
+          "E-002",
+          "E-003"
+        ],
+        "source_artifacts": [
+          "claim_evidence_matrix",
+          "device_profile",
+          "endpoint_registry",
+          "sota_benchmark_table"
+        ]
+      },
+      {
+        "claim_id": "C-02",
+        "claim_text": "Device-related major adverse event rate <2%",
+        "claim_classification": "clinical_safety",
+        "claim_criticality": "high",
+        "evidence_support_type": "direct",
+        "endpoint_rationale": "Endpoints derived from 2 registered endpoints for this clinical domain.",
+        "linked_endpoints": [
+          "hemostasis_time",
+          "major_adverse_events"
+        ],
+        "benchmark_rationale": "Benchmark derived from 2 SOTA studies for this clinical domain.",
+        "linked_benchmark_ids": [
+          "B-001",
+          "B-002"
+        ],
+        "gap_disposition": "no_gap",
+        "gap_rationale": "",
+        "conclusion_strength": "moderate",
+        "linked_evidence_ids": [
+          "E-004"
+        ],
+        "source_artifacts": [
+          "claim_evidence_matrix",
+          "device_profile",
+          "endpoint_registry",
+          "sota_benchmark_table"
+        ]
+      },
+      {
+        "claim_id": "C-03",
+        "claim_text": "Ergonomic handle design reduces operator fatigue",
+        "claim_classification": "usability",
+        "claim_criticality": "low",
+        "evidence_support_type": "insufficient",
+        "endpoint_rationale": "Endpoints derived from 2 registered endpoints for this clinical domain.",
+        "linked_endpoints": [
+          "hemostasis_time",
+          "major_adverse_events"
+        ],
+        "benchmark_rationale": "Benchmark derived from 2 SOTA studies for this clinical domain.",
+        "linked_benchmark_ids": [
+          "B-001",
+          "B-002"
+        ],
+        "gap_disposition": "PMCF",
+        "gap_rationale": "",
+        "conclusion_strength": "limited",
+        "linked_evidence_ids": [],
+        "source_artifacts": [
+          "claim_evidence_matrix",
+          "device_profile",
+          "endpoint_registry",
+          "sota_benchmark_table"
+        ]
+      },
+      {
+        "claim_id": "C-04",
+        "claim_text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+        "claim_classification": "clinical_performance",
+        "claim_criticality": "high",
+        "evidence_support_type": "direct",
+        "endpoint_rationale": "Endpoints derived from 2 registered endpoints for this clinical domain.",
+        "linked_endpoints": [
+          "hemostasis_time",
+          "major_adverse_events"
+        ],
+        "benchmark_rationale": "Benchmark derived from 2 SOTA studies for this clinical domain.",
+        "linked_benchmark_ids": [
+          "B-001",
+          "B-002"
+        ],
+        "gap_disposition": "claim_narrowing",
+        "gap_rationale": "",
+        "conclusion_strength": "strong",
+        "linked_evidence_ids": [
+          "E-001",
+          "E-002"
+        ],
+        "source_artifacts": [
+          "claim_evidence_matrix",
+          "device_profile",
+          "endpoint_registry",
+          "sota_benchmark_table"
+        ]
+      }
+    ],
+    "overall_assessment": {
+      "total_claims": 4,
+      "strong_conclusions": 2,
+      "moderate_conclusions": 1,
+      "limited_conclusions": 1,
+      "not_supported_conclusions": 0,
+      "claims_with_gaps": 2,
+      "pmcf_recommended": true,
+      "overall_readiness": "needs_human_decision"
+    }
+  },
+  "ifu_claim_evolution_ledger": {
+    "schema_version": "1.0.0",
+    "generated_at": "2026-06-08T00:00:35.791857+00:00",
+    "generated_by": "_node_build_ifu_evolution_ledger",
+    "ifu_source": {
+      "filename": "IFU_VasoSeal_v3.2.pdf",
+      "version": "3.2",
+      "date": "",
+      "manufacturer": "",
+      "language": "en"
+    },
+    "claims": [
+      {
+        "claim_id": "C-01",
+        "evolution_stages": {
+          "stage_1_ifu_text": {
+            "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+            "ifu_page": "",
+            "ifu_section": "",
+            "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "extraction_source": "ifu_claim_extraction"
+          },
+          "stage_2_extracted_claim": {
+            "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+            "transformation_reason": "Direct extraction from IFU text.",
+            "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "extraction_source": "claim_decomposition"
+          },
+          "stage_3_classified_claim": {
+            "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+            "classification": "clinical_performance",
+            "transformation_reason": "Classified as clinical_performance based on claim content analysis.",
+            "classification_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "classification_source": "claim_decomposition"
+          },
+          "stage_4_evidence_supported_claim": {
+            "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+            "evidence_support_type": "direct",
+            "linked_evidence_ids": [
+              "E-001",
+              "E-002",
+              "E-003"
+            ],
+            "transformation_reason": "Claim wording preserved; evidence linkage established.",
+            "assessment_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "assessment_source": "claim_evidence_matrix"
+          },
+          "stage_5_final_cer_claim": {
+            "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+            "conclusion_strength": "strong",
+            "transformation_reason": "Final CER claim wording confirmed for Writer.",
+            "finalization_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "finalization_source": "_node_build_ifu_evolution_ledger"
+          }
+        },
+        "evolution_flags": {
+          "claim_strengthened": false,
+          "claim_narrowed": false,
+          "safety_qualifier_added": false,
+          "marketing_language_detected": false,
+          "marketing_language_downgraded": false,
+          "requires_human_review": false
+        }
+      },
+      {
+        "claim_id": "C-02",
+        "evolution_stages": {
+          "stage_1_ifu_text": {
+            "text": "Device-related major adverse event rate <2%",
+            "ifu_page": "",
+            "ifu_section": "",
+            "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "extraction_source": "ifu_claim_extraction"
+          },
+          "stage_2_extracted_claim": {
+            "text": "Device-related major adverse event rate <2%",
+            "transformation_reason": "Direct extraction from IFU text.",
+            "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "extraction_source": "claim_decomposition"
+          },
+          "stage_3_classified_claim": {
+            "text": "Device-related major adverse event rate <2%",
+            "classification": "clinical_safety",
+            "transformation_reason": "Classified as clinical_safety based on claim content analysis.",
+            "classification_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "classification_source": "claim_decomposition"
+          },
+          "stage_4_evidence_supported_claim": {
+            "text": "Device-related major adverse event rate <2%",
+            "evidence_support_type": "direct",
+            "linked_evidence_ids": [
+              "E-004"
+            ],
+            "transformation_reason": "Claim wording preserved; evidence linkage established.",
+            "assessment_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "assessment_source": "claim_evidence_matrix"
+          },
+          "stage_5_final_cer_claim": {
+            "text": "Device-related major adverse event rate <2%",
+            "conclusion_strength": "moderate",
+            "transformation_reason": "Final CER claim wording confirmed for Writer.",
+            "finalization_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "finalization_source": "_node_build_ifu_evolution_ledger"
+          }
+        },
+        "evolution_flags": {
+          "claim_strengthened": false,
+          "claim_narrowed": false,
+          "safety_qualifier_added": true,
+          "marketing_language_detected": false,
+          "marketing_language_downgraded": false,
+          "requires_human_review": false
+        }
+      },
+      {
+        "claim_id": "C-03",
+        "evolution_stages": {
+          "stage_1_ifu_text": {
+            "text": "Ergonomic handle design reduces operator fatigue",
+            "ifu_page": "",
+            "ifu_section": "",
+            "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "extraction_source": "ifu_claim_extraction"
+          },
+          "stage_2_extracted_claim": {
+            "text": "Ergonomic handle design reduces operator fatigue",
+            "transformation_reason": "Direct extraction from IFU text.",
+            "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "extraction_source": "claim_decomposition"
+          },
+          "stage_3_classified_claim": {
+            "text": "Ergonomic handle design reduces operator fatigue",
+            "classification": "usability",
+            "transformation_reason": "Classified as usability based on claim content analysis.",
+            "classification_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "classification_source": "claim_decomposition"
+          },
+          "stage_4_evidence_supported_claim": {
+            "text": "Ergonomic handle design reduces operator fatigue",
+            "evidence_support_type": "insufficient",
+            "linked_evidence_ids": [],
+            "transformation_reason": "No evidence linked \u2014 claim marked as insufficient.",
+            "assessment_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "assessment_source": "claim_evidence_matrix"
+          },
+          "stage_5_final_cer_claim": {
+            "text": "Ergonomic handle design reduces operator fatigue",
+            "conclusion_strength": "limited",
+            "transformation_reason": "Final CER claim wording confirmed for Writer.",
+            "finalization_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "finalization_source": "_node_build_ifu_evolution_ledger"
+          }
+        },
+        "evolution_flags": {
+          "claim_strengthened": false,
+          "claim_narrowed": false,
+          "safety_qualifier_added": false,
+          "marketing_language_detected": false,
+          "marketing_language_downgraded": false,
+          "requires_human_review": true
+        }
+      },
+      {
+        "claim_id": "C-04",
+        "evolution_stages": {
+          "stage_1_ifu_text": {
+            "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+            "ifu_page": "",
+            "ifu_section": "",
+            "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "extraction_source": "ifu_claim_extraction"
+          },
+          "stage_2_extracted_claim": {
+            "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+            "transformation_reason": "Direct extraction from IFU text.",
+            "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "extraction_source": "claim_decomposition"
+          },
+          "stage_3_classified_claim": {
+            "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+            "classification": "clinical_performance",
+            "transformation_reason": "Classified as clinical_performance based on claim content analysis.",
+            "classification_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "classification_source": "claim_decomposition"
+          },
+          "stage_4_evidence_supported_claim": {
+            "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+            "evidence_support_type": "direct",
+            "linked_evidence_ids": [
+              "E-001",
+              "E-002"
+            ],
+            "transformation_reason": "Claim wording preserved; evidence linkage established.",
+            "assessment_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "assessment_source": "claim_evidence_matrix"
+          },
+          "stage_5_final_cer_claim": {
+            "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+            "conclusion_strength": "strong",
+            "transformation_reason": "Marketing language detected in IFU; claim downgraded to evidence-supported wording.",
+            "finalization_timestamp": "2026-06-08T00:00:35.791857+00:00",
+            "finalization_source": "_node_build_ifu_evolution_ledger"
+          }
+        },
+        "evolution_flags": {
+          "claim_strengthened": false,
+          "claim_narrowed": false,
+          "safety_qualifier_added": false,
+          "marketing_language_detected": true,
+          "marketing_language_downgraded": true,
+          "requires_human_review": true
+        }
+      }
+    ],
+    "summary": {
+      "total_claims": 4,
+      "claims_strengthened": 0,
+      "claims_narrowed": 0,
+      "claims_with_safety_qualifier": 1,
+      "marketing_language_detected": 1,
+      "claims_requiring_human_review": 2
+    }
+  },
+  "benchmark_derivation_trace": {
+    "schema_version": "1.0.0",
+    "generated_at": "2026-06-08T00:00:35.794090+00:00",
+    "generated_by": "_node_build_benchmark_trace",
+    "device_context": {
+      "device_name": "VasoSeal Pro X",
+      "device_class": "IIb",
+      "intended_use": "Percutaneous closure of femoral artery access sites following diagnostic or interventional catheterization procedures.",
+      "clinical_domain": "vascular_closure"
+    },
+    "domain_config": {
+      "domain_key": "generic_fallback",
+      "matched_by": "fallback",
+      "clinical_domain": "unknown",
+      "acceptability_criteria": [
+        "Any available clinical data with N\u226530",
+        "Explicitly noted as 'fallback \u2014 domain not in benchmark registry'",
+        "CER must document limitation"
+      ]
+    },
+    "endpoints": [
+      {
+        "endpoint_name": "hemostasis_time",
+        "endpoint_clinical_meaning": "Time from deployment to complete hemostasis",
+        "endpoint_type": "primary_efficacy",
+        "source_studies": [
+          {
+            "pmid": "34567890",
+            "first_author": "Anderson",
+            "year": 2024,
+            "study_design": "RCT",
+            "sample_size": 350,
+            "relevance_weight": 0.5
+          },
+          {
+            "pmid": "34567891",
+            "first_author": "Bennett",
+            "year": 2023,
+            "study_design": "Prospective",
+            "sample_size": 500,
+            "relevance_weight": 0.5
+          },
+          {
+            "pmid": "34567892",
+            "first_author": "Chen",
+            "year": 2024,
+            "study_design": "Meta-analysis",
+            "sample_size": 1200,
+            "relevance_weight": 0.5
+          },
+          {
+            "pmid": "34567893",
+            "first_author": "Davis",
+            "year": 2023,
+            "study_design": "Registry",
+            "sample_size": 2000,
+            "relevance_weight": 0.5
+          }
+        ],
+        "benchmark_value_range": {
+          "value_type": "range",
+          "derivation_method": "Aggregated from SOTA benchmark table."
+        },
+        "population_comparability": "comparable",
+        "population_comparability_rationale": "Source study populations are in the same clinical domain.",
+        "device_comparability": "alternative_therapy",
+        "device_comparability_rationale": "SOTA benchmarks are derived from alternative therapies unless equivalence is claimed.",
+        "directness": "direct",
+        "confidence": "high",
+        "confidence_rationale": "Based on 4 source studies with direct evidence.",
+        "acceptability_rationale": "Benchmark is acceptable for direct comparison in CER SOTA section.",
+        "alternatives_rejected_rationale": "",
+        "limitations": [
+          "Based on 4 studies; confidence: high."
+        ]
+      },
+      {
+        "endpoint_name": "major_adverse_events",
+        "endpoint_clinical_meaning": "Device-related major AEs",
+        "endpoint_type": "primary_safety",
+        "source_studies": [
+          {
+            "pmid": "34567890",
+            "first_author": "Anderson",
+            "year": 2024,
+            "study_design": "RCT",
+            "sample_size": 350,
+            "relevance_weight": 0.5
+          },
+          {
+            "pmid": "34567891",
+            "first_author": "Bennett",
+            "year": 2023,
+            "study_design": "Prospective",
+            "sample_size": 500,
+            "relevance_weight": 0.5
+          },
+          {
+            "pmid": "34567892",
+            "first_author": "Chen",
+            "year": 2024,
+            "study_design": "Meta-analysis",
+            "sample_size": 1200,
+            "relevance_weight": 0.5
+          },
+          {
+            "pmid": "34567893",
+            "first_author": "Davis",
+            "year": 2023,
+            "study_design": "Registry",
+            "sample_size": 2000,
+            "relevance_weight": 0.5
+          }
+        ],
+        "benchmark_value_range": {
+          "value_type": "range",
+          "derivation_method": "Aggregated from SOTA benchmark table."
+        },
+        "population_comparability": "comparable",
+        "population_comparability_rationale": "Source study populations are in the same clinical domain.",
+        "device_comparability": "alternative_therapy",
+        "device_comparability_rationale": "SOTA benchmarks are derived from alternative therapies unless equivalence is claimed.",
+        "directness": "direct",
+        "confidence": "high",
+        "confidence_rationale": "Based on 4 source studies with direct evidence.",
+        "acceptability_rationale": "Benchmark is acceptable for direct comparison in CER SOTA section.",
+        "alternatives_rejected_rationale": "",
+        "limitations": [
+          "Based on 4 studies; confidence: high."
+        ]
+      }
+    ],
+    "overall_assessment": {
+      "total_endpoints": 2,
+      "direct_benchmarks": 2,
+      "indirect_benchmarks": 0,
+      "fallback_benchmarks": 0,
+      "high_confidence_endpoints": 2,
+      "medium_confidence_endpoints": 0,
+      "low_confidence_endpoints": 0,
+      "benchmark_adequacy": "adequate"
+    }
+  }
+}

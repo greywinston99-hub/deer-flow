@@ -8,7 +8,12 @@
     "total_family_assets": 7,
     "total_defect_records": 64,
     "total_defect_types": 11,
-    "total_injection_points": 43
+    "total_injection_points": 43,
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    }
   },
   "assets": {
     "cer_enhanced": [
@@ -20,16 +25,31 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "CER_01_MATRIX_ENHANCED.md",
-          "json": "CER_01_MATRIX.json"
+          "json": "CER_01_MATRIX.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 21047,
-          "json": 43784
+          "json": 43784,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "total_tables": 15,
           "total_sections": 25,
-          "total_checklists": 0
+          "total_checklists": 0,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "defect_injection": true,
         "deerflow_target": [
@@ -40,14 +60,29 @@
           {
             "component": "SourceSlot",
             "id": "slot_structure",
-            "usage": "章节结构模板与对比规则"
+            "usage": "章节结构模板与对比规则",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_outline",
-            "usage": "大纲完整性检查"
+            "usage": "大纲完整性检查",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "CER_02_LOGIC",
@@ -57,16 +92,31 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "CER_02_LOGIC_ENHANCED.md",
-          "json": "CER_02_LOGIC.json"
+          "json": "CER_02_LOGIC.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 20182,
-          "json": 31797
+          "json": 31797,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "total_tables": 11,
           "total_sections": 36,
-          "total_checklists": 1
+          "total_checklists": 1,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "defect_injection": true,
         "deerflow_target": [
@@ -77,14 +127,27 @@
           {
             "component": "GapAction",
             "id": "gap_logic",
-            "usage": "逻辑一致性检测"
+            "usage": "逻辑一致性检测",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gate",
             "id": "gate_cross_ref",
-            "usage": "跨引用验证"
+            "usage": "跨引用验证",
+            "v5_linked_defects": {
+              "DT-001": 53
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "CER_03_STYLE",
@@ -94,16 +157,31 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "CER_03_STYLE_ENHANCED.md",
-          "json": "CER_03_STYLE.json"
+          "json": "CER_03_STYLE.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 25350,
-          "json": 41438
+          "json": 41438,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "total_tables": 19,
           "total_sections": 38,
-          "total_checklists": 0
+          "total_checklists": 0,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "defect_injection": true,
         "deerflow_target": [
@@ -114,14 +192,27 @@
           {
             "component": "WriterGuard",
             "id": "guard_style",
-            "usage": "风格与措辞检查"
+            "usage": "风格与措辞检查",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gate",
             "id": "gate_language",
-            "usage": "语言质量门控"
+            "usage": "语言质量门控",
+            "v5_linked_defects": {
+              "LB-001": 162
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "CER_04_ANSWERS",
@@ -131,16 +222,31 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "CER_04_ANSWERS_ENHANCED.md",
-          "json": "CER_04_ANSWERS.json"
+          "json": "CER_04_ANSWERS.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 53696,
-          "json": 75466
+          "json": 75466,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "total_tables": 26,
           "total_sections": 102,
-          "total_checklists": 15
+          "total_checklists": 15,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "defect_injection": true,
         "deerflow_target": [
@@ -151,14 +257,29 @@
           {
             "component": "SourceSlot",
             "id": "slot_qa_knowledge",
-            "usage": "第一性原理知识库"
+            "usage": "第一性原理知识库",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_factual",
-            "usage": "事实准确性验证"
+            "usage": "事实准确性验证",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "CER_05_TABLES",
@@ -168,16 +289,31 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "CER_05_TABLES_ENHANCED.md",
-          "json": "CER_05_TABLES.json"
+          "json": "CER_05_TABLES.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 46308,
-          "json": 79831
+          "json": 79831,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "total_tables": 42,
           "total_sections": 54,
-          "total_checklists": 1
+          "total_checklists": 1,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "defect_injection": true,
         "deerflow_target": [
@@ -189,19 +325,37 @@
           {
             "component": "Gate",
             "id": "gate_table_tv",
-            "usage": "TV-01~TV-10表格验证"
+            "usage": "TV-01~TV-10表格验证",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "GapAction",
             "id": "gap_evidence_chain",
-            "usage": "证据链断裂检测"
+            "usage": "证据链断裂检测",
+            "v5_linked_defects": {
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_table_content",
-            "usage": "表格内容完整性"
+            "usage": "表格内容完整性",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       }
     ],
     "product_family_kb": [
@@ -214,11 +368,21 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "product_family_kb/DEV-CV_KB.md",
-          "json": "product_family_kb/DEV-CV_KB.json"
+          "json": "product_family_kb/DEV-CV_KB.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 4963,
-          "json": 4757
+          "json": 4757,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "domain": {
           "emdn_codes": [
@@ -232,14 +396,23 @@
           "cer_pathways": [
             "等效性路径 (有已上市类似器械时)",
             "临床调查路径 (创新器械如VAD)"
-          ]
+          ],
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "standards_count": 3,
           "sota_benchmarks_count": 3,
           "defect_patterns_count": 3,
           "table_templates_count": 3,
-          "writing_guidelines_count": 4
+          "writing_guidelines_count": 4,
+          "v5_linked_defects": {
+            "EV-001": 126,
+            "GS-001": 72
+          }
         },
         "deerflow_target": [
           "source_slot_family",
@@ -250,19 +423,39 @@
           {
             "component": "SourceSlot",
             "id": "slot_dev-cv",
-            "usage": "心血管领域领域文档提取规则"
+            "usage": "心血管领域领域文档提取规则",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_dev-cv",
-            "usage": "心血管领域领域写作规范"
+            "usage": "心血管领域领域写作规范",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gate",
             "id": "gate_dev-cv",
-            "usage": "心血管领域领域专项验证"
+            "usage": "心血管领域领域专项验证",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "DEV-SU",
@@ -273,11 +466,21 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "product_family_kb/DEV-SU_KB.md",
-          "json": "product_family_kb/DEV-SU_KB.json"
+          "json": "product_family_kb/DEV-SU_KB.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 4898,
-          "json": 4675
+          "json": 4675,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "domain": {
           "emdn_codes": [
@@ -291,14 +494,23 @@
           "cer_pathways": [
             "等效性路径 (消融类常见)",
             "临床调查路径 (新型能量平台)"
-          ]
+          ],
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "standards_count": 4,
           "sota_benchmarks_count": 3,
           "defect_patterns_count": 3,
           "table_templates_count": 3,
-          "writing_guidelines_count": 4
+          "writing_guidelines_count": 4,
+          "v5_linked_defects": {
+            "EV-001": 126,
+            "GS-001": 72
+          }
         },
         "deerflow_target": [
           "source_slot_family",
@@ -309,19 +521,39 @@
           {
             "component": "SourceSlot",
             "id": "slot_dev-su",
-            "usage": "外科治疗领域领域文档提取规则"
+            "usage": "外科治疗领域领域文档提取规则",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_dev-su",
-            "usage": "外科治疗领域领域写作规范"
+            "usage": "外科治疗领域领域写作规范",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gate",
             "id": "gate_dev-su",
-            "usage": "外科治疗领域领域专项验证"
+            "usage": "外科治疗领域领域专项验证",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "DEV-OP",
@@ -332,11 +564,21 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "product_family_kb/DEV-OP_KB.md",
-          "json": "product_family_kb/DEV-OP_KB.json"
+          "json": "product_family_kb/DEV-OP_KB.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 4780,
-          "json": 4581
+          "json": 4581,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "domain": {
           "emdn_codes": [
@@ -350,14 +592,23 @@
           "cer_pathways": [
             "等效性路径 (白内障/屈光手术常见)",
             "临床调查路径 (新型给药系统)"
-          ]
+          ],
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "standards_count": 4,
           "sota_benchmarks_count": 3,
           "defect_patterns_count": 3,
           "table_templates_count": 3,
-          "writing_guidelines_count": 4
+          "writing_guidelines_count": 4,
+          "v5_linked_defects": {
+            "EV-001": 126,
+            "GS-001": 72
+          }
         },
         "deerflow_target": [
           "source_slot_family",
@@ -368,19 +619,39 @@
           {
             "component": "SourceSlot",
             "id": "slot_dev-op",
-            "usage": "眼科领域领域文档提取规则"
+            "usage": "眼科领域领域文档提取规则",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_dev-op",
-            "usage": "眼科领域领域写作规范"
+            "usage": "眼科领域领域写作规范",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gate",
             "id": "gate_dev-op",
-            "usage": "眼科领域领域专项验证"
+            "usage": "眼科领域领域专项验证",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "DEV-VAD",
@@ -391,11 +662,21 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "product_family_kb/DEV-VAD_KB.md",
-          "json": "product_family_kb/DEV-VAD_KB.json"
+          "json": "product_family_kb/DEV-VAD_KB.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 5375,
-          "json": 5375
+          "json": 5375,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "domain": {
           "emdn_codes": [
@@ -405,14 +686,23 @@
           "typical_class": "Class III",
           "cer_pathways": [
             "临床调查路径 (绝大多数VAD为创新器械)"
-          ]
+          ],
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "standards_count": 5,
           "sota_benchmarks_count": 5,
           "defect_patterns_count": 4,
           "table_templates_count": 3,
-          "writing_guidelines_count": 5
+          "writing_guidelines_count": 5,
+          "v5_linked_defects": {
+            "EV-001": 126,
+            "GS-001": 72
+          }
         },
         "deerflow_target": [
           "source_slot_family",
@@ -423,19 +713,37 @@
           {
             "component": "SourceSlot",
             "id": "slot_dev-vad",
-            "usage": "心室辅助装置领域领域文档提取规则"
+            "usage": "心室辅助装置领域领域文档提取规则",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_dev-vad",
-            "usage": "心室辅助装置领域领域写作规范"
+            "usage": "心室辅助装置领域领域写作规范",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gate",
             "id": "gate_dev-vad",
-            "usage": "心室辅助装置领域领域专项验证"
+            "usage": "心室辅助装置领域领域专项验证",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "DO-001": 153
+        }
       },
       {
         "asset_id": "DEV-ER",
@@ -446,11 +754,21 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "product_family_kb/DEV-ER_KB.md",
-          "json": "product_family_kb/DEV-ER_KB.json"
+          "json": "product_family_kb/DEV-ER_KB.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 4912,
-          "json": 4795
+          "json": 4795,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "domain": {
           "emdn_codes": [
@@ -462,14 +780,23 @@
           "cer_pathways": [
             "等效性路径 (AED有成熟已上市产品)",
             "临床调查路径 (新型复苏技术)"
-          ]
+          ],
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "standards_count": 4,
           "sota_benchmarks_count": 4,
           "defect_patterns_count": 3,
           "table_templates_count": 3,
-          "writing_guidelines_count": 5
+          "writing_guidelines_count": 5,
+          "v5_linked_defects": {
+            "EV-001": 126,
+            "GS-001": 72
+          }
         },
         "deerflow_target": [
           "source_slot_family",
@@ -480,19 +807,39 @@
           {
             "component": "SourceSlot",
             "id": "slot_dev-er",
-            "usage": "急诊/复苏领域领域文档提取规则"
+            "usage": "急诊/复苏领域领域文档提取规则",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_dev-er",
-            "usage": "急诊/复苏领域领域写作规范"
+            "usage": "急诊/复苏领域领域写作规范",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gate",
             "id": "gate_dev-er",
-            "usage": "急诊/复苏领域领域专项验证"
+            "usage": "急诊/复苏领域领域专项验证",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "DEV-MO",
@@ -503,11 +850,21 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "product_family_kb/DEV-MO_KB.md",
-          "json": "product_family_kb/DEV-MO_KB.json"
+          "json": "product_family_kb/DEV-MO_KB.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 4919,
-          "json": 4863
+          "json": 4863,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "domain": {
           "emdn_codes": [
@@ -520,14 +877,23 @@
           "cer_pathways": [
             "等效性路径 (大多数监测设备)",
             "临床调查路径 (新型连续监测技术)"
-          ]
+          ],
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "standards_count": 5,
           "sota_benchmarks_count": 4,
           "defect_patterns_count": 3,
           "table_templates_count": 3,
-          "writing_guidelines_count": 4
+          "writing_guidelines_count": 4,
+          "v5_linked_defects": {
+            "EV-001": 126,
+            "GS-001": 72
+          }
         },
         "deerflow_target": [
           "source_slot_family",
@@ -538,19 +904,39 @@
           {
             "component": "SourceSlot",
             "id": "slot_dev-mo",
-            "usage": "监测领域领域文档提取规则"
+            "usage": "监测领域领域文档提取规则",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_dev-mo",
-            "usage": "监测领域领域写作规范"
+            "usage": "监测领域领域写作规范",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gate",
             "id": "gate_dev-mo",
-            "usage": "监测领域领域专项验证"
+            "usage": "监测领域领域专项验证",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "asset_id": "DEV-SW",
@@ -561,11 +947,21 @@
         "format": "dual_md_json",
         "paths": {
           "markdown": "product_family_kb/DEV-SW_KB.md",
-          "json": "product_family_kb/DEV-SW_KB.json"
+          "json": "product_family_kb/DEV-SW_KB.json",
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "size_bytes": {
           "markdown": 5967,
-          "json": 6087
+          "json": 6087,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "domain": {
           "emdn_codes": [
@@ -577,14 +973,23 @@
           "cer_pathways": [
             "等效性路径 (低类别SaMD)",
             "临床调查路径 (高类别/新型AI算法)"
-          ]
+          ],
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "statistics": {
           "standards_count": 5,
           "sota_benchmarks_count": 4,
           "defect_patterns_count": 4,
           "table_templates_count": 4,
-          "writing_guidelines_count": 5
+          "writing_guidelines_count": 5,
+          "v5_linked_defects": {
+            "EV-001": 126,
+            "GS-001": 72
+          }
         },
         "deerflow_target": [
           "source_slot_family",
@@ -595,26 +1000,48 @@
           {
             "component": "SourceSlot",
             "id": "slot_dev-sw",
-            "usage": "软件与人工智能领域领域文档提取规则"
+            "usage": "软件与人工智能领域领域文档提取规则",
+            "v5_linked_defects": {
+              "SW-001": 49
+            }
           },
           {
             "component": "WriterGuard",
             "id": "guard_dev-sw",
-            "usage": "软件与人工智能领域领域写作规范"
+            "usage": "软件与人工智能领域领域写作规范",
+            "v5_linked_defects": {
+              "SW-001": 49
+            }
           },
           {
             "component": "Gate",
             "id": "gate_dev-sw",
-            "usage": "软件与人工智能领域领域专项验证"
+            "usage": "软件与人工智能领域领域专项验证",
+            "v5_linked_defects": {
+              "SW-001": 49
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "SW-001": 49
+        }
       }
-    ]
+    ],
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    }
   },
   "defect_taxonomy": {
     "severity_distribution": {
       "Major": 62,
-      "Minor": 2
+      "Minor": 2,
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     "type_distribution": {
       "LB-001": 4,
@@ -627,7 +1054,12 @@
       "MF-001": 2,
       "SW-001": 3,
       "BR-001": 2,
-      "DT-001": 2
+      "DT-001": 2,
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     "section_distribution": {
       "CER-03": 8,
@@ -636,10 +1068,20 @@
       "CER-05": 5,
       "CER-02": 21,
       "CER-07": 1,
-      "CER-04": 1
+      "CER-04": 1,
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     "family_distribution": {
-      "UNKNOWN": 64
+      "UNKNOWN": 64,
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     "patterns": [
       {
@@ -647,7 +1089,12 @@
         "count": 26,
         "severity_distribution": {
           "Major": 25,
-          "Minor": 1
+          "Minor": 1,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "CER-02",
@@ -664,21 +1111,37 @@
           {
             "component": "Gate",
             "id": "gate_table_validation",
-            "usage": "DO-001缺陷检测与修复"
+            "usage": "DO-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "TR-001": 102
+            }
           },
           {
             "component": "Writer",
             "id": "writer_guard_device_desc",
-            "usage": "DO-001缺陷检测与修复"
+            "usage": "DO-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "DO-001": 153
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "GS-001",
         "count": 9,
         "severity_distribution": {
           "Major": 8,
-          "Minor": 1
+          "Minor": 1,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "CER-06",
@@ -695,20 +1158,36 @@
           {
             "component": "Gate",
             "id": "gate_gspr",
-            "usage": "GS-001缺陷检测与修复"
+            "usage": "GS-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "GS-001": 72
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_gspr",
-            "usage": "GS-001缺陷检测与修复"
+            "usage": "GS-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "GS-001": 72
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "EV-001",
         "count": 6,
         "severity_distribution": {
-          "Major": 6
+          "Major": 6,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "CER-05",
@@ -726,20 +1205,36 @@
           {
             "component": "Gate",
             "id": "gate_evidence_quality",
-            "usage": "EV-001缺陷检测与修复"
+            "usage": "EV-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "EV-001": 126
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_clinical",
-            "usage": "EV-001缺陷检测与修复"
+            "usage": "EV-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "CL-001": 69
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "LB-001",
         "count": 4,
         "severity_distribution": {
-          "Major": 4
+          "Major": 4,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "CER-05",
@@ -756,20 +1251,36 @@
           {
             "component": "Gate",
             "id": "gate_ifu",
-            "usage": "LB-001缺陷检测与修复"
+            "usage": "LB-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "LB-001": 162
+            }
           },
           {
             "component": "Writer",
             "id": "writer_guard_ifu",
-            "usage": "LB-001缺陷检测与修复"
+            "usage": "LB-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "LB-001": 162
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "CL-001",
         "count": 4,
         "severity_distribution": {
-          "Major": 4
+          "Major": 4,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "CER-05",
@@ -786,20 +1297,38 @@
           {
             "component": "Gate",
             "id": "gate_clinical_data",
-            "usage": "CL-001缺陷检测与修复"
+            "usage": "CL-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "CL-001": 69
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_csr",
-            "usage": "CL-001缺陷检测与修复"
+            "usage": "CL-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "PM-001",
         "count": 3,
         "severity_distribution": {
-          "Major": 3
+          "Major": 3,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "CER-06",
@@ -816,20 +1345,36 @@
           {
             "component": "Gate",
             "id": "gate_pmcf",
-            "usage": "PM-001缺陷检测与修复"
+            "usage": "PM-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "PM-001": 312
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_pmcf",
-            "usage": "PM-001缺陷检测与修复"
+            "usage": "PM-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "PM-001": 312
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "EQ-001",
         "count": 3,
         "severity_distribution": {
-          "Major": 3
+          "Major": 3,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "CER-05"
@@ -845,20 +1390,36 @@
           {
             "component": "Gate",
             "id": "gate_equivalence",
-            "usage": "EQ-001缺陷检测与修复"
+            "usage": "EQ-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "EQ-001": 73
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_equivalence",
-            "usage": "EQ-001缺陷检测与修复"
+            "usage": "EQ-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "EQ-001": 73
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "SW-001",
         "count": 3,
         "severity_distribution": {
-          "Major": 3
+          "Major": 3,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "UNKNOWN"
@@ -874,20 +1435,36 @@
           {
             "component": "Gate",
             "id": "gate_software",
-            "usage": "SW-001缺陷检测与修复"
+            "usage": "SW-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "SW-001": 49
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_cyber",
-            "usage": "SW-001缺陷检测与修复"
+            "usage": "SW-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "SW-001": 49
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "MF-001",
         "count": 2,
         "severity_distribution": {
-          "Major": 2
+          "Major": 2,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "UNKNOWN"
@@ -903,20 +1480,36 @@
           {
             "component": "Gate",
             "id": "gate_manufacturing",
-            "usage": "MF-001缺陷检测与修复"
+            "usage": "MF-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "MF-001": 108
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_sterilization",
-            "usage": "MF-001缺陷检测与修复"
+            "usage": "MF-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "MF-001": 108
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "BR-001",
         "count": 2,
         "severity_distribution": {
-          "Major": 2
+          "Major": 2,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "CER-06",
@@ -933,20 +1526,38 @@
           {
             "component": "Gate",
             "id": "gate_benefit_risk",
-            "usage": "BR-001缺陷检测与修复"
+            "usage": "BR-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "BR-001": 148
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_br",
-            "usage": "BR-001缺陷检测与修复"
+            "usage": "BR-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "defect_type": "DT-001",
         "count": 2,
         "severity_distribution": {
-          "Major": 2
+          "Major": 2,
+          "v5_linked_defects": {
+            "PM-001": 312,
+            "DO-001": 153,
+            "EV-001": 126
+          }
         },
         "affected_sections": [
           "UNKNOWN"
@@ -962,16 +1573,36 @@
           {
             "component": "Gate",
             "id": "gate_consistency",
-            "usage": "DT-001缺陷检测与修复"
+            "usage": "DT-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           },
           {
             "component": "Gap",
             "id": "gap_action_data",
-            "usage": "DT-001缺陷检测与修复"
+            "usage": "DT-001缺陷检测与修复",
+            "v5_linked_defects": {
+              "PM-001": 312,
+              "DO-001": 153,
+              "EV-001": 126
+            }
           }
-        ]
+        ],
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       }
-    ]
+    ],
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    }
   },
   "deerflow_injection_map": {
     "slots": [
@@ -979,55 +1610,98 @@
         "id": "slot_structure",
         "asset_id": "CER_01_MATRIX",
         "asset_type": "cer_enhanced",
-        "usage": "章节结构模板与对比规则"
+        "usage": "章节结构模板与对比规则",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "slot_qa_knowledge",
         "asset_id": "CER_04_ANSWERS",
         "asset_type": "cer_enhanced",
-        "usage": "第一性原理知识库"
+        "usage": "第一性原理知识库",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "slot_dev-cv",
         "asset_id": "DEV-CV",
         "asset_type": "product_family_kb",
-        "usage": "心血管领域领域文档提取规则"
+        "usage": "心血管领域领域文档提取规则",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "slot_dev-su",
         "asset_id": "DEV-SU",
         "asset_type": "product_family_kb",
-        "usage": "外科治疗领域领域文档提取规则"
+        "usage": "外科治疗领域领域文档提取规则",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "slot_dev-op",
         "asset_id": "DEV-OP",
         "asset_type": "product_family_kb",
-        "usage": "眼科领域领域文档提取规则"
+        "usage": "眼科领域领域文档提取规则",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "slot_dev-vad",
         "asset_id": "DEV-VAD",
         "asset_type": "product_family_kb",
-        "usage": "心室辅助装置领域领域文档提取规则"
+        "usage": "心室辅助装置领域领域文档提取规则",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "slot_dev-er",
         "asset_id": "DEV-ER",
         "asset_type": "product_family_kb",
-        "usage": "急诊/复苏领域领域文档提取规则"
+        "usage": "急诊/复苏领域领域文档提取规则",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "slot_dev-mo",
         "asset_id": "DEV-MO",
         "asset_type": "product_family_kb",
-        "usage": "监测领域领域文档提取规则"
+        "usage": "监测领域领域文档提取规则",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "slot_dev-sw",
         "asset_id": "DEV-SW",
         "asset_type": "product_family_kb",
-        "usage": "软件与人工智能领域领域文档提取规则"
+        "usage": "软件与人工智能领域领域文档提取规则",
+        "v5_linked_defects": {
+          "SW-001": 49
+        }
       }
     ],
     "gates": [
@@ -1035,127 +1709,206 @@
         "id": "gate_cross_ref",
         "asset_id": "CER_02_LOGIC",
         "asset_type": "cer_enhanced",
-        "usage": "跨引用验证"
+        "usage": "跨引用验证",
+        "v5_linked_defects": {
+          "DT-001": 53
+        }
       },
       {
         "id": "gate_language",
         "asset_id": "CER_03_STYLE",
         "asset_type": "cer_enhanced",
-        "usage": "语言质量门控"
+        "usage": "语言质量门控",
+        "v5_linked_defects": {
+          "LB-001": 162
+        }
       },
       {
         "id": "gate_table_tv",
         "asset_id": "CER_05_TABLES",
         "asset_type": "cer_enhanced",
-        "usage": "TV-01~TV-10表格验证"
+        "usage": "TV-01~TV-10表格验证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "gate_dev-cv",
         "asset_id": "DEV-CV",
         "asset_type": "product_family_kb",
-        "usage": "心血管领域领域专项验证"
+        "usage": "心血管领域领域专项验证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "gate_dev-su",
         "asset_id": "DEV-SU",
         "asset_type": "product_family_kb",
-        "usage": "外科治疗领域领域专项验证"
+        "usage": "外科治疗领域领域专项验证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "gate_dev-op",
         "asset_id": "DEV-OP",
         "asset_type": "product_family_kb",
-        "usage": "眼科领域领域专项验证"
+        "usage": "眼科领域领域专项验证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "gate_dev-vad",
         "asset_id": "DEV-VAD",
         "asset_type": "product_family_kb",
-        "usage": "心室辅助装置领域领域专项验证"
+        "usage": "心室辅助装置领域领域专项验证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "gate_dev-er",
         "asset_id": "DEV-ER",
         "asset_type": "product_family_kb",
-        "usage": "急诊/复苏领域领域专项验证"
+        "usage": "急诊/复苏领域领域专项验证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "gate_dev-mo",
         "asset_id": "DEV-MO",
         "asset_type": "product_family_kb",
-        "usage": "监测领域领域专项验证"
+        "usage": "监测领域领域专项验证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "gate_dev-sw",
         "asset_id": "DEV-SW",
         "asset_type": "product_family_kb",
-        "usage": "软件与人工智能领域领域专项验证"
+        "usage": "软件与人工智能领域领域专项验证",
+        "v5_linked_defects": {
+          "SW-001": 49
+        }
       },
       {
         "id": "gate_table_validation",
         "asset_id": "DO-001",
         "asset_type": "defect_pattern",
-        "usage": "DO-001缺陷检测与修复"
+        "usage": "DO-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "TR-001": 102
+        }
       },
       {
         "id": "gate_gspr",
         "asset_id": "GS-001",
         "asset_type": "defect_pattern",
-        "usage": "GS-001缺陷检测与修复"
+        "usage": "GS-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "GS-001": 72
+        }
       },
       {
         "id": "gate_evidence_quality",
         "asset_id": "EV-001",
         "asset_type": "defect_pattern",
-        "usage": "EV-001缺陷检测与修复"
+        "usage": "EV-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "EV-001": 126
+        }
       },
       {
         "id": "gate_ifu",
         "asset_id": "LB-001",
         "asset_type": "defect_pattern",
-        "usage": "LB-001缺陷检测与修复"
+        "usage": "LB-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "LB-001": 162
+        }
       },
       {
         "id": "gate_clinical_data",
         "asset_id": "CL-001",
         "asset_type": "defect_pattern",
-        "usage": "CL-001缺陷检测与修复"
+        "usage": "CL-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "CL-001": 69
+        }
       },
       {
         "id": "gate_pmcf",
         "asset_id": "PM-001",
         "asset_type": "defect_pattern",
-        "usage": "PM-001缺陷检测与修复"
+        "usage": "PM-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "PM-001": 312
+        }
       },
       {
         "id": "gate_equivalence",
         "asset_id": "EQ-001",
         "asset_type": "defect_pattern",
-        "usage": "EQ-001缺陷检测与修复"
+        "usage": "EQ-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "EQ-001": 73
+        }
       },
       {
         "id": "gate_software",
         "asset_id": "SW-001",
         "asset_type": "defect_pattern",
-        "usage": "SW-001缺陷检测与修复"
+        "usage": "SW-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "SW-001": 49
+        }
       },
       {
         "id": "gate_manufacturing",
         "asset_id": "MF-001",
         "asset_type": "defect_pattern",
-        "usage": "MF-001缺陷检测与修复"
+        "usage": "MF-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "MF-001": 108
+        }
       },
       {
         "id": "gate_benefit_risk",
         "asset_id": "BR-001",
         "asset_type": "defect_pattern",
-        "usage": "BR-001缺陷检测与修复"
+        "usage": "BR-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "BR-001": 148
+        }
       },
       {
         "id": "gate_consistency",
         "asset_id": "DT-001",
         "asset_type": "defect_pattern",
-        "usage": "DT-001缺陷检测与修复"
+        "usage": "DT-001缺陷检测与修复",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       }
     ],
     "gap_actions": [
@@ -1163,13 +1916,21 @@
         "id": "gap_logic",
         "asset_id": "CER_02_LOGIC",
         "asset_type": "cer_enhanced",
-        "usage": "逻辑一致性检测"
+        "usage": "逻辑一致性检测",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "gap_evidence_chain",
         "asset_id": "CER_05_TABLES",
         "asset_type": "cer_enhanced",
-        "usage": "证据链断裂检测"
+        "usage": "证据链断裂检测",
+        "v5_linked_defects": {
+          "EV-001": 126
+        }
       }
     ],
     "writer_guards": [
@@ -1177,69 +1938,148 @@
         "id": "guard_outline",
         "asset_id": "CER_01_MATRIX",
         "asset_type": "cer_enhanced",
-        "usage": "大纲完整性检查"
+        "usage": "大纲完整性检查",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_style",
         "asset_id": "CER_03_STYLE",
         "asset_type": "cer_enhanced",
-        "usage": "风格与措辞检查"
+        "usage": "风格与措辞检查",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_factual",
         "asset_id": "CER_04_ANSWERS",
         "asset_type": "cer_enhanced",
-        "usage": "事实准确性验证"
+        "usage": "事实准确性验证",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_table_content",
         "asset_id": "CER_05_TABLES",
         "asset_type": "cer_enhanced",
-        "usage": "表格内容完整性"
+        "usage": "表格内容完整性",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_dev-cv",
         "asset_id": "DEV-CV",
         "asset_type": "product_family_kb",
-        "usage": "心血管领域领域写作规范"
+        "usage": "心血管领域领域写作规范",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_dev-su",
         "asset_id": "DEV-SU",
         "asset_type": "product_family_kb",
-        "usage": "外科治疗领域领域写作规范"
+        "usage": "外科治疗领域领域写作规范",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_dev-op",
         "asset_id": "DEV-OP",
         "asset_type": "product_family_kb",
-        "usage": "眼科领域领域写作规范"
+        "usage": "眼科领域领域写作规范",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_dev-vad",
         "asset_id": "DEV-VAD",
         "asset_type": "product_family_kb",
-        "usage": "心室辅助装置领域领域写作规范"
+        "usage": "心室辅助装置领域领域写作规范",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_dev-er",
         "asset_id": "DEV-ER",
         "asset_type": "product_family_kb",
-        "usage": "急诊/复苏领域领域写作规范"
+        "usage": "急诊/复苏领域领域写作规范",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_dev-mo",
         "asset_id": "DEV-MO",
         "asset_type": "product_family_kb",
-        "usage": "监测领域领域写作规范"
+        "usage": "监测领域领域写作规范",
+        "v5_linked_defects": {
+          "PM-001": 312,
+          "DO-001": 153,
+          "EV-001": 126
+        }
       },
       {
         "id": "guard_dev-sw",
         "asset_id": "DEV-SW",
         "asset_type": "product_family_kb",
-        "usage": "软件与人工智能领域领域写作规范"
+        "usage": "软件与人工智能领域领域写作规范",
+        "v5_linked_defects": {
+          "SW-001": 49
+        }
       }
-    ]
+    ],
+    "v5_defect_patterns": [
+      "EV-001",
+      "EQ-001",
+      "PM-001",
+      "GS-001",
+      "DO-001",
+      "BR-001",
+      "MF-001",
+      "CL-001",
+      "DT-001",
+      "LB-001",
+      "SW-001",
+      "SC-001",
+      "TR-001",
+      "RM-001",
+      "AU-001",
+      "DQ-001",
+      "CM-001",
+      "IV-001",
+      "CV-001"
+    ],
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    }
   },
   "coverage_matrix": {
     "cer_sections": [
@@ -1280,6 +2120,52 @@
       "Major",
       "Minor",
       "Observation"
-    ]
+    ],
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    }
+  },
+  "v5_enrichment": {
+    "applied_at": "2026-05-30T12:50:31.931945",
+    "defect_types": 19,
+    "total_findings": 1570,
+    "new_assets": [
+      "defect_patterns (V5: 63 patterns)",
+      "section_defense_rules (V5: 8 chapters)",
+      "nb_body_profiles (V5: BSI reviewers)",
+      "remediation_playbook (V5: 21 entries)",
+      "device_heuristics (V5: defect stats)"
+    ],
+    "deepened_r2": true,
+    "cross_refs_added_r2": 184,
+    "total_v5_refs": 184,
+    "all_defect_stats": {
+      "PM-001": 312,
+      "LB-001": 162,
+      "DO-001": 153,
+      "BR-001": 148,
+      "EV-001": 126,
+      "MF-001": 108,
+      "TR-001": 102,
+      "EQ-001": 73,
+      "GS-001": 72,
+      "CL-001": 69,
+      "RM-001": 59,
+      "CV-001": 54,
+      "DT-001": 53,
+      "SW-001": 49,
+      "AU-001": 10,
+      "CM-001": 9,
+      "IV-001": 6,
+      "SC-001": 3,
+      "DQ-001": 2
+    }
+  },
+  "v5_linked_defects": {
+    "PM-001": 312,
+    "DO-001": 153,
+    "EV-001": 126
   }
 }

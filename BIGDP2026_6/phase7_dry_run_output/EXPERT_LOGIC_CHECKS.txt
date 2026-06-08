@@ -1,0 +1,2 @@
+✅ Marketing claims flagged: 1
+✅ Endpoints with acceptability_rationale: 2/2

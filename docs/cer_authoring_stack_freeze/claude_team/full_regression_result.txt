@@ -1,0 +1,8 @@
+Full regression: 298 passed, 0 failed
+- test_cer_authoring_runtime.py: 259 passed
+- test_writer_remediation_gates.py: 25 passed
+- test_phase2a_source_fixes.py: 14 passed
+- graph.py: zero diff
+- gates.py: zero diff
+- agents.py: zero diff
+Run date: 2026-05-15

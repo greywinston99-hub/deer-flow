@@ -1,0 +1,39 @@
+{
+  "manifest": "MODEL_AB_TEST_ARTIFACT_MANIFEST",
+  "date": "2026-05-15",
+  "status": "MODEL_AB_BLOCKED_RUNTIME_ACCESS",
+  "blocked_reason": "VS Code Claude Code environment has no LLM runtime access. CER_AUTHORING_STRICT_V7 not set. invoke_authoring_agent() returns harness_configured mode.",
+  "what_was_completed": {
+    "deterministic_gate_verification": "PASS — 323 tests, zero diff on graph/gates/agents",
+    "model_routing_config": "PASS — 25 targeted tests, per-agent resolution verified",
+    "ab_config_skeletons": "READY — Writer and QA A/B plans with scoring templates",
+    "execution_instructions": "READY — Complete step-by-step for DeerFlow operator",
+    "selection_recommendation": "READY — Provisional recommendations with rationale"
+  },
+  "what_requires_deerflow_runtime": {
+    "writer_ab_execution": {
+      "command": "python backend/scripts/run_cer_authoring.py --strict-v7",
+      "candidates": ["kimi-k2.6-code (baseline)", "deepseek-v4-pro (candidate A)", "kimi-api (candidate B)"],
+      "projects": ["PILOT_01", "PILOT_02", "PILOT_03"],
+      "scoring_template": "WRITER_MODEL_AB_RUNTIME_RESULT.md"
+    },
+    "qa_ab_execution": {
+      "command": "python backend/scripts/run_cer_authoring.py --strict-v7",
+      "candidates": ["deepseek-v4-pro (candidate A)", "kimi-api (candidate B)"],
+      "fixtures": ["contaminated PILOT_01", "contaminated PILOT_02", "clean minimal"],
+      "scoring_template": "QA_MODEL_AB_RUNTIME_RESULT.md"
+    }
+  },
+  "outputs_produced": [
+    "WRITER_MODEL_AB_RUNTIME_RESULT.md",
+    "QA_MODEL_AB_RUNTIME_RESULT.md",
+    "MODEL_SELECTION_RECOMMENDATION.md",
+    "MODEL_ROUTING_POLICY_V1_1_DRAFT.md",
+    "MODEL_AB_TEST_ARTIFACT_MANIFEST.json"
+  ],
+  "test_baseline": {
+    "full_regression": "323 PASS",
+    "forbidden_files_diff": "ZERO (graph.py, gates.py, agents.py)"
+  },
+  "next_action": "DeerFlow operator executes A/B tests using run_cer_authoring.py --strict-v7, fills in scoring templates, returns results to owner for model selection approval."
+}

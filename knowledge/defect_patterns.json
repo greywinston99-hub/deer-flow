@@ -1,0 +1,563 @@
+{
+  "schema": "cer_authoring_defect_patterns",
+  "version": "v1.0",
+  "generated_at": "2026-05-29T22:48:53.870243",
+  "total_defect_types": 19,
+  "defect_types": {
+    "AU-001": {
+      "defect_code": "AU-001",
+      "description": "NB finding type AU-001",
+      "occurrence_count": 10,
+      "frequency_in_83_projects": "3/67 (4%)",
+      "cer_sections_affected": [
+        "Quality Audit Documentation"
+      ],
+      "sample_quotes": [
+        "n) SSCP 8.1：请更新以与 GSPRC 中的标准和指南的完整列表保持一致。o) 修订历史：请参考 MDCG 2019-9 第 9 节及附录中关于修订历史的相关内容，以纳入格式规范的修订历史表格。请注意：NB 验证复选框应保持为空且处于草稿状态，直至上述修正完全解决（之后将要求提供最终的、已通过 QMS 审核的 SSCP 版本）。",
+        "n) SSCP 8.1：请更新以与 GSPRC 中的标准和指南的完整列表保持一致。o) 修订历史：请参考 MDCG 2019-9 第 9 节及附录中关于修订历史的相关内容，以纳入格式规范的修订历史表格。请注意：NB 验证复选框应保持为空且处于草稿状态，直至上述修正完全解决（之后将要求提供最终的、已通过 QMS 审核的 SSCP 版本）。",
+        "总要求 | 目前NB已经完成审核报告的编写，故以下非官方审核问题的处置，不应对现有技术文件的章节结构进行调整； |  |  |  |"
+      ],
+      "source_projects": [
+        "119.德莱森（北京）",
+        "29. 无锡帕母",
+        "100.上海谱创"
+      ],
+      "authoring_defense": [
+        "Review the CER section for AU-001 compliance",
+        "Ensure evidence is provided for all claims related to AU-001",
+        "Cross-reference with NB expectations for AU-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for AU-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to AU-001",
+        "Writer must check: Cross-reference with NB expectations for AU-001"
+      ]
+    },
+    "BR-001": {
+      "defect_code": "BR-001",
+      "description": "NB finding type BR-001",
+      "occurrence_count": 148,
+      "frequency_in_83_projects": "4/67 (6%)",
+      "cer_sections_affected": [
+        "§5 Benefit-Risk Analysis",
+        "Risk Management"
+      ],
+      "sample_quotes": [
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS)\n\nHOW TO COMPLETE THIS DOCUMENT\n\nShow navigation ",
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS)\n\nHOW TO COMPLETE THIS DOCUMENT\n\nShow navigation ",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN"
+      ],
+      "source_projects": [
+        "111. 广州瑞博",
+        "00002 项目复盘",
+        "114. 力康华耀",
+        "132.浙江景嘉"
+      ],
+      "authoring_defense": [
+        "Benefits must be quantified where possible (endpoint values, patient numbers)",
+        "Risks must be mapped to RMF hazard IDs",
+        "Residual risk acceptability must be justified per indication",
+        "Alternative therapy comparison must be included"
+      ],
+      "detection_rules": [
+        "Writer must check: Benefits must be quantified where possible (endpoint values, patient numbers)",
+        "Writer must check: Risks must be mapped to RMF hazard IDs",
+        "Writer must check: Residual risk acceptability must be justified per indication"
+      ]
+    },
+    "CL-001": {
+      "defect_code": "CL-001",
+      "description": "NB finding type CL-001",
+      "occurrence_count": 69,
+      "frequency_in_83_projects": "1/67 (1%)",
+      "cer_sections_affected": [
+        "§4 Clinical Evidence",
+        "§4.3 Clinical Investigation"
+      ],
+      "sample_quotes": [
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN"
+      ],
+      "source_projects": [
+        "132.浙江景嘉"
+      ],
+      "authoring_defense": [
+        "Review the CER section for CL-001 compliance",
+        "Ensure evidence is provided for all claims related to CL-001",
+        "Cross-reference with NB expectations for CL-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for CL-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to CL-001",
+        "Writer must check: Cross-reference with NB expectations for CL-001"
+      ]
+    },
+    "CM-001": {
+      "defect_code": "CM-001",
+      "description": "NB finding type CM-001",
+      "occurrence_count": 9,
+      "frequency_in_83_projects": "3/67 (4%)",
+      "cer_sections_affected": [
+        "§4 Clinical Evidence",
+        "Clinical Data"
+      ],
+      "sample_quotes": [
+        "请注意4.5.1是临床试验数据展开并进行总结，而4.3章节主要是放临床试验摘要信息。 |  | 1. 审评提出的MDR附件XIV第1部分第1c节，应在CEP中明确我们所使用的临床数据和范围（器械范围如3000的临床试验数据，6000型号的PSUR数据；）",
+        "请注意4.5.1是临床试验数据展开并进行总结，而4.3章节主要是放临床试验摘要信息。 |  | 1. 审评提出的MDR附件XIV第1部分第1c节，应在CEP中明确我们所使用的临床数据和范围（器械范围如3000的临床试验数据，6000型号的PSUR数据；）",
+        "请注意4.5.1是临床试验数据展开并进行总结，而4.3章节主要是放临床试验摘要信息。 |  | 1. 审评提出的MDR附件XIV第1部分第1c节，应在CEP中明确我们所使用的临床数据和范围（器械范围如3000的临床试验数据，6000型号的PSUR数据；）"
+      ],
+      "source_projects": [
+        "111. 广州瑞博",
+        "116.上海形状",
+        "119.德莱森（北京）"
+      ],
+      "authoring_defense": [
+        "Review the CER section for CM-001 compliance",
+        "Ensure evidence is provided for all claims related to CM-001",
+        "Cross-reference with NB expectations for CM-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for CM-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to CM-001",
+        "Writer must check: Cross-reference with NB expectations for CM-001"
+      ]
+    },
+    "CV-001": {
+      "defect_code": "CV-001",
+      "description": "NB finding type CV-001",
+      "occurrence_count": 54,
+      "frequency_in_83_projects": "5/67 (7%)",
+      "cer_sections_affected": [
+        "Certificates",
+        "Declaration of Conformity"
+      ],
+      "sample_quotes": [
+        "若是配合使用器械的话，对于无右最好的方式的话就是说明确接口要求后，作为组合使用器械去进行定义，明确接口的规格。注：BSI有可能要求提供配合使用器械的CE证书。 | 无右 |",
+        "4. 这些图像应由独立且合格的临床专家（即具有至少5年认证后经验的ABR认证放射科医师）进行评估，并证明其诊断质量。有关临床专家要求的更多信息，请参见上述指南的第VII节临床考虑，第B小节合格专家评估。没有这些图像，我们无法充分评估您的设备是否适合预期用途，以及是否与对比设备具有实质性相似性（21 CFR 807.100(b)(2)(ii)(C)）。 |  | 1. 按照VII的要求，根据1.2发补提及的方法，输出临床部分的评价报告 | 需要提供经合格的临床专家评估后的所有影像模式或加载因子透视",
+        "2.2 | Declaration of Conformity | A statement in folder 00 - 00-01 Statement of Conformity assessment procedure, dated 2024-09-25 was provided, indicated conformity assessment procedure was Annex XI Part A, however it is not the same as given in RfC,"
+      ],
+      "source_projects": [
+        "138.江苏无右",
+        "14.南京普爱",
+        "89.湖北高德",
+        "61. 江苏康进",
+        "69.苏州立普"
+      ],
+      "authoring_defense": [
+        "Review the CER section for CV-001 compliance",
+        "Ensure evidence is provided for all claims related to CV-001",
+        "Cross-reference with NB expectations for CV-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for CV-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to CV-001",
+        "Writer must check: Cross-reference with NB expectations for CV-001"
+      ]
+    },
+    "DO-001": {
+      "defect_code": "DO-001",
+      "description": "NB finding type DO-001",
+      "occurrence_count": 153,
+      "frequency_in_83_projects": "2/67 (3%)",
+      "cer_sections_affected": [
+        "§2 Device Description",
+        "§2.1 Basic Information",
+        "§2.2 Intended Purpose"
+      ],
+      "sample_quotes": [
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS)\n\nHOW TO COMPLETE THIS DOCUMENT\n\nShow navigation ",
+        "Regarding indications, contraindications, and intended patient populations, we have provided additional information in section 4.1 of the PSUR (CE-01-0803, A/3.0), as detailed below:\nIndication: It provides a constant temperature-controlled environme",
+        "Regarding indications, contraindications, and intended patient populations, we have provided additional information in section 4.1 of the PSUR (CE-01-0803, A/3.0), as detailed below:\nIndication: It provides a constant temperature-controlled environme"
+      ],
+      "source_projects": [
+        "114. 力康华耀",
+        "132.浙江景嘉"
+      ],
+      "authoring_defense": [
+        "Verify device name is IDENTICAL across all sections — no abbreviations or variants",
+        "List EVERY model/variant with design rationale and clinical scenario",
+        "Intended purpose must specify: patient population, clinical setting, intended users",
+        "Contraindications must reference clinical evidence, not just 'none known'",
+        "EMDN code and MDR classification must be justified with rule reference"
+      ],
+      "detection_rules": [
+        "Writer must check: Verify device name is IDENTICAL across all sections — no abbreviations or variants",
+        "Writer must check: List EVERY model/variant with design rationale and clinical scenario",
+        "Writer must check: Intended purpose must specify: patient population, clinical setting, intended users"
+      ]
+    },
+    "DQ-001": {
+      "defect_code": "DQ-001",
+      "description": "NB finding type DQ-001",
+      "occurrence_count": 2,
+      "frequency_in_83_projects": "1/67 (1%)",
+      "cer_sections_affected": [
+        "All Sections (formatting)"
+      ],
+      "sample_quotes": [
+        "n) SSCP 8.1：请更新以与 GSPRC 中的标准和指南的完整列表保持一致。o) 修订历史：请参考 MDCG 2019-9 第 9 节及附录中关于修订历史的相关内容，以纳入格式规范的修订历史表格。请注意：NB 验证复选框应保持为空且处于草稿状态，直至上述修正完全解决（之后将要求提供最终的、已通过 QMS 审核的 SSCP 版本）。",
+        "n) SSCP 8.1：请更新以与 GSPRC 中的标准和指南的完整列表保持一致。o) 修订历史：请参考 MDCG 2019-9 第 9 节及附录中关于修订历史的相关内容，以纳入格式规范的修订历史表格。请注意：NB 验证复选框应保持为空且处于草稿状态，直至上述修正完全解决（之后将要求提供最终的、已通过 QMS 审核的 SSCP 版本）。"
+      ],
+      "source_projects": [
+        "100.上海谱创"
+      ],
+      "authoring_defense": [
+        "Review the CER section for DQ-001 compliance",
+        "Ensure evidence is provided for all claims related to DQ-001",
+        "Cross-reference with NB expectations for DQ-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for DQ-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to DQ-001",
+        "Writer must check: Cross-reference with NB expectations for DQ-001"
+      ]
+    },
+    "DT-001": {
+      "defect_code": "DT-001",
+      "description": "NB finding type DT-001",
+      "occurrence_count": 53,
+      "frequency_in_83_projects": "1/67 (1%)",
+      "cer_sections_affected": [
+        "All Sections (cross-reference)"
+      ],
+      "sample_quotes": [
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN"
+      ],
+      "source_projects": [
+        "132.浙江景嘉"
+      ],
+      "authoring_defense": [
+        "Review the CER section for DT-001 compliance",
+        "Ensure evidence is provided for all claims related to DT-001",
+        "Cross-reference with NB expectations for DT-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for DT-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to DT-001",
+        "Writer must check: Cross-reference with NB expectations for DT-001"
+      ]
+    },
+    "EQ-001": {
+      "defect_code": "EQ-001",
+      "description": "NB finding type EQ-001",
+      "occurrence_count": 73,
+      "frequency_in_83_projects": "2/67 (3%)",
+      "cer_sections_affected": [
+        "§4.2 Equivalence Demonstration"
+      ],
+      "sample_quotes": [],
+      "source_projects": [
+        "103. 久心科技",
+        "132.浙江景嘉"
+      ],
+      "authoring_defense": [
+        "Identify at least 2-3 potential equivalent devices",
+        "Complete three-pillar comparison: technical, biological, clinical — ALL must be present",
+        "Every difference must have explicit Impact Assessment",
+        "Expected purpose MUST be IDENTICAL — not similar, not overlapping",
+        "Evidence of data access to equivalent device's technical documentation"
+      ],
+      "detection_rules": [
+        "Writer must check: Identify at least 2-3 potential equivalent devices",
+        "Writer must check: Complete three-pillar comparison: technical, biological, clinical — ALL must be present",
+        "Writer must check: Every difference must have explicit Impact Assessment"
+      ]
+    },
+    "EV-001": {
+      "defect_code": "EV-001",
+      "description": "NB finding type EV-001",
+      "occurrence_count": 126,
+      "frequency_in_83_projects": "1/67 (1%)",
+      "cer_sections_affected": [
+        "§3 SOTA",
+        "§4 Clinical Evidence",
+        "§4.4 Literature Review"
+      ],
+      "sample_quotes": [],
+      "source_projects": [
+        "103. 久心科技"
+      ],
+      "authoring_defense": [
+        "Document PICO-based search strategy in structured table",
+        "Search at least 2 databases (PubMed + Embase minimum)",
+        "Include PRISMA flow diagram",
+        "Provide Safety/Performance Endpoint table with benchmark values AND sources",
+        "SOTA must answer: (1) Current standard of care? (2) Benchmarks? (3) Gap device fills?"
+      ],
+      "detection_rules": [
+        "Writer must check: Document PICO-based search strategy in structured table",
+        "Writer must check: Search at least 2 databases (PubMed + Embase minimum)",
+        "Writer must check: Include PRISMA flow diagram"
+      ]
+    },
+    "GS-001": {
+      "defect_code": "GS-001",
+      "description": "NB finding type GS-001",
+      "occurrence_count": 72,
+      "frequency_in_83_projects": "2/67 (3%)",
+      "cer_sections_affected": [
+        "§6 GSPR Compliance"
+      ],
+      "sample_quotes": [],
+      "source_projects": [
+        "103. 久心科技",
+        "114. 力康华耀"
+      ],
+      "authoring_defense": [
+        "Every 'N/A' GSPR needs 2+ sentence technical justification tied to device design",
+        "Justification must reference SPECIFIC device characteristic",
+        "Risk management file cross-reference for non-applicable items",
+        "GSPR numbering must align with MDR Annex I"
+      ],
+      "detection_rules": [
+        "Writer must check: Every 'N/A' GSPR needs 2+ sentence technical justification tied to device design",
+        "Writer must check: Justification must reference SPECIFIC device characteristic",
+        "Writer must check: Risk management file cross-reference for non-applicable items"
+      ]
+    },
+    "IV-001": {
+      "defect_code": "IV-001",
+      "description": "NB finding type IV-001",
+      "occurrence_count": 6,
+      "frequency_in_83_projects": "3/67 (4%)",
+      "cer_sections_affected": [
+        "Periodic Review",
+        "Re-validation"
+      ],
+      "sample_quotes": [
+        "均主要通过器械企业相关人员，去收集医院医师的随访记录，定期的随访时间详见timeline表格，失访也将记录，失访的风险也通过统计学方式考量到（clinical drop-out rate γ= 0.20）。详细的PMCF survey整改请详见C.4.1章节",
+        "审评中仅提供了针对每台灭菌柜的半周期运行再确认资料。请提供最新的全面再确认或初始验证资料以供审阅。 |  |  |  |  |  |  请提供新的再确认灭菌证据。 |  | 健世 | 质量-周俊佟 |  2026-06-10 |  |  |  |  |  |  |  |  |",
+        "2）请立普补充开发阶段审评所要求的时间/周期信息；（主文件，3.1章节，a.至i条，其中h和i不属于开发的特定瀑布阶段，可以不做描述，双方会议沟通时，AP进行解释；同时对于每个阶段活动进行信息的充实；"
+      ],
+      "source_projects": [
+        "173.宁波健世",
+        "132.浙江景嘉",
+        "69.苏州立普"
+      ],
+      "authoring_defense": [
+        "Review the CER section for IV-001 compliance",
+        "Ensure evidence is provided for all claims related to IV-001",
+        "Cross-reference with NB expectations for IV-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for IV-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to IV-001",
+        "Writer must check: Cross-reference with NB expectations for IV-001"
+      ]
+    },
+    "LB-001": {
+      "defect_code": "LB-001",
+      "description": "NB finding type LB-001",
+      "occurrence_count": 162,
+      "frequency_in_83_projects": "3/67 (4%)",
+      "cer_sections_affected": [
+        "IFU",
+        "Labeling",
+        "SSCP"
+      ],
+      "sample_quotes": [
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN"
+      ],
+      "source_projects": [
+        "00002 项目复盘",
+        "132.浙江景嘉",
+        "1.上海博动"
+      ],
+      "authoring_defense": [
+        "IFU must include: intended purpose, contraindications, warnings, precautions",
+        "Symbols per ISO 15223-1",
+        "Language requirements per MDR Art 10(11)",
+        "UDI labeling per MDR Art 27"
+      ],
+      "detection_rules": [
+        "Writer must check: IFU must include: intended purpose, contraindications, warnings, precautions",
+        "Writer must check: Symbols per ISO 15223-1",
+        "Writer must check: Language requirements per MDR Art 10(11)"
+      ]
+    },
+    "MF-001": {
+      "defect_code": "MF-001",
+      "description": "NB finding type MF-001",
+      "occurrence_count": 108,
+      "frequency_in_83_projects": "6/67 (9%)",
+      "cer_sections_affected": [
+        "Manufacturing Documentation",
+        "Sterilization",
+        "Biocompatibility"
+      ],
+      "sample_quotes": [
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS)\n\nHOW TO COMPLETE THIS DOCUMENT\n\nShow navigation ",
+        "Request for Additional Information and Deficiency Report under MDR / IVDR\n\nProject Number:  \n\nManufacturer:  \n\nDevice: \n\nBasis of Evaluation: \n\nAssessed Module:  \n\nVERSION HISTORY (to be filled by TPS)\n\nHOW TO COMPLETE THIS DOCUMENT\n\nShow navigation ",
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN"
+      ],
+      "source_projects": [
+        "138.江苏无右",
+        "100.上海谱创",
+        "71. 上海瑞致",
+        "114. 力康华耀",
+        "173.宁波健世"
+      ],
+      "authoring_defense": [
+        "Review the CER section for MF-001 compliance",
+        "Ensure evidence is provided for all claims related to MF-001",
+        "Cross-reference with NB expectations for MF-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for MF-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to MF-001",
+        "Writer must check: Cross-reference with NB expectations for MF-001"
+      ]
+    },
+    "PM-001": {
+      "defect_code": "PM-001",
+      "description": "NB finding type PM-001",
+      "occurrence_count": 312,
+      "frequency_in_83_projects": "1/67 (1%)",
+      "cer_sections_affected": [
+        "§7 PMS/PMCF"
+      ],
+      "sample_quotes": [],
+      "source_projects": [
+        "103. 久心科技"
+      ],
+      "authoring_defense": [
+        "PMCF plan must specify: next evaluation date, planned studies, data sources",
+        "Trigger conditions for unscheduled re-evaluation must be defined",
+        "PMCF-CER feedback loop must be described",
+        "PMS data must include: complaint trends, vigilance summary, CAPA outcomes"
+      ],
+      "detection_rules": [
+        "Writer must check: PMCF plan must specify: next evaluation date, planned studies, data sources",
+        "Writer must check: Trigger conditions for unscheduled re-evaluation must be defined",
+        "Writer must check: PMCF-CER feedback loop must be described"
+      ]
+    },
+    "RM-001": {
+      "defect_code": "RM-001",
+      "description": "NB finding type RM-001",
+      "occurrence_count": 59,
+      "frequency_in_83_projects": "5/67 (7%)",
+      "cer_sections_affected": [
+        "Risk Management File"
+      ],
+      "sample_quotes": [
+        "- IFU 中的剩余风险、禁忌症和警告无法追溯到风险管理。 | [帕母：folder：05_TDR01Q07 临床文档还有一个未关闭未关闭项，整改回复；AP确认]",
+        "- IFU 中的剩余风险、禁忌症和警告无法追溯到风险管理。 | [帕母：folder：05_TDR01Q07 临床文档还有一个未关闭未关闭项，整改回复；AP确认]",
+        "未提出未解决的问题，但与报告3011中的CAR 6.9b-2和CAR 6.14d相关联 |  |  |  |  |  |  |  |  |  | 风险管理整改部分 | [瑞博]基于非临床的发补意见继续整改，【11月8日】APLUS将会在后续评估RMR文件后给与整改思路；（刘成龑）"
+      ],
+      "source_projects": [
+        "00002 项目复盘",
+        "29. 无锡帕母",
+        "14.南京普爱",
+        "111. 广州瑞博",
+        "132.浙江景嘉"
+      ],
+      "authoring_defense": [
+        "Review the CER section for RM-001 compliance",
+        "Ensure evidence is provided for all claims related to RM-001",
+        "Cross-reference with NB expectations for RM-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for RM-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to RM-001",
+        "Writer must check: Cross-reference with NB expectations for RM-001"
+      ]
+    },
+    "SC-001": {
+      "defect_code": "SC-001",
+      "description": "NB finding type SC-001",
+      "occurrence_count": 3,
+      "frequency_in_83_projects": "2/67 (3%)",
+      "cer_sections_affected": [
+        "Supplier Documentation"
+      ],
+      "sample_quotes": [
+        "4.外包装箱上增加一个系统的UDI信息，包括电池，电极以及AED的 | 1.兼容性测试：问询TUV意见",
+        "4.外包装箱上增加一个系统的UDI信息，包括电池，电极以及AED的 | 1.兼容性测试：问询TUV意见",
+        "4.外包装箱上增加一个系统的UDI信息，包括电池，电极以及AED的 | 1.兼容性测试：问询TUV意见"
+      ],
+      "source_projects": [
+        "00002 项目复盘",
+        "48.普美康"
+      ],
+      "authoring_defense": [
+        "Review the CER section for SC-001 compliance",
+        "Ensure evidence is provided for all claims related to SC-001",
+        "Cross-reference with NB expectations for SC-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for SC-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to SC-001",
+        "Writer must check: Cross-reference with NB expectations for SC-001"
+      ]
+    },
+    "SW-001": {
+      "defect_code": "SW-001",
+      "description": "NB finding type SW-001",
+      "occurrence_count": 49,
+      "frequency_in_83_projects": "5/67 (7%)",
+      "cer_sections_affected": [
+        "§6 GSPR 17",
+        "Software Documentation"
+      ],
+      "sample_quotes": [
+        "Açıklamalar / Explanations \n\nLütfen her bulgu için aşağıdaki tabloyu yeniden oluşturun. / Please reproduce the table below for each finding.\n\n=== TABLES ===\n\n--- Table 1 (7 rows) ---\nFİRMA BİLGİLERİ /  COMPANY INFORMATIONS | FİRMA BİLGİLERİ /  COMPAN",
+        "The abbreviations used in the report will be explained and added in additional sections in SSCP. | The device is a legacy device. It will be checked whether there are any relevant descriptions of the initial CE certification in the file.\nThe individu",
+        "The abbreviations used in the report will be explained and added in additional sections in SSCP. | The device is a legacy device. It will be checked whether there are any relevant descriptions of the initial CE certification in the file.\nThe individu"
+      ],
+      "source_projects": [
+        "119.德莱森（北京）",
+        "00002 项目复盘",
+        "1.上海博动",
+        "14.南京普爱",
+        "132.浙江景嘉"
+      ],
+      "authoring_defense": [
+        "Review the CER section for SW-001 compliance",
+        "Ensure evidence is provided for all claims related to SW-001",
+        "Cross-reference with NB expectations for SW-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for SW-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to SW-001",
+        "Writer must check: Cross-reference with NB expectations for SW-001"
+      ]
+    },
+    "TR-001": {
+      "defect_code": "TR-001",
+      "description": "NB finding type TR-001",
+      "occurrence_count": 102,
+      "frequency_in_83_projects": "4/67 (6%)",
+      "cer_sections_affected": [
+        "Test Reports",
+        "Verification/Validation"
+      ],
+      "sample_quotes": [
+        "3.软件追溯表以及整机层面上的测试报告是具备的，编写回复给TUV老师 | 彭梦思 |  |  | AP&普美康 |  |  |  |  |  |  |  |  |",
+        "IEC 60601-1第15.1条参考了IEC 60601-1-6报告。IEC 60601-1-6和IEC 62366-1的报告缺失。请提供报告 |  |  |  |  |  | 改报告--TUV无锡",
+        "IEC 60601-1第8.8.3条的试验显然只进行了一次。在潮湿、清洁、进入和溢出后，必须重复进行试验。没有找到这些条件的测试结果。 |  |  |  |  |  | 1.补测，改报告--TUV无锡"
+      ],
+      "source_projects": [
+        "00002 项目复盘",
+        "29. 无锡帕母",
+        "173.宁波健世",
+        "14.南京普爱"
+      ],
+      "authoring_defense": [
+        "Review the CER section for TR-001 compliance",
+        "Ensure evidence is provided for all claims related to TR-001",
+        "Cross-reference with NB expectations for TR-001"
+      ],
+      "detection_rules": [
+        "Writer must check: Review the CER section for TR-001 compliance",
+        "Writer must check: Ensure evidence is provided for all claims related to TR-001",
+        "Writer must check: Cross-reference with NB expectations for TR-001"
+      ]
+    }
+  }
+}

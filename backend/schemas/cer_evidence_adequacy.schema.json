@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Evidence Adequacy Schema",
+  "description": "Schema for clinical evidence adequacy assessment",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_evidence_adequacy"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "evidence_adequacy_report"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_clinical_evidence_panel"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_clinical_evidence_panel"
+    },
+    "sub_assessment_id": {
+      "type": "string",
+      "const": "clinical_evidence_adequacy_assessment"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "clinical_data_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "literature_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDR_Article_83",
+        "Annex_XIV_Part_A_3",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "requires_human_review": {
+      "type": "boolean",
+      "const": true
+    },
+    "human_gate_ref": {
+      "type": "string",
+      "const": "HG-01"
+    },
+    "human_gate_topic": {
+      "type": "string",
+      "const": "Clinical evidence sufficiency"
+    },
+    "reviewer_question_id": {
+      "type": "string",
+      "const": "RQ-EVIDENCE-001"
+    },
+    "dimension": {
+      "type": "string",
+      "const": "dim_5"
+    },
+    "evidence_sufficiency": {
+      "type": "object",
+      "properties": {
+        "clinical_data_sufficient": {
+          "type": "boolean"
+        },
+        "gap_areas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence_quality_summary": {
+          "type": "string"
+        }
+      }
+    },
+    "no_final_decision_made": {
+      "type": "boolean",
+      "const": true
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

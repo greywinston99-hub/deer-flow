@@ -1,0 +1,28 @@
+# Changed files — Phase 2 CER Authoring Stack Freeze
+
+## Modified files (2)
+backend/packages/harness/deerflow/runtime/cer_authoring/artifacts.py
+  - Phase 1: writer remediation gate hook + quarantine routing + template fix
+backend/packages/harness/deerflow/runtime/cer_authoring/pipeline.py
+  - Phase 2A: domain template dispatch + unknown domain blocking + IFU field imports
+
+## New source files (6)
+backend/.../writer_remediation/__init__.py (Phase 1)
+backend/.../writer_remediation/domain_term_matrix.py (Phase 1)
+backend/.../writer_remediation/evidence_conclusion_policy.py (Phase 1)
+backend/.../writer_remediation/writer_gates.py (Phase 1+2)
+backend/.../writer_remediation/quarantine.py (Phase 1)
+backend/.../writer_remediation/domain_templates.py (Phase 2A)
+
+## New test files (3)
+backend/tests/test_writer_remediation_gates.py (Phase 1)
+backend/tests/test_phase2a_source_fixes.py (Phase 2A)
+
+## Forbidden files (zero diff)
+backend/.../graph.py  — UNCHANGED
+backend/.../gates.py — UNCHANGED
+backend/.../agents.py — UNCHANGED
+
+## Documentation files (30+)
+docs/cer_authoring_stack_freeze/claude_team/*.md, *.json, *.txt
+docs/cer_authoring_writer_remediation/claude_team/*.md, *.json, *.txt

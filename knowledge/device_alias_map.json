@@ -1,0 +1,354 @@
+{
+  "schema_name": "device_alias_map",
+  "schema_version": "v1",
+  "description": "Maps project device descriptions to canonical knowledge base slugs. Used by GS Stage 4 L2 matching and knowledge_extractor.py for device type resolution.",
+  "entries": [
+    {
+      "canonical_slug": "HF_Surgical_Generator",
+      "aliases": [
+        "high frequency surgical generator",
+        "hf surgical generator",
+        "electrosurgical generator",
+        "rf generator",
+        "高频手术设备",
+        "高频电刀",
+        "高频发生器",
+        "rapier rx",
+        "electrosurgical unit"
+      ],
+      "negative_keywords": [
+        "handpiece",
+        "electrode",
+        "blade",
+        "pencil",
+        "forcep"
+      ],
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "EN 60601-2-2",
+        "EMC",
+        "thermal safety",
+        "pacemaker interference"
+      ]
+    },
+    {
+      "canonical_slug": "Enteral_Feeding_Sets",
+      "aliases": [
+        "enteral feeding set",
+        "enteral feeding tube",
+        "feeding tube",
+        "enteral nutrition set",
+        "鼻饲管",
+        "肠内营养",
+        "enteral feeding pump",
+        "disposable enteral feeding"
+      ],
+      "negative_keywords": [
+        "parenteral",
+        "iv set",
+        "infusion pump"
+      ],
+      "device_class": "IIa",
+      "regulatory_focus": [
+        "ISO 80369-3 ENFit",
+        "ISO 10993",
+        "EN ISO 11607",
+        "special processes"
+      ]
+    },
+    {
+      "canonical_slug": "Powered_Surgical_Stapler",
+      "aliases": [
+        "powered surgical stapler",
+        "electric surgical stapler",
+        "surgical stapler",
+        "endoscopic stapler",
+        "电动吻合器",
+        "腔镜切割吻合器",
+        "linear cutter"
+      ],
+      "negative_keywords": [
+        "manual stapler",
+        "skin stapler",
+        "circular stapler"
+      ],
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "IEC 62304",
+        "EN 60601-1",
+        "EN 62366-1",
+        "staple line integrity"
+      ]
+    },
+    {
+      "canonical_slug": "Surgical_Gloves",
+      "aliases": [
+        "surgical glove",
+        "medical glove",
+        "sterile glove",
+        "examination glove",
+        "手术手套",
+        "外科手套",
+        "橡胶手套"
+      ],
+      "negative_keywords": [
+        "industrial glove",
+        "household glove",
+        "condom",
+        "避孕套",
+        "examination glove",
+        "patient examination glove"
+      ],
+      "device_class": "I/IIa",
+      "regulatory_focus": [
+        "EN 455 series",
+        "ISO 10282",
+        "ASTM D3578",
+        "allergen labeling"
+      ]
+    },
+    {
+      "canonical_slug": "Insulin_Pump",
+      "aliases": [
+        "insulin pump",
+        "insulin infusion pump",
+        "csii",
+        "continuous subcutaneous insulin infusion",
+        "胰岛素泵",
+        "infusion set",
+        "insulin delivery"
+      ],
+      "negative_keywords": [
+        "syringe pump",
+        "volumetric pump",
+        "feeding pump"
+      ],
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "EN 60601-2-24",
+        "IEC 62304",
+        "cybersecurity",
+        "alarm systems"
+      ]
+    },
+    {
+      "canonical_slug": "Vascular_Catheter",
+      "aliases": [
+        "vascular catheter",
+        "ablation catheter",
+        "padn catheter",
+        "cardiac catheter",
+        "血管导管",
+        "消融导管",
+        "射频消融",
+        "rf ablation catheter",
+        "drainage catheter"
+      ],
+      "negative_keywords": [
+        "urinary catheter",
+        "suction catheter",
+        "epidural catheter"
+      ],
+      "device_class": "III",
+      "regulatory_focus": [
+        "MDR Art 61(4)",
+        "ISO 10993 full series",
+        "clinical investigation",
+        "long-term follow-up"
+      ]
+    },
+    {
+      "canonical_slug": "SPECT_CT_System",
+      "aliases": [
+        "spect ct",
+        "spect/ct",
+        "nuclear medicine imaging",
+        "diagnostic imaging system",
+        "spect imaging",
+        "nm/ct",
+        "核医学",
+        "单光子发射"
+      ],
+      "negative_keywords": [
+        "mri",
+        "ultrasound",
+        "pet ct",
+        "pet/ct"
+      ],
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "IAEA SSG46",
+        "IEC 62304",
+        "radiation safety",
+        "ALARA"
+      ]
+    },
+    {
+      "canonical_slug": "Connecting_Tube",
+      "aliases": [
+        "connecting tube",
+        "extension tube",
+        "catheter fixation",
+        "连接管",
+        "引流导管",
+        "固定装置",
+        "catheter fixation device",
+        "drainage tube"
+      ],
+      "negative_keywords": [
+        "endotracheal tube",
+        "tracheostomy tube",
+        "chest tube"
+      ],
+      "device_class": "IIa",
+      "regulatory_focus": [
+        "ISO 80369-7",
+        "EN ISO 11135",
+        "ISO 10993"
+      ]
+    },
+    {
+      "canonical_slug": "Orthopedic_Joint_Implant",
+      "aliases": [
+        "knee arthroplasty",
+        "hip arthroplasty",
+        "joint replacement",
+        "orthopedic implant",
+        "knee implant",
+        "hip implant",
+        "关节置换",
+        "骨科植入物",
+        "膝关节",
+        "髋关节",
+        "orthopaedic implant",
+        "total knee",
+        "total hip"
+      ],
+      "negative_keywords": ["dental implant", "spinal implant", "bone screw", "plate fixation"],
+      "device_class": "III",
+      "regulatory_focus": ["MDR Art 61(4)", "ISO 21534", "ISO 14243", "clinical investigation", "long-term follow-up", "wear debris"]
+    },
+    {
+      "canonical_slug": "VAD_Controller_System",
+      "aliases": [
+        "vad controller",
+        "ventricular assist device",
+        "lvad",
+        "rvad",
+        "extracorporeal vad",
+        "heart pump",
+        "cardiac assist device",
+        "心室辅助",
+        "人工心脏",
+        "血泵",
+        "pump head and tubing",
+        "extracorporeal controller"
+      ],
+      "negative_keywords": ["infusion pump", "syringe pump", "feeding pump", "insulin pump"],
+      "device_class": "III",
+      "regulatory_focus": ["MDR Art 61(4)", "IEC 60601-1", "IEC 62304", "ISO 14708", "clinical investigation", "long-term follow-up"]
+    },
+    {
+      "canonical_slug": "Cardiovascular_Imaging_Software",
+      "aliases": [
+        "angioplus",
+        "cardiovascular imaging",
+        "coronary analysis",
+        "angiography software",
+        "cardiac imaging software",
+        "vessel analysis",
+        "qca",
+        "qva",
+        "心血管影像",
+        "血管造影分析",
+        "angio core"
+      ],
+      "negative_keywords": ["mri", "ultrasound", "ct scanner", "x-ray device"],
+      "device_class": "IIa/IIb",
+      "regulatory_focus": ["IEC 62304", "EN 62366-1", "cybersecurity", "clinical performance study", "algorithm validation"]
+    },
+    {
+      "canonical_slug": "Photodynamic_Therapy_Device",
+      "aliases": [
+        "photodynamic therapy",
+        "pdt device",
+        "light therapy",
+        "phototherapy",
+        "photodynamic",
+        "光动力",
+        "光疗设备",
+        "laser therapy device",
+        "IEC 60601-2-75"
+      ],
+      "negative_keywords": ["infrared lamp", "tanning", "cosmetic light"],
+      "device_class": "IIb",
+      "regulatory_focus": ["IEC 60601-2-75", "IEC 60825", "optical safety", "photosensitizer", "clinical investigation"]
+    },
+    {
+      "canonical_slug": "Cold_Pack",
+      "aliases": [
+        "cold pack",
+        "instant cold pack",
+        "thermal therapy",
+        "cold therapy pack",
+        "ice pack",
+        "cooling pack",
+        "冷敷包",
+        "冰袋",
+        "mdf 5004",
+        "thermal compress"
+      ],
+      "negative_keywords": [
+        "hot pack",
+        "heating pad",
+        "electric blanket"
+      ],
+      "device_class": "IIa",
+      "regulatory_focus": [
+        "ISO 10993 skin contact",
+        "thermal performance",
+        "gel leakage",
+        "cold burn prevention"
+      ]
+    },
+    {
+      "canonical_slug": "Condoms",
+      "aliases": [
+        "condom",
+        "natural rubber latex condom",
+        "male condom",
+        "barrier contraceptive",
+        "避孕套",
+        "天然乳胶避孕套",
+        "natural rubber latex",
+        "iso 4074",
+        "iso 19671",
+        "iso 29943",
+        "latex condom"
+      ],
+      "negative_keywords": [
+        "female condom",
+        "dental dam",
+        "diaphragm"
+      ],
+      "device_class": "IIb",
+      "regulatory_focus": [
+        "ISO 4074:2015",
+        "ISO 19671:2022",
+        "ISO 29943-1:2017",
+        "virus barrier",
+        "chemical characterization",
+        "biocompatibility",
+        "microbiology",
+        "sterilization by radiation"
+      ]
+    }
+  ],
+  "matching_rules": {
+    "exact_match": "Canonical slug or alias appears verbatim in device description (case-insensitive)",
+    "alias_token_overlap": ">=2 tokens from device description match an alias entry",
+    "negative_filter": "If negative_keyword matches, reduce confidence by 0.3",
+    "fuzzy_fallback": "If no match, try tokenized partial matching against all aliases",
+    "no_match_action": "Return NONE — apply general MDR principles only"
+  }
+}

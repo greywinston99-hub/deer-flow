@@ -1,0 +1,87 @@
+{
+  "schema": "final_draft_qa_report_v1",
+  "overall_status": "PASS",
+  "quarantined": false,
+  "gates": {
+    "gate_1_domain_consistency": {
+      "gate": "Gate 1 — Device Domain Consistency",
+      "gate_id": "WRITER_GATE_01",
+      "status": "SKIPPED",
+      "reason": "No device_profile available; cannot resolve domain.",
+      "findings": [],
+      "warnings": [],
+      "quarantine": false
+    },
+    "gate_2_ifu_consumption": {
+      "gate": "Gate 2 — IFU Fact Consumption",
+      "gate_id": "WRITER_GATE_02",
+      "status": "SKIPPED",
+      "reason": "No device_profile available.",
+      "findings": [],
+      "quarantine": false
+    },
+    "gate_3_evidence_conclusion": {
+      "gate": "Gate 3 — Evidence-Conclusion Consistency",
+      "gate_id": "WRITER_GATE_03",
+      "status": "SKIPPED",
+      "reason": "No claim_support_matrix available.",
+      "findings": [],
+      "quarantine": false
+    },
+    "gate_4_body_cleanliness": {
+      "gate": "Gate 4 — Submission Body Cleanliness",
+      "gate_id": "WRITER_GATE_04",
+      "status": "PASS",
+      "banned_strings_scanned": 34,
+      "finding_count": 0,
+      "findings": [],
+      "quarantine": false,
+      "message": "PASS: No banned internal strings in CER body."
+    },
+    "gate_5_render_boundary": {
+      "gate": "Gate 5 — Render Boundary",
+      "gate_id": "WRITER_GATE_05",
+      "status": "PASS",
+      "patterns_scanned": 22,
+      "finding_count": 0,
+      "findings": [],
+      "quarantine": false,
+      "message": "PASS: No internal metadata in CER body."
+    },
+    "gate_6_claim_br_consistency": {
+      "gate": "Gate 6 — Claim/BR Text Consistency",
+      "gate_id": "WRITER_GATE_06",
+      "status": "PASS",
+      "finding_count": 0,
+      "findings": [],
+      "quarantine": false,
+      "message": "PASS: CER body consistent with claim/BR ledger."
+    }
+  },
+  "context_contamination_trace": {},
+  "ws_gates": {
+    "ws1_coverage": {
+      "total_rules": 30,
+      "absorbed": 30,
+      "partial": 0,
+      "gaps": 0,
+      "absorption_rate": 1.0,
+      "verified_absorption_rate": 1.0,
+      "p0_gaps": [],
+      "p1_gaps": [],
+      "p2_gaps": [],
+      "p0_gap_count": 0,
+      "p1_gap_count": 0,
+      "p2_gap_count": 0,
+      "any_critical_gap": false
+    },
+    "ws4_prisma": "FAIL",
+    "ws5_evidence_ceiling": "MODERATE",
+    "ws6_endpoint_homogeneity": "PASS",
+    "ws7_equivalence": "equivalence_not_claimed",
+    "ws8_br_body_section": false,
+    "ws9_rmf_linkage": "PASS",
+    "ws10_style_fingerprint": "FAIL"
+  },
+  "timestamp": "2026-05-30T07:05:31Z"
+}

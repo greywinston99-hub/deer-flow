@@ -1,0 +1,268 @@
+{
+  "schema": "prompt_hash_manifest_v1",
+  "freeze_date": "2026-05-15",
+  "prompts": {
+    "stable_cer-authoring-lead-agent": {
+      "prompt_type": "stable_physical_agent",
+      "agent_name": "cer-authoring-lead-agent",
+      "role_spec": "Supervise the isolated CER authoring run. Decide stage routing, parallel evidence/risk work, rework routing and final synthesis. Do not write CER prose and do not replace deterministic gates.",
+      "hash": "d1cfcee5dd1409da",
+      "filename": "stable_cer-authoring-lead-agent.txt",
+      "length_chars": 1283
+    },
+    "stable_authoring-intake-profile-claim-agent": {
+      "prompt_type": "stable_physical_agent",
+      "agent_name": "authoring-intake-profile-claim-agent",
+      "role_spec": "Own intake, source inventory, input gaps, Device Profile, IFU claim decomposition, Intended Purpose Claim Table and Claim Ledger. This agent covers the former intake-profiler, device-profile-builder a",
+      "hash": "83d1c44fbc322cbf",
+      "filename": "stable_authoring-intake-profile-claim-agent.txt",
+      "length_chars": 1678
+    },
+    "stable_authoring-methodology-sota-agent": {
+      "prompt_type": "stable_physical_agent",
+      "agent_name": "authoring-methodology-sota-agent",
+      "role_spec": "Own PICO derivation, search protocol, inclusion/exclusion criteria, SOTA logic, guideline/alternative therapy pathway, hazard families and endpoint benchmark matrix. PICO must explain IFU claim -> unc",
+      "hash": "f421b9743f0f3e14",
+      "filename": "stable_authoring-methodology-sota-agent.txt",
+      "length_chars": 3408
+    },
+    "stable_authoring-evidence-agent": {
+      "prompt_type": "stable_physical_agent",
+      "agent_name": "authoring-evidence-agent",
+      "role_spec": "Own public clinical-evidence retrieval, literature screening, citation verification, evidence appraisal, evidence weighting and abstract/full-text/source-document endpoint extraction. When this node's",
+      "hash": "7c822bb4700c8623",
+      "filename": "stable_authoring-evidence-agent.txt",
+      "length_chars": 2557
+    },
+    "stable_authoring-risk-equivalence-gspr-agent": {
+      "prompt_type": "stable_physical_agent",
+      "agent_name": "authoring-risk-equivalence-gspr-agent",
+      "role_spec": "Own equivalent/similar device scouting, technical/biological/clinical equivalence matrix, vigilance/recall execution and relevance screening, risk traceability and GSPR mapping. When this node's input",
+      "hash": "8d2a0ee72767c9d3",
+      "filename": "stable_authoring-risk-equivalence-gspr-agent.txt",
+      "length_chars": 2684
+    },
+    "stable_authoring-cer-writer-agent": {
+      "prompt_type": "stable_physical_agent",
+      "agent_name": "authoring-cer-writer-agent",
+      "role_spec": "Own AP/human CER writing logic for chapters 1-9 and annex narrative. Write only from SharedAuthoringState, use evidence/gap IDs, write Summary last and organize section 4.7 by GSPR. Before drafting an",
+      "hash": "25f7471a17787e64",
+      "filename": "stable_authoring-cer-writer-agent.txt",
+      "length_chars": 3956
+    },
+    "stable_authoring-qa-review-agent": {
+      "prompt_type": "stable_physical_agent",
+      "agent_name": "authoring-qa-review-agent",
+      "role_spec": "Own integrated QA review across methodology, evidence integrity, SOTA benchmark use, equivalence, vigilance, risk/GSPR, human CER style and NB precheck. Do not rewrite content; emit structured finding",
+      "hash": "4264f03573b2d54a",
+      "filename": "stable_authoring-qa-review-agent.txt",
+      "length_chars": 1999
+    },
+    "production_authoring-intake-profiler": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-intake-profiler",
+      "role_spec": "Read the IFU and optional source package through doc-proc tools. Build source_inventory, input_gap_list, document metadata, and IFU existence decision. Stop authoring if IFU is absent.",
+      "hash": "de81ecf8a0529ce5",
+      "filename": "production_authoring-intake-profiler.txt",
+      "length_chars": 2051
+    },
+    "production_authoring-device-profile-builder": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-device-profile-builder",
+      "role_spec": "Create the single Device Profile from IFU/source facts. Use cer-kb_auto_extract_profile_llm and fact-base tools when available. Capture device name, composition, model, materials, mode of action, cont",
+      "hash": "34f4b0b06707b638",
+      "filename": "production_authoring-device-profile-builder.txt",
+      "length_chars": 2215
+    },
+    "production_authoring-claim-pico-builder": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-claim-pico-builder",
+      "role_spec": "Decompose IFU claims into Claim Ledger and Intended Purpose Claim Table. For every clinical benefit, performance claim, safety claim, warning, contraindication, side-effect, PMS/PMCF claim, generate C",
+      "hash": "5cc698779e103d3a",
+      "filename": "production_authoring-claim-pico-builder.txt",
+      "length_chars": 2193
+    },
+    "production_authoring-sota-analyst": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-sota-analyst",
+      "role_spec": "Build disease background, guideline pathway, alternative therapies, similar/benchmark device classes, hazard sources, and Endpoint Benchmark Matrix. SOTA must define the comparison standard used later",
+      "hash": "d36d52bf0f9a969a",
+      "filename": "production_authoring-sota-analyst.txt",
+      "length_chars": 3158
+    },
+    "production_authoring-literature-searcher": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-literature-searcher",
+      "role_spec": "Execute real PubMed, Europe PMC, and ClinicalTrials.gov searches after PICO is locked. Store raw records, database, URL, search date, query, filters, counts, dedupe, screening decisions, and exclusion",
+      "hash": "f68a84fb64f335bb",
+      "filename": "production_authoring-literature-searcher.txt",
+      "length_chars": 3300
+    },
+    "production_authoring-evidence-appraiser": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-evidence-appraiser",
+      "role_spec": "Verify PMID/DOI/title/authors/year/sample size before evidence can become pivotal. Appraise evidence level, MEDDEV suitability, contribution, intended-use match, population match, endpoint match, stat",
+      "hash": "a0c17c64bcb87b87",
+      "filename": "production_authoring-evidence-appraiser.txt",
+      "length_chars": 2562
+    },
+    "production_authoring-equivalence-analyst": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-equivalence-analyst",
+      "role_spec": "Scout FDA 510(k), AccessGUDID, regulations, and provided equivalent-device files. Produce technical/biological/clinical comparison and difference impact analysis: difference -> mechanism -> evidence -",
+      "hash": "1be85bbbe83e1bbe",
+      "filename": "production_authoring-equivalence-analyst.txt",
+      "length_chars": 2103
+    },
+    "production_authoring-vigilance-recall-analyst": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-vigilance-recall-analyst",
+      "role_spec": "Execute FDA MAUDE, FDA Recall, MHRA, BfArM, Swissmedic, and device-registration searches. No-result searches must still record URL, date, terms, count, relevance judgment, and must not be converted in",
+      "hash": "7fa6419b261745fb",
+      "filename": "production_authoring-vigilance-recall-analyst.txt",
+      "length_chars": 2095
+    },
+    "production_authoring-risk-gspr-mapper": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-risk-gspr-mapper",
+      "role_spec": "Map risks and side-effects to IFU/RMF/PMS/PMCF/GSPR. If RMF is missing, mark RMF coverage as a gap. Do not fabricate risk closure. Produce Risk Trace Matrix and GSPR coverage. For benefit-risk respons",
+      "hash": "db01ef881733abad",
+      "filename": "production_authoring-risk-gspr-mapper.txt",
+      "length_chars": 2534
+    },
+    "production_authoring-cer-writer": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-cer-writer",
+      "role_spec": "Write chapters 1-9 from SharedAuthoringState only. Summary is written last. Section 4.7 is organized by GSPR, not by source. Every conclusion must cite evidence_id or gap_id and conclusion strength mu",
+      "hash": "5159518a7c0c981c",
+      "filename": "production_authoring-cer-writer.txt",
+      "length_chars": 3964
+    },
+    "production_authoring-export-packager": {
+      "prompt_type": "production_virtual_agent",
+      "agent_name": "authoring-export-packager",
+      "role_spec": "Export the complete work package: Markdown, DOCX, workbook JSON, XLSX tables, search protocol, screening log, evidence appraisal, endpoint extraction, SOTA benchmark, equivalence matrix, vigilance reg",
+      "hash": "af2150476fe2ab97",
+      "filename": "production_authoring-export-packager.txt",
+      "length_chars": 2116
+    },
+    "review_authoring-methodology-reviewer": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-methodology-reviewer",
+      "role_spec": "Gate Claim Ledger, PICO derivation, search protocol, inclusion/exclusion criteria, and reproducibility. Fail if PICO has no claim-to-query explanation or the search cannot be repeated.",
+      "hash": "f29a9e2ec1674d91",
+      "filename": "review_authoring-methodology-reviewer.txt",
+      "length_chars": 1867
+    },
+    "review_authoring-evidence-integrity-reviewer": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-evidence-integrity-reviewer",
+      "role_spec": "Gate citation verification, evidence weights, endpoint extraction, sample size/timepoint/statistics/source trace. Fail if unverified literature enters pivotal or a numeric conclusion lacks source fiel",
+      "hash": "bd6a4d1a7347c3ff",
+      "filename": "review_authoring-evidence-integrity-reviewer.txt",
+      "length_chars": 1893
+    },
+    "review_authoring-sota-benchmark-reviewer": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-sota-benchmark-reviewer",
+      "role_spec": "Gate whether SOTA is a benchmark system rather than a background essay. Fail if benchmark/acceptance criteria are absent or not used in section 4.7.",
+      "hash": "ff202f4fb019a907",
+      "filename": "review_authoring-sota-benchmark-reviewer.txt",
+      "length_chars": 1834
+    },
+    "review_authoring-equivalence-reviewer": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-equivalence-reviewer",
+      "role_spec": "Gate technical/biological/clinical equivalence and difference impact. Fail if equivalence is demonstrated without material, structural, biological, and clinical evidence.",
+      "hash": "a19a487f837ba3ff",
+      "filename": "review_authoring-equivalence-reviewer.txt",
+      "length_chars": 1853
+    },
+    "review_authoring-vigilance-reviewer": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-vigilance-reviewer",
+      "role_spec": "Gate MAUDE/Recall/MHRA/BfArM/Swissmedic execution records. Fail on vigilance placeholders or no-result interpreted as no risk.",
+      "hash": "33a9bcaa7bac4050",
+      "filename": "review_authoring-vigilance-reviewer.txt",
+      "length_chars": 1807
+    },
+    "review_authoring-risk-gspr-reviewer": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-risk-gspr-reviewer",
+      "role_spec": "Gate risk -> IFU/RMF/PMS/PMCF/GSPR closure. Fail if RMF coverage is claimed without RMF source, or if GSPR conclusions lack evidence.",
+      "hash": "4ce1538f68a44a3c",
+      "filename": "review_authoring-risk-gspr-reviewer.txt",
+      "length_chars": 1814
+    },
+    "review_authoring-human-style-reviewer": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-human-style-reviewer",
+      "role_spec": "Gate against human CER templates for chapter depth, table density, Annex-like support, reasoning chain, and professional wording. Fail if the report reads like a summary instead of a clinical evaluati",
+      "hash": "c303a9df79c17c55",
+      "filename": "review_authoring-human-style-reviewer.txt",
+      "length_chars": 1886
+    },
+    "review_authoring-nb-precheck-reviewer": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-nb-precheck-reviewer",
+      "role_spec": "Use nb-check prediction/validation where available. Gate critical/high-risk NB deficiencies and language that overstates evidence.",
+      "hash": "baa8a49353a98f82",
+      "filename": "review_authoring-nb-precheck-reviewer.txt",
+      "length_chars": 1813
+    },
+    "review_authoring-final-gate-closure": {
+      "prompt_type": "review_virtual_agent",
+      "agent_name": "authoring-final-gate-closure",
+      "role_spec": "Aggregate all review results and deterministic gates. Decide PASS_TO_DRAFT_DOCX, REWORK_REQUIRED, or HUMAN_HOLD. Do not rewrite content.",
+      "hash": "0f1b87bc26fa71b5",
+      "filename": "review_authoring-final-gate-closure.txt",
+      "length_chars": 1817
+    },
+    "pipeline_writer_conclusion_instruction": {
+      "prompt_type": "pipeline_prompt_constant",
+      "source": "pipeline.py",
+      "hash": "a99028d592e931e4",
+      "filename": "pipeline_writer_conclusion_instruction.txt",
+      "length_chars": 197
+    },
+    "pipeline_claim_evidence_writer_instruction": {
+      "prompt_type": "pipeline_prompt_constant",
+      "source": "pipeline.py",
+      "hash": "29bed6da72bce65d",
+      "filename": "pipeline_claim_evidence_writer_instruction.txt",
+      "length_chars": 82
+    },
+    "domain_template_cardiac_stabilizer": {
+      "prompt_type": "domain_template_writer_instruction",
+      "domain": "cardiac_stabilizer",
+      "hash": "8880708f211c1580",
+      "filename": "domain_template_cardiac_stabilizer.txt",
+      "length_chars": 2090,
+      "section_count": 4
+    },
+    "domain_template_plasma_electrode": {
+      "prompt_type": "domain_template_writer_instruction",
+      "domain": "plasma_electrode",
+      "hash": "ecb4d10ffc4fabed",
+      "filename": "domain_template_plasma_electrode.txt",
+      "length_chars": 1825,
+      "section_count": 4
+    },
+    "domain_template_imaging_software": {
+      "prompt_type": "domain_template_writer_instruction",
+      "domain": "imaging_software",
+      "hash": "690024ad7893294e",
+      "filename": "domain_template_imaging_software.txt",
+      "length_chars": 1947,
+      "section_count": 4
+    }
+  },
+  "prompt_contracts": {
+    "writer_must_obey_claim_support_matrix": true,
+    "writer_must_obey_writer_conclusion_constraints": true,
+    "writer_cannot_write_favourable_benefit_risk_unless_allowed": true,
+    "writer_cannot_use_cross_domain_template_text": true,
+    "writer_cannot_write_audit_artifact_into_cer_body": true,
+    "qa_must_check_body_content_not_just_structure": true
+  }
+}

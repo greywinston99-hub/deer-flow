@@ -9,7 +9,11 @@
       "category": "intake",
       "target_node": "initialize",
       "target_agent": "authoring-intake-profiler",
-      "description": "source file classification: filename+content signals, Chinese filename edge cases"
+      "description": "source file classification: filename+content signals, Chinese filename edge cases",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "RM-001": 59
+      }
     },
     {
       "id": "S-DPROF-03",
@@ -17,7 +21,12 @@
       "category": "intake",
       "target_node": "device_profile",
       "target_agent": "authoring-device-profile-builder",
-      "description": "device profile extraction: keyword+position+semantic signals for device vs procedure separation, 8-level arbitration IFU original>label>similar device>agent reasoning, iterate profile based on claim-SOTA alignment feedback"
+      "description": "device profile extraction: keyword+position+semantic signals for device vs procedure separation, 8-level arbitration IFU original>label>similar device>agent reasoning, iterate profile based on claim-SOTA alignment feedback",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "DO-001": 153,
+        "RM-001": 59
+      }
     },
     {
       "id": "S-CLAIM-04",
@@ -25,7 +34,11 @@
       "category": "intake",
       "target_node": "claim_decomposition",
       "target_agent": "authoring-claim-pico-builder",
-      "description": "claim decomposition: two modes for mature/draft IFU, primary source annotation per claim_type"
+      "description": "claim decomposition: two modes for mature/draft IFU, primary source annotation per claim_type",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "DO-001": 153
+      }
     },
     {
       "id": "S-PICO-05",
@@ -33,7 +46,12 @@
       "category": "intake",
       "target_node": "pico_derivation",
       "target_agent": "authoring-claim-pico-builder",
-      "description": "PICO derivation: only for clinical_benefit+safety claims, generic name > brand name, population to indication subgroup"
+      "description": "PICO derivation: only for clinical_benefit+safety claims, generic name > brand name, population to indication subgroup",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "BR-001": 148,
+        "CL-001": 69
+      }
     },
     {
       "id": "B-ROUTE-01",
@@ -41,7 +59,14 @@
       "category": "routing",
       "target_node": "claim_decomposition",
       "target_agent": "authoring-claim-pico-builder",
-      "description": "claim_type to evidence source routing: clinical_benefit to PubMed/CT.gov, IFU_warning to RMF/GSPR, safety to clinical+PMS+vigilance"
+      "description": "claim_type to evidence source routing: clinical_benefit to PubMed/CT.gov, IFU_warning to RMF/GSPR, safety to clinical+PMS+vigilance",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "LB-001": 162,
+        "DO-001": 153,
+        "BR-001": 148,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-SOTA-07",
@@ -49,7 +74,12 @@
       "category": "methodology",
       "target_node": "sota_search",
       "target_agent": "authoring-sota-analyst",
-      "description": "retrieval strategy: 3-tier DB config, adjust terms to DB to criteria order; search execution: use CLAIM_TYPE_SOURCE_ROUTING to skip PubMed for IFU_warning claims, select DB tier from DATABASE_TIERS by device_class"
+      "description": "retrieval strategy: 3-tier DB config, adjust terms to DB to criteria order; search execution: use CLAIM_TYPE_SOURCE_ROUTING to skip PubMed for IFU_warning claims, select DB tier from DATABASE_TIERS by device_class",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-SOTAEP-14",
@@ -57,7 +87,12 @@
       "category": "methodology",
       "target_node": "sota_search",
       "target_agent": "authoring-sota-analyst",
-      "description": "benchmark construction: >=3 comparable studies+100 patients to quantitative, confidence via quantity+consistency+year+comparability"
+      "description": "benchmark construction: >=3 comparable studies+100 patients to quantitative, confidence via quantity+consistency+year+comparability",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-KEYWORD-EXP-XX",
@@ -65,7 +100,11 @@
       "category": "methodology",
       "target_node": "query_expansion",
       "target_agent": "authoring-sota-analyst",
-      "description": "keyword expansion: hypernym/hyponym/synonym/regional variants from domain_term_variants.json"
+      "description": "keyword expansion: hypernym/hyponym/synonym/regional variants from domain_term_variants.json",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-DOMAIN-08",
@@ -73,7 +112,12 @@
       "category": "gate",
       "target_node": "retrieval_domain_gate",
       "target_agent": "authoring-literature-searcher",
-      "description": "retrieval domain: check forbidden terms in search results, grade severity by context, reroute if critical contamination detected; vigilance domain check: ensure vigilance results are within locked device domain, flag cross-domain events as minor unless same device category"
+      "description": "retrieval domain: check forbidden terms in search results, grade severity by context, reroute if critical contamination detected; vigilance domain check: ensure vigilance results are within locked device domain, flag cross-domain events as minor unless same device category",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-SCREEN-10",
@@ -81,7 +125,11 @@
       "category": "evidence",
       "target_node": "literature_screening",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "literature screening: title+device+indication to relevant, similar device to background only"
+      "description": "literature screening: title+device+indication to relevant, similar device to background only",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-APPRAISE-11",
@@ -89,7 +137,11 @@
       "category": "evidence",
       "target_node": "evidence_appraisal",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "6-factor scoring: F1 design 0.25, F2 relationship 0.25, F3 data quality 0.20, F4 fact confidence 0.15, F5 conflict 0.10, F6 admissibility 0.05. Upgrade/downgrade: +10/-10"
+      "description": "6-factor scoring: F1 design 0.25, F2 relationship 0.25, F3 data quality 0.20, F4 fact confidence 0.15, F5 conflict 0.10, F6 admissibility 0.05. Upgrade/downgrade: +10/-10",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-FT-12",
@@ -97,7 +149,11 @@
       "category": "evidence",
       "target_node": "fulltext_basis_gate",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "fulltext: irreplaceability assessment, accept abstract_only only if non-unique pivotal"
+      "description": "fulltext: irreplaceability assessment, accept abstract_only only if non-unique pivotal",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-ENDPT-13",
@@ -105,7 +161,13 @@
       "category": "evidence",
       "target_node": "endpoint_extraction",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "endpoint extraction: abstract to Table1 to Table2 to footnotes search path, equivalence via definition+meaning+time window"
+      "description": "endpoint extraction: abstract to Table1 to Table2 to footnotes search path, equivalence via definition+meaning+time window",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126,
+        "EQ-001": 73,
+        "CL-001": 69
+      }
     },
     {
       "id": "S-G42-15",
@@ -113,7 +175,13 @@
       "category": "gate",
       "target_node": "evidence_sufficiency_gate",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "G42 diagnosis: 13-pattern priority, endpoint substitution+keyword expansion before PMCF, spiral max 3 rounds"
+      "description": "G42 diagnosis: 13-pattern priority, endpoint substitution+keyword expansion before PMCF, spiral max 3 rounds",
+      "v5_linked_defects": {
+        "PM-001": 312,
+        "DO-001": 153,
+        "EV-001": 126,
+        "CL-001": 69
+      }
     },
     {
       "id": "S-CEMAT-16",
@@ -121,7 +189,13 @@
       "category": "evidence",
       "target_node": "claim_evidence_matrix",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "matrix: endpoint equivalence 3D framework, support_level=best_evidence ceiling+consistency"
+      "description": "matrix: endpoint equivalence 3D framework, support_level=best_evidence ceiling+consistency",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126,
+        "EQ-001": 73,
+        "CL-001": 69
+      }
     },
     {
       "id": "B-SCORE-02",
@@ -129,7 +203,11 @@
       "category": "evidence",
       "target_node": "evidence_appraisal",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "weighted_support = SUM(score*role_weight)/SUM(role_weight), low<40 blocks MODERATE"
+      "description": "weighted_support = SUM(score*role_weight)/SUM(role_weight), low<40 blocks MODERATE",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "B-G42-03",
@@ -137,7 +215,11 @@
       "category": "gate",
       "target_node": "evidence_sufficiency_gate",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "G42 thresholds: relative comparability not fixed numbers, RMF=unlimited brainstorm, literature=limited quality"
+      "description": "G42 thresholds: relative comparability not fixed numbers, RMF=unlimited brainstorm, literature=limited quality",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "S-ENDPT-ALT-XX",
@@ -145,7 +227,13 @@
       "category": "evidence",
       "target_node": "endpoint_extraction",
       "target_agent": "authoring-evidence-appraiser",
-      "description": "endpoint alternatives: query endpoint_alternatives.json, rank by clinical equivalence"
+      "description": "endpoint alternatives: query endpoint_alternatives.json, rank by clinical equivalence",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126,
+        "EQ-001": 73,
+        "CL-001": 69
+      }
     },
     {
       "id": "S-EQUIV-09",
@@ -153,7 +241,13 @@
       "category": "equivalence",
       "target_node": "equivalence_analysis",
       "target_agent": "authoring-equivalence-analyst",
-      "description": "equivalence: 3D scoring clinical>technical>biological, XinQing mode when not claimable, performance data missing to remove clause+note reason"
+      "description": "equivalence: 3D scoring clinical>technical>biological, XinQing mode when not claimable, performance data missing to remove clause+note reason",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "MF-001": 108,
+        "EQ-001": 73,
+        "CL-001": 69
+      }
     },
     {
       "id": "S-BRALIGN-17",
@@ -161,7 +255,14 @@
       "category": "gate",
       "target_node": "benefit_risk_ledger",
       "target_agent": "authoring-risk-gspr-mapper",
-      "description": "cross-evidence synthesis: 4-stage probability evolution predictive to experimental to empirical to real_world, benefit vs risk quality asymmetry to cannot equal-weight, G46 priority=upstream causality chain"
+      "description": "cross-evidence synthesis: 4-stage probability evolution predictive to experimental to empirical to real_world, benefit vs risk quality asymmetry to cannot equal-weight, G46 priority=upstream causality chain",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "BR-001": 148,
+        "EV-001": 126,
+        "GS-001": 72,
+        "DT-001": 53
+      }
     },
     {
       "id": "W-SUM-18",
@@ -169,7 +270,11 @@
       "category": "writer",
       "target_node": "cer_writing",
       "target_agent": "authoring-cer-writer",
-      "description": "summary: device+evidence+uncertainty+conclusion, not evidence ID dump"
+      "description": "summary: device+evidence+uncertainty+conclusion, not evidence ID dump",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126
+      }
     },
     {
       "id": "W-DD-19",
@@ -177,7 +282,12 @@
       "category": "writer",
       "target_node": "cer_writing",
       "target_agent": "authoring-cer-writer",
-      "description": "device description: 8-field standard structure from document_structured_content, not fact_table"
+      "description": "device description: 8-field standard structure from document_structured_content, not fact_table",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "GS-001": 72,
+        "CV-001": 54
+      }
     },
     {
       "id": "W-SOTA-21",
@@ -185,7 +295,12 @@
       "category": "writer",
       "target_node": "cer_writing",
       "target_agent": "authoring-cer-writer",
-      "description": "SOTA writing: benchmark to clinical meaning to device position to wording, confidence to wording map"
+      "description": "SOTA writing: benchmark to clinical meaning to device position to wording, confidence to wording map",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126,
+        "CL-001": 69
+      }
     },
     {
       "id": "W-EVID-22",
@@ -193,7 +308,12 @@
       "category": "writer",
       "target_node": "cer_writing",
       "target_agent": "authoring-cer-writer",
-      "description": "GSPR analysis: 5-paragraph template per requirement, sort evidence by quality/relevance/directness"
+      "description": "GSPR analysis: 5-paragraph template per requirement, sort evidence by quality/relevance/directness",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126,
+        "GS-001": 72
+      }
     },
     {
       "id": "W-CONC-23",
@@ -201,7 +321,10 @@
       "category": "writer",
       "target_node": "cer_writing",
       "target_agent": "authoring-cer-writer",
-      "description": "conclusions: honesty without self-destruction, support_level to wording map"
+      "description": "conclusions: honesty without self-destruction, support_level to wording map",
+      "v5_linked_defects": {
+        "DO-001": 153
+      }
     },
     {
       "id": "W-CLEAN-24",
@@ -209,7 +332,11 @@
       "category": "writer",
       "target_node": "export",
       "target_agent": "authoring-export-packager",
-      "description": "cleanliness: 25 banned strings+22 render patterns, Annex excluded from scan; export: run final banned-pattern scan on all output files before export, quarantine files with internal control fields or template residue"
+      "description": "cleanliness: 25 banned strings+22 render patterns, Annex excluded from scan; export: run final banned-pattern scan on all output files before export, quarantine files with internal control fields or template residue",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "RM-001": 59
+      }
     },
     {
       "id": "W-LANG-25",
@@ -217,7 +344,11 @@
       "category": "writer",
       "target_node": "cer_writing",
       "target_agent": "authoring-cer-writer",
-      "description": "language: quantified sentence/paragraph constraints per section"
+      "description": "language: quantified sentence/paragraph constraints per section",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "DO-001": 153
+      }
     },
     {
       "id": "W-ARG-27",
@@ -225,7 +356,14 @@
       "category": "writer",
       "target_node": "cer_writing",
       "target_agent": "authoring-cer-writer",
-      "description": "argumentation: GSPR grouping by clinical logic, 3 organization modes by device risk level; each paragraph must follow Problem-Evidence-Conclusion triad; transitions must use explicit logical connectors; conflicting evidence must be presented with primary and secondary streams, never suppressed"
+      "description": "argumentation: GSPR grouping by clinical logic, 3 organization modes by device risk level; each paragraph must follow Problem-Evidence-Conclusion triad; transitions must use explicit logical connectors; conflicting evidence must be presented with primary and secondary streams, never suppressed",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "BR-001": 148,
+        "EV-001": 126,
+        "GS-001": 72,
+        "CL-001": 69
+      }
     },
     {
       "id": "S-QA-25",
@@ -233,7 +371,13 @@
       "category": "gate",
       "target_node": "gates",
       "target_agent": "authoring-qa-review-agent",
-      "description": "final QA: 30-second rejection signals=IFU-CER mismatch/SOTA missing/tables incomplete/template residue/domain contamination/evidence contradiction/over-strong conclusions; export QA: verify all output files present, check file size thresholds, verify no _backup/_FIXED files in delivery root"
+      "description": "final QA: 30-second rejection signals=IFU-CER mismatch/SOTA missing/tables incomplete/template residue/domain contamination/evidence contradiction/over-strong conclusions; export QA: verify all output files present, check file size thresholds, verify no _backup/_FIXED files in delivery root",
+      "v5_linked_defects": {
+        "LB-001": 162,
+        "DO-001": 153,
+        "EV-001": 126,
+        "DT-001": 53
+      }
     },
     {
       "id": "S-ALIGN-XX",
@@ -241,7 +385,52 @@
       "category": "gate",
       "target_node": "claim_sota_alignment",
       "target_agent": "authoring-sota-analyst",
-      "description": "claim-SOTA alignment: each claim checked against benchmarks to supported/partial/unsupported"
+      "description": "claim-SOTA alignment: each claim checked against benchmarks to supported/partial/unsupported",
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EV-001": 126
+      }
     }
-  ]
+  ],
+  "v5_enrichment": {
+    "applied_at": "2026-05-30T12:50:31.933970",
+    "defect_awareness_added": true,
+    "note": "Skills now have access to V5 defect patterns via knowledge_injector module",
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    },
+    "deepened": true,
+    "cross_refs_added": 1,
+    "deepened_r2": true,
+    "cross_refs_added_r2": 31,
+    "total_v5_refs": 32,
+    "all_defect_stats": {
+      "PM-001": 312,
+      "LB-001": 162,
+      "DO-001": 153,
+      "BR-001": 148,
+      "EV-001": 126,
+      "MF-001": 108,
+      "TR-001": 102,
+      "EQ-001": 73,
+      "GS-001": 72,
+      "CL-001": 69,
+      "RM-001": 59,
+      "CV-001": 54,
+      "DT-001": 53,
+      "SW-001": 49,
+      "AU-001": 10,
+      "CM-001": 9,
+      "IV-001": 6,
+      "SC-001": 3,
+      "DQ-001": 2
+    }
+  },
+  "v5_linked_defects": {
+    "PM-001": 312,
+    "DO-001": 153,
+    "EV-001": 126
+  }
 }

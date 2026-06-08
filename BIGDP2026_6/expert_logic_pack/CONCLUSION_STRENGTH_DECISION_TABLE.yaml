@@ -1,0 +1,73 @@
+# CONCLUSION_STRENGTH_DECISION_TABLE.yaml
+# Maps evidence support + count → conclusion strength
+# CRITICAL: This table ENFORCES that weak evidence cannot produce strong conclusions.
+schema_version: "1.0.0"
+
+# Format: [support_type][evidence_count] → strength
+# "≥2" means 2 or more evidence sources
+
+matrix:
+  direct_clinical:
+    "≥3": "strong"
+    "2": "strong"
+    "1": "moderate"
+    "0": "limited"
+    rule_refs: ["CON-01", "CON-02"]
+    note: "Direct evidence: 2+ sources → strong; 1 source → moderate."
+
+  indirect_literature:
+    "≥3": "moderate"
+    "2": "moderate"
+    "1": "limited"
+    "0": "limited"
+    rule_refs: ["CON-03"]
+    note: "Indirect evidence capped at moderate. Never strong."
+
+  equivalent_device:
+    "≥3": "moderate"
+    "2": "moderate"
+    "1": "limited"
+    "0": "limited"
+    rule_refs: ["CON-03"]
+    note: "Equivalent evidence capped at moderate. Not direct evidence."
+
+  manufacturer_data:
+    "any": "limited"
+    rule_refs: ["CON-04"]
+    note: "Manufacturer data alone CANNOT produce strong or moderate for clinical claims."
+
+  PMS_PMCF:
+    "≥3": "moderate"
+    "2": "moderate"
+    "1": "limited"
+    "0": "limited"
+    rule_refs: ["CON-03"]
+    note: "Real-world evidence capped at moderate."
+
+  RMF_GSPR_only:
+    "any": "N/A"
+    rule_refs: ["EVS-06"]
+    note: "For safety claims only. Not a clinical conclusion."
+
+  insufficient:
+    "any": "limited"
+    rule_refs: ["CON-05"]
+    note: "Insufficient evidence. Gap disposition required."
+
+  conflicting:
+    "any": "not_supported"
+    rule_refs: ["CON-06"]
+    note: "Contradictory evidence. Cannot support claim."
+
+# ── Anti-Patterns: What MUST NOT Happen ──
+anti_patterns:
+  - "indirect_literature → strong"  # NEVER
+  - "equivalent_device → strong"     # NEVER
+  - "manufacturer_data → strong"     # NEVER
+  - "manufacturer_data → moderate"   # NEVER (for clinical claims)
+  - "insufficient → strong"          # NEVER
+  - "insufficient → moderate"        # NEVER
+  - "conflicting → strong"           # NEVER
+  - "conflicting → moderate"         # NEVER
+  - "0_evidence → strong"            # NEVER
+  - "0_evidence → moderate"          # NEVER

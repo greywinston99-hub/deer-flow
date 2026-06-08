@@ -1,0 +1,49 @@
+{
+  "scenario_id": "ELP-12",
+  "scenario_name": "High-Risk Uncertainty Triggers Human Gate",
+  "rule_category": "Human Gate Trigger Rules",
+  "rules_tested": ["HG-03", "HG-05", "WRT-01"],
+  "description": "A Class III device with a high-criticality claim supported only by limited indirect evidence. The system MUST trigger a human gate (HC-06.5) before Writer release. Auto-proceeding would be a regulatory risk.",
+
+  "input": {
+    "device_context": {
+      "device_name": "CardioImplant Z9",
+      "device_class": "III",
+      "intended_use": "Permanent implant for cardiac rhythm management",
+      "risk_profile": "high"
+    },
+    "claim": {
+      "claim_id": "C-CRITICAL-01",
+      "claim_text": "Device reduces mortality in heart failure patients.",
+      "claim_classification": "clinical_performance",
+      "claim_criticality": "high"
+    },
+    "available_evidence": [
+      {
+        "evidence_id": "E-001", "pmid": "22222222",
+        "study_design": "Retrospective registry", "sample_size": 120,
+        "device_studied": "Similar device (previous generation)",
+        "support_type": "indirect",
+        "findings": "Observational data suggests trend toward reduced mortality (HR 0.85, 95% CI 0.70-1.05, p=0.08)."
+      }
+    ],
+    "uncertainty_factors": [
+      "Class III high-risk device",
+      "Mortality claim — highest criticality",
+      "Indirect evidence only (previous generation device)",
+      "Observational data, not RCT",
+      "Non-significant result (p=0.08)",
+      "No direct evidence on subject device"
+    ]
+  },
+
+  "expected_expert_reasoning": {
+    "conclusion_strength": "limited",
+    "human_gate_triggered": true,
+    "trigger_gate": "HC-06.5 (pre_writer_summary)",
+    "reason": "Class III device with high-criticality mortality claim supported only by indirect observational evidence with non-significant results. Human expert decision REQUIRED before Writer.",
+    "auto_proceed": false
+  },
+
+  "expected_writer_permission": "blocked_until_human_decision"
+}

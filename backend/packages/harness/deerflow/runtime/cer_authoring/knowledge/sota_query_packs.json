@@ -1,0 +1,120 @@
+{
+  "contrast_imaging_bubble_study_system": {
+    "name": "Bubble study / ultrasound contrast imaging focused SOTA query pack",
+    "inclusion_terms": [
+      "bubble study",
+      "agitated saline",
+      "right-to-left shunt",
+      "patent foramen ovale",
+      "PFO",
+      "RLS",
+      "contrast echocardiography",
+      "transthoracic echocardiography",
+      "contrast-enhanced transcranial Doppler",
+      "c-TTE",
+      "c-TCD",
+      "diagnostic concordance",
+      "automated injection"
+    ],
+    "endpoint_targets": [
+      "positive detection concordance",
+      "negative detection concordance",
+      "right-to-left shunt grading consistency",
+      "PFO detection",
+      "diagnostic success rate",
+      "device success rate",
+      "adverse event rate",
+      "air embolism",
+      "injection-site reaction",
+      "hemodynamic instability"
+    ],
+    "exclusion_terms": [
+      "atrial fibrillation ablation",
+      "pulsed field ablation",
+      "radiofrequency ablation",
+      "cardiac catheter ablation",
+      "plasma surgical equipment",
+      "urology access sheath",
+      "orthopedic arthroscopy",
+      "blood coagulation assay",
+      "oncologic contrast imaging"
+    ],
+    "v5_linked_defects": {
+      "CL-001": 69
+    }
+  },
+  "plasma_surgical_equipment": {
+    "name": "ENT RF plasma/coblation focused SOTA query pack",
+    "inclusion_terms": [
+      "coblation",
+      "radiofrequency plasma",
+      "plasma surgical equipment",
+      "otolaryngology",
+      "ENT surgery",
+      "tonsillectomy",
+      "adenoidectomy",
+      "turbinate reduction",
+      "soft tissue coagulation",
+      "thermal spread"
+    ],
+    "endpoint_targets": [
+      "cutting performance",
+      "coagulation",
+      "hemostasis",
+      "thermal injury",
+      "mucosal injury",
+      "bleeding",
+      "postoperative pain",
+      "procedure completion"
+    ],
+    "exclusion_terms": [
+      "cardiopulmonary bypass",
+      "liver transplant",
+      "trauma coagulation",
+      "coagulation assay",
+      "atrial fibrillation",
+      "pulsed field ablation",
+      "urology vaporization",
+      "plasma exchange",
+      "blood coagulation test"
+    ],
+    "v5_linked_defects": {
+      "CL-001": 69
+    }
+  },
+  "v5_enrichment": {
+    "applied_at": "2026-05-30T12:51:28.974137",
+    "total_v5_findings_available": 63,
+    "defect_types_available": 27,
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    },
+    "deepened": true,
+    "cross_refs_added": 3,
+    "deepened_r3": true,
+    "r3_cross_refs": 0,
+    "all_defect_stats": {
+      "PM-001": 312,
+      "LB-001": 162,
+      "DO-001": 153,
+      "BR-001": 148,
+      "EV-001": 126,
+      "MF-001": 108,
+      "TR-001": 102,
+      "EQ-001": 73,
+      "GS-001": 72,
+      "CL-001": 69,
+      "RM-001": 59,
+      "CV-001": 54,
+      "DT-001": 53,
+      "SW-001": 49,
+      "AU-001": 10,
+      "CM-001": 9,
+      "IV-001": 6,
+      "SC-001": 3,
+      "DQ-001": 2
+    }
+  }
+}

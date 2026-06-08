@@ -1,0 +1,16 @@
+field_name,field_definition,requirement_level
+section_id,"CER section identifier, e.g. CER-4.7.2",required
+paragraph_id,"Stable paragraph identifier, e.g. CER-4.7.2-P03",required
+claim_ids,"Claim IDs supporting the paragraph",required_for_core_conclusions
+endpoint_ids,"Endpoint IDs supporting numeric/performance/safety statements",required_for_core_conclusions
+sota_ids,"SOTA benchmark IDs used by the paragraph",required_for_sota_or_4_7
+evidence_ids,"Evidence IDs used by the paragraph",required_for_evidence_claims
+gap_ids,"Evidence gap IDs disclosed or controlled by the paragraph",required_when_gap_present
+pmcf_ids,"PMCF activity IDs linked to residual questions",required_when_pmcf_used
+risk_ids,"Risk/RMF/IFU-linked IDs",required_for_safety_or_benefit_risk
+alignment_ids,"Alignment rows for CER/RMF/IFU/SSCP/PMCF consistency",required_when_alignment_checked
+benefit_risk_ids,"Benefit-risk ledger IDs",required_for_benefit_risk_conclusions
+allowed_wording_strength,strong/cautious/descriptive/not_allowed,required
+source_artifact_hashes,"Hashes or lineage pointers for upstream artifacts",required_for_calibration
+qa_status,pass/flag/human_hold,required
+human_review_required,yes/no,required

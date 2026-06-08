@@ -1,0 +1,283 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER Clinical Evidence Panel Schema",
+  "description": "Schema for clinical evidence panel summary with 5 sub-assessments",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_clinical_evidence_panel"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "clinical_evidence_panel_summary"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_clinical_evidence_panel"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_clinical_evidence_panel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "cer_docstruct_ref": {
+          "type": "string"
+        },
+        "evidence_packs_ref": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cep_route_decision_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDR_Article_83",
+        "Annex_XIV",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "requires_human_review": {
+      "type": "boolean",
+      "const": true
+    },
+    "human_gate_topic": {
+      "type": "string",
+      "const": "Clinical evidence sufficiency"
+    },
+    "reviewer_question_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "const": [
+        "RQ-SOTA-001",
+        "RQ-EVIDENCE-001",
+        "RQ-EQUIV-001",
+        "RQ-PMS-001",
+        "RQ-BR-001"
+      ]
+    },
+    "no_final_decision_made": {
+      "type": "boolean",
+      "const": true
+    },
+    "sub_assessments": {
+      "type": "object",
+      "properties": {
+        "sota_literature": {
+          "type": "object",
+          "properties": {
+            "sub_assessment_id": {
+              "type": "string",
+              "const": "sota_literature_assessment"
+            },
+            "dimension": {
+              "type": "string",
+              "const": "dim_4"
+            },
+            "human_gate_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "human_gate_ref": {
+              "type": "string",
+              "const": "HG-03"
+            },
+            "regulatory_anchor": {
+              "type": "string"
+            },
+            "schema_ref": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          }
+        },
+        "clinical_evidence_adequacy": {
+          "type": "object",
+          "properties": {
+            "sub_assessment_id": {
+              "type": "string",
+              "const": "clinical_evidence_adequacy_assessment"
+            },
+            "dimension": {
+              "type": "string",
+              "const": "dim_5"
+            },
+            "human_gate_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "human_gate_ref": {
+              "type": "string",
+              "const": "HG-01"
+            },
+            "regulatory_anchor": {
+              "type": "string"
+            },
+            "schema_ref": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          }
+        },
+        "equivalence": {
+          "type": "object",
+          "properties": {
+            "sub_assessment_id": {
+              "type": "string",
+              "const": "equivalence_assessment"
+            },
+            "dimension": {
+              "type": "string",
+              "const": "dim_6"
+            },
+            "human_gate_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "human_gate_ref": {
+              "type": "string",
+              "const": "HG-02"
+            },
+            "regulatory_anchor": {
+              "type": "string"
+            },
+            "schema_ref": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          }
+        },
+        "pms_pmcf": {
+          "type": "object",
+          "properties": {
+            "sub_assessment_id": {
+              "type": "string",
+              "const": "pms_pmcf_assessment"
+            },
+            "dimension": {
+              "type": "string",
+              "const": "dim_7"
+            },
+            "human_gate_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "human_gate_ref": {
+              "type": "string",
+              "const": "HG-05"
+            },
+            "regulatory_anchor": {
+              "type": "string"
+            },
+            "schema_ref": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          }
+        },
+        "benefit_risk": {
+          "type": "object",
+          "properties": {
+            "sub_assessment_id": {
+              "type": "string",
+              "const": "benefit_risk_assessment"
+            },
+            "dimension": {
+              "type": "string",
+              "const": "dim_8"
+            },
+            "human_gate_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "human_gate_ref": {
+              "type": "string",
+              "const": "HG-06"
+            },
+            "regulatory_anchor": {
+              "type": "string"
+            },
+            "schema_ref": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

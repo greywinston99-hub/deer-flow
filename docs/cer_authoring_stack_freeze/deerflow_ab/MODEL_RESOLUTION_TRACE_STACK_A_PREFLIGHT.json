@@ -1,0 +1,105 @@
+{
+  "schema": "model_resolution_trace_preflight_v1",
+  "stack": "A",
+  "project": "PILOT_02_MIDOS_STACK_A",
+  "timestamp": "2026-05-15T14:41:16.003377+00:00",
+  "global_model_env": "",
+  "per_agent_overrides": {
+    "CER_AUTHORING_MODEL_INTAKE_PROFILE_CLAIM": "kimi-k2.6-code",
+    "CER_AUTHORING_MODEL_METHODOLOGY_SOTA": "deepseek-v4-pro",
+    "CER_AUTHORING_MODEL_EVIDENCE": "deepseek-v4-pro",
+    "CER_AUTHORING_MODEL_CER_WRITER": "deepseek-v4-pro",
+    "CER_AUTHORING_MODEL_QA_REVIEW": "deepseek-v4-pro",
+    "CER_AUTHORING_MODEL_RISK_EQUIVALENCE_GSPR": "kimi-k2.6-code"
+  },
+  "agents": [
+    {
+      "agent_name": "intake-profile-claim",
+      "task_type": "extraction_structuring",
+      "expected_model": "kimi-k2.6-code",
+      "actual_resolved_model": "kimi-k2.6-code",
+      "route_source": "env_var",
+      "fallback_used": false,
+      "provider_configured": true,
+      "model_allowed": true
+    },
+    {
+      "agent_name": "methodology-sota",
+      "task_type": "evidence_reasoning",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "env_var",
+      "fallback_used": false,
+      "provider_configured": true,
+      "model_allowed": true
+    },
+    {
+      "agent_name": "evidence",
+      "task_type": "evidence_reasoning",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "env_var",
+      "fallback_used": false,
+      "provider_configured": true,
+      "model_allowed": true
+    },
+    {
+      "agent_name": "cer-writer",
+      "task_type": "cer_writer",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "env_var",
+      "fallback_used": false,
+      "provider_configured": true,
+      "model_allowed": true
+    },
+    {
+      "agent_name": "qa-review",
+      "task_type": "qa_reviewer",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "env_var",
+      "fallback_used": false,
+      "provider_configured": true,
+      "model_allowed": true
+    },
+    {
+      "agent_name": "risk-equivalence-gspr",
+      "task_type": "risk_equivalence",
+      "expected_model": "kimi-k2.6-code",
+      "actual_resolved_model": "kimi-k2.6-code",
+      "route_source": "env_var",
+      "fallback_used": false,
+      "provider_configured": true,
+      "model_allowed": true
+    },
+    {
+      "agent_name": "cer-authoring-lead-agent",
+      "task_type": "controller_triage",
+      "expected_model": "kimi-k2.6-code",
+      "actual_resolved_model": "kimi-k2.6-code",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_configured": true,
+      "model_allowed": true
+    }
+  ],
+  "agent_count": 7,
+  "all_resolved_correctly": true,
+  "any_fallback_used": false,
+  "stack_a_checks": {
+    "extraction_uses_kimi_code": true,
+    "device_profile_uses_kimi_code": true,
+    "evidence_reasoning_uses_deepseek": true,
+    "sota_uses_deepseek": true,
+    "writer_uses_deepseek": true,
+    "qa_uses_deepseek": true,
+    "minimax_not_in_writer": true,
+    "minimax_not_in_qa": true,
+    "minimax_not_in_evidence": true,
+    "no_silent_fallback": true,
+    "not_all_global_override": true,
+    "all_agents_resolved": true
+  },
+  "all_stack_a_checks_pass": true
+}

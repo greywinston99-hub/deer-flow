@@ -1,0 +1,2833 @@
+{
+  "schema": "writer_input_packet_v2",
+  "packet_policy": "approved_facts_claims_evidence_controlled_gaps_only",
+  "locked_device_domain": "contrast_imaging_bubble_study_system",
+  "device_type": "automated agitated-saline contrast injection system with single-use contrast injection tubing set",
+  "allowed_domain_terms": [
+    "RMF",
+    "IFU",
+    "GSPR",
+    "source"
+  ],
+  "forbidden_domain_terms": [
+    "pulsed field ablation",
+    "PFA ablation",
+    "radiofrequency ablation",
+    "catheter ablation",
+    "pulmonary vein isolation",
+    "atrial fibrillation ablation",
+    "plasma surgical equipment",
+    "coblation",
+    "ENT surgery",
+    "arthroscopy",
+    "ureteroscope",
+    "ureteral access sheath",
+    "renal pelvis",
+    "urolithiasis",
+    "cardiac tissue stabilizer",
+    "CABG",
+    "off-pump coronary artery bypass"
+  ],
+  "source_artifacts_consumed": {
+    "evidence_registry_count": 200,
+    "claim_evidence_matrix_count": 14,
+    "benefit_risk_ledger_count": 14,
+    "sota_benchmark_count": 16,
+    "pmcf_gap_count": 0,
+    "risk_trace_count": 4,
+    "vigilance_search_count": 17
+  },
+  "approved_facts": {
+    "device_profile": {
+      "device_name": "Bubble Study System",
+      "device_class": "IIb",
+      "device_type": "automated agitated-saline contrast injection system with single-use contrast injection tubing set",
+      "clinical_domain": "contrast_imaging_bubble_study_system",
+      "device_domain": "contrast_imaging_bubble_study_system",
+      "intended_purpose": "The Bubble Study System is used in conjunction with Disposable Masks and Disposable Contrast Injection Tubing Set for the preparation and injection of agitated saline during bubble study procedures for transthoracic echocardiographic contrast imaging or contrast-enhanced transcranial Doppler ultrasound imaging. The NIBP module monitors patient pulse and non-invasive blood pressure.",
+      "target_population": "Adults aged 18-75 years, both sexes. Patients clinically suspected of right-to-left shunt who can complete contrast echocardiography or transcranial Doppler ultrasound assessment and can cooperate with Valsalva maneuver.",
+      "intended_user": "Trained and experienced medical staff with professional certification. Specifically: cardiac ultrasound physicians for c-TTE; neurology ultrasound physicians for c-TCD.",
+      "anatomical_site": "Cardiac: right atrium, interatrial septum (foramen ovale) for transthoracic echocardiographic contrast imaging (c-TTE). Cerebral: middle cerebral artery (MCA) for contrast-enhanced transcranial Doppler ultrasound imaging (c-TCD). Intravenous administration via elbow vein.",
+      "mode_of_action": "Automated preparation and injection of agitated saline contrast agent to support ultrasound bubble-study detection and grading of right-to-left shunt."
+    },
+    "ifu_fact_table_status": "PASS",
+    "source_preflight_status": "REWORK_REQUIRED"
+  },
+  "claim_evidence_summary": [
+    {
+      "claim_id": "C-01",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    },
+    {
+      "claim_id": "C-02",
+      "support_status": "not_supported_or_unresolved",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "E-005"
+      ]
+    },
+    {
+      "claim_id": "C-03",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    },
+    {
+      "claim_id": "C-PERF-01",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    },
+    {
+      "claim_id": "C-PERF-02",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    },
+    {
+      "claim_id": "C-PERF-03",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    },
+    {
+      "claim_id": "C-SAFE-01",
+      "support_status": "not_supported_or_unresolved",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "E-005"
+      ]
+    },
+    {
+      "claim_id": "C-SAFE-02",
+      "support_status": "not_supported_or_unresolved",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "E-005"
+      ]
+    },
+    {
+      "claim_id": "C-BEN-01",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    },
+    {
+      "claim_id": "C-BEN-02",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    },
+    {
+      "claim_id": "C-04",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    },
+    {
+      "claim_id": "C-05",
+      "support_status": "ALLOWED_USE_BLOCKED",
+      "conclusion_strength": "not_allowed",
+      "allowed_use": "",
+      "allowed_wording": "requires PMCF or manufacturer source closure before final claim wording",
+      "evidence_strength_ceiling": "not_allowed",
+      "final_body_allowed": true,
+      "evidence_ids": [
+        "evidence gap"
+      ]
+    }
+  ],
+  "benefit_risk_summary": [
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    },
+    {
+      "claim_id": "",
+      "balance": "not_established_due_to_alignment_or_evidence_conflict",
+      "conclusion_guard": "blocks_unqualified_br_conclusion"
+    }
+  ],
+  "controlled_gaps": [
+    {
+      "gap_id": "GAP-INPUT-EQUIVALENCE",
+      "required_input": "equivalence",
+      "impact": "Equivalence cannot be claimed without confirmed equivalent-device documentation."
+    },
+    {
+      "gap_id": "SOURCE-CONTROLLED-GAP-MIXED-DOMAIN-LOCKED",
+      "severity": "major",
+      "message": "Mixed source-domain signals remain present, but manufacturer intake supplied a confirmed subject-device domain lock.",
+      "domains": [
+        "contrast_imaging_bubble_study_system",
+        "plasma_surgical_equipment"
+      ],
+      "locked_domain": "contrast_imaging_bubble_study_system"
+    },
+    {
+      "gap_id": "CLASS-CONTROLLED-GAP-SOURCE-CONFLICT-LOCKED",
+      "severity": "major",
+      "message": "Conflicting source classification signals remain present, but manufacturer intake supplied a confirmed MDR classification lock.",
+      "classes": [
+        "I",
+        "III",
+        "IIa",
+        "IIb"
+      ],
+      "locked_classification": "IIb"
+    }
+  ],
+  "rmf_pmcf_controls": {
+    "benefit_risk_closure_status": "CONCLUDABLE_WITH_CONTROLLED_UNCERTAINTY",
+    "pmcf_plan_status": "source_data_present",
+    "rmf_hazard_rows": 4,
+    "ifu_warning_crosswalk_rows": 4
+  },
+  "conclusion_strength_constraints": {},
+  "evidence_counts_by_stage": {
+    "searched": 17,
+    "returned": 319,
+    "screened": 319,
+    "appraised": 200,
+    "evidence_registry": 200,
+    "G42_input": 50
+  },
+  "excluded_context": [
+    "writer_instructions",
+    "selected_module_metadata",
+    "trigger_signals",
+    "routing_metadata",
+    "gate_debug_info",
+    "raw_json_agent_outputs",
+    "review_trace",
+    "schema_payloads"
+  ],
+  "writer_path_audit": {
+    "policy": "WRITER_PATH_POLICY_V1",
+    "violations": [],
+    "allowed_count": 430,
+    "checked_paths": [
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/MANUFACTURER_INTAKE_PACK_TEMPLATE_2026-05-28_FILLED_v",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/DECLARATION_OF_CONFORMITY/DOC_003__75 Declaration of ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/DECLARATION_OF_CONFORMITY/DOC_002__83 RoHS Declaratio",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/DECLARATION_OF_CONFORMITY/DOC_001__76 Declaration of ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/DECLARATION_OF_CONFORMITY/DOC_005__76 Declaration of ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/PMS_PMCF_PSUR/PMCF_002__7 PMCF Plan.txt",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/PMS_PMCF_PSUR/PMS_003__文件编号 PMS Plan.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/PMS_PMCF_PSUR/PMS_002__文件编号 PMS Plan.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/PMS_PMCF_PSUR/PMCF_004__文件编号 PMCF Plan.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/PMS_PMCF_PSUR/PMCF_001__（新）模板 PMCF Plan Template- no ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/PMS_PMCF_PSUR/PMCF_003__文件编号 PMCF Plan.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_007__1 05E-VP-035 Product ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_010__06E-OT-004 BOM.xlsx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_004__63.2 06-VP-003-001 一次",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_001__WYTD-SMP-ZL-012-001 U",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_006__3 05E-VP-042 Product ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_016__标签检查反馈--Bubble Study ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/IFU_004__2 IFU of Disposable C",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_005__63.1 06-VP-003 一次性使用造",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_008__4 Label of the tubing",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_017__4 产品包装标签.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_002__3 Label of the system",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_015__4 产品包装标签.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_018__3 Label of the system",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_014__3 Label of the system",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_013__4 产品包装标签.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_012__2 Bubble Study System",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_003__63.1 06-VP-003 一次性使用造",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/LBL_009__0 Master Technical Do",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/LABELING_UDI_PACKAGING/IFU_018__[只读]IFU of Disposable",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_052__WYTD-QP-020-004 内审不符合报告",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_026__WYTD-QP-004-004 管理评审记录A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_153__WYTD-SMP-GY-001-002 采购物",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_140__WYTD-SMP-ZL-001-001请验单 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_078__WYTD-QP-010-011 设计变更申请表",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_044__质量体系记录表格模板 参考稿.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_170__WYTD-SMP-SC-009 消毒剂管理规定",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_121__WYTD-SMP-ZL-011实验室玻璃器皿清",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/5.3 05-OT-025 线束需求说明文档 A1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_158__WYTD-SMP-GY-004 虫鼠害预防管理",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_180__WYTD-SOP-SC-013-001 灭菌解",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_138__WYTD-SMP-ZL-010-001 质量目",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_206__5.1 WYTD-QP-010-005 产品设",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_022__WYTD-QP-007-001 温度湿度记录表",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_187__WYTD-SMP-SC-001-002个人卫生",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_151__WYTD-SMP-GY-001-004 合格供",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_058__WYTD-QP-005-001 外训申请表A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_069__WYTD-QP-010-007 试产申请单A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_162__WYTD-SMP-SC-006洁净室工位器具管",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_045__WYTD-QP-001-008文件销毁登记表A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_139__WYTD-SMP-ZL-001 质量控制管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_117__WYTD-SMP-ZL-006-003留样领用",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_010__WYTD-QP-021不合格品控制程序A0.d",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_115__WYTD-SMP-ZL-006-002留样观察",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_108__WYTD-SMP-XS-002 代理商管理制度",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_156__WYTD-SMP-GY-001-006 供方资",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_021__WYTD-QP-007-002 压差记录表A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_163__WYTD-SMP-SC-010 工艺用水管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_128__WYTD-SMP-ZL-009-001 试剂购",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_118__WYTD-SMP-ZL-006 留样管理规定A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_079__WYTD-QP-010-006 设计评审表A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_197__WYTD-SOP-ZL-003洁净室风速、换气",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_137__WYTD-SMP-ZL-010 质量目标管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_090__WYTD-QP-006 基础设施控制程序A0.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_046__WYTD-QP-001-002文件修订申请及评",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_012__WYTD-QP-021-003 退货单A0.d",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_107__WYTD-SMP-XS-002-001合格销售",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_071__WYTD-QP-010-016 BOMA0.x",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_101__WYTD-QP-030  顾客财产控制程序 A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_081__WYTD-QP-010-004 项目计划书A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_126__WYTD-SMP-ZL-004-001 菌种购",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_189__WYTD-SMP-SC-001-003洁净室清",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_013__WYTD-QP-021-002不合格品报废一览",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_029__WYTD-QP-004 管理评审控制程序A0.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_040__WYTD-QP-001-004 质量体系受控文",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_056__WYTD-QP-005-003 年度培训计划表",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_007__WYTD-QP-026-004 召回计划 A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_087__WYTD-QP-006-005 设备报废处理单",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_039__WYTD-QP-001-007文件领用申请单A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_204__1 WYTD-QP-010 设计与开发控制程序",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_195__WYTD-SMP-RL-003-001员工健康",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_181__WYTD-SMP-SC-013 解析管理规定 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_095__WYTD-QP-011-002合格供应商名录 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_171__WYTD-SMP-SC-007洁净室清洁工具管",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_152__WYTD-SMP-GY-001-003 供方评",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/5.2 05-OT-012结构需求说明文档 A1.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_178__WYTD-SMP-SC-008操作台，地面，墙",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_201__WYTD-SOP-ZL-002 洁净室沉降菌检",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_020__WYTD-QP-007 工作环境控制程序A0.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_141__WYTD-SMP-ZL-012 医疗器械唯一标",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_011__WYTD-QP-021-001不合格报告 A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_159__WYTD-SMP-GY-004-001 防虫害",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_030__WYTD-QP-004-003 管理评审报告A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_120__WYTD-SMP-ZL-013 实验室工作服管",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_024__WYTD-QP-003-001 内部信息联络处",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_068__WYTD-QP-028监视和测量控制程序A0.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_110__WYTD-SMP-XS-001-002售后服务",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_077__WYTD-QP-010-010 设计转换活动检",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_059__WYTD-QP-005-006 上岗证发行记录",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_085__WYTD-QP-006-003设备运行记录A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_146__WYTD-SMP-GY-003-006 退料单",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_142__WYTD-SMP-GY-003 仓库管理制度 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_188__WYTD-SMP-SC-001生产部卫生管理制",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_199__WYTD-SOP-ZL-004-001 洁净区",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_018__WYTD-QP-025-004  医疗器械不良",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_100__WYTD-QP-014 灭菌过程和无菌屏障系统",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_130__WYTD-SMP-ZL-009-003 化学试",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_193__WYTD-SMP-RL-001 岗位职责汇编 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_119__WYTD-SMP-ZL-008实验室安全管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_099__WYTD-QP-011 采购控制程序 A2.d",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_149__WYTD-SMP-GY-003-007 销售出",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_032__WYTD-QP-024-001 纠正预防措施记",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_161__WYTD-SMP-SC-012 工艺用气管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_145__WYTD-SMP-GY-003-002 领料单",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_042__WYTD-QP-001 文件控制程序 A4.d",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_207__9 05-SOP-016 自动超声造影注射系统",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_122__WYTD-SMP-ZL-007 产品批号管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_177__WYTD-SMP-SC-014 有源车间管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_200__WYTD-SOP-ZL-004 洁净区操作人员",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/CH5.3 产品使用信息.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_112__WYTD-SMP-XS-001-001 退换货",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_033__WYTD-QP-024-002 纠正预防措施台",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_073__WYTD-QP-010 设计与开发控制程序A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_054__WYTD-QP-020 内部审核控制程序 A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_113__WYTD-SMP-YF-001产品主文档管理制",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_051__WYTD-QP-020-001 年度内部质量审",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_062__WYTD-QP-016产品防护控制程序A0.d",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_028__WYTD-QP-004-001 管理评审计划A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_025__WYTD-QP-003-002 会议记录表A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_135__e7d4435b90b44ca1b8b6f7e",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_041__WYTD-QP-001-005 质量体系文件模",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_082__WYTD-QP-010-015 工艺流程图A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_008__WYTD-QP-026 产品召回控制程序 A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_179__WYTD-SMP-SC-005洁净室设备清洁消",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_096__WYTD-QP-011-003 采购订单 A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_124__WYTD-SMP-ZL-004-002 菌种的",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_116__WYTD-SMP-ZL-006-004留样销毁",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_176__WYTD-SMP-SC-004 洁净区空间消毒",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_174__WYTD-SMP-SC-003 工作服管理规定",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_105__WYTD-QP-023数据分析控制程序A0.d",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_067__WYTD-QP-019-001 忠告性通知 A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_129__WYTD-SMP-ZL-009实验室试剂管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_185__WYTD-SMP-SC-001-004 人员手",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_167__WYTD-SMP-SC-002-002 消毒剂",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_080__WYTD-QP-010-009 设计确认报告A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_186__WYTD-SMP-SC-001-001 外来人",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_047__WYTD-QP-027向监管机构报告控制程序A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_136__WYTD-SMP-ZL-002物料放行管理规定",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_127__WYTD-SMP-ZL-004-003 菌种传",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_035__WYTD-QP-018-001 顾客信息反馈单",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_143__WYTD-SMP-GY-003-001 货位卡",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_160__WYTD-SMP-GY-002 采购分类管理制",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_005__WYTD-QP-026-002 召回公告 A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_004__WYTD-QP-026-003 医疗器械召回事",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_157__WYTD-SMP-GY-005 物料编码管理规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_166__WYTD-SMP-SC-002-003物料存放",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/CH5.3 产品使用信息.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_065__WYTD-QP-009 与顾客沟通控制程序A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_133__WYTD-SMP-ZL-003成品放行管理规定",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_060__WYTD-QP-005 人力资源控制程序 A1",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_034__WYTD-QP-018-002 顾客满意度调查",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_066__WYTD-QP-019忠告性通知控制程序A0.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_015__WYTD-QP-025-001 可疑医疗器械不",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_155__WYTD-SMP-GY-001-001 供应商",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_098__WYTD-QP-011-004 质量保证协议 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_002__WYTD-QP-002-001记录销毁登记表A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_009__WYTD-QP-026-001 调查评估报告 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_192__WYTD-SMP-RL-001-001 任命书",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_194__WYTD-SMP-RL-003员工健康管理制度",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_123__WYTD-SMP-ZL-004菌种传代与保藏管",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_055__WYTD-QP-005-004 培训记录表 A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_092__WYTD-QP-012-002生产指令A1.d",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_111__WYTD-SMP-XS-001售后服务制度 A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_057__WYTD-QP-005-002 花名册A0.x",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_083__WYTD-QP-010-001 市场调查报告A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_063__WYTD-QP-013 生产和服务过程验证控制",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_191__WYTD-SMP-RL-002-001部门负责",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_182__WYTD-SMP-SC-015 无菌工作服管理",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_106__WYTD-QM-001质量手册 A1.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_049__WYTD-QP-020-002 内部质量审核实",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_037__WYTD-QP-001-003文件借阅登记表A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_148__WYTD-SMP-GY-003-005 成品入",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_023__WYTD-QP-003 职责、权限及内部信息沟",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_103__WYTD-QP-017 监视和测量设备控制程序",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_017__WYTD-QP-025不良事件监视和再评价控制",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_125__WYTD-SMP-ZL-004-004 菌种销",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_036__WYTD-QP-018顾客信息反馈及投诉控制程",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_048__WYTD-QP-020-003 内审检查表 A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_184__WYTD-SMP-SC-011 环氧乙烷用气管",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_093__WYTD-QP-012-001生产计划表A1.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_109__WYTD-SMP-XS-002-002 经销商",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_190__WYTD-SMP-RL-002部门负责人考核、",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_147__WYTD-SMP-GY-003-004 出库单",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_175__WYTD-SMP-SC-004-001 洁净室",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_168__WYTD-SMP-SC-002 人员、物料进出",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_086__WYTD-QP-006-004 设备维修记录A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_094__WYTD-QP-012 生产过程控制程序A2.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_053__WYTD-QP-020-005 内部体系审核报",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_091__WYTD-QP-006-001 设备验收报告A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_043__WYTD-QP-001-001文件发放回收登记",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_006__WYTD-QP-026-005 召回计划实施情",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_150__WYTD-SMP-GY-001-005 供方业",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_164__cda2f5c966d94511b175825",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_134__WYTD-SMP-ZL-003-001 成品放",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_097__WYTD-QP-011-001采购申请单 A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_016__WYTD-QP-025-003  医疗器械不良",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_132__WYTD-SMP-ZL-005 检验抽样方案管",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_003__WYTD-QP-002 记录控制程序A1.do",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_203__13 WYTD-QP-007 工作环境控制程序",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_014__WYTD-QP-025-002调查报告（不良事",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_088__WYTD-QP-006-006 设备年度保养计",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_131__WYTD-SMP-ZL-009-002 试剂清",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_154__WYTD-SMP-GY-001 供应商考核管理",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_076__WYTD-QP-010-013 上市评估表A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_075__WYTD-QP-010-014 设计开发输出A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_070__WYTD-QP-010-003 设计和开发立项",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_114__WYTD-SMP-ZL-006-001留样登记",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_001__WYTD-QP-002-002质量记录总览表A",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_084__WYTD-QP-010-012 设计变更通知单",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_072__WYTD-QP-010-002 技术可行性分析",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_144__WYTD-SMP-GY-003-003 采购入",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_074__WYTD-QP-010-005 产品设计规范 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_089__WYTD-QP-006-002 设备台账A0.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_202__WYTD-SOP-ZL-001 洁净室悬浮粒子",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_102__WYTD-QP-031 灭菌过程确认程序 A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_027__WYTD-QP-004-002 管理评审通知单",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_031__WYTD-QP-024纠正预防措施控制程序A0",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_205__6 WYTD-QP-010-005 产品设计规",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/OTHER_TECHNICAL_DOCS/SOP_019__WYTD-QP-015 产品标识和追溯控制程序",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/IFU/IFU_001__1 IFU of Bubble Study System20260331.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/GSPR/GSPR_001__30 GSPR checklist of Bubble Study Syst",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/GSPR/GSPR_003__GSPR checklist - Non-Active Sterile.do",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/GSPR/GSPR_002__30 GSPR checklist - Active Non-Sterile",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOTA_LITERATURE/SOTA_003__模板 SOTA文献筛选纳排 文献纳排流程图 A0.do",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOTA_LITERATURE/SOTA_004__模板 SOTA正文 A1.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOTA_LITERATURE/SOTA_002__Annex 2 Literature search p",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOTA_LITERATURE/SOTA_001__Annex 1 Literature Search P",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_008__11 Software configuration management",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_032__50 软件测试方案.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/50 软件概要设计说明文档.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_016__4 Software Architectural Design Spec",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_051__软件页面及语音文字提示翻译英文(3).xlsx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_034__50 软件生存周期评估报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/50 软件详细设计说明文档.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_028__50.1 05-VR-039 软件生存周期评估报告  A0.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_020__51.2 网络安全漏洞评估报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_042__5 05-VR-007 软件验证与确认报告 A1 - 副本.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_001__WYTD-QP-029计算机软件确认控制程序A0.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_031__50 软件可追溯性分析报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_013__7 Software Verification Protocol.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_018__50 软件变更资料.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_030__50 软件测试报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_004__9 Software Release Control Procedure",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_033__50 软件验证与确认报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_009__2 Software Development Plan.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_007__1 IEC_62304_Checklist.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_019__50.1 05-VR-039 软件生命周期评估报告 A0.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_011__13 Software Maintenance Plan.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_023__16 05-VR-057 软件程序烧录过程确认报告 A1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_029__50 自研软件研究报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_024__50 软件开发任务计划书.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_025__50 软件概述.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/50.2 05-OT-026 软件需求说明文档 A1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_005__10 Software Release Record.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_012__8 Software Verification Report.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_014__12 Software Problem Resolution Proce",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_027__50 软件配置管理计划.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_022__50 软件配置项状态报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_006__3 Software Requirement Specification",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_052__标签信息 (软件About&注射管路套包)_检查清单 20260202.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_026__50.1 05-VR-039 软件生存周期评估报告 A1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/SW_021__16 05-VR-057 软件程序烧录过程确认报告A1.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/SOFTWARE/50 软件需求说明文档.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_009__43.1  附件4.1 丙烯腈-丁二烯-苯乙烯共聚物 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_024__79 附件3.1 河南强森商贸有限公司营业执照.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_023__79 附件6.5 纸塑袋检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_038__79 附件2.6 三联三通质控标准.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_061__43.1  附件9.2 透析纸检测阻菌性能报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_053__79 附件2.5 深圳市益心达医学新技术有限公司质量保",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_071__79 附件6.3 深圳市君昊医用吸塑包装有限公司质量保",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_057__79 附件2.7 三联三通检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_014__43.1 附件1.2 聚丙烯 检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_005__79 附件6.4 纸塑袋质控标准.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_026__43.1 附件3.2 聚丙烯 测试报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_030__79 附件4.5 空气过滤器质控标准.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_074__79 附件1.4 南昌麦迪康医疗器械厂营业执照.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_021__79 附件1.7 注射器检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_062__43 DY24010077C 双极 急毒 （静脉或腹腔",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_031__79 附件6.1 深圳市君昊医用吸塑包装有限公司营业执",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_006__79 附件5.2 汉高达贸易（深圳）有限公司质量保证协",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_040__41 耗材生物相容性评价报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_008__43 DY24010080C 细胞毒 MTT.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_011__79 附件1.6 注射器质控标准.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_002__43 DY24010079C GPMT致敏.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_054__43.1  附件9.1 透析纸资料.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_048__43 25090219-01-R02EN   凝血试验",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_069__79 附件1.1 江西泽方科医疗科技有限公司营业执照.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_016__43 25090219-01-R01CN  凝血试验报",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_001__79 附件4.2 苏州依美新科技有限公司质量体系证书.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_007__43.1 附件2.2 聚乙烯 MSDS 英文原文.pd",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_032__43.1  附件10.2 PETPE复合膜 急性全身毒",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_051__79 附件4.1 苏州依美新科技有限公司营业执照.pd",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_066__43.1  附件10.1 PETPE复合膜 辐照灭菌加",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_044__79 附件3.7 双外延长管质控标准.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_059__43.1  附件9.5 透析纸皮肤致敏试验 氯化钠.p",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_018__79 附件2.4 深圳市益心达医学新技术有限公司洁净车",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_020__43.1  附件9.6 透析纸皮肤致敏试验（芝麻油浸提",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_064__43.1 附件2.2 聚乙烯 MSDS 中文译文.pd",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_076__79 附件4.6 空气过滤器检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_045__79 附件1.8 注射器注册证.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_055__43.1  附件7.1 聚乙烯 性能说明.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_058__79 附件3.6 单内单外延长管质控标准.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_039__79 附件5.1 汉高达贸易（深圳）有限公司营业执照.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_070__79 附件2.1 深圳市益心达医学新技术有限公司医疗器",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_015__43.1  附件1.1 聚丙烯 检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_012__79 附件4.4 苏州依美新科技有限公司质量保证协议.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_043__41 耗材生物相容性评价报告.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_013__79 附件2.10 瓶塞穿刺器检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_004__43.1  附件6.1 丙烯腈-丁二烯-苯乙烯共聚物 ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_047__79 附件2.3 益心达质量体系证书 英文原文.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_046__43.1 附件2.1 聚碳酸酯 MSDS.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_022__79-原材料来料检验记录.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_050__43.1  附件9.7 透析纸细胞毒性中文（MTT）.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_049__79  附件3.6 单内单外延长管检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_037__43 DY24010082C 溶血国标法.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_003__79 附件3.5 河南强森商贸有限公司质量保证协议.p",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_073__43.1  附件5.1 一次性使用延长管注册证.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_029__43.1  附件9.4 透析纸皮肤刺激试验（氯化钠注射",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_077__79 附件3.4 河南驼人医疗器械集团有限公司洁净车间",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_034__43.1 PETPE复合膜 体外细胞毒性试验.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_067__79 附件1.5 南昌麦迪康医疗器械厂医疗器械生产许可",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_075__79 附件4.8 夹片检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_052__79 附件3.3 河南驼人医疗器械集团有限公司医疗器械",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_010__79 附件2.9 三联三通 医疗器械生产产品登记表.p",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_017__43.1 附件3.1 丙烯腈-丁二烯-苯乙烯共聚物 M",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_027__79 附件2.2 深圳市益心达医学新技术有限公司营业执",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_036__43.1 附件4.1 丙烯腈-丁二烯-苯乙烯共聚物 M",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_028__79 附件2.3 益心达质量体系证书 中文译文.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_078__41 设备生物相容性评价报告.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_072__43 DY24010081C 热原试验.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_079__41 设备生物相容性评价报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_042__79 附件1.3 江西泽方科医疗科技有限公司质量保证协",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_060__79 附件2.8 瓶塞穿刺器质控标准.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_080__42 血压袖带生物学试验报告 细胞毒性.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_063__43 DY24010078C 双极 皮内反应.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_065__79 附件3.2 河南驼人医疗器械集团有限公司营业执照",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_019__79 附件4.7 夹片质控标准.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_035__79 附件4.3 苏州依美新科技有限公司洁净车间检测报",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_025__79 附件1.2 江西泽方科医疗科技有限公司医疗器械经",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_056__79 附件5.3 UV胶水 合格证书.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_068__79 附件3.9 一次性使用延长管注册证.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_033__43.1  附件9.3 透析纸（老化五年）中文.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/BIOCOMPATIBILITY/BIO_041__79 附件3.8 双外延长管检验报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_024__62 05-VR-035 产品有效期验证报告 A1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_038__55 整机测试报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_020__2 TR2512240502 Transportation ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_032__71 ZTWBG240913002-0001 一次性使用造影",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_025__14 06-VR-007 一次性使用造影注射器及附件粘接工艺",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_022__6 Usability Verification Repor",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_021__3 Product Verification Report.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_018__CTL2509262063-Y EN60601-1TestR",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_074__62 05-VR-035 Product Lifetime ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_040__60 可用性验证报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_050__CTL2509262065-Y Test Report  E",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_002__74 Cleanroom Environmental Tes",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_009__57 耗材性能验证报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_015__2 06E-VR-014 Products Combined",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_051__CTL2509262064-Y Test report(1)",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_035__62 05-VR-035 产品有效期验证报告 A1.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_049__60 可用性验证报告20230818.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_016__80 -联合使用验证报告 （预审查后完善）.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_006__8 Dispensing Process Verificat",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_013__82 清洁、消毒验证报告 A0 - 副本.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_052__CTL2509262063-Y Test Report  E",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_012__2 05E-VR-035 Product Lifetime ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_019__CTL2509262065-YTestReportEN606",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_017__80 联合使用验证报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_008__63.3 06-VR-003 一次性使用造影注射器及附件有效",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_065__5 05-VR-036 整机测试报告 A1 - 副本.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_010__4 05E-VR-042 Product Cleaning ",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_007__8 05-VR-061 自动超声造影注射系统点胶工艺验证报告",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_001__WYTD-QP-010-008 设计验证报告A0.doc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_011__82 清洁、消毒验证报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/TEST_REPORTS/TEST_023__20 06-VR-002 一次性造影注射器及附件环氧乙烷灭菌",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_002__1 Clinical Trial Protoc",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_004__65 临床试验方案1.1版本 阜外医院.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/002_Clinical Trial Protocol.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_006__65 临床试验方案1.0版本的修改及修改理由.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/001_Clinical Trial Report.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_016__65 临床试验方案1.0版本_部分2.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/001_Clinical Trial Report.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_011__65 临床试验C-TEE和C-TCD的分布情况",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_019__65 临床试验方案1.1版本 河北医大一医院.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_012__65 临床试验报告1.1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_026__28 Noninvasive BP clini",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_007__65 临床试验中心小结表 襄阳市中心医院.pd",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_015__65 临床试验方案1.0版本_部分1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_021__65 临床试验受试者检出结果不一致的说明.pd",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_020__65 -临床试验评价者的相关说明.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_028__28 Medical device clini",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_003__5 Clinical Trial Report",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_010__65 临床试验试验设计和评价指标的科学合理性说",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/002_Clinical Trial Protocol.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_005__65 临床试验不良事件发生情况的说明.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_001__65 临床试验报告1.1.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_014__65 临床试验方案1.1版本 襄阳市中心医院.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_013__65 临床试验中心小结表 河北医大一医院.pd",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_008__65 临床试验中心小结表 阜外医院.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_017__65 -临床试验使用型号典型性说明.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/CLINICAL_EVIDENCE/CLINEV_009__65 临床试验目标值和靶值的设定依据说明.pd",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_008__自动超声造影注射系统生产过程PFMEA.xlsx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_015__38 国内的设备风险管理报告WYTD-QP-010-002 风险管理报告 A2.",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_003__WYTD-QP-022-004风险评价和风险控制措施记录表 A0.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_016__38 Risk Management Report of System.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_020__38 更新中的设备Risk Management Report.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_004__WYTD-QP-002-001风险管理计划A1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_006__WYTD-QP-022 风险管理控制程序 A1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_014__文件编号 Risk Management Report.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_010__40 耗材风险管理报告.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_011__39 耗材风险管理计划.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_027__38 更新中的设备Risk Management Report.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_007__38 Risk Management Report of System.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_009__37 Risk Management Plan of System.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_023__37&39 Risk Management Plan.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_005__WYTD-QP-022-003危害判定和初始风险控制方案分析 A0.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_012__文件编号 Risk Management Plan.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_001__WYTD-QP-002-002风险管理报告A1.pdf",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_013__IEC 60601-1.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_002__WYTD-QP-022风险管理控制程序A1.docx",
+      "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/RMF/RMF_017__38 国内的风险管理计划WYTD-QP-022-001 风险管理计划_A1_20"
+    ],
+    "clean": true
+  },
+  "section_defense_context": {
+    "_source": "section_defense_rules.json (AUDIT_ARCHIVE R2)",
+    "chapters": {
+      "1 Summary": {
+        "chapter_id": "CER-00",
+        "writer_guard_prompt": "You are writing §1 Summary of a Clinical Evaluation Report. RULES: (1) NEVER introduce new evidence or data here — only summarize what follows; (2) Include: device name, intended purpose, evaluation type, key evidence sources, and overall conclusion; (3) Keep length between 200-800 words; (4) Ensure conclusion strength matches §5 exactly — do not strengthen or weaken; (5) Use present tense; (6) No tables in this section.",
+        "defense_point_count": 4,
+        "common_defects": [
+          "TM-001",
+          "DT-001"
+        ]
+      },
+      "0 Scope": {
+        "chapter_id": "CER-01",
+        "writer_guard_prompt": "You are writing §0 Scope & Introduction. RULES: (1) Define the scope and objectives of the clinical evaluation; (2) Identify the device name, model, and manufacturer; (3) Reference applicable regulations (MDR Art 61) and standards; (4) State the evaluation approach (literature-only / clinical investigation / combined); (5) Keep concise.",
+        "defense_point_count": 2,
+        "common_defects": [
+          "TM-001",
+          "DT-001"
+        ]
+      },
+      "2.1 Device Description": {
+        "chapter_id": "CER-02",
+        "writer_guard_prompt": "You are writing §2 Scope / Device Description. RULES: (1) Device identity MUST include: name, model/variant, EMDN code, MDR Class+Rule, intended purpose — this is NON-NEGOTIABLE; (2) If multiple variants exist, describe EACH with functional differences; (3) Include: contraindications, warnings, precautions, intended users, intended environment; (4) Describe previous generations and design evolution; (5) Include marketing history (authorized countries, sales data if available); (6) Use present tense; (7) Passive voice acceptable for technical descriptions; (8) Sentence length 22-32 words average; (9) Every Table/Figure must be referenced in text.",
+        "defense_point_count": 7,
+        "common_defects": [
+          "DO-001",
+          "GS-001",
+          "TM-001"
+        ]
+      },
+      "2.2 Intended Purpose": {
+        "chapter_id": "CER-03",
+        "writer_guard_prompt": "You are writing §2 Intended Purpose & Indications. RULES: (1) EXPLICITLY state intended medical indication and purpose; (2) List ALL indications and contra-indications; (3) Define target population (age, condition, anatomical location); (4) Define intended users (clinical specialty, training level); (5) Ensure 100% consistency with IFU — any deviation is a Blocker defect.",
+        "defense_point_count": 2,
+        "common_defects": [
+          "LB-001",
+          "GS-001"
+        ]
+      },
+      "3 SOTA": {
+        "chapter_id": "CER-04",
+        "writer_guard_prompt": "You are writing §3 Clinical Background / SOTA. CRITICAL RULES: (1) MUST answer three core questions before writing: Q1=What is the gold standard? Q2=What is the safety risk differential vs gold standard? Q3=Is this unmet need or optimization?; (2) MUST include Safety and Performance Endpoints table with SOTA benchmark values — this is NON-NEGOTIABLE; (3) Disease epidemiology MUST include prevalence/incidence with citations; (4) Alternative treatments MUST cover all categories: pharmacological, surgical, interventional, other devices; (5) Clinical guidelines MUST be cited with year and issuing body; (6) Known hazards MUST be listed; (7) SOTA conclusions MUST explicitly frame the evidentiary questions for §4; (8) Use present tense for disease description, past tense for study history; (9) Paragraph length 25-40 words.\n\n---\n\nYou are writing §4.1 Type of Evaluation. RULES: (1) EXPLICITLY state the evaluation type: literature-only / clinical investigation / combined; (2) JUSTIFY why this type is appropriate for the device's risk class and novelty; (3) REFERENCE the Clinical Evaluation Plan; (4) If clinical investigation path: mention study design, population, endpoints; (5) If literature-only path: explain why sufficient published evidence exists; (6) Keep concise — this is a declarative section.",
+        "defense_point_count": 11,
+        "common_defects": [
+          "EV-002",
+          "ST-001"
+        ]
+      },
+      "4 Device Under Evaluation": {
+        "chapter_id": "CER-05",
+        "writer_guard_prompt": "You are writing §4.2 Demonstration of Equivalence. CRITICAL RULES: (1) FIRST sentence must declare: 'Equivalence is [claimed / not claimed]'; (2) If CLAIMED: MUST include three-dimension comparison table (Technical / Biological / Clinical) per MDR Art 61; (3) If CLAIMED: intended purpose MUST be IDENTICAL — this is NON-NEGOTIABLE; (4) Every 'Different' or 'Similar' entry MUST have impact justification ending with 'does not affect clinical safety and performance because...'; (5) MUST reference §2 device specs ≥3 times; (6) Equivalent device MUST be EU-authorized (CE marked); (7) If NOT claimed: MUST include Similar Devices table for market positioning; (8) Use standard wording: 'Substantially equivalent' / 'Equivalent with minor differences' / 'Not equivalent'; (9) Reference MEDDEV 2.7/1 Rev.4 and MDCG 2020-5 in opening.",
+        "defense_point_count": 7,
+        "common_defects": [
+          "DT-001",
+          "EQ-001",
+          "GS-001",
+          "DO-001",
+          "EV-001"
+        ]
+      },
+      "4.7 GSPR Analysis": {
+        "chapter_id": "CER-06",
+        "writer_guard_prompt": "You are writing §4 Evidence Analysis (the largest and most critical section). ABSOLUTE RULES: (1) GSPR analysis MUST cover GSPR 1, 6, 8 minimum; (2) EACH GSPR MUST cite ≥2 evidence types (standard, pre-clinical, clinical, literature, vigilance); (3) EACH GSPR MUST follow 5-paragraph structure: Requirement → Sources → Summary → Analysis → Conclusion; (4) Benefit-risk analysis MUST quantify benefits AND risks with rates/percentages; (5) Vigilance data MUST cover ≥2 databases (MHRA+BfArM+FDA minimum); (6) Literature search MUST document: databases, terms, inclusion/exclusion, dates, executors; (7) ALL numerical data MUST be consistent across §4 subsections — cross-check before finalizing; (8) Standards conformance table MUST list all applicable harmonized standards; (9) Use past tense for study results, present tense for analysis conclusions; (10) Sentence length 25-30 words for analysis paragraphs.",
+        "defense_point_count": 12,
+        "common_defects": [
+          "EV-001",
+          "EV-002",
+          "GS-001",
+          "BR-001",
+          "CL-001",
+          "DT-001",
+          "RM-001",
+          "PM-001"
+        ]
+      },
+      "5 Conclusions": {
+        "chapter_id": "CER-07",
+        "writer_guard_prompt": "You are writing §6 Benefit-Risk Analysis. CRITICAL RULES: (1) QUANTIFY all benefits and risks with rates/percentages where possible; (2) Document ALL risk control measures from ISO 14971; (3) Assess RESIDUAL risk after controls; (4) Provide EXPLICIT overall benefit-risk conclusion using 'acceptable when weighed against the benefits' phrasing; (5) Reference MDR Annex I GSPR requirements.",
+        "defense_point_count": 4,
+        "common_defects": [
+          "BR-001",
+          "RM-001"
+        ]
+      },
+      "6 Next Evaluation": {
+        "chapter_id": "CER-08",
+        "writer_guard_prompt": "You are writing §5 Conclusions. CRITICAL RULES: (1) MUST contain EXACTLY these 6 elements: Limitations + Overall Conformity + Safety + Performance + Benefit-Risk + Next Evaluation; (2) EACH conclusion MUST be traceable to §4 evidence — if you cannot find the evidence, DO NOT write the conclusion; (3) NEVER introduce new evidence here; (4) Conclusion strength MUST match evidence: strong evidence → 'confirms/demonstrates', moderate → 'indicates/supports', weak → 'is consistent with'; (5) EACH sentence = ONE judgment only — no clause stacking; (6) Use present tense; (7) Keep 150-300 words total; (8) Industry standard limitation wording is acceptable: 'The limitations...unpublished documents about negative result cannot be examined.'; (9) Benefit-risk conclusion MUST use 'acceptable when weighed against the benefits' phrasing.",
+        "defense_point_count": 10,
+        "common_defects": [
+          "BR-001",
+          "DT-001"
+        ]
+      },
+      "7 Qualification": {
+        "chapter_id": "CER-09",
+        "writer_guard_prompt": "You are compiling Annexes. RULES: (1) Literature List: MUST include ALL literature cited in §4.4/§4.5 with full bibliographic details; (2) Search Strategy Annex: include screenshots or full text of database searches; (3) Equivalence Table Annex: if §4.2 has summary, Annex has FULL detailed version; (4) Standards List: all standards from §4.3.1 with complete designations; (5) Vigilance Records: screenshots of database searches; (6) CRITICAL: every Annex MUST be referenced ≥1 time in main text — orphan annexes are NOT allowed; (7) Number Annexes sequentially (Annex 1, Annex 2...); (8) Each Annex must have a title page.",
+        "defense_point_count": 7,
+        "common_defects": [
+          "EV-002",
+          "EQ-001",
+          "GS-001",
+          "DT-001"
+        ]
+      },
+      "Annexes": {
+        "chapter_id": "CER-10",
+        "writer_guard_prompt": "You are writing §6-§9 Administrative Sections. RULES: (1) §6 Next Evaluation: specify date or trigger condition; (2) §7 Qualification: list evaluator names, titles, qualifications; (3) §8 Declaration: include conflict of interest statement; (4) §9 Signatures: include approval dates and signature placeholders; (5) These sections are template-driven — ensure no template placeholders remain (TM-001 risk); (6) Keep minimal — administrative only, no technical content.",
+        "defense_point_count": 4,
+        "common_defects": [
+          "TM-001",
+          "DT-001",
+          "EV-001"
+        ]
+      }
+    }
+  },
+  "structured_knowledge_context": {
+    "_source": "cer_04_answers.json + cer_05_tables.json (AUDIT_ARCHIVE R5)",
+    "summary_template": {
+      "framework": "六要素完整框架 (Six-Element Summary Framework)",
+      "elements": [
+        "Device Identity",
+        "Indication/Intended Purpose",
+        "Evidence Base Overview",
+        "Benefit-Risk Balance",
+        "Uncertainties and Gaps",
+        "Overall Conclusion"
+      ],
+      "source_sections": [
+        {
+          "level": 4,
+          "title": "落地方法 — 六要素完整框架"
+        },
+        {
+          "level": 4,
+          "title": "落地方法 — 标准结论六要素"
+        },
+        {
+          "level": 3,
+          "title": "5G.3 结论与摘要（Summary）的区别是什么？"
+        }
+      ]
+    },
+    "gspr_template": {
+      "framework": "五段式 GSPR 分析模板 (Five-Paragraph GSPR Template)",
+      "paragraphs": [
+        "条款引用 (GSPR Clause Reference)",
+        "证据摘要 (Evidence Summary)",
+        "符合性声明 (Conformity Statement)",
+        "差距分析 (Gap Analysis)",
+        "交叉引用 (Cross-Reference to Other Sections)"
+      ],
+      "source_sections": [
+        {
+          "level": 2,
+          "title": "5C GSPR 分析（General Safety and Performance Requirements）"
+        },
+        {
+          "level": 3,
+          "title": "5C.1 GSPR 分析应放在哪个章节？"
+        },
+        {
+          "level": 3,
+          "title": "5C.2 GSPR 分析的基本结构是什么？"
+        },
+        {
+          "level": 4,
+          "title": "落地方法 — 五段式 GSPR 分析模板"
+        },
+        {
+          "level": 3,
+          "title": "5C.3 如何处理 GSPR 条款的交叉引用？"
+        }
+      ]
+    },
+    "wording_strength_map": {
+      "强（多项 RCT / 大样本临床）": {
+        "recommended": "\"confirms\", \"demonstrates\", \"establishes\"",
+        "avoid": "\"suggests\""
+      },
+      "中（队列研究 / 小样本临床）": {
+        "recommended": "\"indicates\", \"supports\", \"shows\"",
+        "avoid": "\"proves\""
+      },
+      "弱（病例系列 / 文献有限）": {
+        "recommended": "\"is consistent with\", \"does not contradict\"",
+        "avoid": "\"confirms\""
+      }
+    },
+    "table_type_mapping": [
+      {
+        "type": "器械描述表",
+        "cer_section": "CER-02",
+        "defect_count": "**21**",
+        "risk_level": "DO-001 (26条)"
+      },
+      {
+        "type": "安全性/PMS数据表",
+        "cer_section": "CER-06",
+        "defect_count": "**11**",
+        "risk_level": "GS-001 (9), PM-001 (3), EV-001 (6)"
+      },
+      {
+        "type": "文献评价/检索表",
+        "cer_section": "CER-05",
+        "defect_count": "**5**",
+        "risk_level": "EQ-001 (3), EV-001, CL-001"
+      },
+      {
+        "type": "临床背景/SOTA表",
+        "cer_section": "CER-03",
+        "defect_count": "**8**",
+        "risk_level": "LB-001 (4)"
+      },
+      {
+        "type": "获益风险分析表",
+        "cer_section": "CER-07",
+        "defect_count": "**1**",
+        "risk_level": "BR-001 (2)"
+      },
+      {
+        "type": "标准符合性表",
+        "cer_section": "CER-02",
+        "defect_count": "—",
+        "risk_level": "MF-001 (2), SW-001 (3)"
+      }
+    ],
+    "chapter_table_mapping": [
+      {
+        "chapter": "§1 Summary",
+        "table_type": "无",
+        "function": "全文摘要，不引入新表格",
+        "reference_direction": "引用下游表格结论"
+      },
+      {
+        "chapter": "§2 Scope",
+        "table_type": "器械描述表",
+        "function": "定义评价对象",
+        "reference_direction": "被§4.2/4.3引用"
+      },
+      {
+        "chapter": "§3 SOTA",
+        "table_type": "临床背景表",
+        "function": "建立疾病基线",
+        "reference_direction": "为§4.7提供对比基准"
+      },
+      {
+        "chapter": "§4.1 Type",
+        "table_type": "无",
+        "function": "纯文本说明",
+        "reference_direction": "-"
+      },
+      {
+        "chapter": "§4.2 Equivalence",
+        "table_type": "等效性论证表",
+        "function": "论证型式评价路径",
+        "reference_direction": "引用§2器械描述"
+      },
+      {
+        "chapter": "§4.3.1 Standards",
+        "table_type": "标准符合性表",
+        "function": "证明设计合规",
+        "reference_direction": "支撑§4.7结论"
+      },
+      {
+        "chapter": "§4.3.2 Pre-clinical",
+        "table_type": "生物相容性表",
+        "function": "证明生物学安全",
+        "reference_direction": "支撑GSPR14"
+      },
+      {
+        "chapter": "§4.3.3 Clinical Inv.",
+        "table_type": "患者数据表",
+        "function": "描述研究证据",
+        "reference_direction": "被§4.5/4.7引用"
+      },
+      {
+        "chapter": "§4.3.5 PMS",
+        "table_type": "上市后监管表",
+        "function": "补充真实世界证据",
+        "reference_direction": "支撑§4.7安全性"
+      },
+      {
+        "chapter": "§4.4 Literature",
+        "table_type": "检索协议表+文献评价表",
+        "function": "系统评价文献",
+        "reference_direction": "生成§4.5"
+      },
+      {
+        "chapter": "§4.5 Appraisal",
+        "table_type": "文献评价表",
+        "function": "评价证据质量",
+        "reference_direction": "生成§4.7输入"
+      },
+      {
+        "chapter": "§4.7.1 Safety",
+        "table_type": "安全性数据表",
+        "function": "论证GSPR1安全",
+        "reference_direction": "引用§4.3/4.4/4.6"
+      },
+      {
+        "chapter": "§4.7.2 Benefit/Risk",
+        "table_type": "获益风险分析表",
+        "function": "论证GSPR1风险可接受",
+        "reference_direction": "引用§4.7.1/4.7.3"
+      },
+      {
+        "chapter": "§4.7.3 Performance",
+        "table_type": "性能/获益表",
+        "function": "论证GSPR1性能",
+        "reference_direction": "引用§4.3/4.4/4.5"
+      },
+      {
+        "chapter": "§4.7.4 Side-effects",
+        "table_type": "不良事件表",
+        "function": "论证GSPR8",
+        "reference_direction": "引用§4.3/4.6"
+      },
+      {
+        "chapter": "§5 Conclusions",
+        "table_type": "无",
+        "function": "综合判断，不引入新表格",
+        "reference_direction": "引用所有上游表格"
+      },
+      {
+        "chapter": "§6 Next eval.",
+        "table_type": "无",
+        "function": "纯文本",
+        "reference_direction": "-"
+      },
+      {
+        "chapter": "§7 Qualification",
+        "table_type": "签批表",
+        "function": "证明评估人资质",
+        "reference_direction": "独立支撑"
+      }
+    ],
+    "mandatory_fields": [
+      {
+        "table_type": "器械描述表",
+        "required_field_count": "4个 (Name/Model/EMDN/Class)",
+        "consequence_of_missing": "无法定位器械身份",
+        "check_method": "与说明书交叉核对"
+      },
+      {
+        "table_type": "等效性论证表",
+        "required_field_count": "6个 (临床/技术/生物各2个维度)",
+        "consequence_of_missing": "等效性论证不充分",
+        "check_method": "MEDDEV 2.7.1 Rev.4 核对"
+      },
+      {
+        "table_type": "检索协议表",
+        "required_field_count": "5个 (Database/Date/Terms/Hits/Relevant)",
+        "consequence_of_missing": "检索可重复性质疑",
+        "check_method": "PRISMA核对"
+      },
+      {
+        "table_type": "文献评价表",
+        "required_field_count": "8个 (No/Author/Design/N/Level/Score/Finding/Limitation)",
+        "consequence_of_missing": "证据质量不可评估",
+        "check_method": "Oxford CEBM核对"
+      },
+      {
+        "table_type": "安全性数据表",
+        "required_field_count": "5个 (Event/Severity/Related/Expected/Outcome)",
+        "consequence_of_missing": "安全信号遗漏",
+        "check_method": "ISO 14971核对"
+      },
+      {
+        "table_type": "性能/获益表",
+        "required_field_count": "6个 (Endpoint/Benefit/Parameter/Benchmark/Result/Conclusion)",
+        "consequence_of_missing": "性能无法量化",
+        "check_method": "SOTA文献核对"
+      },
+      {
+        "table_type": "获益风险表",
+        "required_field_count": "4个 (Benefit/Risk/Quantification/Acceptability)",
+        "consequence_of_missing": "风险收益不明",
+        "check_method": "MDR Annex I核对"
+      },
+      {
+        "table_type": "标准符合性表",
+        "required_field_count": "4个 (Category/Standard/Name/Status)",
+        "consequence_of_missing": "合规性缺失",
+        "check_method": "测试报告核对"
+      }
+    ],
+    "gspr_depth_config": {
+      "mode": "grouped",
+      "description": "按临床主题分组(GSPR安全/GSPR性能/GSPR风险), 每组五段式"
+    },
+    "sentence_templates": {
+      "device_purpose": "The [Device] is designed/intended for [clinical purpose].",
+      "working_principle": "The device uses [technology] to [achieve effect].",
+      "specifications": "The main specifications include [param1], [param2], [param3].",
+      "evidence_summary": "Based on the available [data/evidence], [N] studies were identified.",
+      "compliance_statement": "The device meets the requirements of [standard/regulation].",
+      "analysis_conclusion": "The analysis demonstrates that [finding], supported by [evidence].",
+      "negative_finding": "No [event/complication] was observed/reported. However, [limitation].",
+      "comparison": "Compared with [benchmark], the device shows [similar/different] [characteristic].",
+      "overall_conclusion": "In conclusion, the clinical evidence [supports/does not support] the safety and performance.",
+      "gspr_compliance": "GSPR [N] is satisfied through [evidence type] as documented in [section]."
+    },
+    "paragraph_structures": {
+      "§1 Summary": [
+        "Device Identity",
+        "Evidence Base",
+        "Uncertainties",
+        "Overall Conclusion"
+      ],
+      "§2 Scope": [
+        "Device Description",
+        "Intended Purpose",
+        "Contraindications",
+        "Previous Generations",
+        "Marketing History"
+      ],
+      "§3 SOTA": [
+        "Clinical Background",
+        "Alternative Treatments",
+        "Guidelines",
+        "Benchmark Endpoints"
+      ],
+      "§4 Evidence": [
+        "Search Results",
+        "Study Characteristics",
+        "Key Findings",
+        "Quality Appraisal"
+      ],
+      "§5 Conclusions": [
+        "Summary Statement",
+        "Claim-by-Claim Conclusions",
+        "Next Steps"
+      ]
+    },
+    "cross_reference_rules": {
+      "annex_to_body": "Every Annex table must be referenced in body text",
+      "claim_to_evidence": "Every conclusion must cite evidence_id or gap_id",
+      "gspr_to_sota": "GSPR analysis must reference SOTA benchmarks from §3"
+    }
+  },
+  "device_heuristics_context": {
+    "_source": "device_heuristics.json (AUDIT_ARCHIVE R4)",
+    "_heuristic_count": 8,
+    "heuristics": {
+      "HEU-001": {
+        "name": "Equivalence Demonstration Three-Step Decision",
+        "category": "clinical_evidence",
+        "description": "Universal decision framework for whether and how to conduct equivalence demonstration",
+        "rule_count": 5,
+        "injection_points": []
+      },
+      "HEU-002": {
+        "name": "GSPR Five-Segment Analysis Template",
+        "category": "regulatory_compliance",
+        "description": "Universal GSPR analysis structure that satisfies NB review expectations across all device categories",
+        "rule_count": 4,
+        "injection_points": []
+      },
+      "HEU-003": {
+        "name": "Conclusion Six-Element Structure",
+        "category": "document_structure",
+        "description": "Universal conclusion structure ensuring NB reviewers can verify every claim is evidence-backed",
+        "rule_count": 4,
+        "injection_points": []
+      },
+      "HEU-004": {
+        "name": "SOTA Three-Core Questions Framework",
+        "category": "clinical_evidence",
+        "description": "Universal framework for structuring SOTA section that satisfies both clinical rigor and NB review expectations",
+        "rule_count": 4,
+        "injection_points": []
+      },
+      "HEU-005": {
+        "name": "Device Description Completeness Checklist",
+        "category": "document_structure",
+        "description": "Cross-domain universal checklist ensuring device description satisfies all NB bodies' #1 concern (DO-001 at 40.6%)",
+        "rule_count": 5,
+        "injection_points": []
+      },
+      "HEU-006": {
+        "name": "Clinical Evidence Hierarchy Universal Requirements",
+        "category": "clinical_evidence",
+        "description": "Cross-domain rules for clinical evidence sufficiency based on MDR Article 61 and NB review patterns",
+        "rule_count": 5,
+        "injection_points": []
+      },
+      "HEU-007": {
+        "name": "CER Writing Style Uniform Rules",
+        "category": "document_quality",
+        "description": "Cross-domain writing style rules ensuring CER readability and regulatory professionalism",
+        "rule_count": 5,
+        "injection_points": []
+      },
+      "HEU-008": {
+        "name": "Cross-Chapter Consistency Validation Rules",
+        "category": "document_integrity",
+        "description": "Universal rules ensuring data consistency across CER chapters — prevents DT-001 data inconsistency findings",
+        "rule_count": 5,
+        "injection_points": []
+      }
+    }
+  },
+  "slot_template_context": {
+    "_source": "deerflow_injection/slot_templates.json (25 templates)",
+    "_total_templates": 25,
+    "templates": {
+      "slot.device_name": "{device_name}",
+      "slot.device_class": "Class {device_class}",
+      "slot.sota_benchmark": "{benchmark_value} ({confidence})",
+      "slot.gspr_number": "GSPR {gspr_id}",
+      "slot.claim_text": "{claim_text}",
+      "slot.evidence_summary": "{evidence_count} records, {high_weight} high-weight, {medium_weight} medium-weight",
+      "slot.alignment_status": "{supported} supported, {partial} partial, {unsupported} unsupported",
+      "slot.gap_register": "{gap_count} open gaps ({gap_ids})",
+      "slot.vigilance_summary": "{vig_count} database searches, {signal_count} relevant signals",
+      "slot.br_profile": "{favorable} favorable, {uncertain} uncertain of {total} ledger entries",
+      "writer.chapter_template": "Write {chapter_name} using data from {input_data_spec}",
+      "writer.evidence_paragraph": "Based on {evidence_count} sources ({weight_distribution}), {device_name} {conclusion_wording}",
+      "writer.gspr_analysis": "Regarding {gspr_id} ({requirement_summary}), the available evidence includes {sources}. The analysis demonstrates that {reasoning}. Therefore, the device {compliance_judgment}.",
+      "writer.benefit_risk_narrative": "The benefit-risk profile of {device_name} is assessed across {ledger_count} dimensions. {favorable_count} dimensions are favorable, {uncertain_count} uncertain. The overall profile is {overall_balance} with {uncertainty_count} residual uncertainties.",
+      "writer.conclusion_guard": "Conclusion wording is constrained to {allowed_strength}. Prohibited wording: {prohibited_terms}. Basis: {guard_reason}.",
+      "writer.sota_context": "The SOTA benchmark for {endpoint} is {benchmark_value} (confidence: {confidence}). {device_name} {comparison_result} this benchmark based on {evidence_basis}.",
+      "writer.gap_statement": "Evidence gap for {claim_id}: {gap_description}. Impact: {impact_level}. Recommended PMCF measure: {pmcf_measure} with target timeline {timeline}.",
+      "gap.insufficient_evidence": "Evidence gap for {claim_id}: {gap_description}. Current evidence: {current_count} records ({current_weight}). Recommended: {pmcf_measure} within {timeline}.",
+      "gap.missing_endpoint": "No SOTA benchmark available for {endpoint}. Suggested clinical alternatives: {alternatives}. If no alternative is clinically equivalent, flag as PMCF requirement.",
+      "gap.missing_fulltext": "Full text not available for {evidence_count} records ({evidence_ids}). These records cannot support pivotal conclusions. Recommended: acquire full text or downgrade to supportive only.",
+      "gap.follow_up_insufficient": "Available follow-up ({available_follow_up}) is inadequate for {device_class} device expected surveillance period ({expected_follow_up}). Gap: {gap_years} years. Recommended: PMCF study with minimum {required_follow_up} follow-up.",
+      "gap.population_mismatch": "Study population ({study_population}) does not fully match IFU target population ({ifu_population}). Transferability requires documented justification. Without justification, evidence weight is downgraded.",
+      "gap.sample_size_insufficient": "Sample size ({actual_n}) below threshold for {device_class} ({required_n}). Statistical power analysis required. If power is inadequate, evidence can only support background/risk context.",
+      "gap.gspr_gap": "No clinical evidence mapped to {gspr_id} ({gspr_requirement}). This GSPR requirement must be addressed through {source_type} or flagged as a PMCF gap.",
+      "gap.equivalence_gap": "Equivalence argument for {device_name} vs {equivalent_device} is incomplete. Missing: {missing_dimensions}. Until all three dimensions (technical, biological, clinical) are documented, equivalence cannot be claimed per MDCG 2020-5.",
+      "nb_defense.DO-001_precheck": "Pre-check: verify all annexes are populated with actual data, not placeholder tables. Search protocol must include PRISMA flow. Evidence tables must be complete.",
+      "nb_defense.GS-001_precheck": "Pre-check: verify every clinical data item in §4.7 is explicitly linked to a GSPR number. Create a GSPR-to-evidence cross-reference table.",
+      "nb_defense.LB-001_precheck": "Pre-check: cross-reference CER §2.1 device description against IFU text. Verify device name, intended purpose, contraindications, and technical specs match exactly.",
+      "nb_defense.EV-001_precheck": "Pre-check: verify literature appraisal methodology is documented with defined criteria. Each evidence item must have: study design, population, endpoint, results, quality score, limitations.",
+      "nb_defense.PM-001_precheck": "Pre-check: verify PMCF plan has: specific objectives, measurable endpoints, target sample size, timeline, and method for each identified gap.",
+      "nb_defense.EQ-001_precheck": "Pre-check: verify equivalence comparison covers all three MDCG 2020-5 dimensions (technical, biological, clinical). Each difference must have an impact assessment.",
+      "nb_defense.CL-001_precheck": "Pre-check: verify claim conclusions do not exceed evidence strength. Cross-reference claim strength against evidence weight, sample size, and follow-up adequacy."
+    }
+  },
+  "remediation_templates": {
+    "DO-001": {
+      "defect_name": "器械描述缺陷 / Device Description Incomplete",
+      "frequency": {
+        "records": 26,
+        "percentage": 40.6,
+        "projects": 6,
+        "nb_bodies": [
+          "BSI",
+          "TUV SUD"
+        ]
+      },
+      "severity_profile": {
+        "Major": 25,
+        "Minor": 1
+      },
+      "cer_sections": [
+        "CER-02",
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-01",
+        "REG-MDR-01",
+        "REG-MDR-02"
+      ],
+      "remediation_template": {
+        "phase_1_document": [
+          "提取当前 CER §1 Device Description 全文",
+          "对照技术文档（设计输入、风险管理、IFU）核对规格参数完整性",
+          "列出所有缺失项：尺寸/材料/能量参数/软件版本/配套附件"
+        ],
+        "phase_2_enrich": [
+          "补充型号差异矩阵（Model-to-Model Comparison Table）",
+          "添加设计原理图/工作流程图引用（图号+版本）",
+          "明确关键性能参数（KPP）及其与宣称的关联"
+        ],
+        "phase_3_validate": [
+          "交叉验证：设备描述 ↔ IFU ↔ 标签 ↔ 风险管理文件",
+          "确认所有引用的型号/规格在技术上文件中有对应证据",
+          "运行 DO-001 自检清单（见 verification_checklist）"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有上市型号均已在 §1.1 中列出并区分",
+        "[ ] 每个型号的尺寸/材料/能量参数完整且带单位",
+        "[ ] 软件版本号（如适用）已明确标注",
+        "[ ] 设计原理/工作机制有图示或流程说明",
+        "[ ] 与 IFU 中的描述无矛盾",
+        "[ ] 引用的技术文档编号和版本号正确且可追踪"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出描述缺失项，要求补充型号差异/设计原理",
+        "r2_risk": "若仅补充文字未提供技术文档引用，NB 会追问 'where is the evidence?'",
+        "r2_recommended": "同时补充文字描述 + 引用具体技术文件编号 + 提供文件摘要或摘录",
+        "r3_persistent": "若涉及软件算法，需额外提供算法验证报告引用（BSI 常见追问）",
+        "escalation_pattern": "TÜV SÜD 倾向于在同一 DR 编号下追加追问；BSI 可能在不同 Review Dimension 中分别提问"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受补充，转向其他缺陷或关闭审评维度",
+        "partial": "NB 接受部分补充，但指出新增描述与其他章节矛盾（触发 DT-001）",
+        "rejected": "NB 认为补充仍不充分，要求提供原始设计文档或第三方验证报告"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "DO-001",
+        "auto_prompt_prefix": "【器械描述自检】在输出 CER §1 前，强制检查：1) 型号完整性 2) 参数完整性 3) 文档引用一致性",
+        "output_enforcement": "必须在 §1.1 中包含 Model Comparison Table；在 §1.2 中包含 Design Principle 引用"
+      },
+      "real_case_references": [
+        "PROJECT_011: 'The different product models listed have different dimensions... In what way are the models different?'",
+        "PROJECT_013: 'Device Description is incomplete regarding the energy delivery mechanism'",
+        "PROJECT_014: 'Novelty features not described; missing contraindications and patient population details'"
+      ]
+    },
+    "GS-001": {
+      "defect_name": "GSPR 覆盖不全 / GSPR Coverage Incomplete",
+      "frequency": {
+        "records": 9,
+        "percentage": 14.1,
+        "projects": 4,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 8,
+        "Minor": 1
+      },
+      "cer_sections": [
+        "CER-06",
+        "CER-02",
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDR-01",
+        "REG-ISO-01",
+        "REG-MDCG-01"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "获取最新版 GSPR 清单（MDR Annex I）",
+          "逐条核对：CER 中是否引用了每个 GSPR 的符合性证据",
+          "标记缺失项和 'N/A' 标注不当的条目"
+        ],
+        "phase_2_map": [
+          "构建 GSPR → 证据映射表（Evidence Mapping Table）",
+          "对每条 GSPR，明确：适用性(Yes/No/N/A)、证据来源、证据编号、CER 引用位置",
+          "对标注 N/A 的条目，提供充分的理由说明"
+        ],
+        "phase_3_integrate": [
+          "将 GSPR 映射表作为 CER Annex 或独立文件提交",
+          "在 CER 正文中增加 GSPR 引用锚点（如 'See GSPR Table entry GSPR-9.2'）",
+          "更新 DoC（符合性声明）确保与 GSPR 映射一致"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] MDR Annex I 所有 GSPR 条目均已覆盖（或明确标注 N/A 并附理由）",
+        "[ ] 每条 GSPR 均有对应的证据文件引用",
+        "[ ] GSPR 映射表版本号与 CER 版本号一致",
+        "[ ] DoC 中的标准引用与 GSPR 映射一致",
+        "[ ] N/A 标注均有书面理由，且理由符合 MDCG 指导原则"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出特定 GSPR 条目缺失引用（如 GSPR-9、GSPR-14）",
+        "r2_risk": "仅补充引用但未更新 DoC，NB 会指出 'DoC does not match GSPR table'",
+        "r2_recommended": "同步更新 GSPR 映射表 + DoC + CER 引用，三位一体",
+        "r3_persistent": "若 NB 质疑 N/A 理由，需提供行业惯例或类似产品的对比说明",
+        "escalation_pattern": "BSI 的 Technical Review Dimension 和 Main Job Dimension 可能分别提出 GSPR 问题"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 GSPR 映射表，关闭相关缺陷",
+        "partial": "NB 接受映射表但指出某些 GSPR 的证据等级不足（如仅引用内部测试而非标准测试）",
+        "rejected": "NB 认为 N/A 理由不充分，要求提供替代符合性证据"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "GS-001",
+        "auto_prompt_prefix": "【GSPR 自检】在输出 CER 前，强制要求：1) GSPR 映射表完整性 2) 每条 GSPR 有证据引用 3) DoC 与映射表一致性",
+        "output_enforcement": "必须生成 GSPR Evidence Mapping Table 作为 Annex；正文必须引用映射表"
+      },
+      "real_case_references": [
+        "BSI 典型表述: 'The documents have been found to be non-compliant with the requirements of 2017/745 MDR Chapter VI'",
+        "常见追问: 'GSPR-14.2 ( usability ) not adequately addressed in CER'"
+      ]
+    },
+    "EV-001": {
+      "defect_name": "临床证据不足 / Insufficient Clinical Evidence",
+      "frequency": {
+        "records": 6,
+        "percentage": 9.4,
+        "projects": 3,
+        "nb_bodies": [
+          "BSI",
+          "TUV SUD"
+        ]
+      },
+      "severity_profile": {
+        "Major": 6
+      },
+      "cer_sections": [
+        "CER-06",
+        "CER-05",
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-01",
+        "REG-MDR-01",
+        "REG-MDR-02"
+      ],
+      "remediation_template": {
+        "phase_1_assess": [
+          "评估当前临床证据缺口：缺失的是安全性数据还是性能数据？",
+          "区分证据类型需求：文献数据 / 等同器械数据 / 自有临床数据 / PMCF 数据",
+          "确定目标人群和适应症是否均有足够证据支撑"
+        ],
+        "phase_2_source": [
+          "若为文献缺口：扩展检索策略（增加数据库/调整检索式/延长时限）",
+          "若为等同器械缺口：补充等同器械的临床数据引用或扩大等同器械范围",
+          "若为自有数据缺口：评估是否可补充回顾性研究数据或加速 PMCF 启动",
+          "若完全无临床数据：启动临床评估豁免论证（仅适用于低风险且已有充分文献）"
+        ],
+        "phase_3_document": [
+          "在 CER §5 中增加证据层级说明（Evidence Hierarchy）",
+          "补充数据汇总表（Clinical Data Summary Table）：来源、样本量、随访期、关键终点",
+          "更新获益风险分析，确保新增证据已纳入 BR 评估"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 每个适应症声明均有对应的临床证据支撑",
+        "[ ] 安全性声明（如 '无严重不良事件'）有数据支撑",
+        "[ ] 性能声明（如 '95% 成功率'）有定量数据",
+        "[ ] 文献检索报告覆盖至少 2 个主要医学数据库",
+        "[ ] 等同器械数据（如使用）有完整的等同性论证",
+        "[ ] PMCF 计划与证据缺口对应（如计划收集缺失的数据）"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'insufficient clinical evidence'，可能具体说明缺哪类数据",
+        "r2_risk": "补充文献但 NB 认为文献质量低（非同行评审、样本量小、随访短）",
+        "r2_recommended": "补充高质量文献 + 提供文献质量评估表（如 GRADE 或自建标准）",
+        "r3_persistent": "若 NB 质疑等同器械数据适用性，需补充差异分析并论证差异无临床影响",
+        "escalation_pattern": "TÜV SÜD 可能在 R1→R3 中逐步加码证据要求；BSI 的 Clinical Dimension 可能独立发补"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 认为证据充分，接受临床评估结论",
+        "partial": "NB 接受部分证据但要求补充特定人群（如儿童、孕妇）的数据",
+        "rejected": "NB 认为证据等级不足，要求提供临床试验数据或拒绝认证"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "EV-001",
+        "auto_prompt_prefix": "【临床证据自检】在输出 CER §5 前，强制验证：1) 每句声明有证据 2) 证据质量分级 3) 缺口有 PMCF 计划覆盖",
+        "output_enforcement": "必须包含 Clinical Data Summary Table；每行证据标注来源和样本量"
+      },
+      "real_case_references": [
+        "TÜV SÜD: 'The clinical evidence provided is insufficient to support the safety and performance claims'",
+        "BSI: 'Justifying the lack of a Post-Market Clinical Surveillance Study is not sufficient for high-risk devices'"
+      ]
+    },
+    "CL-001": {
+      "defect_name": "临床数据质量缺陷 / Clinical Data Quality Issues",
+      "frequency": {
+        "records": 4,
+        "percentage": 6.3,
+        "projects": 3,
+        "nb_bodies": [
+          "BSI",
+          "TUV SUD"
+        ]
+      },
+      "severity_profile": {
+        "Major": 4
+      },
+      "cer_sections": [
+        "CER-06",
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-02",
+        "REG-MDCG-03",
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_diagnose": [
+          "识别数据质量问题的具体维度：样本量不足 / 随访缺失 / 终点定义不清 / 统计方法不当 / 伦理审批缺失",
+          "评估问题是否可通过补充文件解决（如补充伦理批件）还是需要重新分析数据"
+        ],
+        "phase_2_remediate": [
+          "样本量不足：补充更多病例或合并多中心数据",
+          "随访缺失：补充随访计划说明，解释失访原因及影响评估",
+          "终点定义不清：明确定义主要/次要终点，引用标准临床终点定义",
+          "统计方法不当：补充统计分析计划（SAP）或重新进行统计分析",
+          "伦理审批缺失：补充伦理委员会批准文件和知情同意书模板"
+        ],
+        "phase_3_present": [
+          "在 CER 中增加数据质量说明章节",
+          "提供数据完整性矩阵（Data Completeness Matrix）",
+          "更新获益风险分析，纳入数据质量限制的影响"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有临床数据均有伦理审批文件",
+        "[ ] 主要终点和次要终点有明确定义",
+        "[ ] 统计分析计划（SAP）与报告一致",
+        "[ ] 失访率低于可接受阈值（通常 <20%）且有说明",
+        "[ ] 数据收集表单（CRF）有版本控制",
+        "[ ] 数据质量审计报告（如适用）已提供"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 CSR 质量不足或随访数据缺失",
+        "r2_risk": "仅补充文字说明未提供原始数据或审计报告",
+        "r2_recommended": "补充原始数据摘要 + 数据质量评估 + 缺失数据影响分析",
+        "r3_persistent": "若涉及 GCP 合规性质疑，需提供监查报告或第三方审计",
+        "escalation_pattern": "BSI Clinical Dimension 对数据质量要求严格，可能要求 ISO 14155 合规证明"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受数据质量改进，关闭缺陷",
+        "partial": "NB 接受部分改进但要求补充特定文档（如 SAP 修订版）",
+        "rejected": "NB 认为数据质量问题影响结论可靠性，要求重新进行临床研究"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "CL-001",
+        "auto_prompt_prefix": "【临床数据质量自检】验证：1) 伦理文件完整 2) 终点定义清晰 3) 统计方法恰当 4) 失访有说明",
+        "output_enforcement": "CSR 引用必须包含伦理批件编号、终点定义、SAP 版本"
+      },
+      "real_case_references": [
+        "BSI: 'Clinical Study Report inadequate, follow-up data missing'",
+        "TÜV SÜD: 'High-risk devices need post-market clinical data; justification for lack of study insufficient'"
+      ]
+    },
+    "LB-001": {
+      "defect_name": "标签/说明书问题 / Labeling/IFU Deficiencies",
+      "frequency": {
+        "records": 4,
+        "percentage": 6.3,
+        "projects": 2,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 4
+      },
+      "cer_sections": [
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-01",
+        "REG-MDR-02"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "获取最新版 IFU 和标签样本",
+          "对照 MDR Annex I GSPR-23 和 ISO 15223-1 核对信息要求",
+          "识别缺失项：禁忌症、警告、注意事项、副作用、存储条件、符号说明"
+        ],
+        "phase_2_enrich": [
+          "补充所有 GSPR-23 要求的要素",
+          "增加特定人群警告（孕妇、儿童、老年、免疫抑制患者）",
+          "确保 IFU 中的性能声明与 CER 临床证据一致",
+          "添加 UDl 相关信息（如适用）"
+        ],
+        "phase_3_validate": [
+          "交叉验证：IFU ↔ CER ↔ 风险管理文件",
+          "进行可用性评估（Usability Evaluation）确认信息可理解性",
+          "更新标签规格说明和版本控制"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] IFU 包含所有 GSPR-23 要求的要素",
+        "[ ] 禁忌症和警告信息与 CER 安全性数据一致",
+        "[ ] 性能声明不超过 CER 临床证据支持的范围",
+        "[ ] 符号符合 ISO 15223-1 或已提供符号说明",
+        "[ ] 存储和运输条件有明确说明",
+        "[ ]  IFU 语言符合目标市场要求"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 IFU 缺失特定警告或禁忌症",
+        "r2_risk": "补充警告但用语过于笼统（如 'consult your doctor'）",
+        "r2_recommended": "提供具体、可操作的警告信息，引用 CER 中的安全性数据支撑",
+        "r3_persistent": "若 NB 质疑警告充分性，需提供风险管理文件中的风险-控制对应关系",
+        "escalation_pattern": "BSI 可能同时从 Clinical 和 Main Job 维度分别提问 IFU 问题"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 IFU 更新，关闭缺陷",
+        "partial": "NB 接受更新但要求调整特定措辞或补充额外语言版本",
+        "rejected": "NB 认为 IFU 风险信息不充分，要求重新进行可用性测试"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "LB-001",
+        "auto_prompt_prefix": "【IFU 自检】验证：1) GSPR-23 全覆盖 2) 警告与 CER 一致 3) 性能声明有证据支撑",
+        "output_enforcement": "IFU 引用必须包含版本号；警告信息必须引用 CER §5 或风险管理文件"
+      },
+      "real_case_references": [
+        "BSI: 'References to effective clinical studies not provided in product information; suitability assessment could not be performed'",
+        "常见追问: 'Warning for pregnant women missing from IFU despite CER identifying risk'"
+      ]
+    },
+    "PM-001": {
+      "defect_name": "PMCF/PMS 计划缺陷 / PMCF/PMS Plan Inadequate",
+      "frequency": {
+        "records": 3,
+        "percentage": 4.7,
+        "projects": 3,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 3
+      },
+      "cer_sections": [
+        "CER-06"
+      ],
+      "regulatory_references": [
+        "REG-MDR-04",
+        "REG-MDCG-02",
+        "REG-MEDDEV-01"
+      ],
+      "remediation_template": {
+        "phase_1_assess": [
+          "评估当前 PMCF 计划覆盖范围：是否覆盖所有适应症和目标人群？",
+          "检查 PMS 程序是否符合 MDR Article 83-86 要求",
+          "识别缺口：缺失的数据类型、未覆盖的人群、不充分的监测方法"
+        ],
+        "phase_2_design": [
+          "设计 PMCF 研究方案：目标、设计类型、样本量、终点、统计方法",
+          "制定 PMS 程序：严重事件报告流程、趋势分析、PSUR 编写计划",
+          "建立数据收集工具：病例报告表、患者随访流程、数据管理系统"
+        ],
+        "phase_3_document": [
+          "编写完整 PMCF 计划（PMCF Plan）和 PMS 程序（PMS Procedure）",
+          "提供 PMCF 评估报告模板（PMCF Evaluation Report Template）",
+          "在 CER 中引用 PMCF 计划并说明其与临床证据缺口的对应关系"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] PMCF 计划覆盖所有适应症和宣称",
+        "[ ] 样本量计算有统计学依据",
+        "[ ] 主要终点与 CER 性能声明对应",
+        "[ ] PMS 程序包含严重事件报告机制",
+        "[ ] PSUR 编写频率符合 MDR 要求",
+        "[ ] PMCF 计划与 CER 中识别的证据缺口直接对应"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 认为 'justification for not conducting PMCF study is insufficient'",
+        "r2_risk": "仅提供文字说明未提供详细研究方案",
+        "r2_recommended": "提供完整 PMCF Plan + 样本量计算 + 研究时间表 + 伦理考虑",
+        "r3_persistent": "若 NB 质疑样本量，需提供统计假设和功效计算详情",
+        "escalation_pattern": "BSI 的 Clinical Dimension 对 PMCF 要求严格；TÜV SÜD 可能在后续轮次中要求 PMCF 进展报告"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 PMCF 计划，可能要求定期提交进展",
+        "partial": "NB 接受计划但要求调整样本量或监测频率",
+        "rejected": "NB 认为 PMCF 计划不可行，要求重新设计或提供替代方案"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "PM-001",
+        "auto_prompt_prefix": "【PMCF 自检】验证：1) 覆盖所有证据缺口 2) 样本量有依据 3) PMS 程序完整",
+        "output_enforcement": "CER §5/§8 必须引用 PMCF Plan；Plan 必须包含样本量计算和研究时间表"
+      },
+      "real_case_references": [
+        "BSI: 'The justification for not conducting a PMCF study is insufficient'",
+        "常见追问: 'PMCF plan does not cover pediatric population mentioned in indications'"
+      ]
+    },
+    "SW-001": {
+      "defect_name": "软件/网络安全缺陷 / Software/Cybersecurity Deficiencies",
+      "frequency": {
+        "records": 3,
+        "percentage": 4.7,
+        "projects": 2,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 3
+      },
+      "cer_sections": [
+        "CER-02"
+      ],
+      "regulatory_references": [
+        "REG-MDR-04",
+        "REG-MDR-01",
+        "REG-MDCG-01"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "评估软件文档完整性：软件描述、生命周期文档、验证报告",
+          "检查网络安全评估：威胁模型、风险评估、控制措施、渗透测试",
+          "识别缺失：IEC 62304 文档、IEC 81001-5-1 评估、网络安全标签"
+        ],
+        "phase_2_develop": [
+          "补充软件描述（SOUP 清单、软件版本、架构图）",
+          "提供软件验证和确认报告（V&V Report）",
+          "完成网络安全评估报告（Cybersecurity Assessment Report）",
+          "更新 IFU 增加网络安全相关警告（如网络连接风险、IT 要求）"
+        ],
+        "phase_3_validate": [
+          "交叉验证：软件版本号在 CER / IFU / 测试报告中的一致性",
+          "确认网络安全控制措施已纳入风险管理文件",
+          "提供软件更新计划（Software Update Plan）和补丁管理策略"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 软件版本号在所有文档中一致",
+        "[ ] IEC 62304 要求的文档完整（软件计划、需求、设计、测试）",
+        "[ ] 网络安全威胁模型覆盖所有已知威胁",
+        "[ ] IFU 包含网络安全警告和 IT 环境要求",
+        "[ ] 软件更新计划包含安全补丁管理策略",
+        "[ ] 网络安全控制措施与风险管理文件关联"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出软件文档缺失或网络安全评估不足",
+        "r2_risk": "仅补充文档未提供测试报告",
+        "r2_recommended": "补充文档 + 测试报告 + 威胁模型 + 控制措施验证",
+        "r3_persistent": "若涉及 AI/ML，需提供算法验证、数据质量评估和可解释性说明",
+        "escalation_pattern": "BSI 的 Technical Dimension 对软件要求严格；可能要求独立第三方渗透测试"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受软件文档和网络安全评估",
+        "partial": "NB 接受部分文档但要求补充特定测试（如渗透测试报告）",
+        "rejected": "NB 认为网络安全风险未充分控制，要求重新设计安全措施"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "SW-001",
+        "auto_prompt_prefix": "【软件自检】验证：1) 62304 文档完整 2) 网络安全评估完成 3) IFU 有网络安全警告",
+        "output_enforcement": "软件版本号必须一致；必须引用 IEC 62304 和 IEC 81001-5-1 评估"
+      },
+      "real_case_references": [
+        "BSI: 'No mention on the IFU on the risks of using unsecure network or any other IT requirements'",
+        "BSI: 'Software documentation incomplete; missing 62304 test report consistency'"
+      ]
+    },
+    "EQ-001": {
+      "defect_name": "等同器械论证缺陷 / Equivalence Demonstration Deficient",
+      "frequency": {
+        "records": 3,
+        "percentage": 4.7,
+        "projects": 1,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 3
+      },
+      "cer_sections": [
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MDCG-02",
+        "REG-MDR-03",
+        "REG-MDCG-03"
+      ],
+      "remediation_template": {
+        "phase_1_assess": [
+          "评估当前等同性论证：是否遵循 MDCG 2020-6 的三步法？",
+          "识别缺失维度：技术等同性 / 生物等同性 / 临床等同性",
+          "检查等同器械选择：是否已上市 / 是否有充分临床数据 / 是否可获取技术文件"
+        ],
+        "phase_2_construct": [
+          "构建完整等同性表格（Equivalence Table）：参数逐项对比",
+          "对每项差异进行差异分析（Gap Analysis），论证差异无临床影响",
+          "提供等同器械的临床数据引用和文献支持",
+          "如有设计差异，提供设计原理说明和验证数据"
+        ],
+        "phase_3_validate": [
+          "验证等同性论证与 CER 其他章节的一致性",
+          "确认等同器械的技术文件可获取（如适用）",
+          "更新 CER §4 结构，确保符合 MEDDEV 2.7/1 rev.4 要求"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 等同性表格覆盖 MDCG 2020-6 要求的所有参数",
+        "[ ] 每项差异均有差异分析和临床影响论证",
+        "[ ] 等同器械已上市且有充分临床数据",
+        "[ ] 等同器械的技术文件可获取（如为自身前代产品）",
+        "[ ] 等同性论证与设备描述、临床证据章节一致",
+        "[ ] 引用 MDCG 2020-6 和 MEDDEV 2.7/1 rev.4 §4"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'no formal equivalence justification in accordance with MDCG 2020-6'",
+        "r2_risk": "仅提供表格未对差异进行充分论证",
+        "r2_recommended": "完整等同性表格 + 逐差异分析 + 临床影响论证 + 等同器械数据引用",
+        "r3_persistent": "若 NB 质疑等同器械数据适用性，需补充文献综述支持等同器械安全性",
+        "escalation_pattern": "BSI 对等同性要求严格；若等同器械为竞争对手产品，可能要求技术文件访问协议"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受等同性论证，关闭缺陷",
+        "partial": "NB 接受论证但要求补充特定差异的分析",
+        "rejected": "NB 认为等同性无法证明，要求提供自有临床数据"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "EQ-001",
+        "auto_prompt_prefix": "【等同性自检】验证：1) MDCG 2020-6 三步法完整 2) 差异分析充分 3) 等同器械数据可引用",
+        "output_enforcement": "必须包含 Equivalence Table 和 Gap Analysis；必须引用 MDCG 2020-6"
+      },
+      "real_case_references": [
+        "BSI: 'No formal equivalence justification in accordance with MDCG 2020-6 has been provided'",
+        "常见追问: 'The similar device cited has different materials; clinical impact of this difference not addressed'"
+      ]
+    },
+    "BR-001": {
+      "defect_name": "获益风险分析不充分 / Benefit-Risk Analysis Incomplete",
+      "frequency": {
+        "records": 2,
+        "percentage": 3.1,
+        "projects": 1,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 2
+      },
+      "cer_sections": [
+        "CER-10",
+        "CER-06"
+      ],
+      "regulatory_references": [
+        "REG-MDR-03",
+        "REG-MDCG-02",
+        "REG-ISO-01"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "评估当前 BR 分析的完整性：是否覆盖所有风险？",
+          "检查风险量化方法：是否使用定量或半定量评估？",
+          "识别缺失维度：特定人群风险、长期风险、残余风险可接受性"
+        ],
+        "phase_2_enrich": [
+          "补充所有已识别风险的控制措施和残余风险评估",
+          "增加特定人群（孕妇、儿童、老年）的获益风险分析",
+          "提供风险可接受性标准（Risk Acceptance Criteria）引用",
+          "更新 IFU 警告信息，确保与 BR 分析一致"
+        ],
+        "phase_3_validate": [
+          "交叉验证：BR 分析 ↔ 风险管理文件 ↔ 临床证据 ↔ IFU",
+          "确认所有残余风险均被声明为可接受并有依据",
+          "验证风险降低措施与 GSPR-1 和 GSPR-2 的对应关系"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有已识别风险均有控制措施和残余风险评估",
+        "[ ] 获益风险分析覆盖所有适应症和目标人群",
+        "[ ] 风险可接受性标准明确且符合行业惯例",
+        "[ ] 残余风险声明有临床数据或文献支持",
+        "[ ] BR 分析与风险管理文件（ISO 14971）一致",
+        "[ ] IFU 警告与 BR 分析中的风险对应"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 BR 分析为 'bald statement' 或缺乏证据支撑",
+        "r2_risk": "仅补充文字未更新风险量化表或 IFU",
+        "r2_recommended": "补充定量 BR 表 + 更新 IFU + 提供风险可接受性依据",
+        "r3_persistent": "若 NB 质疑残余风险可接受性，需提供同类产品的风险对比数据",
+        "escalation_pattern": "BSI 可能从 Clinical 和 Technical 维度分别质疑 BR 分析"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 BR 分析，关闭缺陷",
+        "partial": "NB 接受分析但要求补充特定人群的风险评估",
+        "rejected": "NB 认为残余风险不可接受，要求重新设计风险控制措施"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "BR-001",
+        "auto_prompt_prefix": "【BR 分析自检】验证：1) 所有风险有控制措施 2) 残余风险可接受 3) 与 IFU 一致",
+        "output_enforcement": "必须包含 Benefit-Risk Summary Table；残余风险必须有数据支撑"
+      },
+      "real_case_references": [
+        "BSI: 'There is no consideration of evidence here and it is therefore a bald statement'",
+        "常见追问: 'Residual risk of [X] not demonstrated to be acceptable compared to clinical benefit'"
+      ]
+    },
+    "DT-001": {
+      "defect_name": "数据不一致 / Data Inconsistency",
+      "frequency": {
+        "records": 2,
+        "percentage": 3.1,
+        "projects": 1,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 2
+      },
+      "cer_sections": [
+        "CER-00",
+        "CER-06",
+        "CER-10"
+      ],
+      "regulatory_references": [
+        "REG-MDR-02",
+        "REG-MDCG-01",
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_identify": [
+          "全面扫描 CER 全文及引用文档，识别数据矛盾点",
+          "常见矛盾：型号名称 / 规格参数 / 患者数量 / 不良事件数 / 版本号 / 日期",
+          "使用表格记录所有不一致项及其出现位置"
+        ],
+        "phase_2_resolve": [
+          "确定正确值：以最新版技术文件或原始数据为准",
+          "更新所有出现该数据的位置，确保一致性",
+          "若数据更新影响结论，需重新评估相关章节"
+        ],
+        "phase_3_prevent": [
+          "建立 CER 数据一致性检查清单",
+          "在文档控制流程中增加交叉验证步骤",
+          "使用版本控制确保所有引用文档为最新版"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] CER 中所有型号名称与 IFU/标签一致",
+        "[ ] 规格参数在所有表格和正文中一致",
+        "[ ] 患者数量、样本量在不同章节中一致",
+        "[ ] 不良事件数量与原始 CSR 一致",
+        "[ ] 引用的文档版本号与提交文件一致",
+        "[ ] 日期（如文献发表日期、批准日期）准确且一致"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出特定数据矛盾（如 'CER says N=50 but CSR says N=48'）",
+        "r2_risk": "仅修正一处但未全面扫描其他矛盾",
+        "r2_recommended": "修正所有矛盾 + 提供一致性声明 + 说明错误原因",
+        "r3_persistent": "若 NB 发现新的矛盾，说明一致性检查不彻底，需重新进行全文审计",
+        "escalation_pattern": "数据不一致是信任杀手，多次出现可能导致 NB 质疑整体文档质量"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受修正，关闭缺陷",
+        "partial": "NB 接受部分修正但发现新的不一致",
+        "rejected": "NB 认为不一致反映系统性文档控制问题，要求全面重新审计"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "DT-001",
+        "auto_prompt_prefix": "【一致性自检】强制扫描：1) 型号名称 2) 规格参数 3) 患者数量 4) 版本号 5) 日期",
+        "output_enforcement": "最终输出前必须运行一致性检查；发现矛盾必须标注并修正"
+      },
+      "real_case_references": [
+        "BSI: 'Can't locate C3-DME-3005... Can't find any Design nor verification records'",
+        "BSI: 'Two very recent versions of this section – the earlier one has very much more detail'"
+      ]
+    },
+    "MF-001": {
+      "defect_name": "制造/灭菌验证缺陷 / Manufacturing/Sterilization Validation Deficient",
+      "frequency": {
+        "records": 2,
+        "percentage": 3.1,
+        "projects": 2,
+        "nb_bodies": [
+          "BSI"
+        ]
+      },
+      "severity_profile": {
+        "Major": 2
+      },
+      "cer_sections": [
+        "CER-02"
+      ],
+      "regulatory_references": [
+        "REG-MDR-03",
+        "REG-ISO-02",
+        "REG-ISO-01"
+      ],
+      "remediation_template": {
+        "phase_1_identify": [
+          "识别缺失的验证文档：灭菌验证 / 清洁验证 / 包装验证 / 洁净室认证",
+          "确认缺失文档对应的产品范围（所有型号还是部分型号）"
+        ],
+        "phase_2_obtain": [
+          "从制造商获取缺失的验证报告",
+          "确保验证报告覆盖所有上市型号和规格",
+          "验证报告应在有效期内（灭菌验证通常 1-3 年）"
+        ],
+        "phase_3_integrate": [
+          "在 CER 或技术文件中引用验证报告",
+          "更新风险管理文件，纳入制造和灭菌风险",
+          "确保 IFU 中的灭菌/清洁说明与验证报告一致"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 灭菌验证报告覆盖所有型号和包装规格",
+        "[ ] 清洁验证报告（如适用）已提供",
+        "[ ] 洁净室认证在有效期内",
+        "[ ] 包装验证（如适用）已提供",
+        "[ ] 验证报告中的参数与 IFU 使用说明一致",
+        "[ ] 微生物控制措施有书面记录"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 要求提供灭菌验证或洁净室认证",
+        "r2_risk": "提供的验证报告过期或未覆盖所有型号",
+        "r2_recommended": "提供最新验证报告 + 覆盖矩阵（型号×验证类型）",
+        "r3_persistent": "若 NB 质疑验证方法，需提供标准符合性声明（如 ISO 17665、ISO 11135）",
+        "escalation_pattern": "BSI 的 Technical Dimension 对灭菌验证要求严格"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受验证报告，关闭缺陷",
+        "partial": "NB 接受报告但要求补充特定型号的验证",
+        "rejected": "NB 认为验证不充分，要求重新进行验证"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "MF-001",
+        "auto_prompt_prefix": "【制造验证自检】验证：1) 灭菌验证覆盖所有型号 2) 验证在有效期 3) 与 IFU 一致",
+        "output_enforcement": "必须引用验证报告编号和有效期；必须提供型号覆盖矩阵"
+      },
+      "real_case_references": [
+        "BSI: 'Please provide evidence that the manufacturing site has established microbiological and contamination controls'",
+        "BSI: 'Provide most recent clean room certification'"
+      ]
+    },
+    "EV-002": {
+      "defect_name": "文献检索缺陷 / Literature Search Deficient",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Major": "typical",
+        "Critical": "possible"
+      },
+      "cer_sections": [
+        "CER-05",
+        "CER-06"
+      ],
+      "regulatory_references": [
+        "REG-MEDDEV-01",
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "获取当前文献检索报告（Literature Search Report）",
+          "评估检索策略：数据库覆盖、检索式设计、纳入/排除标准",
+          "识别缺陷：数据库缺失 / 检索式错误 / 时限不足 / 语言限制"
+        ],
+        "phase_2_redesign": [
+          "扩展数据库覆盖：至少 PubMed + Embase + Cochrane（A 类）；考虑 Scopus/Web of Science（B 类）",
+          "优化检索式：确保包含 MeSH 术语和自由词，覆盖同义词",
+          "明确纳入/排除标准（PICO 框架）",
+          "延长检索时限至最近 6-12 个月"
+        ],
+        "phase_3_report": [
+          "编写完整文献检索报告：策略、数据库、检索式、结果、筛选流程（PRISMA 流程图）",
+          "提供检索日期和检索员信息",
+          "在 CER 中引用检索报告并总结关键发现"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 覆盖至少 2 个主要医学数据库（PubMed + Embase）",
+        "[ ] 检索式包含 MeSH 术语和自由词",
+        "[ ] 纳入/排除标准明确且基于 PICO",
+        "[ ] 检索日期在 CER 提交前 6 个月内",
+        "[ ] 提供 PRISMA 流程图或等效筛选记录",
+        "[ ] 检索报告有版本控制和检索员签名"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'literature search not comprehensive' 或 'missing database'",
+        "r2_risk": "仅补充文献列表未改进检索策略",
+        "r2_recommended": "提供完整检索报告 + 改进后的检索策略 + 新增文献",
+        "r3_persistent": "若 NB 质疑检索式，需提供检索式设计依据和预检索结果",
+        "escalation_pattern": "文献检索缺陷常与 EV-001 并发，需同步解决"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受检索报告，关闭缺陷",
+        "partial": "NB 接受报告但要求补充特定数据库的检索",
+        "rejected": "NB 认为检索策略存在系统性缺陷，要求重新设计"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "EV-002",
+        "auto_prompt_prefix": "【文献检索自检】验证：1) 数据库覆盖 ≥2 2) 检索式完整 3) 有 PRISMA 流程图",
+        "output_enforcement": "必须引用 Literature Search Report；必须包含检索日期和数据库列表"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'literature search not comprehensive', 'missing database'",
+        "常见追问: 'Search strategy does not include Embase; justification required'"
+      ]
+    },
+    "ST-001": {
+      "defect_name": "SOTA 基准缺失 / State of the Art Not Adequately Addressed",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Major": "typical"
+      },
+      "cer_sections": [
+        "CER-05"
+      ],
+      "regulatory_references": [
+        "REG-MEDDEV-01",
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_assess": [
+          "评估当前 SOTA 章节：是否回答了三个核心问题？",
+          "问题 1：当前治疗/诊断替代方案有哪些？",
+          "问题 2：类似器械的技术水平和性能基准？",
+          "问题 3：本器械与 SOTA 对比的优劣势？"
+        ],
+        "phase_2_research": [
+          "检索并引用最新临床指南（Clinical Guidelines）",
+          "收集同类竞争产品的公开性能数据",
+          "引用行业共识文件和标准治疗路径",
+          "确保引用文献在 3-5 年内（除非经典文献）"
+        ],
+        "phase_3_write": [
+          "结构化 SOTA 章节：治疗方案概述 → 器械技术对比 → 性能基准 → 本器械定位",
+          "使用对比表格（SOTA Comparison Table）呈现关键数据",
+          "明确本器械相对于 SOTA 的临床优势或等效性"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] SOTA 章节回答了三个核心问题",
+        "[ ] 引用了最新临床指南（≤5 年）",
+        "[ ] 包含同类器械性能对比数据",
+        "[ ] 对比表格参数与 CER 其他章节一致",
+        "[ ] 明确本器械在 SOTA 中的定位",
+        "[ ] 文献引用格式统一且可追踪"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'SOTA not adequately addressed' 或 'state of the art missing'",
+        "r2_risk": "仅补充文献列表未进行系统性对比",
+        "r2_recommended": "结构化 SOTA 章节 + 对比表格 + 本器械定位说明",
+        "r3_persistent": "若 NB 质疑对比参数选择，需提供参数选择依据",
+        "escalation_pattern": "SOTA 缺陷常与 ST-001 和 EV-001 并发"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受 SOTA 分析，关闭缺陷",
+        "partial": "NB 接受分析但要求补充特定竞争产品数据",
+        "rejected": "NB 认为 SOTA 分析未证明本器械的临床价值"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "ST-001",
+        "auto_prompt_prefix": "【SOTA 自检】验证：1) 三个核心问题已回答 2) 有对比表格 3) 本器械定位明确",
+        "output_enforcement": "必须包含 SOTA Comparison Table；必须引用最新临床指南"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'SOTA not adequately addressed', 'state of the art missing'",
+        "常见追问: 'No comparison with currently available alternative treatments'"
+      ]
+    },
+    "RM-001": {
+      "defect_name": "风险管理不足 / Risk Management File Incomplete",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Major": "typical"
+      },
+      "cer_sections": [
+        "CER-10"
+      ],
+      "regulatory_references": [
+        "REG-ISO-02",
+        "REG-MDR-03"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "评估风险管理文件（ISO 14971）完整性",
+          "检查：风险分析 / 风险评价 / 风险控制 / 残余风险评估 / 风险管理报告",
+          "识别缺失：危险源未识别 / 控制措施不充分 / 残余风险未评估"
+        ],
+        "phase_2_enrich": [
+          "补充所有识别的危险源（Hazard Identification）",
+          "验证风险控制措施的有效性（如验证报告、测试结果）",
+          "评估残余风险的可接受性",
+          "更新风险管理报告，确保与 CER 和 IFU 一致"
+        ],
+        "phase_3_validate": [
+          "交叉验证：风险管理文件 ↔ CER BR 分析 ↔ IFU 警告",
+          "确认所有 IFU 警告在风险管理文件中有对应的风险-控制记录",
+          "验证风险可接受性标准与行业惯例一致"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有已知危险源均已识别",
+        "[ ] 每项风险均有控制措施和验证",
+        "[ ] 残余风险已评估且可接受",
+        "[ ] 风险管理文件与 CER BR 分析一致",
+        "[ ] IFU 所有警告在风险管理文件中有对应记录",
+        "[ ] 风险管理报告已更新并签署"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'risk management file incomplete' 或 'hazard not identified'",
+        "r2_risk": "仅更新风险管理文件未同步更新 CER 和 IFU",
+        "r2_recommended": "更新风险管理文件 + 同步 CER + 同步 IFU，三位一体",
+        "r3_persistent": "若 NB 质疑风险控制有效性，需提供验证数据",
+        "escalation_pattern": "风险管理缺陷常与 BR-001 并发，需同步解决"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受风险管理文件，关闭缺陷",
+        "partial": "NB 接受文件但要求补充特定危险源的分析",
+        "rejected": "NB 认为风险控制不充分，要求重新设计"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "RM-001",
+        "auto_prompt_prefix": "【风险管理自检】验证：1) 危险源全覆盖 2) 控制措施有验证 3) 残余风险可接受",
+        "output_enforcement": "必须引用 ISO 14971 风险管理报告；IFU 警告必须与风险记录对应"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'risk management file incomplete', 'hazard not identified'",
+        "常见追问: 'Risk control for [specific hazard] not verified with test data'"
+      ]
+    },
+    "BC-001": {
+      "defect_name": "生物相容性评估缺陷 / Biocompatibility Evaluation Insufficient",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Major": "typical"
+      },
+      "cer_sections": [
+        "CER-02"
+      ],
+      "regulatory_references": [
+        "REG-ISO-03",
+        "REG-MDR-03"
+      ],
+      "remediation_template": {
+        "phase_1_audit": [
+          "评估生物相容性评估报告完整性",
+          "检查：材料清单 / 接触类型和持续时间分类 / 测试项目 / 标准符合性",
+          "识别缺失：未测试材料 / 过时标准 / 缺失生物学终点"
+        ],
+        "phase_2_test": [
+          "补充缺失的生物相容性测试（按 ISO 10993-1 生物学评价框架）",
+          "更新材料清单，确保所有与人体接触的材料均有评估",
+          "使用最新版 ISO 10993 系列标准",
+          "对不可测试材料提供论证（如文献数据、等同器械数据）"
+        ],
+        "phase_3_report": [
+          "编写完整生物相容性评估报告（Biological Evaluation Report）",
+          "提供测试样品与上市产品的等同性说明",
+          "在 CER 中引用生物相容性评估报告"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 所有与人体接触的材料均已评估",
+        "[ ] 接触类型和持续时间分类正确（ISO 10993-1）",
+        "[ ] 测试项目覆盖所有必要的生物学终点",
+        "[ ] 使用最新版 ISO 10993 标准",
+        "[ ] 测试样品与上市产品等同",
+        "[ ] 对未测试材料有充分论证"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'biocompatibility evaluation insufficient'",
+        "r2_risk": "仅提供旧版测试报告",
+        "r2_recommended": "提供最新测试报告 + 生物学评价表 + 材料清单",
+        "r3_persistent": "若 NB 质疑测试样品代表性，需提供样品-上市产品等同性说明",
+        "escalation_pattern": "生物相容性缺陷在植入器械中尤为关键，NB 可能要求独立实验室测试"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受生物相容性评估，关闭缺陷",
+        "partial": "NB 接受评估但要求补充特定测试",
+        "rejected": "NB 认为评估不充分，要求重新测试"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "BC-001",
+        "auto_prompt_prefix": "【生物相容性自检】验证：1) 材料全覆盖 2) 标准最新 3) 测试样品等同",
+        "output_enforcement": "必须引用 Biological Evaluation Report；必须包含材料清单和接触分类"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'biocompatibility evaluation insufficient'",
+        "常见追问: 'Cytotoxicity test not performed for [material X]'"
+      ]
+    },
+    "TM-001": {
+      "defect_name": "模板残留 / Template Residue",
+      "frequency": {
+        "records": 0,
+        "percentage": 0,
+        "projects": 0,
+        "nb_bodies": [],
+        "note": "Present in taxonomy but no direct hits in 64-record sample"
+      },
+      "severity_profile": {
+        "Minor": "typical",
+        "Major": "possible if affects critical content"
+      },
+      "cer_sections": [
+        "CER-00"
+      ],
+      "regulatory_references": [
+        "REG-MDR-01"
+      ],
+      "remediation_template": {
+        "phase_1_scan": [
+          "全文扫描模板残留：占位符（如 [INSERT] / XXX / TBD）、示例文本、批注",
+          "使用关键词搜索：'template' / 'example' / 'placeholder' / 'TBD' / '[ ]'",
+          "检查页眉页脚中的模板信息"
+        ],
+        "phase_2_clean": [
+          "删除所有模板占位符和示例文本",
+          "替换为实际内容或删除该部分",
+          "清理文档属性和元数据中的模板信息",
+          "移除所有审阅批注（或转换为正式内容）"
+        ],
+        "phase_3_validate": [
+          "进行最终全文审阅，确保无残留",
+          "使用多人交叉检查",
+          "在提交前运行自动化扫描（如适用）"
+        ]
+      },
+      "verification_checklist": [
+        "[ ] 无占位符文本（[INSERT] / XXX / TBD 等）",
+        "[ ] 无示例数据或虚构数据",
+        "[ ] 无模板批注或修订标记",
+        "[ ] 页眉页脚信息与当前项目一致",
+        "[ ] 文档属性中的作者/公司信息正确",
+        "[ ] 目录和交叉引用已更新"
+      ],
+      "cross_round_strategy": {
+        "r1_typical": "NB 指出 'template text not removed' 或 'placeholder remaining'",
+        "r2_risk": "仅删除明显占位符但未检查隐藏批注",
+        "r2_recommended": "全面清理 + 提供清理声明 + 最终检查清单",
+        "r3_persistent": "极少发生，若发生说明清理流程存在系统性问题",
+        "escalation_pattern": "模板残留通常单独出现，但会降低 NB 对文档整体质量的信任"
+      },
+      "expected_nb_response": {
+        "satisfied": "NB 接受清理，关闭缺陷",
+        "partial": "NB 发现新的残留，要求进一步清理",
+        "rejected": "极少发生"
+      },
+      "deerflow_injection": {
+        "gap_action_trigger": "TM-001",
+        "auto_prompt_prefix": "【模板残留自检】扫描：占位符、示例文本、批注、页眉页脚",
+        "output_enforcement": "最终输出前必须运行模板残留扫描；发现残留必须清理"
+      },
+      "real_case_references": [
+        "典型 NB 表述: 'template text not removed', 'placeholder remaining'",
+        "常见场景: 页眉保留其他公司名称、批注未删除、示例数据未替换"
+      ]
+    }
+  },
+  "nb_specific_context": {},
+  "knowledge_routing": {
+    "_source": "kai_index.json (AUDIT_ARCHIVE R8)",
+    "total_injection_points": 43,
+    "total_assets": 5,
+    "injection_points_by_component": {
+      "slots": 9,
+      "gates": 21,
+      "gap_actions": 2,
+      "writer_guards": 11
+    },
+    "asset_routing": [
+      {
+        "asset_id": "CER_01_MATRIX",
+        "type": "cer_enhanced",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "source_slot_structure",
+          "writer_guard_outline"
+        ]
+      },
+      {
+        "asset_id": "CER_02_LOGIC",
+        "type": "cer_enhanced",
+        "targets": [
+          "GapAction",
+          "Gate",
+          "gap_action_logic",
+          "gate_consistency"
+        ]
+      },
+      {
+        "asset_id": "CER_03_STYLE",
+        "type": "cer_enhanced",
+        "targets": [
+          "WriterGuard",
+          "Gate",
+          "writer_guard_style",
+          "gate_quality"
+        ]
+      },
+      {
+        "asset_id": "CER_04_ANSWERS",
+        "type": "cer_enhanced",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "source_slot_qa",
+          "writer_guard_content"
+        ]
+      },
+      {
+        "asset_id": "CER_05_TABLES",
+        "type": "cer_enhanced",
+        "targets": [
+          "Gate",
+          "GapAction",
+          "WriterGuard",
+          "gate_table_validation",
+          "gap_action_evidence",
+          "writer_guard_tables"
+        ]
+      },
+      {
+        "asset_id": "DEV-CV",
+        "type": "product_family_kb",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "Gate",
+          "source_slot_family",
+          "writer_guard_domain",
+          "gate_family_specific"
+        ]
+      },
+      {
+        "asset_id": "DEV-SU",
+        "type": "product_family_kb",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "Gate",
+          "source_slot_family",
+          "writer_guard_domain",
+          "gate_family_specific"
+        ]
+      },
+      {
+        "asset_id": "DEV-OP",
+        "type": "product_family_kb",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "Gate",
+          "source_slot_family",
+          "writer_guard_domain",
+          "gate_family_specific"
+        ]
+      },
+      {
+        "asset_id": "DEV-VAD",
+        "type": "product_family_kb",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "Gate",
+          "source_slot_family",
+          "writer_guard_domain",
+          "gate_family_specific"
+        ]
+      },
+      {
+        "asset_id": "DEV-ER",
+        "type": "product_family_kb",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "Gate",
+          "source_slot_family",
+          "writer_guard_domain",
+          "gate_family_specific"
+        ]
+      },
+      {
+        "asset_id": "DEV-MO",
+        "type": "product_family_kb",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "Gate",
+          "source_slot_family",
+          "writer_guard_domain",
+          "gate_family_specific"
+        ]
+      },
+      {
+        "asset_id": "DEV-SW",
+        "type": "product_family_kb",
+        "targets": [
+          "SourceSlot",
+          "WriterGuard",
+          "Gate",
+          "source_slot_family",
+          "writer_guard_domain",
+          "gate_family_specific"
+        ]
+      }
+    ],
+    "coverage_summary": {
+      "total_covered": 0,
+      "total_gaps": 0
+    },
+    "run_context": {
+      "domain": "contrast_imaging_bubble_study_system",
+      "nb_body": "Unknown",
+      "device_class": "IIb"
+    }
+  },
+  "equivalence_decision": {
+    "decision": "equivalence_not_claimed",
+    "step1_has_equivalent": false,
+    "step2_plans_to_cite": false,
+    "step3_three_dimensions_complete": false,
+    "recommendation": "Declare equivalence not claimed"
+  },
+  "data_classification": {
+    "data_classification_tree": {
+      "clinical": [
+        "E-001",
+        "E-002",
+        "E-003",
+        "E-004",
+        "E-005",
+        "E-006",
+        "E-007",
+        "E-008",
+        "E-009",
+        "E-010",
+        "E-011",
+        "E-012",
+        "E-013",
+        "E-014",
+        "E-015",
+        "E-016",
+        "E-017",
+        "E-018",
+        "E-019",
+        "E-020",
+        "E-021",
+        "E-022",
+        "E-023",
+        "E-024",
+        "E-025",
+        "E-026",
+        "E-027",
+        "E-028",
+        "E-029",
+        "E-030",
+        "E-031",
+        "E-032",
+        "E-033",
+        "E-034",
+        "E-035",
+        "E-036",
+        "E-037",
+        "E-038",
+        "E-039",
+        "E-040",
+        "E-041",
+        "E-042",
+        "E-043",
+        "E-044",
+        "E-045",
+        "E-046",
+        "E-047",
+        "E-048",
+        "E-049",
+        "E-050",
+        "E-051",
+        "E-052",
+        "E-053",
+        "E-054",
+        "E-055",
+        "E-056",
+        "E-057",
+        "E-058",
+        "E-059",
+        "E-060",
+        "E-061",
+        "E-062",
+        "E-063",
+        "E-064",
+        "E-065",
+        "E-066",
+        "E-067",
+        "E-068",
+        "E-069",
+        "E-070",
+        "E-071",
+        "E-072",
+        "E-073",
+        "E-074",
+        "E-075",
+        "E-076",
+        "E-077",
+        "E-078",
+        "E-079",
+        "E-080",
+        "E-081",
+        "E-082",
+        "E-083",
+        "E-084",
+        "E-085",
+        "E-086",
+        "E-087",
+        "E-088",
+        "E-089"
+      ],
+      "non_clinical": [],
+      "vigilance": [],
+      "pms": [
+        "E-094"
+      ],
+      "manufacturer": [
+        "E-090",
+        "E-092",
+        "E-093",
+        "E-095",
+        "E-096",
+        "E-097",
+        "E-099",
+        "E-100",
+        "E-101",
+        "E-104",
+        "E-105",
+        "E-106",
+        "E-108",
+        "E-109",
+        "E-111",
+        "E-113",
+        "E-115",
+        "E-118",
+        "E-121",
+        "E-123",
+        "E-126",
+        "E-128",
+        "E-130",
+        "E-139",
+        "E-144",
+        "E-150",
+        "E-156",
+        "E-161",
+        "E-162"
+      ]
+    },
+    "total_classified": 119
+  },
+  "endpoint_matrix": {
+    "endpoint_decision_matrix": {
+      "numerical": [],
+      "qualitative": [
+        {
+          "endpoint": "Agitated-saline preparation and injection consistency",
+          "value": "Preparation repeatability, injection volume/timing, bubble quality, or usability"
+        },
+        {
+          "endpoint": "Workflow completion, user handling and Valsalva protocol fea",
+          "value": "Completion, repeat-test, handling/usability, and protocol adherence metrics from"
+        },
+        {
+          "endpoint": "Procedure/device-related adverse events",
+          "value": "AE/SAE rates for agitated-saline bubble studies, injection-related reactions, ar"
+        },
+        {
+          "endpoint": "False-positive/false-negative and diagnostic misclassificati",
+          "value": "Misclassification, discordance or diagnostic limitation data from c-TTE/c-TCD/TE"
+        },
+        {
+          "endpoint": "Disposable tubing, sterility/reuse control and device malfun",
+          "value": "Complaint, malfunction, sterility, packaging and vigilance data from manufacture"
+        }
+      ],
+      "gap": [
+        {
+          "endpoint": "Diagnostic/procedure success for agitated-saline bubble stud",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "RLS/PFO positive and negative detection concordance",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "Semi-quantitative shunt grading reproducibility",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "clinical benefit, successful intended use, and acceptable be",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "adverse events, serious adverse events, side-effects, residu",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "technical or clinical performance success endpoints",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "clinical benefit, successful intended use, and acceptable be",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "adverse events, serious adverse events, side-effects, residu",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "adverse events, serious adverse events, side-effects, residu",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "adverse events, serious adverse events, side-effects, residu",
+          "status": "gap — requires further extraction"
+        },
+        {
+          "endpoint": "adverse events, serious adverse events, side-effects, residu",
+          "status": "gap — requires further extraction"
+        }
+      ]
+    }
+  },
+  "safety_data_table": [
+    {
+      "adverse_event": "",
+      "incidence_rate": "Not specified",
+      "severity": "Not classified",
+      "device_relationship": "Not assessed",
+      "source": "FDA MAUDE",
+      "report_count": 1
+    },
+    {
+      "adverse_event": "",
+      "incidence_rate": "Not specified",
+      "severity": "Not classified",
+      "device_relationship": "Not assessed",
+      "source": "FDA Device Recall",
+      "report_count": 1
+    },
+    {
+      "adverse_event": "",
+      "incidence_rate": "Not specified",
+      "severity": "Not classified",
+      "device_relationship": "Not assessed",
+      "source": "MHRA",
+      "report_count": 1
+    },
+    {
+      "adverse_event": "",
+      "incidence_rate": "Not specified",
+      "severity": "Not classified",
+      "device_relationship": "Not assessed",
+      "source": "BfArM",
+      "report_count": 1
+    },
+    {
+      "adverse_event": "",
+      "incidence_rate": "Not specified",
+      "severity": "Not classified",
+      "device_relationship": "Not assessed",
+      "source": "Swissmedic",
+      "report_count": 1
+    },
+    {
+      "adverse_event": "",
+      "incidence_rate": "Not specified",
+      "severity": "Not classified",
+      "device_relationship": "Not assessed",
+      "source": "EUDAMED",
+      "report_count": 1
+    },
+    {
+      "adverse_event": "",
+      "incidence_rate": "Not specified",
+      "severity": "Not classified",
+      "device_relationship": "Not assessed",
+      "source": "New Zealand Medsafe",
+      "report_count": 1
+    }
+  ]
+}

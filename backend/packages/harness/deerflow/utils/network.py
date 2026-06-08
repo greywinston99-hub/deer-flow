@@ -7,29 +7,86 @@ import urllib.request
 from contextlib import contextmanager
 
 
-def force_direct_api_network() -> None:
-    """Force model/API clients to bypass shell and macOS system proxies.
+_PROXY_ENV_KEYS = (
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "all_proxy",
+)
+_NO_PROXY_ENV_KEYS = ("NO_PROXY", "no_proxy")
 
-    Python's urllib can read macOS system proxy settings even when HTTP_PROXY is
-    absent. Installing an empty ProxyHandler prevents Clash/Clash Pro system
-    proxy settings from being used by DeerFlow network calls. Set
-    DEERFLOW_ALLOW_PROXY=1 only for explicit debugging.
+
+def _truthy(value: str | None) -> bool:
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _proxy_env_present() -> bool:
+    return any(os.getenv(key, "").strip() for key in _PROXY_ENV_KEYS)
+
+
+def deerflow_network_mode() -> str:
+    """Return the effective DeerFlow network policy.
+
+    Modes:
+    - direct: default. Remove proxy env vars and install an empty urllib ProxyHandler.
+    - preserve/proxy: keep shell/macOS proxy settings.
+    - auto: preserve explicit proxy env vars, otherwise direct. Kept only for diagnostics.
+
+    `DEERFLOW_ALLOW_PROXY=1` is kept as a legacy alias for preserve/proxy.
+    """
+    if _truthy(os.getenv("DEERFLOW_ALLOW_PROXY")):
+        return "preserve"
+    raw = os.getenv("DEERFLOW_NETWORK_MODE", "direct").strip().lower()
+    aliases = {
+        "proxy": "preserve",
+        "proxies": "preserve",
+        "preserve_proxy": "preserve",
+        "allow_proxy": "preserve",
+        "bypass": "direct",
+        "no_proxy": "direct",
+        "force_direct": "direct",
+    }
+    mode = aliases.get(raw, raw)
+    if mode not in {"auto", "preserve", "direct"}:
+        mode = "direct"
+    if mode == "auto":
+        return "preserve" if _proxy_env_present() else "direct"
+    return mode
+
+
+def api_network_uses_proxy() -> bool:
+    return deerflow_network_mode() == "preserve"
+
+
+def build_api_url_opener() -> urllib.request.OpenerDirector:
+    """Build a urllib opener matching the active DeerFlow API network policy."""
+    if api_network_uses_proxy():
+        return urllib.request.build_opener()
+    return urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def force_direct_api_network() -> None:
+    """Apply DeerFlow's API network policy.
+
+    The default behavior forces direct networking to keep model/API calls off
+    Clash/Clash Pro system proxies. Set `DEERFLOW_NETWORK_MODE=preserve` only
+    for explicit diagnostics or provider-router proxy tests.
     """
 
-    if os.getenv("DEERFLOW_ALLOW_PROXY", "").strip() == "1":
+    if api_network_uses_proxy():
+        for key in _NO_PROXY_ENV_KEYS:
+            if os.getenv(key, "").strip() == "*":
+                os.environ.pop(key, None)
+        urllib.request.install_opener(build_api_url_opener())
         return
-    for key in (
-        "HTTP_PROXY",
-        "HTTPS_PROXY",
-        "ALL_PROXY",
-        "http_proxy",
-        "https_proxy",
-        "all_proxy",
-    ):
+
+    for key in _PROXY_ENV_KEYS:
         os.environ.pop(key, None)
-    os.environ["NO_PROXY"] = "*"
-    os.environ["no_proxy"] = "*"
-    urllib.request.install_opener(urllib.request.build_opener(urllib.request.ProxyHandler({})))
+    for key in _NO_PROXY_ENV_KEYS:
+        os.environ[key] = "*"
+    urllib.request.install_opener(build_api_url_opener())
 
 
 class PortAllocator:

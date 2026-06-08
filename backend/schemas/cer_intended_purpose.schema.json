@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["is_consistent", "findings", "mdr_compliance_status"],
+  "properties": {
+    "is_consistent": {
+      "type": "boolean",
+      "description": "Whether the CER intended purpose is consistent with the IFU and MDCG 2020-6 requirements."
+    },
+    "findings": {
+      "type": "array",
+      "description": "List of detected mismatches or gaps between CER, IFU, and regulatory expectations.",
+      "items": {
+        "type": "object",
+        "required": ["item", "mismatch_description", "source_ref"],
+        "properties": {
+          "item": {
+            "type": "string",
+            "description": "The specific intended-purpose element being checked (e.g., User, Effect, Indications)."
+          },
+          "mismatch_description": {
+            "type": "string",
+            "description": "Detailed description of the discrepancy or gap found."
+          },
+          "source_ref": {
+            "type": "string",
+            "description": "Reference to the source document and section where the issue was found (e.g., 'CER.txt Section 1' or 'IFU.txt Intended Use')."
+          }
+        }
+      }
+    },
+    "mdr_compliance_status": {
+      "type": "string",
+      "enum": ["compliant", "non_compliant", "partially_compliant", "requires_human_review"],
+      "description": "Overall MDR / MDCG 2020-6 compliance status of the intended purpose statement."
+    }
+  }
+}

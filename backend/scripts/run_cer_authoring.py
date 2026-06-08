@@ -1,6 +1,10 @@
 """Run the isolated CER authoring graph for a source package.
 
 Usage:
+  # Network mode:
+  #   Default is direct Kimi/DeepSeek API access with HTTP(S)_PROXY cleared.
+  #   DEERFLOW_NETWORK_MODE=preserve keeps HTTP(S)_PROXY only for diagnostics.
+  #
   # Production mode — pauses at each HC interrupt (human confirms via --resume)
   CER_AUTHORING_STRICT_V7=1 CER_AUTHORING_ENABLE_LLM_AGENTS=1 \\
     python run_cer_authoring.py --project-id X --input-root ... --artifact-root ... --strict-v7
@@ -60,7 +64,7 @@ asyncio.base_events.BaseEventLoop.call_exception_handler = _noisy_cleanup_filter
 from deerflow.runtime.cer_authoring.graph import build_cer_authoring_graph
 from langgraph.types import Command
 
-DEFAULT_STRICT_AUTHORING_MODEL = "kimi-k2.6-code"
+DEFAULT_STRICT_AUTHORING_MODEL = "kimi-k2.6-api"
 MAX_AUTO_INTERRUPTS = 72
 
 
@@ -139,6 +143,9 @@ def main() -> int:
     artifact_root = Path(args.artifact_root).expanduser().resolve()
     artifact_root.mkdir(parents=True, exist_ok=True)
 
+    if os.environ.get("CER_AUTHORING_ENABLE_LLM_AGENTS") == "1" or args.strict_v7:
+        _llm_provider_preflight_or_exit(artifact_root)
+
     # ── 1: Log cleanup — archive logs older than 24h ──
     _cleanup_old_logs(artifact_root)
 
@@ -150,16 +157,26 @@ def main() -> int:
     cp_ctx = None
     checkpointer = None
     try:
-        if args.auto_confirm:
-            from langgraph.checkpoint.memory import InMemorySaver
-
-            checkpointer = InMemorySaver()
-            print("[CCD] Using InMemorySaver (avoids SqliteSaver thread deadlock)", file=sys.stderr)
-        else:
-            from deerflow.agents.checkpointer.provider import checkpointer_context
-
-            cp_ctx = checkpointer_context(namespace=args.project_id)
+        # FIX (2026-06-07, RCA A06_南驰): Always use SqliteSaver for persistence.
+        # Previously auto-confirm used InMemorySaver which caused device_profile loops
+        # because build_device_profile() results were lost between interrupts.
+        # SqliteSaver thread deadlock was resolved by StructuredTool patch and model routing fix.
+        try:
+            from langgraph.checkpoint.sqlite import SqliteSaver
+            legacy_db = Path(artifact_root).parent.parent / ".deer-flow" / f"checkpoints_{args.project_id}.db"
+            db_path = Path(artifact_root) / ".checkpoints.db"
+            if legacy_db.exists():
+                db_path = legacy_db
+            conn_str = str(db_path)
+            cp_ctx = SqliteSaver.from_conn_string(conn_str)
             checkpointer = cp_ctx.__enter__()
+            checkpointer.setup()
+            mode = "auto-confirm" if args.auto_confirm else "production"
+            print(f"[CCD] Using SqliteSaver ({conn_str}) — persistent across restarts [{mode} mode]", file=sys.stderr)
+        except ImportError:
+            from langgraph.checkpoint.memory import InMemorySaver
+            checkpointer = InMemorySaver()
+            print("[CCD] WARNING: SqliteSaver not available, using InMemorySaver (NON-PERSISTENT)", file=sys.stderr)
 
         graph = build_cer_authoring_graph(checkpointer=checkpointer)
         config = {
@@ -168,7 +185,6 @@ def main() -> int:
         }
 
         if args.resume:
-            resume_value: dict[str, Any] = {"confirmed": True, "action": "confirm"}
             if args.rework_to:
                 resume_value = {
                     "action": "rework",
@@ -176,9 +192,13 @@ def main() -> int:
                     "reason": args.rework_reason or "Manual rework requested",
                 }
                 print(f"[CCD] Resuming with rework → {args.rework_to}...", file=sys.stderr)
+                state = Command(resume=resume_value)
             else:
-                print("[CCD] Resuming from last interrupt with confirmed=True...", file=sys.stderr)
-            state = Command(resume=resume_value)
+                # Bug 1 fix: Don't auto-confirm. Use special marker so
+                # _single_invoke detects the pending interrupt and enters
+                # the normal polling loop — the human must review each gate.
+                print("[CCD] Resuming — will poll at current HC gate...", file=sys.stderr)
+                state = Command(resume={"_resume_poll": True})
         else:
             state = {
                 "messages": [],
@@ -196,7 +216,7 @@ def main() -> int:
         if args.auto_confirm:
             return _auto_confirm_loop(graph, state, config, args)
         else:
-            return _single_invoke(graph, state, config)
+            return _single_invoke(graph, state, config, str(artifact_root))
     finally:
         if cp_ctx is not None:
             _cleanup_watchdog = threading.Timer(30.0, lambda: os._exit(0))
@@ -210,6 +230,33 @@ def main() -> int:
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────
+
+
+def _llm_provider_preflight_or_exit(artifact_root: Path) -> None:
+    """Fail before graph execution if DeepSeek/Kimi routing is not ready.
+
+    CER Authoring is intentionally configured for DeepSeek + Kimi only. Missing
+    `ANTHROPIC_API_KEY` is not an error in this deployment, even when the
+    Kimi API is accessed directly through the Moonshot OpenAI-compatible API.
+    """
+
+    from deerflow.runtime.cer_authoring.writer_remediation.model_routing import build_provider_preflight
+
+    report = build_provider_preflight()
+    report_path = artifact_root / "llm_provider_preflight_report.json"
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    if report.get("status") == "PASS":
+        print("[LLM_PREFLIGHT] PASS — DeepSeek/Kimi API providers configured. ANTHROPIC_API_KEY is not required.", file=sys.stderr)
+        return
+    message = {
+        "status": "BLOCKED_PROVIDER_UNAVAILABLE",
+        "reason": "DeepSeek/Kimi API provider preflight failed before CER graph execution.",
+        "important": "Do not fix this by adding ANTHROPIC_API_KEY. This CER stack is configured for DeepSeek/Kimi API only.",
+        "report_path": str(report_path),
+        "missing_providers": report.get("missing_providers", {}),
+    }
+    print(json.dumps(message, ensure_ascii=False, indent=2), file=sys.stderr)
+    raise SystemExit(78)
 
 _DAG_FLOW = {
     "device_profile": ["claim_decomposition"],
@@ -297,6 +344,16 @@ def _render_dashboard_card(d: dict) -> str:
 # ── Auto-confirm loop ────────────────────────────────────────────────────
 
 _GRAPH_INVOKE_TIMEOUT = int(os.getenv("CER_GRAPH_INVOKE_TIMEOUT", "600"))
+_MAX_SAME_AUTO_CONFIRM_GATE = int(os.getenv("CER_MAX_SAME_AUTO_CONFIRM_GATE", "10"))  # FIX (2026-06-07, RCA A06_南驰): Increased from 2 to 10; SqliteSaver persistence prevents true loops
+
+
+def _same_tail_count(items: list[str], value: str) -> int:
+    count = 0
+    for item in reversed(items):
+        if item != value:
+            break
+        count += 1
+    return count
 
 
 def _auto_confirm_loop(graph, state, config, args) -> int:
@@ -335,6 +392,21 @@ def _auto_confirm_loop(graph, state, config, args) -> int:
             if "GraphInterrupt" in type(e).__name__:
                 node = _extract_node_from_error(err_msg, e)
                 interrupted_at.append(node)
+                if _same_tail_count(interrupted_at, node) > _MAX_SAME_AUTO_CONFIRM_GATE:
+                    summary = {
+                        "status": "auto_confirm_repeated_gate_blocked",
+                        "human_gate_mode": "validation_auto_confirm",
+                        "auto_confirm": True,
+                        "blocked_node": node,
+                        "interrupts_handled": len(interrupted_at),
+                        "interrupted_nodes": interrupted_at,
+                        "message": (
+                            f"Auto-confirm saw '{node}' more than {_MAX_SAME_AUTO_CONFIRM_GATE} times consecutively. "
+                            "Stopping validation so a real HC decision or code fix can handle the loop."
+                        ),
+                    }
+                    print(json.dumps(summary, ensure_ascii=False, indent=2))
+                    return 5
                 try:
                     gs = graph.get_state(config)
                     sdict = gs.values if gs else {}
@@ -378,6 +450,22 @@ def _auto_confirm_loop(graph, state, config, args) -> int:
             for entry in pending:
                 node = _extract_node_from_error(str(entry), None)
                 interrupted_at.append(node)
+            repeated_node = interrupted_at[-1] if interrupted_at else "unknown"
+            if _same_tail_count(interrupted_at, repeated_node) > _MAX_SAME_AUTO_CONFIRM_GATE:
+                summary = {
+                    "status": "auto_confirm_repeated_gate_blocked",
+                    "human_gate_mode": "validation_auto_confirm",
+                    "auto_confirm": True,
+                    "blocked_node": repeated_node,
+                    "interrupts_handled": len(interrupted_at),
+                    "interrupted_nodes": interrupted_at,
+                    "message": (
+                        f"Auto-confirm saw '{repeated_node}' more than {_MAX_SAME_AUTO_CONFIRM_GATE} times consecutively. "
+                        "Stopping validation so a real HC decision or code fix can handle the loop."
+                    ),
+                }
+                print(json.dumps(summary, ensure_ascii=False, indent=2))
+                return 5
             try:
                 sdict = gs.values if gs else {}
                 sdict["_dashboard_interrupt_count"] = iteration + 1
@@ -425,8 +513,8 @@ def _auto_confirm_loop(graph, state, config, args) -> int:
 #   {"action": "rework", "target": "<node>"} → rewind to upstream node
 #   {"action": "correct", "corrections": {}} → apply corrections and continue
 
-_HC_POLL_INTERVAL = 2       # seconds between response.json checks
-_HC_POLL_TIMEOUT = 0         # 0 = wait forever; >0 = seconds before giving up
+_HC_POLL_INTERVAL = float(os.getenv("CER_HC_POLL_INTERVAL", "2"))  # seconds between response.json checks
+_HC_POLL_TIMEOUT = float(os.getenv("CER_HC_POLL_TIMEOUT", "0"))    # 0 = wait forever; >0 = seconds before giving up
 
 
 def _write_response_template(artifact_root: str, node: str, rework_targets: list[str]) -> Path:
@@ -436,7 +524,10 @@ def _write_response_template(artifact_root: str, node: str, rework_targets: list
     resp_path = gate_dir / "response.json"
     # Atomic write: write to temp then rename so poller never sees a half-written file
     tmp_path = gate_dir / ".response.json.tmp"
-    template = {"action": "", "target": "", "reason": ""}
+    # Bug 1 fix: Include gate_node so _poll_response can detect stale files
+    template = {"action": "", "target": "", "reason": "", "gate_node": node}
+    if rework_targets:
+        template["rework_targets"] = rework_targets
     tmp_path.write_text(json.dumps(template, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp_path.rename(resp_path)
     return resp_path
@@ -470,6 +561,16 @@ def _poll_response(artifact_root: str, node: str) -> dict[str, Any] | None:
             data = json.loads(resp_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, ValueError):
             print(f"[CCD] Invalid JSON in response.json — waiting for valid input...", file=sys.stderr)
+            continue
+        # Bug 1 fix: Check that gate_node matches current node.
+        # If a previous gate's response.json was not archived (e.g. due to
+        # crash), its action might auto-confirm the WRONG gate.  Force
+        # overwrite if the gate_node doesn't match.
+        stored_node = str(data.get("gate_node", ""))
+        if stored_node and stored_node != node:
+            print(f"[CCD] ⚠️  response.json gate_node='{stored_node}' ≠ current='{node}' — overwriting stale file", file=sys.stderr)
+            _write_response_template(artifact_root, node, data.get("rework_targets", []))
+            last_mtime = resp_path.stat().st_mtime
             continue
         action = str(data.get("action", "")).strip().lower()
         if action in ("confirm", "rework", "correct"):
@@ -532,6 +633,40 @@ def _write_human_gate_file(artifact_root: str, node: str, info: dict) -> str:
             for a in appraisal_sample[:10]:
                 lines.append(
                     f"| {a.get('evidence_id', '?')} | {a.get('score', '?')} | {a.get('weight', '?')} |"
+                )
+        lines.append("")
+    p0_rows = info.get("p0_rows")
+    p1_rows = info.get("p1_rows")
+    critical_flags = info.get("critical_flags")
+    if p0_rows or p1_rows or critical_flags:
+        lines.append("## Manufacturer Intake Pack")
+        if info.get("intake_pack_path"):
+            lines.append(f"**Workbook**: `{info.get('intake_pack_path')}`")
+            lines.append("")
+        lines.append(f"- P0 draft/unconfirmed count: {info.get('p0_draft_count', 0)}")
+        lines.append(f"- P1 draft/needs-review count: {info.get('p1_draft_count', 0)}")
+        if critical_flags:
+            lines.append("")
+            lines.append("### Critical Flags")
+            for flag in critical_flags[:20]:
+                lines.append(f"- {flag}")
+        if p0_rows:
+            lines.append("")
+            lines.append(f"### P0 Device Scope ({len(p0_rows)} rows)")
+            lines.append("| Field ID | Status | Response |")
+            lines.append("| --- | --- | --- |")
+            for row in p0_rows[:30]:
+                lines.append(
+                    f"| {row.get('field_id', '?')} | {row.get('status', '?')} | {str(row.get('response', ''))[:180]} |"
+                )
+        if p1_rows:
+            lines.append("")
+            lines.append(f"### P1 Evidence Controls ({len(p1_rows)} rows)")
+            lines.append("| Control ID | Status | Response |")
+            lines.append("| --- | --- | --- |")
+            for row in p1_rows[:30]:
+                lines.append(
+                    f"| {row.get('control_id', '?')} | {row.get('status', '?')} | {str(row.get('response', ''))[:180]} |"
                 )
         lines.append("")
     endpoint_count = info.get("endpoint_count")
@@ -628,13 +763,47 @@ def _handle_hc_interrupt(graph, state, config, interrupt_info: dict, artifact_ro
     return Command(resume={"confirmed": True, "action": "confirm"})
 
 
-def _single_invoke(graph, state, config) -> int:
+def _single_invoke(graph, state, config, artifact_root: str = "") -> int:
     """Production HC-pause loop with response-file polling.
 
     The process stays alive across HC gates.  At each gate it writes review
     files and polls response.json.  The human edits the file in-place and
     saves; the process detects the change and resumes automatically.
     """
+    default_artifact = str(Path(artifact_root) if artifact_root else Path.cwd() / "02_CER_OUTPUT")
+
+    # ── Bug 1 fix: --resume preamble ──
+    # When --resume is used (state = Command(resume={"_resume_poll": True})),
+    # check for pending interrupts at the LAST checkpoint and enter the
+    # polling loop for THAT gate.  This ensures the human sees the gate
+    # data they missed when the process previously died.
+    if isinstance(state, Command) and isinstance(state.resume, dict) and state.resume.get("_resume_poll"):
+        gs = graph.get_state(config)
+        pending = gs.interrupts if gs else []
+        if pending:
+            entry = pending[0]
+            interrupt_value = entry.value if hasattr(entry, "value") else entry
+            if isinstance(interrupt_value, dict):
+                node = str(interrupt_value.get("confirmation_point", "unknown"))
+                message = str(interrupt_value.get("message", "N/A"))
+                interrupt_info = dict(interrupt_value)
+                interrupt_info.setdefault("node", node)
+            else:
+                node = "unknown"
+                message = str(interrupt_value)[:200]
+                interrupt_info = {"node": node, "message": message, "step": "?"}
+            interrupt_info["artifact_root"] = str(
+                interrupt_info.get("artifact_root") or default_artifact
+            )
+            print(f"[CCD] 🔄 Resume polling at gate: {node}", file=sys.stderr)
+            cmd = _handle_hc_interrupt(graph, state, config, interrupt_info, interrupt_info["artifact_root"])
+            if cmd is None:
+                return 0
+            state = cmd
+        else:
+            print("[CCD] No pending interrupt — pipeline may already be complete.", file=sys.stderr)
+            return 0
+
     while True:
         try:
             result = graph.invoke(state, config)
@@ -669,6 +838,7 @@ def _single_invoke(graph, state, config) -> int:
                     node = str(interrupt_value.get("confirmation_point", "unknown"))
                     message = str(interrupt_value.get("message", "N/A"))
                     interrupt_info = dict(interrupt_value)
+                    interrupt_info.setdefault("node", node)
                 else:
                     node = "unknown"
                     message = str(interrupt_value)[:200]
@@ -774,8 +944,8 @@ def _cleanup_old_logs(artifact_root: Path) -> None:
 def _preflight_checks(input_root: Path, artifact_root: Path) -> None:
     """Check project readiness before pipeline start."""
     ok = True
-    ifu_dir = input_root / "01_IFU_REQUIRED"
-    if not ifu_dir.exists() or not list(ifu_dir.glob("*")):
+    ifu_files = _discover_preflight_ifu_files(input_root)
+    if not ifu_files:
         print("[PREFLIGHT] ⚠️  No IFU files found", file=sys.stderr)
         ok = False
     try:
@@ -788,7 +958,47 @@ def _preflight_checks(input_root: Path, artifact_root: Path) -> None:
     except Exception:
         pass
     if ok:
-        print(f"[PREFLIGHT] ✅ Ready — IFU found, disk OK", file=sys.stderr)
+        print(f"[PREFLIGHT] ✅ Ready — IFU found ({len(ifu_files)}), disk OK", file=sys.stderr)
+
+
+def _discover_preflight_ifu_files(input_root: Path) -> list[Path]:
+    """Find IFU files across legacy and intake-pack source layouts."""
+    if not input_root.exists():
+        return []
+    extensions = {".doc", ".docx", ".pdf", ".txt", ".md", ".rtf"}
+    preferred_dirs = ("01_IFU_REQUIRED", "IFU", "LABELING_UDI_PACKAGING")
+    candidates: list[Path] = []
+    for dirname in preferred_dirs:
+        base = input_root / dirname
+        if base.exists():
+            candidates.extend(
+                path
+                for path in base.rglob("*")
+                if path.is_file() and path.suffix.lower() in extensions and _path_has_ifu_signal(path)
+            )
+    candidates.extend(
+        path
+        for path in input_root.rglob("*")
+        if path.is_file()
+        and path.suffix.lower() in extensions
+        and _path_has_ifu_signal(path)
+    )
+    return sorted(set(candidates))
+
+
+def _path_has_ifu_signal(path: Path) -> bool:
+    text = " ".join(str(part) for part in path.parts[-4:]).lower()
+    original = str(path)
+    return any(
+        token in text
+        for token in (
+            "ifu",
+            "instructions for use",
+            "user manual",
+            "product information",
+            "labeling",
+        )
+    ) or any(token in original for token in ("说明书", "使用信息", "产品使用信息"))
 
 
 def _notify(title: str, message: str) -> None:

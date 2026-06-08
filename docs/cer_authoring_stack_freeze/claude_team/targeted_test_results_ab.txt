@@ -1,0 +1,15 @@
+Targeted tests (deterministic): 323 passed, 0 failed
+
+Phase 1 Writer Remediation: 25 PASS
+Phase 2A Source Fixes: 14 PASS
+Phase 3A Model Routing: 25 PASS
+Original Runtime: 259 PASS
+
+Model routing resolution: 8 PASS
+Model boundaries enforcement: 9 PASS
+Deterministic stages: 1 PASS
+A/B config generation: 3 PASS
+Task type assignment: 4 PASS
+
+Run date: 2026-05-15
+Runtime: VS Code Claude Code (harness_configured mode, no LLM)

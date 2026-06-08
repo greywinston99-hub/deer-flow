@@ -1,0 +1,17 @@
+Section: 2.1 Device Description — Medical Imaging Software
+Instruction: Describe the medical imaging software as a Software as Medical Device (SaMD). The product is pure software — it has NO physical components, NO sterility requirements, NO shelf life, NO biocompatibility concerns. Describe: software architecture, input (DICOM images), processing algorithms, output (processed images / quantitative results), intended use environment (PACS workstation). Do NOT write about catheters, implants, sterility, shelf life, surgical access, or endoscopic procedures. These are FORBIDDEN terms for a software-only device. Reference IEC 62304 software lifecycle classification.
+
+---
+
+Section: 2.2 Intended Purpose — Imaging Software
+Instruction: State the intended purpose: medical image processing and analysis software that receives DICOM input, applies algorithms for image enhancement/quantification/analysis, and outputs processed images or quantitative measurements to assist clinical assessment. The software does NOT make independent diagnostic decisions. It is intended for use by qualified radiologists/healthcare professionals. Do NOT describe physical device attributes (sterility, shelf life, biocompatibility).
+
+---
+
+Section: 3 Clinical Background — Medical Imaging / Radiology
+Instruction: Describe the clinical background of medical imaging and radiology workflow. Cover: role of image processing in diagnostic radiology, current software tools, clinical guidelines for imaging-based diagnosis, performance metrics (sensitivity, specificity). Clinical domain is MEDICAL IMAGING / RADIOLOGY. Do NOT write about interventional procedures, surgical devices, or implantables.
+
+---
+
+Section: 5 Conclusions — Imaging Software
+Instruction: Write conclusions consistent with claim_support_matrix support levels. Do NOT claim clinical validation without supporting evidence. Follow writer_conclusion_constraints for allowed and forbidden wording.

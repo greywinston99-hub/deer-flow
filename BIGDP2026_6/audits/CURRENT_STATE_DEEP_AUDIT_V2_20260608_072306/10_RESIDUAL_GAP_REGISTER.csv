@@ -1,0 +1,11 @@
+gap_id,area,phase,severity,gap_type,evidence,impact,recommended_repair,controller_decision_required,priority_order
+GAP-V2-001,Phase 7,All,P1,missing_test,"No real-project dry-run executed yet","Cannot verify end-to-end behavior on actual device data","Execute PHASE7_DRY_RUN_PROCEDURE.md on 1 sample project",NO,1
+GAP-V2-002,Git hygiene,All,P2,scope_risk,"304 uncommitted files in working tree","Release candidate cannot be cleanly tagged","Scope-classify and commit in batches; separate experimental v5 files",NO,2
+GAP-V2-003,Review v5,Phase 6,P2,scope_risk,"8 v5 Review files + frontend + routers in tree","Could be mistaken for BIGDP2026.6 deliverables","Move v5 files to feature branch or add stronger isolation",YES,3
+GAP-V2-004,Knowledge JSON,All,P3,unsafe_fallback,"Large unreviewed diffs in knowledge/*.json","Potential incorrect knowledge entries","Diff-review knowledge files before release",NO,4
+GAP-V2-005,G42 dynamic routing,gates.py,P2,partial_gate,"Dynamic formula is simple (class + criticality); endpoint maturity factor shallow","May not fully adapt to complex evidence gaps","Enhance G42 formula with endpoint maturity and evidence gap type if required",NO,5
+GAP-V2-006,PMCF universal patch,G46,P2,partial_gate,"Gap disposition allows PMCF but no anti-pattern guard","PMCF could be overused as catch-all","Add G46 check: PMCF must have justification; cannot be default",NO,6
+GAP-V2-007,Writer-side ledger enforcement,Claude Code,P2,partial_gate,"Writer skill checks ledger presence but deep content enforcement not verified","Writer could technically ignore ledger guidance","Strengthen skill prompt to require writing from ledgers only",NO,7
+GAP-V2-008,Frontend v5,frontend,P3,scope_risk,"v5 frontend components in tree","Scope confusion","Move to feature branch",YES,8
+GAP-V2-009,CI/test time,All,P3,env_blocked,"500 tests in 25s is fine but will grow","CI may slow down as tests expand","Split test suite into unit/integration tiers",NO,9
+GAP-V2-010,Controller approval,All,P1,missing_test,"No Controller formal sign-off yet","Cannot claim release readiness","Submit this audit for Controller review and go/no-go decision",YES,10

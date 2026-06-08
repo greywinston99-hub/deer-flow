@@ -1,0 +1,142 @@
+Clinical Evaluation Report — Positive Smoke Fixture
+Device: ThermaScan PRO-2000 Digital Infrared Ear Thermometer
+Document ID: CER-TS2K-POSITIVE-2026-001
+Version: 2.0 — Quantified Clinical Evidence
+Date: 2026-04-26
+
+1. Device Identification and Intended Purpose
+
+Device Name: ThermaScan PRO-2000
+Device Classification: Class IIa per MDR 2017/745 Annex VIII Rule 10
+Intended Purpose: Intermittent measurement and monitoring of human body temperature via the ear canal (tympanic membrane) in adult and pediatric patients aged 3 months and above, in clinical and home healthcare settings.
+Target Population: Adults, children, and infants aged 3 months and above. Not indicated for neonates under 3 months.
+Contraindications: Patients with ear canal obstruction, severe otitis externa, or recent ear surgery.
+Clinical Benefits:
+- B1: Rapid non-invasive temperature measurement within 1 second, enabling early fever detection.
+- B2: Elimination of invasive temperature measurement methods (rectal, esophageal) in routine practice.
+- B3: Infection control through single-use disposable probe covers.
+- B4: Memory function (30 readings) and fever alert for clinical usability.
+
+2. Clinical Evidence Summary
+
+Table 1 — Clinical Evidence Inventory
+
+| evidence_id | source_id | study_type | population_size | comparator | endpoint | quantified_result | limitation | applicability | source_ref |
+|---|---|---|---|---|---|---|---|---|---|
+| EV-001 | SRC-001 | Systematic review & meta-analysis | 6,000+ patients (68 studies) | Pulmonary artery catheter (core temp) | Mean difference in temperature measurement | -0.05 degrees C (95% CI: -0.15 to 0.05) | Heterogeneity across studies (I2=42%) | Directly applicable — same technology principle | CER_POSITIVE:Table1:Row1 |
+| EV-002 | SRC-002 | Prospective observational | 480 patients (ED setting) | Clinical assessment | Fever detection sensitivity | 94.8% sensitivity, 97.1% specificity | Single-center; ED-only population | Applicable with limitation — ED setting may not generalize to home use | CER_POSITIVE:Table1:Row2 |
+| EV-003 | SRC-003 | Prospective observational | 215 pediatric patients | Core temperature (PA catheter) | Fever alert concordance | 98.1% concordance with core temperature | Small sample size (n=215) | Directly applicable — pediatric population matches target | CER_POSITIVE:Table1:Row3 |
+| EV-004 | SRC-004 | Post-market surveillance | 1,200+ reports (MAUDE 2015-2026) | N/A | Adverse events rate | 0 serious adverse events; minor events: probe discomfort 2%, unreliable reading 3% | Passive surveillance — under-reporting possible | Directly applicable — real-world use data | CER_POSITIVE:Table1:Row4 |
+| EV-005 | SRC-005 | Repeatability study (3 sites) | 150 measurements | N/A | Coefficient of variation | 1.2% (SD 0.3%) | Laboratory conditions may differ from clinical use | Applicable — demonstrates device precision | CER_POSITIVE:Table1:Row5 |
+
+All evidence items are from published literature on predicate devices sharing equivalent infrared sensor technology (thermopile detector, wavelength range 8-14 micrometers). No new clinical investigation was conducted. Clinical evaluation is based on equivalence demonstration per MDR Article 61(3).
+
+3. Quantified Benefit Claims
+
+Table 2 — Benefit Claims
+
+| benefit_id | clinical_endpoint | quantitative_result | source_id | source_ref | acceptance_rationale |
+|---|---|---|---|---|---|
+| B-CLAIM-1 | Temperature measurement accuracy | Mean difference -0.05 degrees C vs core temp, within +/-0.5 degrees C ISO 80601-2-56 threshold | SRC-001 | CER_POSITIVE:Section3:Table2:B1 | Accuracy is clinically acceptable and within international standard tolerance. No correction factor needed for clinical use. |
+| B-CLAIM-2 | Fever detection performance | Sensitivity 94.8%, specificity 97.1% in ED setting (n=480) | SRC-002 | CER_POSITIVE:Section3:Table2:B2 | Fever detection performance is adequate for clinical screening. High specificity (97.1%) minimizes false-positive fever alerts. |
+| B-CLAIM-3 | Fever alert concordance | 98.1% concordance with core temperature in pediatric patients (n=215) | SRC-003 | CER_POSITIVE:Section3:Table2:B3 | Concordance exceeds clinical acceptability threshold of 95%. Device fever alert can be relied upon for clinical decision support. |
+
+All benefit claims are supported by published clinical evidence with quantified endpoints. Source references are traceable to PubMed-indexed publications.
+
+4. Residual Risk Assessment
+
+Table 3 — Residual Risk Register
+
+| risk_id | hazard | risk_control | residual_risk_level | supporting_evidence | source_ref | benefit_risk_linkage |
+|---|---|---|---|---|---|---|
+| R-RISK-1 | Measurement inaccuracy due to improper probe placement | Ergonomic probe design, visual alignment indicator, comprehensive IFU (Section 4.2, "Probe Placement") | Low | Repeatability CV 1.2% (SRC-005); accuracy within +/-0.2 degrees C stated specification | CER_POSITIVE:Section4:Table3:R1 | Benefit B1 (rapid measurement) outweighs this low residual risk. Accuracy is comparable to all non-invasive thermometers. |
+| R-RISK-2 | Cross-contamination from reusable components | Single-use disposable probe covers (latex-free, medical-grade polyethylene) | Negligible | MAUDE data: 0 infection-related reports in 1,200+ entries (SRC-004) | CER_POSITIVE:Section4:Table3:R2 | Benefit B3 (infection control) directly addresses this risk. Probe cover design per ISO 10993-1 biocompatibility testing. |
+| R-RISK-3 | Delayed or missed fever detection | Device accuracy within clinically acceptable limits; fever alert function at 38.0 degrees C threshold | Low | Sensitivity 94.8%, specificity 97.1% (SRC-002); concordance 98.1% (SRC-003) | CER_POSITIVE:Section4:Table3:R3 | Benefit B1+B4 (rapid measurement + fever alert) mitigate this risk. Residual risk is comparable to all non-invasive thermometers. |
+| R-RISK-4 | Battery leakage causing device malfunction | Battery compartment design per IEC 60601-1; low-battery indicator on LCD display | Negligible | 0 patient harm reports in MAUDE database (SRC-004); 8 battery-related reports out of 1,200+ (0.7%) — all non-safety | CER_POSITIVE:Section4:Table3:R4 | Benefit B1 (rapid measurement) vs negligible residual risk. Battery compartment meets electrical safety standards. |
+
+5. Benefit-Risk Determination (R2_F-002 Compliance)
+
+The following benefit-risk determination addresses each R2_F-002 requirement with explicit documentation and source references.
+
+R2_F-002: Benefits Documented — SATISFIED. The clinical benefits of the ThermaScan PRO-2000 are documented in CER.txt, Section 3, Benefit Claims Table 2. Three quantified benefit claims are established: B-CLAIM-1 (temperature measurement accuracy: mean difference -0.05 degrees C vs core temperature, within ISO 80601-2-56 threshold of +/-0.5 degrees C, n=6,000+ patients from SRC-001), B-CLAIM-2 (fever detection: sensitivity 94.8%, specificity 97.1%, n=480 patients from SRC-002), B-CLAIM-3 (fever alert concordance: 98.1%, n=215 pediatric patients from SRC-003). Source: CER.txt, Section 3, Table 2, rows B-CLAIM-1 through B-CLAIM-3.
+
+R2_F-002: Risks Documented — SATISFIED. Residual risks are documented in CER.txt, Section 4, Residual Risk Register Table 3. Four residual risks are identified: R1 (measurement inaccuracy, risk level LOW, controlled by ergonomic probe design and IFU), R2 (cross-contamination, risk level NEGLIGIBLE, controlled by single-use probe covers per ISO 10993-1), R3 (delayed fever detection, risk level LOW, controlled by accuracy within +/-0.2 degrees C and fever alert function), R4 (battery leakage, risk level NEGLIGIBLE, controlled by IEC 60601-1 compliant battery compartment). All risks are supported by evidence: R1 supported by repeatability CV 1.2% (SRC-005), R2 supported by 0 infection reports in MAUDE (SRC-004), R3 supported by sensitivity 94.8% (SRC-002) and concordance 98.1% (SRC-003), R4 supported by MAUDE data showing 0.7% battery reports with 0 patient harm (SRC-004). Source: CER.txt, Section 4, Table 3, rows R1-R4.
+
+R2_F-002: Binary Criterion — SATISFIED. Each residual risk is individually assessed with an explicit binary acceptability statement as required by R2_F-002: R1 (Measurement inaccuracy): ACCEPTABLE — residual risk is LOW and within ISO 80601-2-56 limits. R2 (Cross-contamination): ACCEPTABLE — residual risk is NEGLIGIBLE with 0 infection reports. R3 (Delayed fever detection): ACCEPTABLE — residual risk is LOW with sensitivity 94.8%. R4 (Battery leakage): ACCEPTABLE — residual risk is NEGLIGIBLE with 0 patient harm. No residual risk is assessed as UNACCEPTABLE. Source: CER.txt, Section 5, Risk Acceptability Assessment.
+
+R2_F-002: Benefit-Risk Balance — SATISFIED. The clinical benefits (B-CLAIM-1 through B-CLAIM-3, quantified in Section 3) CLEARLY OUTWEIGH the identified residual risks (R1-R4, assessed in Section 4). All residual risks are individually ACCEPTABLE and adequately controlled through device design, labeling, and IFU per ISO 14971:2019. No residual risk remains at an unacceptable level. The overall benefit-risk profile is ACCEPTABLE and consistent with the state of the art for Class IIa digital thermometers as defined in MDR Annex XIV Part A. The benefit-risk ratio is favorable and supports CE marking under MDR 2017/745. Source: CER.txt, Section 5, Overall Benefit-Risk Determination.
+
+5. Benefit-Risk Conclusion
+
+Each residual risk (R1-R4) is individually assessed as ACCEPTABLE:
+- R1 (Measurement inaccuracy): ACCEPTABLE — residual risk LOW, accuracy within ISO 80601-2-56 limits. Source: CER_POSITIVE:Section4:Table3:R1
+- R2 (Cross-contamination): ACCEPTABLE — residual risk NEGLIGIBLE, 0 infection reports. Source: CER_POSITIVE:Section4:Table3:R2
+- R3 (Delayed fever detection): ACCEPTABLE — residual risk LOW, sensitivity 94.8%. Source: CER_POSITIVE:Section4:Table3:R3
+- R4 (Battery leakage): ACCEPTABLE — residual risk NEGLIGIBLE, 0 patient harm. Source: CER_POSITIVE:Section4:Table3:R4
+
+The clinical benefits (B-CLAIM-1 through B-CLAIM-3, quantified above) CLEARLY OUTWEIGH the identified residual risks (R1-R4). All risks are adequately controlled through device design, labeling, and IFU. No residual risk remains at an unacceptable level. The benefit-risk profile is ACCEPTABLE and consistent with the state of the art for Class IIa digital thermometers per MDR Annex XIV Part A.
+
+6. Equivalence Demonstration
+
+This CER relies on equivalence to the Braun ThermaScan PRO 6000 (predicate device, CE marked under MDD 93/42/EEC since 2014) per MDCG 2020-5:
+
+Technical Equivalence: Both devices use identical infrared thermopile detector technology (wavelength 8-14 micrometers), same measurement range (34.0-42.2 degrees C), and comparable calibration algorithms. The ergonomic probe design, single-use probe cover system, and LCD display interface are functionally equivalent. Source: CER_POSITIVE:Section6:TechnicalEquivalence
+
+Biological Equivalence: Both devices target the same anatomical site (tympanic membrane via ear canal). The tissue interaction (passive infrared radiation absorption) is identical. No differences in measurement physiology exist between the two devices. Source: CER_POSITIVE:Section6:BiologicalEquivalence
+
+Clinical Equivalence: Both devices share identical intended purpose, target populations, clinical settings, and operating conditions. Clinical performance data for the predicate device are applicable to the subject device. Source: CER_POSITIVE:Section6:ClinicalEquivalence
+
+Data Access: The manufacturer confirms access to predicate device technical documentation and clinical data per MDCG 2020-5 Section 4.1. A Data Access Agreement is on file (DOC-DAA-2026-001).
+
+Limitation: This equivalence demonstration relies on literature review and predicate device post-market data. No head-to-head comparative clinical investigation was conducted between the subject device and the predicate device. This limitation is noted and disclosed.
+
+7. PMS and PMCF
+
+PMS Summary: Post-market surveillance data from the MAUDE database (2015-2026) was reviewed. 1,200+ reports were identified for infrared ear thermometers. No serious adverse events or patient harm reports were found. Common minor issues include probe cover detachment (n=18 reports, 1.5%), display malfunction (n=12, 1.0%), and battery leakage (n=8, 0.7%). None resulted in patient harm. Source: CER_POSITIVE:Section7:PMS
+
+PMCF Plan: A Post-Market Clinical Follow-up plan is established (PMCF-TS2K-2026-001):
+- Annual review of post-market surveillance data.
+- User satisfaction survey at 12 and 24 months post-launch (target n=200).
+- PMCF registry enrollment of 500 patients across 3 clinical sites over 24 months.
+- Ongoing literature surveillance with annual CER updates.
+
+PMCF Rationale: PMCF is required to confirm long-term safety and performance, identify emerging risks, and update the clinical evaluation as new evidence becomes available. The PMCF plan is proportionate to the Class IIa device risk profile. Source: CER_POSITIVE:Section7:PMCF
+
+8. Regulatory Anchors
+
+This CER has been prepared in accordance with:
+- MDR 2017/745 Article 61 (Clinical evaluation)
+- MDR 2017/745 Annex XIV Part A (Clinical evaluation requirements)
+- MEDDEV 2.7/1 Rev.4 (Clinical evaluation guidance)
+- MDCG 2020-5 (Equivalence guidance)
+- ISO 14971:2019 (Risk management for medical devices)
+- ISO 80601-2-56:2017 (Particular requirements for clinical thermometers)
+- IEC 60601-1 (Medical electrical equipment — general safety)
+
+9. Source Traceability
+
+All clinical evidence claims, benefit claims, and risk assessments in this CER are traceable:
+
+| Claim Type | Source Reference Pattern | Count |
+|---|---|---|
+| Clinical evidence | CER_POSITIVE:Table1:Row{1-5} | 5 |
+| Benefit claims | CER_POSITIVE:Section3:Table2:B{1-3} | 3 |
+| Residual risks | CER_POSITIVE:Section4:Table3:R{1-4} | 4 |
+| Equivalence | CER_POSITIVE:Section6:{Technical/Biological/Clinical}Equivalence | 3 |
+| PMS/PMCF | CER_POSITIVE:Section7:{PMS/PMCF} | 2 |
+| Regulatory | Section 8 (above) | 6 |
+
+Total traceable claims: 23
+
+10. Human Review Boundary
+
+This Clinical Evaluation Report is a SYNTHETIC SMOKE FIXTURE for system validation only. It is NOT a real regulatory submission.
+
+- Designed to satisfy existing cer-clinical-evidence-panel-reviewer acceptance criteria.
+- Synthetic evidence IDs (SRC-001 through SRC-005) are internally consistent and traceable.
+- Seeded human gate decision is for test execution only — not a real regulatory decision.
+- Not for clinical use or regulatory submission.
+- All quantitative data are synthetic and illustrative.
+
+End of Clinical Evaluation Report — Positive Smoke Fixture.
+Document ID: CER-TS2K-POSITIVE-2026-001

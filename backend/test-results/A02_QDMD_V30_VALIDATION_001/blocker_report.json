@@ -1,0 +1,100 @@
+{
+  "schema": "cer_authoring_blocker_report_v1",
+  "project_id": "A02_QDMD_V30_VALIDATION_001",
+  "status": "BLOCKED",
+  "writer_invoked": false,
+  "source_preflight_status": "BLOCKED",
+  "pre_writer_readiness_status": null,
+  "final_gate_decision": "HUMAN_HOLD",
+  "blocking_issue_count": 2,
+  "controlled_gap_count": 3,
+  "blocking_issues": [
+    {
+      "issue_id": "SOURCE-P0-MULTI-IFU",
+      "severity": "critical",
+      "message": "Multiple primary IFU candidates are present; source lock must select one subject-device IFU.",
+      "source_ids": [
+        "SRC-280",
+        "SRC-281",
+        "SRC-282",
+        "SRC-283",
+        "SRC-284",
+        "SRC-285",
+        "SRC-286",
+        "SRC-287",
+        "SRC-288",
+        "SRC-289",
+        "SRC-290",
+        "SRC-291",
+        "SRC-292",
+        "SRC-293",
+        "SRC-294",
+        "SRC-295",
+        "SRC-296"
+      ]
+    },
+    {
+      "issue_id": "CLASS-P0-CONFLICT",
+      "severity": "critical",
+      "message": "Conflicting MDR classification signals were found.",
+      "classes": [
+        "I",
+        "IIa",
+        "IIb"
+      ]
+    }
+  ],
+  "controlled_gaps": [
+    {
+      "gap_id": "GAP-INPUT-EQUIVALENCE",
+      "required_input": "equivalence",
+      "impact": "Equivalence cannot be claimed without confirmed equivalent-device documentation."
+    },
+    {
+      "gap_id": "SOURCE-P0-MULTI-IFU",
+      "required_input": "Controlled source package",
+      "impact": "Multiple primary IFU candidates are present; source lock must select one subject-device IFU.",
+      "details": {
+        "issue_id": "SOURCE-P0-MULTI-IFU",
+        "severity": "critical",
+        "message": "Multiple primary IFU candidates are present; source lock must select one subject-device IFU.",
+        "source_ids": [
+          "SRC-280",
+          "SRC-281",
+          "SRC-282",
+          "SRC-283",
+          "SRC-284",
+          "SRC-285",
+          "SRC-286",
+          "SRC-287",
+          "SRC-288",
+          "SRC-289",
+          "SRC-290",
+          "SRC-291",
+          "SRC-292",
+          "SRC-293",
+          "SRC-294",
+          "SRC-295",
+          "SRC-296"
+        ]
+      }
+    },
+    {
+      "gap_id": "CLASS-P0-CONFLICT",
+      "required_input": "Controlled source package",
+      "impact": "Conflicting MDR classification signals were found.",
+      "details": {
+        "issue_id": "CLASS-P0-CONFLICT",
+        "severity": "critical",
+        "message": "Conflicting MDR classification signals were found.",
+        "classes": [
+          "I",
+          "IIa",
+          "IIb"
+        ]
+      }
+    }
+  ],
+  "recommended_next_action": "Resolve critical source/package blockers before rerunning CER authoring.",
+  "created_at": "2026-05-29T14:12:30Z"
+}

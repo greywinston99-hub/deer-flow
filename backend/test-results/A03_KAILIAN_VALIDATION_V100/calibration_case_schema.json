@@ -1,0 +1,62 @@
+{
+  "schema_name": "calibration_case_schema",
+  "schema_version": "cer-authoring-phase0-contract-v1",
+  "purpose": "Define how a real CER project enters calibration without leaking human accepted CER or NB comments into writer stages.",
+  "authoring_baseline_version": "V2.6_PHASE6_EVIDENCE_WRITERS_FIX",
+  "project_metadata_required": [
+    "project_id",
+    "device_name",
+    "device_class",
+    "device_domain",
+    "calibration_role",
+    "source_data_lock_date",
+    "authoring_baseline_version"
+  ],
+  "input_groups": [
+    {
+      "group_id": "CAL-IN-001",
+      "name": "Allowed authoring source pack",
+      "allowed_for_writer": true,
+      "examples": "IFU, CEP, GSPR, RMF/RMR/FMEA, PMS/PMCF, pre-clinical, manufacturer source files, permitted full-text PDFs."
+    },
+    {
+      "group_id": "CAL-IN-002",
+      "name": "Human accepted CER",
+      "allowed_for_writer": false,
+      "allowed_for_delta_analyzer": true,
+      "control": "May only be loaded after AI baseline artifacts are frozen."
+    },
+    {
+      "group_id": "CAL-IN-003",
+      "name": "NB comments and response letters",
+      "allowed_for_writer": false,
+      "allowed_for_delta_analyzer": true,
+      "control": "Used only for CEAR deficiency pattern and root-cause analysis."
+    }
+  ],
+  "required_delta_tables": [
+    "CLAIM_DELTA_TABLE",
+    "SOTA_BENCHMARK_DELTA_TABLE",
+    "EVIDENCE_SELECTION_DELTA_TABLE",
+    "EVIDENCE_APPRAISAL_DELTA_TABLE",
+    "CLAIM_EVIDENCE_DELTA_MATRIX",
+    "PMCF_BOUNDARY_DELTA_TABLE",
+    "ALIGNMENT_DELTA_TABLE",
+    "CEAR_DEFICIENCY_PATTERN_TABLE"
+  ],
+  "dry_run_allowed_changes": [
+    "schema/protocol bug fix",
+    "artifact/export/readback fix",
+    "data leakage control fix",
+    "blocker recording"
+  ],
+  "formal_calibration_forbidden_changes": [
+    "SOTA Agent logic",
+    "Evidence Appraisal logic",
+    "Writer Contract",
+    "Benefit-Risk Rule",
+    "PMCF Boundary Rule",
+    "Alignment Rule",
+    "Gate Logic"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_name": "controlled_compromise_manifest",
+  "terminal_status": "REASONING_CHAIN_INCOMPLETE",
+  "blocked_reason": "One or more pre-writer readiness conditions are BLOCKED.",
+  "blocked_conditions": [
+    {
+      "condition_name": "WS4_PRISMA",
+      "status": "BLOCKED",
+      "message": "PRISMA not reproducible: 1 major, 0 critical failures.",
+      "upstream_route": "sota_search",
+      "failure_pattern": "prisma_not_reproducible",
+      "source_gate_ids": "WS4_PRISMA_REPRODUCIBILITY"
+    },
+    {
+      "condition_name": "WS6_ENDPOINT_HOMOGENEITY",
+      "status": "REWORK_REQUIRED",
+      "message": "1 endpoint families are heterogeneous — conclusion must be downgraded.",
+      "upstream_route": "endpoint_extraction",
+      "failure_pattern": "endpoint_heterogeneity_downgrade",
+      "source_gate_ids": "WS6_ENDPOINT_HOMOGENEITY"
+    },
+    {
+      "condition_name": "WS9_RMF_LINKAGE",
+      "status": "BLOCKED",
+      "message": "4 IFU warnings have no RMF hazard linkage.",
+      "upstream_route": "risk_gspr_mapping",
+      "failure_pattern": "ifu_warning_unlinked_to_rmf",
+      "source_gate_ids": "WS9_RMF_IFU_LINKAGE"
+    }
+  ],
+  "spiral_rounds_exhausted": false,
+  "writer_invoked": false,
+  "cer_draft_generated": false
+}

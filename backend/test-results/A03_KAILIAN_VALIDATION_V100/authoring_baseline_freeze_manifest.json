@@ -1,0 +1,32 @@
+{
+  "schema_name": "authoring_baseline_freeze_manifest",
+  "schema_version": "cer-authoring-phase0-contract-v1",
+  "generated_at": "2026-05-30T07:05:31.502286+00:00",
+  "authoring_baseline_version": "V2.6_PHASE6_EVIDENCE_WRITERS_FIX",
+  "phase": "Phase 0 carrier layer",
+  "core_authoring_workflow_frozen_during_formal_calibration": true,
+  "formal_calibration_entry_rule": "Run one dry-run first; freeze baseline before the three formal calibration projects.",
+  "allowed_between_formal_projects": [
+    "delta analysis",
+    "root-cause classification",
+    "schema/protocol bug fix",
+    "artifact/export/readback fix",
+    "data leakage fix",
+    "blocker recording"
+  ],
+  "forbidden_between_formal_projects": [
+    "SOTA Agent logic change",
+    "Evidence Appraisal logic change",
+    "Writer Contract change",
+    "Benefit-Risk Rule change",
+    "PMCF Boundary Rule change",
+    "Alignment Rule change",
+    "Gate Logic change"
+  ],
+  "fatal_blocker_protocol": [
+    "bump authoring_baseline_version",
+    "record blocker and repair reason",
+    "rerun affected calibration project",
+    "aggregate only same-baseline projects, or stratify by baseline version"
+  ]
+}

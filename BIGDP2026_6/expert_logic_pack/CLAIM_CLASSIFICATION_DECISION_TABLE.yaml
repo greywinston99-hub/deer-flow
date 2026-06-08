@@ -1,0 +1,99 @@
+# CLAIM_CLASSIFICATION_DECISION_TABLE.yaml
+# Maps statement patterns → claim classification
+schema_version: "1.0.0"
+
+# Pattern matching order: first match wins. Patterns checked top-to-bottom.
+
+decisions:
+  - classification: "marketing_overclaim"
+    patterns:
+      - "all patients"
+      - "every case"
+      - "100% success"
+      - "guaranteed"
+      - "perfect"
+      - "revolutionary"
+      - "best-in-class"
+      - "unmatched"
+      - "superior to all"
+    evidence_required: "MUST be downgraded before CER"
+    conclusion_ceiling: "not_supported"
+    action: "Flag for human review. DO NOT use as CER conclusion."
+
+  - classification: "clinical_safety"
+    patterns:
+      - "safe"
+      - "safety"
+      - "adverse event"
+      - "complication rate"
+      - "no harm"
+      - "risk of"
+      - "AE rate"
+    evidence_required: "direct_clinical OR equivalent_device PLUS rmf_gspr"
+    conclusion_ceiling: "strong"
+    action: "Requires clinical evidence AND RMF/GSPR alignment."
+
+  - classification: "warning"
+    patterns:
+      - "do not use"
+      - "contraindicated"
+      - "warning"
+      - "caution"
+      - "precaution"
+      - "not for"
+      - "avoid"
+    evidence_required: "rmf_gspr only"
+    conclusion_ceiling: "N/A (not a clinical claim)"
+    action: "Extract from IFU warnings. Validate against RMF."
+
+  - classification: "clinical_performance"
+    patterns:
+      - "reduces"
+      - "improves"
+      - "achieves"
+      - "treats"
+      - "effective"
+      - "efficacy"
+      - "success rate"
+      - "hemostasis"
+      - "closure"
+      - "outcome"
+    evidence_required: "direct_clinical preferred; indirect accepted with limitations"
+    conclusion_ceiling: "strong"
+    action: "Requires clinical evidence. Highest evidence burden."
+
+  - classification: "usability"
+    patterns:
+      - "easy to use"
+      - "ergonomic"
+      - "intuitive"
+      - "comfortable"
+      - "handle"
+      - "user-friendly"
+      - "learning curve"
+      - "training"
+    evidence_required: "usability_study OR manufacturer_data"
+    conclusion_ceiling: "moderate"
+    action: "May use manufacturer/simulator data. Document limitation."
+
+  - classification: "non_clinical"
+    patterns:
+      - "made of"
+      - "material"
+      - "titanium"
+      - "stainless steel"
+      - "dimensions"
+      - "weight"
+      - "sterile"
+      - "single-use"
+      - "shelf life"
+    evidence_required: "technical_documentation only"
+    conclusion_ceiling: "N/A"
+    action: "No clinical evidence required. Reference TD."
+
+  - classification: "unsupported_claim"
+    patterns: []
+    evidence_required: "N/A"
+    conclusion_ceiling: "not_supported"
+    action: "Catch-all for claims that don't match any supported pattern. Flag for review."
+    note: "Default classification when no pattern matches."

@@ -1,0 +1,17 @@
+# CER Benefit-Risk Agent
+**Schema:** cer_prompt_contract_v1 | **Step ID:** cer_benefit_risk | **Handler:** _run_benefit_risk
+**Status:** V24.1 — SPLIT from CEP.
+
+## Role
+Review benefit-risk determination. Score across 10 dimensions (knowledge/benefit_risk_dimensions.md).
+
+## B-R 10-Dimension Scoring (V21)
+All 10 dims AI-scored. Max score: 19. 0-7 insufficient, 8-14 partial, 15-19 adequate.
+
+## Downstream Dependency
+If Evidence Adequacy (5b) found data gaps → B-R conclusion downgraded.
+If Equivalence (5c) found predicate issues → B-R based on equivalence may be invalid.
+Note dependencies, do NOT re-evaluate upstream.
+
+## Regulatory Anchor
+MDR Annex XIV Part A, GSPR 1-4.

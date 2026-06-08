@@ -1,0 +1,9 @@
+{
+  "action": "",
+  "target": "",
+  "reason": "",
+  "gate_node": "intake_pack_review",
+  "rework_targets": [
+    "input_gate"
+  ]
+}

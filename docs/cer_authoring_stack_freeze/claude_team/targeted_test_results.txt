@@ -1,0 +1,16 @@
+Targeted tests: 39 passed (25 Phase 1 + 14 Phase 2A)
+
+Phase 1 (writer remediation):
+- Gate 1 Domain Consistency: 5 tests
+- Gate 3 Evidence-Conclusion: 5 tests
+- Gate 2 IFU Consumption: 3 tests
+- Gate 4 Body Cleanliness: 3 tests
+- Gate 5 QA Hardening: 6 tests
+- Quarantine Routing: 3 tests
+
+Phase 2A (source fixes):
+- Domain template dispatch: 6 tests
+- Unknown domain blocking: 3 tests
+- IFU field mapping: 5 tests
+
+Run date: 2026-05-15

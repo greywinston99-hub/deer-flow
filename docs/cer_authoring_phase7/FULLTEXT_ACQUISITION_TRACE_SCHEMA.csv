@@ -1,0 +1,14 @@
+field,required,description
+evidence_id,yes,Evidence registry identifier.
+pmid,conditional,PMID where available.
+title,yes,Article or source title.
+query_id,yes,Query that retrieved the item.
+full_text_available,yes,Yes/no availability flag.
+full_text_source,conditional,Source of full text when available.
+full_text_retrieval_attempted,yes,Whether full-text retrieval was attempted.
+full_text_retrieval_status,yes,Full-text status used by appraisal.
+full_text_used_for_appraisal,yes,Whether appraisal consumed full text.
+abstract_only_reason,conditional,Reason for abstract-only appraisal.
+downstream_limitation,conditional,Limitation to apply if abstract-only.
+ledger_approved_for_writer,yes,Whether evidence can support writer reasoning.
+screening_decision,yes,Screening decision leading to appraisal.

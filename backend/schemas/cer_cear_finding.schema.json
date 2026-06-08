@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER CEAR Finding Schema",
+  "description": "Schema for CEAR-style finding formatter output. NOT official CEAR generation.",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_cear_finding"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "CEAR_style_finding"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_cear_style_finding_formatter"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_cear_style_finding_formatter"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "raw_findings_ref": {
+          "type": "string"
+        },
+        "finding_type_ref": {
+          "type": "string"
+        },
+        "severity_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDCG_2020_13",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean",
+      "const": false
+    },
+    "cear_style_only": {
+      "type": "boolean",
+      "const": true
+    },
+    "official_cear_generation": {
+      "type": "boolean",
+      "const": false
+    },
+    "prohibited_claim": {
+      "type": "string",
+      "const": "NOT official CEAR generation - prohibited per D1 design"
+    },
+    "finding_format": {
+      "type": "object",
+      "properties": {
+        "finding_id": {
+          "type": "string"
+        },
+        "finding_type": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "major",
+            "minor",
+            "informational"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "mdcg_template_compliance": {
+          "type": "boolean"
+        }
+      }
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

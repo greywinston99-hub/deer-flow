@@ -1,0 +1,32 @@
+{
+  "schema": "cer_source_preflight_gate_report_v1",
+  "gate_id": "SOURCE_PREFLIGHT",
+  "status": "REWORK_REQUIRED",
+  "next_action": "continue",
+  "blocking_issues": [],
+  "controlled_gaps": [
+    {
+      "gap_id": "SOURCE-CONTROLLED-GAP-MIXED-DOMAIN-LOCKED",
+      "severity": "major",
+      "message": "Mixed source-domain signals remain present, but manufacturer intake supplied a confirmed subject-device domain lock.",
+      "domains": [
+        "contrast_imaging_bubble_study_system",
+        "plasma_surgical_equipment"
+      ],
+      "locked_domain": "contrast_imaging_bubble_study_system"
+    },
+    {
+      "gap_id": "CLASS-CONTROLLED-GAP-SOURCE-CONFLICT-LOCKED",
+      "severity": "major",
+      "message": "Conflicting source classification signals remain present, but manufacturer intake supplied a confirmed MDR classification lock.",
+      "classes": [
+        "I",
+        "III",
+        "IIa",
+        "IIb"
+      ],
+      "locked_classification": "IIb"
+    }
+  ],
+  "manufacturer_intake_status": "PASS"
+}

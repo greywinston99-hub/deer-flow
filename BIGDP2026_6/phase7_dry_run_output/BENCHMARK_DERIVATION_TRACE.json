@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-06-08T00:00:35.794090+00:00",
+  "generated_by": "_node_build_benchmark_trace",
+  "device_context": {
+    "device_name": "VasoSeal Pro X",
+    "device_class": "IIb",
+    "intended_use": "Percutaneous closure of femoral artery access sites following diagnostic or interventional catheterization procedures.",
+    "clinical_domain": "vascular_closure"
+  },
+  "domain_config": {
+    "domain_key": "generic_fallback",
+    "matched_by": "fallback",
+    "clinical_domain": "unknown",
+    "acceptability_criteria": [
+      "Any available clinical data with N\u226530",
+      "Explicitly noted as 'fallback \u2014 domain not in benchmark registry'",
+      "CER must document limitation"
+    ]
+  },
+  "endpoints": [
+    {
+      "endpoint_name": "hemostasis_time",
+      "endpoint_clinical_meaning": "Time from deployment to complete hemostasis",
+      "endpoint_type": "primary_efficacy",
+      "source_studies": [
+        {
+          "pmid": "34567890",
+          "first_author": "Anderson",
+          "year": 2024,
+          "study_design": "RCT",
+          "sample_size": 350,
+          "relevance_weight": 0.5
+        },
+        {
+          "pmid": "34567891",
+          "first_author": "Bennett",
+          "year": 2023,
+          "study_design": "Prospective",
+          "sample_size": 500,
+          "relevance_weight": 0.5
+        },
+        {
+          "pmid": "34567892",
+          "first_author": "Chen",
+          "year": 2024,
+          "study_design": "Meta-analysis",
+          "sample_size": 1200,
+          "relevance_weight": 0.5
+        },
+        {
+          "pmid": "34567893",
+          "first_author": "Davis",
+          "year": 2023,
+          "study_design": "Registry",
+          "sample_size": 2000,
+          "relevance_weight": 0.5
+        }
+      ],
+      "benchmark_value_range": {
+        "value_type": "range",
+        "derivation_method": "Aggregated from SOTA benchmark table."
+      },
+      "population_comparability": "comparable",
+      "population_comparability_rationale": "Source study populations are in the same clinical domain.",
+      "device_comparability": "alternative_therapy",
+      "device_comparability_rationale": "SOTA benchmarks are derived from alternative therapies unless equivalence is claimed.",
+      "directness": "direct",
+      "confidence": "high",
+      "confidence_rationale": "Based on 4 source studies with direct evidence.",
+      "acceptability_rationale": "Benchmark is acceptable for direct comparison in CER SOTA section.",
+      "alternatives_rejected_rationale": "",
+      "limitations": [
+        "Based on 4 studies; confidence: high."
+      ]
+    },
+    {
+      "endpoint_name": "major_adverse_events",
+      "endpoint_clinical_meaning": "Device-related major AEs",
+      "endpoint_type": "primary_safety",
+      "source_studies": [
+        {
+          "pmid": "34567890",
+          "first_author": "Anderson",
+          "year": 2024,
+          "study_design": "RCT",
+          "sample_size": 350,
+          "relevance_weight": 0.5
+        },
+        {
+          "pmid": "34567891",
+          "first_author": "Bennett",
+          "year": 2023,
+          "study_design": "Prospective",
+          "sample_size": 500,
+          "relevance_weight": 0.5
+        },
+        {
+          "pmid": "34567892",
+          "first_author": "Chen",
+          "year": 2024,
+          "study_design": "Meta-analysis",
+          "sample_size": 1200,
+          "relevance_weight": 0.5
+        },
+        {
+          "pmid": "34567893",
+          "first_author": "Davis",
+          "year": 2023,
+          "study_design": "Registry",
+          "sample_size": 2000,
+          "relevance_weight": 0.5
+        }
+      ],
+      "benchmark_value_range": {
+        "value_type": "range",
+        "derivation_method": "Aggregated from SOTA benchmark table."
+      },
+      "population_comparability": "comparable",
+      "population_comparability_rationale": "Source study populations are in the same clinical domain.",
+      "device_comparability": "alternative_therapy",
+      "device_comparability_rationale": "SOTA benchmarks are derived from alternative therapies unless equivalence is claimed.",
+      "directness": "direct",
+      "confidence": "high",
+      "confidence_rationale": "Based on 4 source studies with direct evidence.",
+      "acceptability_rationale": "Benchmark is acceptable for direct comparison in CER SOTA section.",
+      "alternatives_rejected_rationale": "",
+      "limitations": [
+        "Based on 4 studies; confidence: high."
+      ]
+    }
+  ],
+  "overall_assessment": {
+    "total_endpoints": 2,
+    "direct_benchmarks": 2,
+    "indirect_benchmarks": 0,
+    "fallback_benchmarks": 0,
+    "high_confidence_endpoints": 2,
+    "medium_confidence_endpoints": 0,
+    "low_confidence_endpoints": 0,
+    "benchmark_adequacy": "adequate"
+  }
+}

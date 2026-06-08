@@ -1,0 +1,39 @@
+{
+  "scenario_id": "ELP-10",
+  "scenario_name": "IFU Claim Narrowing Requires Reason",
+  "rule_category": "IFU Transformation Rules",
+  "rules_tested": ["IFU-02", "IFU-06"],
+  "description": "When an IFU claim is narrowed in scope (e.g., 'all vascular procedures' → 'peripheral vascular procedures only'), the transformation MUST record a reason. Narrowing without reason is not acceptable.",
+
+  "input": {
+    "ifu_text": "Device is indicated for hemostasis in all vascular surgical procedures.",
+    "evidence_population": "adult patients undergoing peripheral vascular procedures (femoral, popliteal)",
+    "excluded_populations": ["carotid", "aortic", "visceral", "pediatric"],
+    "reason_for_narrowing": "Available clinical evidence is limited to peripheral vascular procedures. No data for carotid, aortic, or pediatric populations."
+  },
+
+  "expected_expert_reasoning": {
+    "claim_narrowed": true,
+    "transformation_reason_required": true,
+    "original_scope": "all vascular surgical procedures",
+    "narrowed_scope": "peripheral vascular procedures (femoral, popliteal) in adult patients",
+    "reason_must_mention": ["peripheral", "no data", "carotid", "pediatric"]
+  },
+
+  "expected_ledger": {
+    "ifu_claim_evolution_ledger": {
+      "evolution_flags": {
+        "claim_narrowed": true,
+        "requires_human_review": true
+      },
+      "evolution_stages": {
+        "stage_5_final_cer_claim": {
+          "transformation_reason": "Narrowed from 'all vascular procedures' to 'peripheral vascular procedures only' — evidence limited to femoral/popliteal sites. No data for carotid, aortic, or pediatric populations."
+        }
+      }
+    }
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["narrowed indication", "peripheral vascular only", "no data for other sites"]
+}

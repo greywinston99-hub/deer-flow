@@ -1,0 +1,107 @@
+# EVIDENCE_SUPPORT_DECISION_TABLE.yaml
+# Maps evidence characteristics → support type + conclusion ceiling
+# Upgraded with 5-CER engineer feedback: Oxford CEBM levels, 6-factor scoring, 3-tier appraisal
+schema_version: "2.0.0"
+
+# ── Oxford CEBM Evidence Levels (from CER_05_TABLES Type D) ──
+oxford_cebm_levels:
+  "1a": {type: "Systematic Review of RCTs", weight_multiplier: 1.5, cer_weight: "highest"}
+  "1b": {type: "Individual RCT", weight_multiplier: 1.3, cer_weight: "high"}
+  "2a": {type: "Systematic Review of Cohort Studies", weight_multiplier: 1.2, cer_weight: "medium-high"}
+  "2b": {type: "Individual Cohort Study", weight_multiplier: 1.0, cer_weight: "medium"}
+  "3a": {type: "Systematic Review of Case-Control", weight_multiplier: 0.8, cer_weight: "medium-low"}
+  "3b": {type: "Individual Case-Control", weight_multiplier: 0.6, cer_weight: "low"}
+  "4": {type: "Case Series / Expert Opinion", weight_multiplier: 0.3, cer_weight: "reference_only"}
+  "5": {type: "Mechanism-based Reasoning", weight_multiplier: 0.1, cer_weight: "background_only"}
+
+# ── Six-Factor Evidence Scoring (from SKILL_ELICITATION §3) ──
+scoring_factors:
+  study_design: {weight: 0.30, description: "RCT > Cohort > Case Series > Case Report"}
+  relevance: {weight: 0.25, description: "Direct relevance to subject device and indication"}
+  risk_of_bias: {weight: 0.15, description: "Based on Cochrane RoB 2 / NOS"}
+  sample_size: {weight: 0.15, description: "Total enrolled subjects"}
+  data_completeness: {weight: 0.10, description: "Endpoint data reporting quality"}
+  statistical_rigor: {weight: 0.05, description: "p-value, CI, multivariate adjustment"}
+
+# ── Three-Tier Appraisal Framework (from CER_05_TABLES Type D) ──
+appraisal_tiers:
+  tier_1_suitability:
+    "++": {definition: "Highly suitable — direct to evaluated device", action: "direct_citation"}
+    "+": {definition: "Suitable — relevant with acceptable quality", action: "cite_with_limitations"}
+    "-": {definition: "Limited suitability — indirect or limited quality", action: "reference_only"}
+    "--": {definition: "Not suitable — exclude with reason", action: "exclude"}
+  tier_2_evidence_level: "Oxford CEBM 1a-5 (see oxford_cebm_levels above)"
+  tier_3_outcome: {fields: ["Study Design", "Sample Size", "Key Outcomes", "Safety Data", "Relevance to MDuA", "Limitations"]}
+
+decisions:
+  - support_type: "direct_clinical"
+    conditions:
+      device_match: "subject_device"
+      data_type: "clinical"
+      study_design: ["RCT", "prospective_multicenter", "prospective_cohort", "retrospective_cohort", "registry"]
+    conclusion_ceiling: "strong"
+    weight: 1.0
+    rule_ref: "EVS-01"
+    note: "Gold standard. Study conducted ON the subject device."
+
+  - support_type: "indirect_literature"
+    conditions:
+      device_match: "different_device_same_domain"
+      data_type: "clinical"
+    conclusion_ceiling: "moderate"
+    weight: 0.7
+    rule_ref: "EVS-02"
+    note: "Clinical data from different device in same clinical domain."
+
+  - support_type: "equivalent_device"
+    conditions:
+      device_match: "equivalent_device"
+      equivalence_documented: true
+      data_type: "clinical"
+    conclusion_ceiling: "moderate"
+    weight: 0.6
+    rule_ref: "EVS-03"
+    note: "Requires documented equivalence under MDR Annex XIV."
+
+  - support_type: "manufacturer_data"
+    conditions:
+      source: "manufacturer_internal"
+      data_type: ["bench_testing", "pre_clinical", "simulation", "internal_report"]
+    conclusion_ceiling: "limited"
+    weight: 0.4
+    rule_ref: "EVS-04"
+    note: "Cannot support clinical claims alone. Must be supplemented."
+
+  - support_type: "PMS_PMCF"
+    conditions:
+      source: ["post_market_surveillance", "pmcf", "registry", "complaints_analysis"]
+      data_type: "real_world"
+    conclusion_ceiling: "moderate"
+    weight: 0.5
+    rule_ref: "none"
+    note: "Real-world evidence. Valuable but may have confounding."
+
+  - support_type: "RMF_GSPR_only"
+    conditions:
+      source: ["rmf", "gspr", "risk_management"]
+      data_type: "risk_analysis"
+    conclusion_ceiling: "N/A"
+    weight: 0.6
+    rule_ref: "EVS-06"
+    note: "For safety/warning claims only. Not for clinical performance claims."
+
+  - support_type: "insufficient"
+    conditions:
+      evidence_available: false
+    conclusion_ceiling: "limited"
+    weight: 0.0
+    rule_ref: "EVS-05"
+    note: "No adequate evidence. Must trigger gap disposition."
+
+  - support_type: "conflicting"
+    conditions:
+      evidence_contradicts_claim: true
+    conclusion_ceiling: "not_supported"
+    weight: -1.0
+    rule_ref: "CON-06"
+    note: "Evidence contradicts claim. Cannot support. Critical finding."

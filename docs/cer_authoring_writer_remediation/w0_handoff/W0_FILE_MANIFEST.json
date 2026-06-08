@@ -1,0 +1,121 @@
+[
+  {
+    "filename": "CER_WRITER_GATE_SPEC_AUDIT.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/CER_WRITER_GATE_SPEC_AUDIT.md",
+    "purpose": "Gate 1-5 full specification: logic, inputs, outputs, failure conditions, exceptions",
+    "required": true,
+    "exists": true,
+    "size_bytes": 3591,
+    "last_modified": "2026-05-15T18:47:45"
+  },
+  {
+    "filename": "CER_WRITER_REMEDIATION_MASTER_STATUS.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/CER_WRITER_REMEDIATION_MASTER_STATUS.md",
+    "purpose": "Controller-level master status: phase, pilot, target, implementation",
+    "required": true,
+    "exists": true,
+    "size_bytes": 862,
+    "last_modified": "2026-05-15T18:49:09"
+  },
+  {
+    "filename": "CLAUDE_CODE_ACCESSIBILITY_CHECK.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/CLAUDE_CODE_ACCESSIBILITY_CHECK.md",
+    "purpose": "Path verification: all inputs accessible, unknowns listed",
+    "required": true,
+    "exists": true,
+    "size_bytes": 1647,
+    "last_modified": "2026-05-15T18:49:29"
+  },
+  {
+    "filename": "CLAUDE_CODE_EXECUTION_BOUNDARY.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/CLAUDE_CODE_EXECUTION_BOUNDARY.md",
+    "purpose": "Allowed/forbidden scope for Claude Code implementation",
+    "required": true,
+    "exists": true,
+    "size_bytes": 900,
+    "last_modified": "2026-05-15T18:48:56"
+  },
+  {
+    "filename": "CODEX_W1_READY_OR_NOT.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/CODEX_W1_READY_OR_NOT.md",
+    "purpose": "W1 readiness assessment, Codex boundary, acceptance criteria",
+    "required": true,
+    "exists": true,
+    "size_bytes": 2645,
+    "last_modified": "2026-05-15T18:47:45"
+  },
+  {
+    "filename": "CONTAMINATED_DRAFT_REGRESSION_FIXTURES.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/CONTAMINATED_DRAFT_REGRESSION_FIXTURES.md",
+    "purpose": "Five regression test fixtures from contaminated reports",
+    "required": true,
+    "exists": true,
+    "size_bytes": 2575,
+    "last_modified": "2026-05-15T18:47:45"
+  },
+  {
+    "filename": "DOMAIN_TERM_MATRIX_V1.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/DOMAIN_TERM_MATRIX_V1.md",
+    "purpose": "Four device domains: required/allowed/forbidden/ambiguous terms + exception contexts",
+    "required": true,
+    "exists": true,
+    "size_bytes": 5769,
+    "last_modified": "2026-05-15T18:47:45"
+  },
+  {
+    "filename": "EVIDENCE_CONCLUSION_PHRASE_POLICY.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/EVIDENCE_CONCLUSION_PHRASE_POLICY.md",
+    "purpose": "Per conclusion-strength allowed/forbidden phrases + negation handling",
+    "required": true,
+    "exists": true,
+    "size_bytes": 3495,
+    "last_modified": "2026-05-15T18:47:45"
+  },
+  {
+    "filename": "RELEASE_QUARANTINE_POLICY.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/RELEASE_QUARANTINE_POLICY.md",
+    "purpose": "Gate-fail → quarantine routing, rejection ledger generation",
+    "required": true,
+    "exists": true,
+    "size_bytes": 912,
+    "last_modified": "2026-05-15T18:47:45"
+  },
+  {
+    "filename": "W0_HANDOFF_TO_CLAUDE_CODE.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/W0_HANDOFF_TO_CLAUDE_CODE.md",
+    "purpose": "Full handoff: status, problem summary, paths, test baseline, phases, deliverables",
+    "required": true,
+    "exists": true,
+    "size_bytes": 4616,
+    "last_modified": "2026-05-15T18:48:20"
+  },
+  {
+    "filename": "WRITER_REMEDIATION_PHASE_PLAN.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/WRITER_REMEDIATION_PHASE_PLAN.md",
+    "purpose": "W1-W5: goals, inputs, scope, acceptance, stop conditions, closeouts per phase",
+    "required": true,
+    "exists": true,
+    "size_bytes": 2899,
+    "last_modified": "2026-05-15T18:48:45"
+  },
+  {
+    "filename": "OUTPUT_PATH_REMAP.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/docs/cer_authoring_writer_remediation/w0_handoff/OUTPUT_PATH_REMAP.md",
+    "purpose": "Old contaminated paths → new clean paths → quarantine archive mapping"
+  },
+  {
+    "filename": "CER_DRAFT_QUARANTINE_LEDGER.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/artifacts/cer_writer_quarantine/2026-05-15_contaminated_outputs/CER_DRAFT_QUARANTINE_LEDGER.md",
+    "purpose": "Why quarantined, which reports, how to use"
+  },
+  {
+    "filename": "INVALID_QA_RESULT_INDEX.md",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/artifacts/cer_writer_quarantine/2026-05-15_contaminated_outputs/INVALID_QA_RESULT_INDEX.md",
+    "purpose": "All invalid QA PASS/score100/findings empty results"
+  },
+  {
+    "filename": "CONTAMINATED_OUTPUT_ARCHIVE_MANIFEST.json",
+    "path": "/Users/winstonwei/Documents/Playground/deer-flow/artifacts/cer_writer_quarantine/2026-05-15_contaminated_outputs/CONTAMINATED_OUTPUT_ARCHIVE_MANIFEST.json",
+    "purpose": "9 archived files with SHA256 checksums"
+  }
+]

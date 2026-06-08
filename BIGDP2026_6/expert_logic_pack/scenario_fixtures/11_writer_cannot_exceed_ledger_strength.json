@@ -1,0 +1,23 @@
+{
+  "scenario_id": "ELP-11",
+  "scenario_name": "Writer Cannot Exceed Ledger Conclusion Strength",
+  "rule_category": "Writer Release Logic",
+  "rules_tested": ["WRT-04", "WRT-01"],
+  "description": "The Writer (Claude Code) may attempt to write 'strong' conclusions for a claim. But if the CER_REASONING_LEDGER says the conclusion is 'limited', the Writer MUST be blocked or forced to use the ledger strength as ceiling.",
+
+  "input": {
+    "claim": "Device significantly reduces procedure time.",
+    "ledger_conclusion_strength": "limited",
+    "writer_attempted_strength": "strong",
+    "ledger_reason": "Single retrospective study (N=45) with indirect evidence. Conclusion capped at limited."
+  },
+
+  "expected_expert_reasoning": {
+    "writer_must_not_exceed": "limited",
+    "if_writer_exceeds": "BLOCKED",
+    "rule_enforcement": "WRT-04: Writer claim strength '{writer}' exceeds ledger strength '{ledger}'. Writer must use ledger as ceiling."
+  },
+
+  "expected_writer_permission": "blocked",
+  "writer_violation": "Attempted to write 'strong' for claim with ledger strength 'limited'."
+}

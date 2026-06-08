@@ -1,0 +1,45 @@
+{
+  "schema": "DEERFLOW_INJECTION_MANIFEST_V29",
+  "version": "v29.0",
+  "generated_at": "2026-05-29T17:31:35.375432",
+  "phase": "Phase 4 — DeerFlow Knowledge Fusion",
+  "source": "BSI MDF 5004 Review Questions + Deficiency Reports from 83 projects",
+  "injection_points": [
+    {
+      "asset": "nb_defect_awareness_injection.md",
+      "target": "knowledge/nb_defect_awareness_injection.md",
+      "injection_method": "auto-injected into CEP/QMS/IFU agent prompts",
+      "changes": "Added real BSI question examples, NB reviewer profiles, V29 enhancement layer"
+    },
+    {
+      "asset": "review_heuristic_checklists.md",
+      "target": "knowledge/review_heuristic_checklists.md",
+      "injection_method": "loaded at review runtime",
+      "changes": "Added per-agent checklists with real BSI question patterns"
+    },
+    {
+      "asset": "nb_defect_patterns.json",
+      "target": "knowledge/nb_defect_patterns.json",
+      "injection_method": "loaded at review runtime",
+      "changes": "Added new BSI question examples and review dimension data"
+    },
+    {
+      "asset": "agent_prompt_additions/*.md",
+      "target": "prompts/cer/canonical/*.md (appended)",
+      "injection_method": "manual/automated append to canonical prompts",
+      "changes": "Added real BSI Q&A patterns to each agent's review checklist"
+    },
+    {
+      "asset": "section_defense_additions.md",
+      "target": "deerflow_injection/section_defense/",
+      "injection_method": "merged into WriterGuard defense rules",
+      "changes": "Added BSI phrasing patterns for preemptive defense"
+    },
+    {
+      "asset": "nb_profile_additions.md",
+      "target": "deerflow_injection/nb_profiles/",
+      "injection_method": "merged into NB profile data",
+      "changes": "Added specific BSI reviewer profiles and review process details"
+    }
+  ]
+}

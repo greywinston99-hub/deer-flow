@@ -1,0 +1,11 @@
+{
+  "schema": "cer_pmcf_plan_control_matrix_v1",
+  "created_at": "2026-05-29T05:28:47.741066+00:00",
+  "pmcf_plan_exists": true,
+  "pms_pmcf_source_present": true,
+  "endpoint": "Confirm clinical performance, adverse events, user feedback, complaint trends and residual-risk acceptability for IFU-defined use.",
+  "trigger": "Required when subject-device PMS/PMCF data, RMF residual-risk closure or direct clinical evidence are incomplete.",
+  "timeline": "Define in manufacturer PMCF plan before final CER approval.",
+  "owner": "Manufacturer clinical/regulatory owner",
+  "status": "source_data_present"
+}

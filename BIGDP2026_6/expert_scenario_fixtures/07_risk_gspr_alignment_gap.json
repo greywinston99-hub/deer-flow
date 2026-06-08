@@ -1,0 +1,51 @@
+{
+  "scenario_id": "S-07",
+  "scenario_name": "Risk / GSPR Alignment Gap",
+  "rule_category": "Evidence Support Type + Writer Release Logic",
+  "rules_tested": ["EVS-06", "CLS-04", "WRT-01"],
+  "description": "Safety claim without RMF/GSPR alignment. Claim has clinical evidence but lacks the required risk management documentation linkage.",
+
+  "input": {
+    "ifu_text": "Device is safe for use in anticoagulated patients.",
+    "claim_classification": "clinical_safety",
+    "available_evidence": [
+      {
+        "evidence_id": "E-001", "pmid": "77777777",
+        "study_design": "Prospective cohort", "sample_size": 90,
+        "population": "Anticoagulated patients (INR 2.0-3.0)",
+        "findings": "No major bleeding events. Minor oozing in 5/90 (5.6%).",
+        "support_type": "direct"
+      }
+    ],
+    "missing_documentation": {
+      "rmf_alignment": false,
+      "gspr_alignment": false,
+      "issue": "Safety claim requires RMF hazard analysis and GSPR checklist alignment for anticoagulated patient subpopulation."
+    }
+  },
+
+  "expected_expert_reasoning": {
+    "evidence_support_type": "direct",
+    "additional_support_required": ["rmf_gspr"],
+    "gap_disposition": "risk_control",
+    "reason": "Clinical evidence supports safety in anticoagulated patients, but RMF hazard analysis and GSPR alignment for this specific subpopulation are missing. Risk control documentation required before strong conclusion.",
+    "conclusion_strength": "limited"
+  },
+
+  "expected_ledger": {
+    "cer_reasoning_ledger": {
+      "conclusion_strength": "limited",
+      "evidence_support_type": "direct",
+      "gap_disposition": "risk_control",
+      "gap_rationale": "RMF/GSPR alignment missing for anticoagulated patient subpopulation. Risk control documentation needed."
+    }
+  },
+
+  "expected_gate_behavior": {
+    "alignment_gate": {"status": "REWORK_REQUIRED"},
+    "G46": {"alignment": "REWORK_REQUIRED"}
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["limitation: RMF alignment pending for anticoagulated subgroup", "risk control recommendation"]
+}

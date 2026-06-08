@@ -1,0 +1,64 @@
+# IFU_CLAIM_TRANSFORMATION_RULES.yaml
+# Rules for when and how raw IFU claims must be transformed before CER use.
+schema_version: "1.0.0"
+
+transformations:
+  - action: "copy_without_change"
+    trigger: "ifu_text is clinical AND no marketing language AND evidence supports claim at same strength"
+    rationale_required: true
+    rationale_template: "IFU claim is evidence-supported without modification."
+    flags_set: {}
+    human_review: false
+
+  - action: "narrow_scope"
+    trigger: "ifu_claim scope exceeds evidence scope (e.g., IFU says 'all patients', evidence is in 'adults only')"
+    rationale_required: true
+    rationale_template: "IFU scope '{original}' narrowed to '{narrowed}' to match evidence population."
+    flags_set: {claim_narrowed: true}
+    human_review: true
+    rule_ref: "IFU-02"
+
+  - action: "add_safety_qualifier"
+    trigger: "ifu_claim lacks safety qualifier but evidence shows non-zero adverse events"
+    rationale_required: true
+    rationale_template: "Safety qualifier added: AE rate {rate}% from study {pmid}."
+    flags_set: {safety_qualifier_added: true}
+    human_review: false
+
+  - action: "weaken_strength"
+    trigger: "ifu_claim asserts 'strong' efficacy but evidence only supports 'moderate' or 'limited'"
+    rationale_required: true
+    rationale_template: "IFU asserts strong efficacy; evidence supports {actual_strength}. Claim weakened to match evidence."
+    flags_set: {claim_narrowed: true}
+    human_review: true
+    rule_ref: "CON-03, CON-04"
+
+  - action: "split_into_multiple"
+    trigger: "ifu_claim combines clinical AND usability claims in one sentence"
+    rationale_required: true
+    rationale_template: "Compound claim split into clinical_performance claim and usability claim for separate evidence assessment."
+    flags_set: {}
+    human_review: false
+
+  - action: "move_to_warning"
+    trigger: "ifu_text describes a risk but is phrased as a benefit"
+    rationale_required: true
+    rationale_template: "Statement reclassified from benefit to warning based on risk analysis."
+    flags_set: {reclassified: true}
+    human_review: true
+
+  - action: "reject_from_cer"
+    trigger: "ifu_claim cannot be supported by ANY available evidence OR evidence directly contradicts"
+    rationale_required: true
+    rationale_template: "IFU claim rejected: {reason}. CER will note this claim as not_supported."
+    flags_set: {claim_rejected: true}
+    human_review: true
+    rule_ref: "IFU-04"
+
+  - action: "flag_marketing_language"
+    trigger: "ifu_text contains marketing keywords"
+    rationale_required: true
+    rationale_template: "Marketing language '{keywords}' detected. Claim must be reworded for CER."
+    flags_set: {marketing_language_detected: true, marketing_language_downgraded: true}
+    human_review: true
+    rule_ref: "IFU-01, IFU-03"

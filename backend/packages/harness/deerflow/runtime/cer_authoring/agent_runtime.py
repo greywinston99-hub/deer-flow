@@ -358,10 +358,19 @@ def invoke_authoring_agent(agent_name: str, state: dict[str, Any], task: str, *,
             # Guard: the error-handling middleware converts provider auth/quota/5xx
             # errors into AIMessage text instead of raising, so the subagent may
             # report COMPLETED with provider-failure content in result.result.
-            if _is_provider_failure(last_error) and candidate_model != candidate_models[-1]:
+            if _is_provider_failure(last_error):
                 attempted_models[-1]["status"] = "FAILED_PROVIDER"
                 attempted_models[-1]["error"] = last_error
-                continue
+                if candidate_model != candidate_models[-1]:
+                    continue
+                return {
+                    **payload,
+                    "status": "BLOCKED_PROVIDER_UNAVAILABLE",
+                    "error": last_error,
+                    "actual_model_name": candidate_model,
+                    "fallback_used": candidate_model != routed_model,
+                    "model_attempts": attempted_models,
+                }
             return {
                 **payload,
                 "status": "COMPLETED",
@@ -433,6 +442,11 @@ def _is_provider_failure(error_text: str) -> bool:
         "too many requests",
         "unable to connect",
         "connection",
+        "connection error",
+        "configured llm provider",
+        "provider is temporarily unavailable",
+        "temporarily unavailable",
+        "llm call failed",
         "timeout",
         "timed out",
         "502",
@@ -450,7 +464,7 @@ def _authoring_parent_model(state: dict[str, Any]) -> str | None:
     if env_model:
         return env_model
     if _env_enabled("CER_AUTHORING_STRICT_V7") or _env_enabled("CER_AUTHORING_ENABLE_LLM_AGENTS"):
-        return "kimi-k2.6"
+        return "kimi-k2.6-api"
     return None
 
 

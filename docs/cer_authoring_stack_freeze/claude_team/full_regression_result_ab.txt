@@ -1,0 +1,14 @@
+Full regression: 323 passed, 0 failed
+
+- test_cer_authoring_runtime.py: 259 PASS
+- test_writer_remediation_gates.py: 25 PASS
+- test_phase2a_source_fixes.py: 14 PASS
+- test_model_routing.py: 25 PASS
+
+Forbidden files:
+- graph.py: ZERO DIFF
+- gates.py: ZERO DIFF
+- agents.py: ZERO DIFF
+
+Run date: 2026-05-15
+Environment: VS Code Claude Code (harness_configured, no LLM runtime)

@@ -64,3 +64,22 @@ class TestHCGateDefaultPauseMode:
             assert '_handle_hc_interrupt' in content
             assert '_poll_response' in content
             assert 'response.json' in content
+
+    def test_preflight_discovers_ifu_in_intake_pack_layout(self, tmp_path):
+        """Preflight should accept the current intake-pack IFU/ subfolder layout."""
+        import importlib.util
+
+        script = Path(__file__).resolve().parents[7] / "backend" / "scripts" / "run_cer_authoring.py"
+        spec = importlib.util.spec_from_file_location("run_cer_authoring", script)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        ifu_dir = tmp_path / "IFU"
+        ifu_dir.mkdir()
+        ifu = ifu_dir / "IFU_001__1 IFU of Bubble Study System20260331.docx"
+        ifu.write_text("mock", encoding="utf-8")
+
+        discovered = module._discover_preflight_ifu_files(tmp_path)
+
+        assert discovered == [ifu]

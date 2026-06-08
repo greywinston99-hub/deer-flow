@@ -1,0 +1,16 @@
+{
+  "database_hit_count": 14,
+  "retrieved_record_pool_count": 319,
+  "screened_candidate_pool_count": 319,
+  "fulltext_assessed_pool_count": 0,
+  "fetched_pubmed_article_count": 89,
+  "appraised_evidence_count": 200,
+  "evidence_registry_count": 200,
+  "G42_input_evidence_count": 50,
+  "claim_evidence_link_count": 0,
+  "pivotal_candidate_count": 6,
+  "supportive_candidate_count": 44,
+  "background_count": 150,
+  "skipped_or_failed_count": 0,
+  "skipped_or_failed_reasons": ""
+}

@@ -1,0 +1,79 @@
+{
+  "contrast_imaging_bubble_study_system": {
+    "name": "Bubble study / ultrasound contrast imaging focused SOTA query pack",
+    "inclusion_terms": [
+      "bubble study",
+      "agitated saline",
+      "right-to-left shunt",
+      "patent foramen ovale",
+      "PFO",
+      "RLS",
+      "contrast echocardiography",
+      "transthoracic echocardiography",
+      "contrast-enhanced transcranial Doppler",
+      "c-TTE",
+      "c-TCD",
+      "diagnostic concordance",
+      "automated injection"
+    ],
+    "endpoint_targets": [
+      "positive detection concordance",
+      "negative detection concordance",
+      "right-to-left shunt grading consistency",
+      "PFO detection",
+      "diagnostic success rate",
+      "device success rate",
+      "adverse event rate",
+      "air embolism",
+      "injection-site reaction",
+      "hemodynamic instability"
+    ],
+    "exclusion_terms": [
+      "atrial fibrillation ablation",
+      "pulsed field ablation",
+      "radiofrequency ablation",
+      "cardiac catheter ablation",
+      "plasma surgical equipment",
+      "urology access sheath",
+      "orthopedic arthroscopy",
+      "blood coagulation assay",
+      "oncologic contrast imaging"
+    ]
+  },
+  "plasma_surgical_equipment": {
+    "name": "ENT RF plasma/coblation focused SOTA query pack",
+    "inclusion_terms": [
+      "coblation",
+      "radiofrequency plasma",
+      "plasma surgical equipment",
+      "otolaryngology",
+      "ENT surgery",
+      "tonsillectomy",
+      "adenoidectomy",
+      "turbinate reduction",
+      "soft tissue coagulation",
+      "thermal spread"
+    ],
+    "endpoint_targets": [
+      "cutting performance",
+      "coagulation",
+      "hemostasis",
+      "thermal injury",
+      "mucosal injury",
+      "bleeding",
+      "postoperative pain",
+      "procedure completion"
+    ],
+    "exclusion_terms": [
+      "cardiopulmonary bypass",
+      "liver transplant",
+      "trauma coagulation",
+      "coagulation assay",
+      "atrial fibrillation",
+      "pulsed field ablation",
+      "urology vaporization",
+      "plasma exchange",
+      "blood coagulation test"
+    ]
+  }
+}

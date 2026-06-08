@@ -16,6 +16,7 @@ Usage:
 """
 
 import asyncio
+import concurrent.futures
 import json
 import logging
 import mimetypes
@@ -26,6 +27,46 @@ from collections.abc import Generator, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+# ── StructuredTool sync-invocation monkey-patch (P0 fix, 2026-06-05) ──
+# Applied at DeerFlowClient import time so EVERY code path is covered.
+# StructuredTool._run() raises NotImplementedError; DeerFlow agents invoke
+# tools synchronously via BaseTool.run() → _run().  This patch wraps the
+# coroutine at StructuredTool.__init__ time so _run() delegates to func.
+_SYNC_PATCH_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
+    max_workers=10, thread_name_prefix="st-sync-patch"
+)
+
+def _apply_structuredtool_sync_patch() -> None:
+    try:
+        from langchain_core.tools.structured import StructuredTool as _ST
+        _orig_init = _ST.__init__
+
+        def _patched_init(self: Any, *args: Any, **kwargs: Any) -> None:
+            _orig_init(self, *args, **kwargs)
+            if getattr(self, "coroutine", None) is not None and getattr(self, "func", None) is None:
+                _coro = self.coroutine
+                _name = getattr(self, "name", "unknown")
+
+                def _sync_wrapper(*w_args: Any, **w_kwargs: Any) -> Any:
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        loop = None
+                    if loop is not None and loop.is_running():
+                        fut = _SYNC_PATCH_EXECUTOR.submit(
+                            asyncio.run, _coro(*w_args, **w_kwargs)
+                        )
+                        return fut.result()
+                    return asyncio.run(_coro(*w_args, **w_kwargs))
+
+                self.func = _sync_wrapper
+
+        _ST.__init__ = _patched_init  # type: ignore[method-assign]
+    except Exception:
+        pass
+
+_apply_structuredtool_sync_patch()
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware

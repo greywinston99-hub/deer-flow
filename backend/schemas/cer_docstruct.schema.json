@@ -1,0 +1,120 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER DocStruct Schema",
+  "description": "Schema for CERDocStruct - unified input object for CER review",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_docstruct"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "cer_docstruct"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_intake"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_intake"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "input_documents": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "document_count": {
+          "type": "integer"
+        },
+        "missing_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDR_Article_83",
+        "Annex_XIV",
+        null
+      ]
+    },
+    "intake_summary": {
+      "type": "object",
+      "properties": {
+        "device_name": {
+          "type": "string"
+        },
+        "device_class": {
+          "type": "string"
+        },
+        "intended_purpose": {
+          "type": "string"
+        },
+        "clinical_evaluation_scope": {
+          "type": "string"
+        }
+      }
+    },
+    "artifact_root": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    }
+  }
+}

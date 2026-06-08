@@ -1,0 +1,24 @@
+{
+  "schema": "benefit_risk_closure_matrix_v1",
+  "generated_at": "2026-05-29T09:12:39.036405+00:00",
+  "benefit_risk_body_section": {
+    "section_present": false,
+    "has_quantitative_data": true,
+    "has_risk_mapping": false,
+    "has_pms_pmcf_maturity_discussion": false
+  },
+  "support_status": {
+    "rmf_source_present": true,
+    "pmcf_source_present": true,
+    "benefit_risk_rows_count": 0,
+    "any_benefit_risk_closed": false
+  },
+  "conclusion_allowed": "blocked_missing_br_section",
+  "unqualified_favourable_allowed": false,
+  "missing_elements": [
+    "benefit_risk_section",
+    "risk_mapping",
+    "pms_pmcf_maturity"
+  ],
+  "writer_instruction": "Include dedicated §4.8 Benefit-Risk Analysis section with clinical benefits (quantitative), mapped risks, PMS/PMCF maturity, and conclusion strength limitation."
+}

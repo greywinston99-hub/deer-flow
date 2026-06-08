@@ -1,0 +1,55 @@
+# BENCHMARK_DERIVATION_DECISION_TABLE.yaml
+# Maps source study characteristics → benchmark quality classification
+schema_version: "1.0.0"
+
+decisions:
+  - benchmark_class: "direct_benchmark"
+    conditions:
+      source_study_count: ">= 3"
+      population_comparability: ["direct_match", "comparable"]
+      device_comparability: ["same_device", "similar_device"]
+    directness: "direct"
+    confidence: "high"
+    acceptability: "Benchmark derived from {count} studies with {comparability} population and {device} device comparability."
+    required_fields: ["source_studies", "acceptability_rationale"]
+    rule_ref: "BMK-01"
+
+  - benchmark_class: "indirect_benchmark"
+    conditions:
+      source_study_count: ">= 1"
+      population_comparability: ["partial_overlap", "comparable"]
+      device_comparability: ["alternative_therapy", "similar_device"]
+    directness: "indirect"
+    confidence: "medium"
+    acceptability: "Benchmark derived from {count} studies with {comparability} population comparability. Indirect due to {device} device differences."
+    required_fields: ["source_studies", "acceptability_rationale", "limitations"]
+    rule_ref: "BMK-02"
+
+  - benchmark_class: "fallback_benchmark"
+    conditions:
+      source_study_count: ">= 0"
+      population_comparability: ["different", "unknown"]
+      device_comparability: ["different_device_class", "alternative_therapy"]
+    directness: "fallback"
+    confidence: "low"
+    acceptability: "Fallback benchmark. No directly comparable studies available. Limitations apply."
+    required_fields: ["acceptability_rationale", "alternatives_rejected_rationale", "limitations"]
+    rule_ref: "BMK-03"
+
+  - benchmark_class: "insufficient_benchmark"
+    conditions:
+      source_study_count: "0"
+    directness: "fallback"
+    confidence: "insufficient"
+    acceptability: "No benchmark data available. CER must document this as a significant limitation."
+    required_fields: ["acceptability_rationale", "alternatives_rejected_rationale", "limitations"]
+    rule_ref: "BMK-03"
+
+  - benchmark_class: "rejected_benchmark"
+    conditions:
+      rejected: true
+    directness: "N/A"
+    confidence: "N/A"
+    acceptability: "N/A"
+    required_fields: ["alternatives_rejected_rationale"]
+    note: "Alternative benchmark considered but rejected. Reason must be documented."

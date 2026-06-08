@@ -1,0 +1,11 @@
+{
+  "decision": "conditional_pass",
+  "reviewer": "smoke-fixture-seed",
+  "reason": "Production-default smoke run with comprehensive Class IIa low-risk CER fixture. All 10 steps completed, all artifacts schema-valid, findings are non-empty and source-bound. No critical or high-severity findings. The benefit-risk profile is acceptable for CE marking under MDR 2017/745 Annex XIV. Seeded human review input for gate closure validation — not an automated determination.",
+  "source": "seed",
+  "is_seed": true,
+  "seeded_at": "2026-04-26T00:00:00Z",
+  "notes": "This is a seeded human gate decision for production smoke validation. In a real review, this decision would be rendered by a qualified clinical evaluator after reviewing the full CER evidence package. The seed enables the gate closure path to complete normally without blocking on interactive human input.",
+  "automated": false,
+  "simulated": false
+}

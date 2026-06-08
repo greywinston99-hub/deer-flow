@@ -93,6 +93,10 @@ def _build_runtime_middlewares(
 
     middlewares.append(LLMErrorHandlingMiddleware())
 
+    from deerflow.agents.middlewares.model_protocol_guard_middleware import ModelToolProtocolGuardMiddleware
+
+    middlewares.append(ModelToolProtocolGuardMiddleware())
+
     # Guardrail middleware (if configured)
     from deerflow.config.guardrails_config import get_guardrails_config
 

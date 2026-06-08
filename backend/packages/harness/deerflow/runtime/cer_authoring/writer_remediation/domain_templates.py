@@ -23,6 +23,7 @@ KNOWN_DOMAINS: set[str] = {
     "plasma_surgical_equipment",
     "plasma_surgical_electrode",
     "medical_imaging_software",
+    "nuclear_medicine_image_processing_software",
     "ai_diagnostic_software",
     "diagnostic_software",
     # Existing pipeline template-supported domains
@@ -234,6 +235,64 @@ def cardiac_stabilizer_template_sections() -> list[dict[str, Any]]:
     ]
 
 
+def contrast_bubble_study_template_sections() -> list[dict[str, Any]]:
+    """Bubble-study contrast imaging system domain — skeleton sections only."""
+    return [
+        {
+            "row_id": "BS-2.1-DEVICE-DESC",
+            "title": "2.1 Device Description — Bubble Study System",
+            "rationale": "Automated agitated-saline preparation/injection system used with disposable contrast injection tubing for ultrasound bubble-study procedures.",
+            "required_inputs": "device_profile.composition, device_profile.working_principle, device_profile.model_specifications, device_profile.performance_summary, IFU source text, RMF controls",
+            "writer_instruction": (
+                "Describe the Bubble Study System as an agitated-saline preparation and injection system "
+                "used with Disposable Contrast Injection Tubing Set for c-TTE and/or c-TCD bubble-study procedures. "
+                "Use IFU-extracted device composition, model variants, working principle, disposable tubing, and monitoring information. "
+                "Do NOT write about stents, CABG stabilizers, pulmonary vein ablation, urology, plasma surgery, arthroscopy, or nuclear medicine software. "
+                "If IFU fields are missing, state the controlled gap and do not invent device specifications."
+            ),
+            "section_target": "2.1",
+        },
+        {
+            "row_id": "BS-2.2-INTENDED-PURPOSE",
+            "title": "2.2 Intended Purpose — RLS/PFO Bubble Study",
+            "rationale": "Clinical use is agitated-saline bubble-study assessment of suspected right-to-left shunt/PFO.",
+            "required_inputs": "device_profile.intended_purpose, target_population, intended_user, anatomical_site, contraindications, IFU warnings",
+            "writer_instruction": (
+                "State the intended purpose in terms of IFU-defined preparation/injection of agitated saline "
+                "for transthoracic echocardiographic contrast imaging or contrast-enhanced transcranial Doppler assessment. "
+                "Identify the target population as patients suspected of right-to-left shunt/PFO when supported by IFU source data. "
+                "Describe trained cardiac/neurology ultrasound users, Valsalva cooperation requirements, contraindications, and monitoring needs."
+            ),
+            "section_target": "2.2",
+        },
+        {
+            "row_id": "BS-3-CLINICAL-BACKGROUND",
+            "title": "3 Clinical Background — Agitated-Saline Bubble Study",
+            "rationale": "The clinical domain is ultrasound contrast bubble-study assessment of right-to-left shunt/PFO.",
+            "required_inputs": "SOTA search results, clinical guidelines, RLS/PFO diagnostic pathway literature, comparator modalities c-TTE/c-TCD/TEE",
+            "writer_instruction": (
+                "Describe the clinical background of right-to-left shunt and patent foramen ovale assessment. "
+                "Cover the role of agitated-saline bubble study, c-TTE, c-TCD, TEE comparators, Valsalva maneuver, "
+                "diagnostic concordance, shunt grading, and safety considerations. "
+                "Separate SOTA context from subject-device clinical evidence, and mark unrelated ablation, stent, urology, or software literature as excluded/background only."
+            ),
+            "section_target": "3.1",
+        },
+        {
+            "row_id": "BS-5-CONCLUSIONS",
+            "title": "5 Conclusions — Bubble Study System",
+            "rationale": "Conclusions must follow claim_support_matrix, benefit-risk closure, and PMCF/PMS controls.",
+            "required_inputs": "claim_support_matrix, benefit_risk_closure_matrix, pmcf_plan_control_matrix, writer_conclusion_constraints",
+            "writer_instruction": (
+                "Write conclusions only to the level supported by approved claims, evidence strength, RMF, PMS/PMCF, and benefit-risk closure. "
+                "If direct subject-device evidence is incomplete, state controlled uncertainty and PMCF objectives. "
+                "Do NOT conclude acceptable benefit-risk or diagnostic benefit beyond the approved evidence ceiling."
+            ),
+            "section_target": "5",
+        },
+    ]
+
+
 def orthopedic_plasma_electrode_template_sections() -> list[dict[str, Any]]:
     """Orthopedic RF Plasma Electrode domain — skeleton sections only."""
     return [
@@ -436,10 +495,12 @@ def surgical_ligating_clip_template_sections() -> list[dict[str, Any]]:
 
 DOMAIN_TEMPLATE_MAP: dict[str, Any] = {
     "cardiac_tissue_stabilizer": cardiac_stabilizer_template_sections,
+    "contrast_imaging_bubble_study_system": contrast_bubble_study_template_sections,
     "orthopedic_rf_plasma_electrode": orthopedic_plasma_electrode_template_sections,
     "plasma_surgical_equipment": orthopedic_plasma_electrode_template_sections,
     "plasma_surgical_electrode": orthopedic_plasma_electrode_template_sections,
     "medical_imaging_software": imaging_software_template_sections,
+    "nuclear_medicine_image_processing_software": imaging_software_template_sections,
     "ai_diagnostic_software": imaging_software_template_sections,
     "diagnostic_software": imaging_software_template_sections,
     "cardiovascular_rf_ablation_catheter": therapeutic_catheter_template_sections,

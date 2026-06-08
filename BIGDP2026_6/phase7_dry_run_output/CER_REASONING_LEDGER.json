@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-06-08T00:00:35.791635+00:00",
+  "generated_by": "_node_build_reasoning_ledger",
+  "product_identity_reasoning": {
+    "device_name": "VasoSeal Pro X",
+    "device_class": "IIb",
+    "intended_use_summary": "Percutaneous closure of femoral artery access sites following diagnostic or interventional catheterization procedures.",
+    "mechanism_of_action": "Mechanical compression via absorbable collagen plug.",
+    "target_population": "Adult patients (>=18 years) undergoing femoral arterial catheterization.",
+    "anatomical_site": "Common femoral artery",
+    "equivalence_claimed": false,
+    "equivalent_device_name": ""
+  },
+  "claims": [
+    {
+      "claim_id": "C-01",
+      "claim_text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+      "claim_classification": "clinical_performance",
+      "claim_criticality": "high",
+      "evidence_support_type": "direct",
+      "endpoint_rationale": "Endpoints derived from 2 registered endpoints for this clinical domain.",
+      "linked_endpoints": [
+        "hemostasis_time",
+        "major_adverse_events"
+      ],
+      "benchmark_rationale": "Benchmark derived from 2 SOTA studies for this clinical domain.",
+      "linked_benchmark_ids": [
+        "B-001",
+        "B-002"
+      ],
+      "gap_disposition": "no_gap",
+      "gap_rationale": "",
+      "conclusion_strength": "strong",
+      "linked_evidence_ids": [
+        "E-001",
+        "E-002",
+        "E-003"
+      ],
+      "source_artifacts": [
+        "claim_evidence_matrix",
+        "device_profile",
+        "endpoint_registry",
+        "sota_benchmark_table"
+      ]
+    },
+    {
+      "claim_id": "C-02",
+      "claim_text": "Device-related major adverse event rate <2%",
+      "claim_classification": "clinical_safety",
+      "claim_criticality": "high",
+      "evidence_support_type": "direct",
+      "endpoint_rationale": "Endpoints derived from 2 registered endpoints for this clinical domain.",
+      "linked_endpoints": [
+        "hemostasis_time",
+        "major_adverse_events"
+      ],
+      "benchmark_rationale": "Benchmark derived from 2 SOTA studies for this clinical domain.",
+      "linked_benchmark_ids": [
+        "B-001",
+        "B-002"
+      ],
+      "gap_disposition": "no_gap",
+      "gap_rationale": "",
+      "conclusion_strength": "moderate",
+      "linked_evidence_ids": [
+        "E-004"
+      ],
+      "source_artifacts": [
+        "claim_evidence_matrix",
+        "device_profile",
+        "endpoint_registry",
+        "sota_benchmark_table"
+      ]
+    },
+    {
+      "claim_id": "C-03",
+      "claim_text": "Ergonomic handle design reduces operator fatigue",
+      "claim_classification": "usability",
+      "claim_criticality": "low",
+      "evidence_support_type": "insufficient",
+      "endpoint_rationale": "Endpoints derived from 2 registered endpoints for this clinical domain.",
+      "linked_endpoints": [
+        "hemostasis_time",
+        "major_adverse_events"
+      ],
+      "benchmark_rationale": "Benchmark derived from 2 SOTA studies for this clinical domain.",
+      "linked_benchmark_ids": [
+        "B-001",
+        "B-002"
+      ],
+      "gap_disposition": "PMCF",
+      "gap_rationale": "",
+      "conclusion_strength": "limited",
+      "linked_evidence_ids": [],
+      "source_artifacts": [
+        "claim_evidence_matrix",
+        "device_profile",
+        "endpoint_registry",
+        "sota_benchmark_table"
+      ]
+    },
+    {
+      "claim_id": "C-04",
+      "claim_text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+      "claim_classification": "clinical_performance",
+      "claim_criticality": "high",
+      "evidence_support_type": "direct",
+      "endpoint_rationale": "Endpoints derived from 2 registered endpoints for this clinical domain.",
+      "linked_endpoints": [
+        "hemostasis_time",
+        "major_adverse_events"
+      ],
+      "benchmark_rationale": "Benchmark derived from 2 SOTA studies for this clinical domain.",
+      "linked_benchmark_ids": [
+        "B-001",
+        "B-002"
+      ],
+      "gap_disposition": "claim_narrowing",
+      "gap_rationale": "",
+      "conclusion_strength": "strong",
+      "linked_evidence_ids": [
+        "E-001",
+        "E-002"
+      ],
+      "source_artifacts": [
+        "claim_evidence_matrix",
+        "device_profile",
+        "endpoint_registry",
+        "sota_benchmark_table"
+      ]
+    }
+  ],
+  "overall_assessment": {
+    "total_claims": 4,
+    "strong_conclusions": 2,
+    "moderate_conclusions": 1,
+    "limited_conclusions": 1,
+    "not_supported_conclusions": 0,
+    "claims_with_gaps": 2,
+    "pmcf_recommended": true,
+    "overall_readiness": "needs_human_decision"
+  }
+}

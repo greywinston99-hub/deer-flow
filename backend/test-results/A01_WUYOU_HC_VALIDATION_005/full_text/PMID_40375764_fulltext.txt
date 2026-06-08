@@ -1,0 +1,11 @@
+{
+  "identifiers": {
+    "pmcid": "PMC12063554",
+    "pmid": "40375764",
+    "doi": "10.4244/EIJ-D-23-00915"
+  },
+  "title": "Treatment of patent foramen ovale",
+  "full_text": "",
+  "doi": "10.4244/EIJ-D-23-00915",
+  "abstract": "After extensive debate, the percutaneous closure of patent foramen ovale (PFO) has been established as a first-line treatment for the secondary prevention of PFO-related stroke in patients between 18 and 60 years old, whereas the role of PFO closure for primary prevention remains controversial. Additionally, in selected cases, PFO closure may be considered beyond these age limits and for other indications such as the treatment of systemic deoxygenation syndromes and the secondary prevention of systemic embolism or decompression sickness, when the PFO has been determined to be causative in the condition. In all cases, an in-depth diagnostic work-up, requiring collaboration among different specialists, is necessary to estimate the likelihood of PFO being related to the clinical condition. Since the first percutaneous closure of an atrial septal defect in 1976, the technique has been adapted and simplified for PFO. It is now well standardised with double-disc occluders, which are widely adopted because of their ease of use and evidence-based efficacy and safety. The procedure is generally straightforward, but some anatomical characteristics may be challenging. The choice of device and drug therapy after the procedure is currently empirical and guided by patient characteristics. Early and late complications of the procedure are infrequent but require early diagnosis. Further evidence is eagerly awaited to improve diagnosis, define other indications, make better procedural choices, and prescribe the most effective drug therapy after closure."
+}

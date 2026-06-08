@@ -1,0 +1,81 @@
+{
+  "schema": "nb_body_profiles",
+  "version": "v1.0",
+  "generated_at": "2026-05-29T22:48:53.871089",
+  "profiles": {
+    "BSI": {
+      "full_name": "British Standards Institution",
+      "review_format": "MDF 5004 — structured review questions",
+      "review_dimensions": [
+        "Clinical Oversight",
+        "Technical",
+        "Main Job",
+        "Microbiologist"
+      ],
+      "max_rounds": 3,
+      "known_reviewers": [
+        {
+          "name": "Dr Daniel Taylor",
+          "role": "Clinical Oversight",
+          "patterns": [
+            "Challenges contraindication claims as 'bald statements'",
+            "Expects radiation safety for vulnerable populations",
+            "Verifies IFU warnings traceable to Risk Analysis",
+            "Asks for specific test report page numbers"
+          ]
+        },
+        {
+          "name": "Sreenath Sukumaran",
+          "role": "Technical Reviewer",
+          "patterns": [
+            "Focus on device description completeness",
+            "Scrutinizes GSPR non-applicability justifications",
+            "Expects PRISMA-compliant literature review"
+          ]
+        }
+      ],
+      "common_focus_areas": [
+        "DO-001: Device description completeness (40.6% of findings)",
+        "GS-001: GSPR non-applicability justification",
+        "EV-001: Clinical evidence systematic search",
+        "Cross-document consistency between CER and IFU"
+      ],
+      "writing_advice": {
+        "tone": "Evidence-forward. Every claim needs a source reference.",
+        "risk_level": "High scrutiny on contraindications and patient safety",
+        "evidence_expectation": "PRIMARY_VERBATIM for all critical claims",
+        "common_pitfalls": [
+          "Claims without evidence → 'bald statement' rejection",
+          "Contraindications too broad or unsubstantiated",
+          "IFU warnings not traceable to Risk Analysis hazard controls"
+        ]
+      }
+    },
+    "TUV_SUD": {
+      "full_name": "TÜV SÜD Product Service GmbH",
+      "review_format": "Deficiency Report (DR) with persistent numbering",
+      "review_dimensions": [
+        "Document Review",
+        "Technical Assessment",
+        "Clinical Evaluation"
+      ],
+      "max_rounds": "Persistent DR numbering across rounds",
+      "known_reviewers": [],
+      "common_focus_areas": [
+        "DO-001: Device description and model variants",
+        "MF-001: Sterilization validation and biocompatibility",
+        "TR-001: Test report completeness and traceability"
+      ],
+      "writing_advice": {
+        "tone": "Thorough and systematic. Every document update must be explicit.",
+        "risk_level": "Persistent追问 — same DR number across rounds means unresolved issues accumulate",
+        "evidence_expectation": "Complete test reports with traceable results",
+        "common_pitfalls": [
+          "Incomplete test reports → persistent DR reopening",
+          "Sterilization validation gaps → manufacturing review escalation",
+          "Biocompatibility assessment missing endpoints"
+        ]
+      }
+    }
+  }
+}

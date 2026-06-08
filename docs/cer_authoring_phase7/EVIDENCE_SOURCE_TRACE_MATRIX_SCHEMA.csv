@@ -1,0 +1,22 @@
+field,required,description
+trace_id,yes,Stable trace row identifier.
+evidence_id,yes,Evidence registry identifier.
+pmid,conditional,PMID where available.
+stable_source_id,yes,PMID DOI or article/source identifier.
+title,yes,Article or source title.
+source_database,yes,Database that retrieved the item.
+query_id,yes,Query that retrieved the item.
+search_id,yes,Search run that retrieved the item.
+screening_decision,yes,Title/abstract/full-text screening decision.
+reason_for_inclusion,conditional,Inclusion rationale for included items.
+reason_for_exclusion,conditional,Exclusion rationale for excluded/background-only items.
+clinical_domain_match,yes,Matched/mismatch judgement.
+endpoint_match,yes,Endpoint match status.
+device_procedure_applicability,yes,High/medium/low/not-applicable judgement.
+retrieval_domain_status,yes,Domain grounding status including mismatch blocks.
+full_text_status,yes,Full-text or abstract-only appraisal basis.
+verified_citation,yes,Citation verification status.
+evidence_weight_after_grounding,yes,Final evidence weight after provenance/domain guard.
+ledger_approved_for_writer,yes,Whether Writer may consume as pivotal/supportive evidence.
+writer_consumption_decision,yes,Approved or blocked/background-only.
+grounding_rationale,yes,Why the item is approved or blocked.

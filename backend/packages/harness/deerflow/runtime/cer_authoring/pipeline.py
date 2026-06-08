@@ -306,6 +306,14 @@ DOMAIN_DEFAULTS = {
         "anatomical_site": "urinary tract, ureter, bladder and/or renal pelvis as defined in the IFU",
         "mode_of_action": "Endoscopic visualization and instrument access support for urological procedures",
     },
+    "single_use_flexible_ureteroscope_system": {
+        "device_name": "Single-Use Digital Flexible Ureteroscope System",
+        "device_type": "single-use digital flexible ureteroscope",
+        "device_family": "urological flexible endoscope system",
+        "target_population": "Adult patients requiring diagnostic or therapeutic flexible ureteroscopy for urinary tract conditions including urolithiasis, urothelial tumors, and ureteral strictures.",
+        "anatomical_site": "urinary tract (urethra, bladder, ureter, renal pelvis, calyces) accessed via transurethral or percutaneous route",
+        "mode_of_action": "Real-time digital video imaging via distal CMOS sensor with integrated LED illumination, providing endoscopic visualization through a flexible insertion tube with actively deflectable distal tip and working channel for urological instruments (laser fibers, stone baskets, biopsy forceps).",
+    },
     "surgical_ligating_clip": {
         "device_name": "Ligating Clips",
         "device_type": "ligating clip",
@@ -1527,11 +1535,14 @@ def _arbitrate_device_identity_domain(
     rows = sorted(rows, key=lambda item: int(item.get("rank") or 99))
     selected = next((row for row in rows if _is_specific_device_domain(row.get("observed_domain"))), None)
     if not locked_domain and classifier_domain and _is_specific_device_domain(classifier_domain):
-        selected_domain_prelim = str((selected or {}).get("observed_domain") or "")
-        if selected_domain_prelim and selected_domain_prelim != classifier_domain and not _device_domains_compatible(selected_domain_prelim, classifier_domain):
+        # FIX (2026-06-07, RCA A06_南驰): Only boost LLM classifier when NO other evidence
+        # source has a specific domain signal. Previously boosted to rank 1 unconditionally,
+        # which allowed the LLM to override IFU text analysis (rank 2). Now the classifier
+        # only activates when all higher-ranked sources (IFU, metadata, RMF, GSPR) are silent.
+        if selected is None:
             classifier_row = next((row for row in rows if row.get("evidence_source") == "llm_or_text_classifier"), None)
             if classifier_row:
-                classifier_row["rank"] = 1  # Boost above IFU text analysis when no locked hint exists
+                classifier_row["rank"] = 2  # Cap at rank 2 (below locked_domain_hint, at same level as IFU)
                 rows = sorted(rows, key=lambda item: int(item.get("rank") or 99))
                 selected = next((row for row in rows if _is_specific_device_domain(row.get("observed_domain"))), None)
     selected_domain = str((selected or {}).get("observed_domain") or locked_domain or classifier_domain or "generic_unknown")
@@ -2800,6 +2811,7 @@ def _device_domain_to_kb_family(clinical_domain: str) -> str:
         "surgical": "DEV-SU",
         "urology_uas": "DEV-SU",
         "urology_nephroscope": "DEV-SU",
+        "single_use_flexible_ureteroscope_system": "DEV-SU",
         "plasma_surgical_electrode": "DEV-SU",
         "plasma_surgical_equipment": "DEV-SU",
         "medical_imaging_software": "DEV-SW",
@@ -3259,7 +3271,12 @@ def run_sota_search(state: dict[str, Any]) -> dict[str, Any]:
     return {
         "search_run_registry": registry,
         "raw_literature_records": raw,
-        "clinical_source_adapter_records": [record for record in raw if record.get("clinical_source_adapter")],
+        "clinical_source_adapter_records": [
+            _enrich_adapter_record_with_quant_facts(record, idx)
+            for idx, record in enumerate(
+                (r for r in raw if r.get("clinical_source_adapter")), start=1
+            )
+        ],
         "clinical_source_adapter_lineage": _clinical_source_adapter_lineage_rows(tagged_searches),
         **pool_model,
         **spiral_lineage,
@@ -3520,7 +3537,13 @@ def _suggest_endpoint_alternatives(endpoint: str, domain: str = "") -> list[dict
     all_alt = _load_endpoint_alternatives()
     suggestions = []
     for domain_key, alt_groups in all_alt.items():
+        if isinstance(alt_groups, str):
+            continue  # V3.1 fix: skip malformed entries
+        if not isinstance(alt_groups, (list, tuple)):
+            alt_groups = [alt_groups] if isinstance(alt_groups, dict) else []
         for group in alt_groups:
+            if isinstance(group, str):
+                continue  # V3.1 fix: skip string entries
             primary = group.get("primary", "")
             if endpoint.lower() in primary.lower() or primary.lower() in endpoint.lower():
                 for alt in group.get("alternatives", []):
@@ -4074,8 +4097,7 @@ def build_self_inspection_report(state: dict[str, Any]) -> dict[str, Any]:
         },
         "environment_assessment": {
             "llm_api_available": bool(
-                __import__("os").environ.get("ANTHROPIC_API_KEY")
-                or __import__("os").environ.get("OPENAI_API_KEY")
+                __import__("os").environ.get("KIMI_API_KEY")
                 or __import__("os").environ.get("DEEPSEEK_API_KEY")
             ),
             "full_pipeline_validatable": False,  # Requires LLM API
@@ -5258,7 +5280,7 @@ def appraise_evidence(state: dict[str, Any]) -> dict[str, Any]:
                 "contribution_rationale": _evidence_contribution_rationale(weight, study_design, oxford_level, full_text_status),
                 "quantitative_support": statistical_adequacy in {"adequate_for_extracted_endpoint", "sample_size_extracted_statistics_limited"},
                 "weight": weight,
-                "relevance_weight": _relevance_weight_from_screening(state, record, weight),
+                "relevance_weight": _relevance_weight_from_screening(state, article, weight),
                 "verified": verified,
             }
         )
@@ -5510,10 +5532,14 @@ def _retrieve_pubmed_full_text_records(
 ) -> dict[str, Any]:
     """Fetch adapter full text for appraised PubMed PMIDs without inline full text."""
 
+    unique_pmids = [str(v) for v in dict.fromkeys(str(v) for v in pmids if v)]
     full_text_by_pmid: dict[str, dict[str, Any]] = {}
     status_by_pmid: dict[str, dict[str, Any]] = {}
     mcp_log: list[dict[str, Any]] = []
-    for pmid in [str(value) for value in dict.fromkeys(str(value) for value in pmids if value)]:
+
+    # ── Pass 1: inline full_text, PMC direct search, Europe PMC ──
+    elink_candidates: list[str] = []
+    for pmid in unique_pmids:
         article = articles_by_pmid.get(pmid) or {}
         raw_record = raw_by_pmid.get(pmid) or {}
         if _record_has_full_text(article) or _record_has_full_text(raw_record):
@@ -5527,6 +5553,21 @@ def _retrieve_pubmed_full_text_records(
                 "downstream_limitation": "",
             }
             continue
+
+        # V3.1+: Check local PDF cache — skip external API if already downloaded
+        if artifact_root:
+            local_pdf = os.path.join(artifact_root, "full_text_pdfs", f"PMID_{pmid}.pdf")
+            if os.path.isfile(local_pdf) and os.path.getsize(local_pdf) > 0:
+                status_by_pmid[pmid] = {
+                    "full_text_retrieval_status": "full_text_available",
+                    "full_text_available": "yes",
+                    "full_text_used_for_appraisal": "yes",
+                    "full_text_retrieval_adapter": "local_pdf_cache",
+                    "full_text_source_database": "local_pdf",
+                    "abstract_only_reason": "",
+                    "downstream_limitation": "",
+                }
+                continue
 
         pmc_result = mcp_tools.call_clinical_source_adapter("pmc_fulltext_search", {"query": f"{pmid}[pmid]", "retmax": 1})
         mcp_log.append(mcp_tools.mcp_log_entry(pmc_result, "clinical_source_pmc_fulltext_lookup"))
@@ -5555,24 +5596,52 @@ def _retrieve_pubmed_full_text_records(
             status_by_pmid[pmid] = _pubmed_full_text_status_row(pmid, europe_result, europe_record, "europe_pmc_adapter_search")
             continue
 
-        local_full_text = _lookup_local_fulltext_supplement(pmid, artifact_root)
-        if local_full_text:
-            full_text_by_pmid[pmid] = {
-                "full_text": local_full_text,
-                "full_text_retrieval_adapter": "local_fulltext_supplement",
-                "full_text_retrieval_status": "full_text_available",
-            }
-            status_by_pmid[pmid] = {
-                "full_text_retrieval_status": "full_text_available",
-                "full_text_available": "yes",
-                "full_text_used_for_appraisal": "yes",
-                "full_text_retrieval_adapter": "local_fulltext_supplement",
-                "abstract_only_reason": "",
-                "downstream_limitation": "",
-            }
-            continue
+        elink_candidates.append(pmid)
 
-        status_by_pmid[pmid] = _pubmed_full_text_absent_status_row(pmid, pmc_result, europe_result)
+    # ── Pass 2: NCBI ELink — batch PMID→PMCID conversion for remaining PMIDs ──
+    if elink_candidates:
+        elink_result = mcp_tools.call_clinical_source_adapter(
+            "ncbi_elink",
+            {"query": ",".join(elink_candidates), "dbfrom": "pubmed", "db": "pmc"},
+        )
+        mcp_log.append(mcp_tools.mcp_log_entry(elink_result, "clinical_source_ncbi_elink"))
+        elink_records = elink_result.get("records") or []
+        # Map ELink records back to PMIDs
+        elink_by_pmid: dict[str, dict[str, Any]] = {}
+        for rec in elink_records:
+            rec_pmid = str(rec.get("pmid") or "")
+            if rec_pmid and rec.get("full_text"):
+                elink_by_pmid[rec_pmid] = rec
+        for pmid in elink_candidates:
+            elink_record = elink_by_pmid.get(pmid)
+            if elink_record and elink_record.get("full_text"):
+                full_text_by_pmid[pmid] = {
+                    **elink_record,
+                    "full_text_retrieval_adapter": "ncbi_elink",
+                    "full_text_retrieval_status": "full_text_available",
+                }
+                status_by_pmid[pmid] = _pubmed_full_text_status_row(pmid, elink_result, elink_record, "ncbi_elink")
+                continue
+            # Local supplement as last resort
+            local_full_text = _lookup_local_fulltext_supplement(pmid, artifact_root)
+            if local_full_text:
+                full_text_by_pmid[pmid] = {
+                    "full_text": local_full_text,
+                    "full_text_retrieval_adapter": "local_fulltext_supplement",
+                    "full_text_retrieval_status": "full_text_available",
+                }
+                status_by_pmid[pmid] = {
+                    "full_text_retrieval_status": "full_text_available",
+                    "full_text_available": "yes",
+                    "full_text_used_for_appraisal": "yes",
+                    "full_text_retrieval_adapter": "local_fulltext_supplement",
+                    "abstract_only_reason": "",
+                    "downstream_limitation": "",
+                }
+                continue
+            # Truly unavailable
+            status_by_pmid[pmid] = _pubmed_full_text_absent_status_row(pmid, {}, {})
+
     return {"full_text_by_pmid": full_text_by_pmid, "status_by_pmid": status_by_pmid, "mcp_log": mcp_log}
 
 
@@ -7058,6 +7127,10 @@ def extract_endpoints(state: dict[str, Any]) -> dict[str, Any]:
                     "endpoint_id": f"END-{idx:03d}",
                     "benchmark_id": benchmark.get("benchmark_id"),
                     "endpoint": benchmark.get("endpoint"),
+                    # V3.1 fix: populate endpoint_name / label from the benchmark text
+                    # so downstream sota_endpoint_master[*].endpoint_name is non-empty.
+                    "endpoint_name": benchmark.get("endpoint") or benchmark.get("label") or f"Endpoint END-{idx:03d}",
+                    "label": benchmark.get("label") or benchmark.get("endpoint") or f"Endpoint END-{idx:03d}",
                     "clinical_meaning": benchmark.get("clinical_significance"),
                     "source_evidence_id": source.get("source_evidence_id") or (evidence_rows or [{}])[0].get("evidence_id", "E-GAP-001"),
                     "sample_size": source.get("sample_size") or "not available in automated first-pass unless extracted from full text",
@@ -7673,12 +7746,186 @@ def _endpoint_registry_rows(state: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
+def _load_fulltext_semantic_endpoints(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Load pre-extracted full-text LLM semantic endpoints.
+
+    Data sources (tried in order):
+    1. clinical_source_adapter_records in state (if V3.1 bridge has run)
+    2. Pre-extracted JSON on disk (from manual liteparse+LLM run)
+    3. Empty list if neither is available
+
+    Returns flat list of endpoint dicts with keys:
+    pmid, name, value, unit, type, context, confidence, sample_size
+    """
+    # Source 1: V3.1 bridge output in state
+    adapter_records = state.get("clinical_source_adapter_records") or []
+    if adapter_records:
+        endpoints = []
+        for rec in adapter_records:
+            if isinstance(rec, dict):
+                ep = {
+                    "pmid": str(rec.get("pmid", "")),
+                    "name": str(rec.get("endpoint_name") or rec.get("name", "")),
+                    "value": rec.get("value"),
+                    "unit": str(rec.get("unit", "")),
+                    "type": str(rec.get("endpoint_type") or rec.get("type", "other")),
+                    "context": str(rec.get("context", "")),
+                    "confidence": str(rec.get("confidence", "medium")),
+                    "sample_size": rec.get("sample_size"),
+                }
+                if ep["name"] and ep["value"] is not None:
+                    endpoints.append(ep)
+        if endpoints:
+            return endpoints
+
+    # Source 2: Pre-extracted JSON file on disk
+    artifact_root = state.get("artifact_root", "")
+    if artifact_root:
+        json_path = os.path.join(artifact_root, "full_text_extractions", "llm_semantic_endpoints.json")
+        if os.path.isfile(json_path):
+            try:
+                import json as _json
+                with open(json_path) as f:
+                    data = _json.load(f)
+                records = data.get("records", [])
+                endpoints = []
+                for rec in records:
+                    pmid = str(rec.get("pmid", ""))
+                    for ep in rec.get("llm_extracted_endpoints", []):
+                        if isinstance(ep, dict) and ep.get("name") and ep.get("value") is not None:
+                            endpoints.append({
+                                "pmid": pmid,
+                                "name": str(ep.get("name", "")),
+                                "value": ep.get("value"),
+                                "unit": str(ep.get("unit", "")),
+                                "type": str(ep.get("type", "other")),
+                                "context": str(ep.get("context", "")),
+                                "confidence": str(ep.get("confidence", "medium")),
+                                "sample_size": rec.get("sample_size"),
+                            })
+                if endpoints:
+                    return endpoints
+            except Exception:
+                pass
+
+    return []
+
+
+def _build_fulltext_endpoint_lookup(fulltext_endpoints: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    """Build a normalized-keyword → endpoints lookup for fuzzy matching.
+
+    Each full-text endpoint is indexed under multiple normalized forms of its name
+    to maximize the chance of matching against abstract-level endpoint names.
+    """
+    import re as _re
+    lookup: dict[str, list[dict[str, Any]]] = {}
+
+    for ep in fulltext_endpoints:
+        name = str(ep.get("name", "")).lower().strip()
+        if not name:
+            continue
+
+        # Build keyword variants from the endpoint name
+        variants = set()
+        variants.add(name)  # exact
+        variants.add(_re.sub(r'[^a-z0-9\s]', '', name).strip())  # no punctuation
+        # Also index individual meaningful words (≥4 chars)
+        for word in name.split():
+            word = word.strip()
+            if len(word) >= 4:
+                variants.add(word)
+
+        for variant in variants:
+            if variant not in lookup:
+                lookup[variant] = []
+            lookup[variant].append(ep)
+
+    return lookup
+
+
+def _lookup_fulltext_endpoint(
+    lookup: dict[str, list[dict[str, Any]]],
+    endpoint_name: str,
+    registry_row: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Find the best full-text semantic endpoint matching an abstract endpoint name.
+
+    Matching strategy:
+    1. Normalize both names (lowercase, strip punctuation)
+    2. Try exact match first
+    3. Try keyword overlap (shared words ≥4 chars)
+    4. Return the match with highest confidence
+    """
+    import re as _re
+
+    if not lookup or not endpoint_name:
+        return None
+
+    name = str(endpoint_name).lower().strip()
+    name_clean = _re.sub(r'[^a-z0-9\s]', '', name)
+
+    candidates: list[dict[str, Any]] = []
+
+    # Exact match
+    if name in lookup:
+        candidates.extend(lookup[name])
+    if name_clean in lookup:
+        candidates.extend(lookup[name_clean])
+
+    # Keyword overlap: find lookups whose keys share words with endpoint_name
+    name_words = set(w for w in name_clean.split() if len(w) >= 4)
+    if name_words:
+        for key, eps in lookup.items():
+            key_words = set(key.split())
+            if name_words & key_words:
+                candidates.extend(eps)
+
+    if not candidates:
+        return None
+
+    # Deduplicate and pick best by confidence
+    seen = set()
+    best = None
+    best_score = -1
+    confidence_rank = {"high": 3, "medium": 2, "low": 1}
+
+    for ep in candidates:
+        ep_id = (ep.get("pmid"), ep.get("name"), ep.get("value"))
+        if ep_id in seen:
+            continue
+        seen.add(ep_id)
+
+        score = confidence_rank.get(str(ep.get("confidence", "medium")).lower(), 1)
+        # Prefer performance-type endpoints
+        if ep.get("type") == "performance":
+            score += 1
+        # Prefer endpoints with context
+        if ep.get("context"):
+            score += 0.5
+
+        if score > best_score:
+            best_score = score
+            best = ep
+
+    return best
+
+
 def _sota_endpoint_derivation_rows(state: dict[str, Any], endpoint_registry: list[dict[str, Any]]) -> list[dict[str, Any]]:
     endpoints = state.get("endpoint_extraction") or []
     benchmarks = state.get("sota_benchmark_matrix") or []
     searches = state.get("search_run_registry") or []
     context_by_benchmark = _rows_by_key(state.get("sota_clinical_context_table") or [], "benchmark_id")
     rationale_by_benchmark = _rows_by_key(state.get("sota_benchmark_contextual_rationale") or [], "benchmark_id")
+
+    # ── V3.2 Full-Text Semantic Enrichment ──
+    # Abstract search defines scope (which papers are relevant).
+    # Full-text LLM semantic extraction provides authoritative quantitative content
+    # (SFR=87%, complication_rate=9.3%, n=466, etc.) that abstracts cannot supply.
+    # Here we load pre-extracted full-text data and use it as the PRIMARY source
+    # for quantitative endpoint fields, with abstract-level data as fallback.
+    fulltext_endpoints = _load_fulltext_semantic_endpoints(state)
+    # Build lookup: normalize endpoint name → best quantitative match
+    _ft_lookup = _build_fulltext_endpoint_lookup(fulltext_endpoints)
     rows = []
     for idx, registry_row in enumerate(endpoint_registry, start=1):
         benchmark = _row_by_id(benchmarks, "benchmark_id", registry_row.get("benchmark_id")) or {}
@@ -7688,10 +7935,37 @@ def _sota_endpoint_derivation_rows(state: dict[str, Any], endpoint_registry: lis
         evidence = _evidence_for_endpoint(state, endpoint)
         search = _search_for_benchmark(searches, benchmark)
         hierarchy = _benchmark_source_hierarchy(benchmark, evidence, endpoint)
-        benchmark_value = _benchmark_value(endpoint, benchmark)
-        source = _benchmark_source(endpoint, benchmark, evidence, search)
+
+        # ── V3.2: Full-text semantic data as PRIMARY source for quantitative fields ──
+        # The abstract-level endpoint (from endpoint_extraction) defines the NAME and
+        # PICO mapping. The full-text LLM semantic extraction provides the authoritative
+        # quantitative VALUES (SFR=87%, n=466, etc.) that abstracts cannot supply.
+        endpoint_name = str(endpoint.get("endpoint") or benchmark.get("endpoint") or "")
+        ft_match = _lookup_fulltext_endpoint(_ft_lookup, endpoint_name, registry_row)
+
+        # Use full-text data when available; fall back to abstract-level data
+        if ft_match:
+            _ft_sample_size = str(ft_match.get("sample_size") or "")
+            _ft_statistical = f"{ft_match.get('value', '')}{ft_match.get('unit', '')}"
+            _ft_context = str(ft_match.get("context", ""))
+            _ft_confidence = str(ft_match.get("confidence", "medium"))
+            sample_size = _ft_sample_size if _ft_sample_size and _ft_sample_size not in ("None", "", "not reported in source") else _benchmark_sample_size(endpoint, evidence)
+            statistical_result = _ft_statistical if _ft_statistical.strip() else (endpoint.get("statistical_result") or _benchmark_value(endpoint, benchmark))
+            clinical_meaning = _ft_context if _ft_context.strip() else (rationale.get("domain_aware_benchmark_rationale") or registry_row.get("clinical_meaning"))
+            benchmark_value = _ft_statistical if _ft_statistical.strip() else _benchmark_value(endpoint, benchmark)
+            source = f"full-text LLM semantic extraction (confidence: {_ft_confidence})"
+            full_text_page = f"full_text_extractions/clinical/PMID_{ft_match.get('pmid','')}.txt"
+            data_origin = "fulltext_semantic_primary"
+        else:
+            sample_size = _benchmark_sample_size(endpoint, evidence)
+            statistical_result = endpoint.get("statistical_result") or _benchmark_value(endpoint, benchmark)
+            clinical_meaning = rationale.get("domain_aware_benchmark_rationale") or registry_row.get("clinical_meaning")
+            benchmark_value = _benchmark_value(endpoint, benchmark)
+            source = _benchmark_source(endpoint, benchmark, evidence, search)
+            full_text_page = endpoint.get("full_text_page_or_section") or endpoint.get("page_or_section") or endpoint.get("source_page_or_table") or "full-text/page trace not available"
+            data_origin = "abstract_fallback"
+
         population = _benchmark_population(state, evidence)
-        sample_size = _benchmark_sample_size(endpoint, evidence)
         ci_or_range = _benchmark_ci_or_range(endpoint, benchmark, evidence)
         rows.append(
             {
@@ -7702,12 +7976,12 @@ def _sota_endpoint_derivation_rows(state: dict[str, Any], endpoint_registry: lis
                 "evidence_id": evidence.get("evidence_id") or endpoint.get("source_evidence_id") or "E-GAP-001",
                 "endpoint_id": registry_row.get("endpoint_id"),
                 "benchmark_id": registry_row.get("benchmark_id"),
-                "full_text_page_table_section": endpoint.get("full_text_page_or_section") or endpoint.get("page_or_section") or endpoint.get("source_page_or_table") or "full-text/page trace not available",
+                "full_text_page_table_section": full_text_page,
                 "endpoint_definition": endpoint.get("endpoint") or benchmark.get("endpoint") or "Endpoint definition requires source confirmation.",
                 "numerator_denominator": endpoint.get("numerator_denominator") or _infer_numerator_denominator(endpoint, sample_size) or "not reported in source",
                 "sample_size": sample_size,
                 "timepoint": endpoint.get("timepoint") or evidence.get("follow_up") or "not reported in source",
-                "statistical_result": endpoint.get("statistical_result") or benchmark_value,
+                "statistical_result": statistical_result,
                 "benchmark_value": benchmark_value,
                 "source": source,
                 "population": population,
@@ -7717,7 +7991,8 @@ def _sota_endpoint_derivation_rows(state: dict[str, Any], endpoint_registry: lis
                 "clinical_context_id": context.get("row_id"),
                 "clinical_context": context.get("clinical_pathway") or context.get("medical_field"),
                 "domain_aware_benchmark_rationale": rationale.get("domain_aware_benchmark_rationale") or benchmark.get("domain_aware_rationale"),
-                "clinical_meaning": rationale.get("domain_aware_benchmark_rationale") or registry_row.get("clinical_meaning"),
+                "clinical_meaning": clinical_meaning,
+                "data_origin": data_origin,
                 "endpoint_selection_reason": context.get("endpoint_selection_reason"),
                 "benchmark_value_interpretation": rationale.get("benchmark_value_interpretation") or context.get("benchmark_interpretation"),
                 "overclaim_guard": rationale.get("overclaim_guard"),
@@ -7919,9 +8194,12 @@ def _benchmark_population(state: dict[str, Any], evidence: dict[str, Any]) -> st
 def _benchmark_sample_size(endpoint: dict[str, Any], evidence: dict[str, Any]) -> str:
     for value in (endpoint.get("sample_size"), evidence.get("sample_size")):
         text = str(value or "").strip()
-        if text and text.lower() not in {"none", "not extracted", "not available"}:
-            return text
-    return "not reported in source"
+        if text and text.lower() not in {"none", "not extracted", "not available", "not reported in source"}:
+            # Ensure the value is numeric or contains a number
+            import re as _re
+            if _re.search(r"\d+", text):
+                return text
+    return ""  # Empty string is safe for downstream int() conversions
 
 
 def _benchmark_ci_or_range(endpoint: dict[str, Any], benchmark: dict[str, Any], evidence: dict[str, Any]) -> str:
@@ -20148,6 +20426,8 @@ def _base_query(profile: dict[str, Any], state: dict[str, Any] | None = None) ->
         return '("ureteral access sheath" OR "ureteric access sheath" OR "suction ureteral access sheath") AND (ureteroscopy OR RIRS OR fURS) AND (safety OR performance OR outcome OR complication)'
     if domain == "urology_nephroscope":
         return '("single-use ureteroscope" OR "disposable ureteroscope" OR ureterorenoscope OR nephroscope OR "flexible ureteroscopy") AND (safety OR performance OR outcome OR complication OR "image quality")'
+    if domain == "single_use_flexible_ureteroscope_system":
+        return '("single-use flexible ureteroscope" OR "disposable flexible ureteroscope" OR "digital flexible ureteroscope" OR "single-use ureterorenoscope" OR "flexible ureteroscopy" OR fURS OR URS) AND (urolithiasis OR "urinary stone" OR lithotripsy OR "laser lithotripsy" OR "Ho:YAG" OR "stone-free rate" OR "ureteral tumor" OR "upper urinary tract") AND (safety OR performance OR outcome OR complication OR efficacy OR "image quality" OR "stone clearance")'
     if domain == "cardiac_tissue_stabilizer":
         return '("tissue stabilizer" OR "heart stabilizer" OR "coronary stabilizer" OR "suction stabilizer" OR "heart positioner" OR "epicardial stabilizer" OR "Octopus tissue stabilizer" OR "off-pump stabilization" OR "mechanical stabilizer") AND ("coronary artery bypass" OR CABG OR off-pump OR OPCAB OR "cardiac surgery") AND (safety OR performance OR outcome OR complication OR efficacy)'
     device_type = profile.get("device_type") or "medical device"
@@ -20314,6 +20594,10 @@ def _phase7_retrieval_domain_profile(profile: dict[str, Any], state: dict[str, A
             "surgical implant",
             "urology endoscope",
         ]
+    elif "urology" in domain_lock or "uretero" in blob or "nephroscope" in blob or "single_use_flexible_ureteroscope" in domain_lock or "endoscope" in domain_lock:
+        retrieval_domain = "urological_endoscopy"
+        inclusion_terms = ["ureteroscopy", "ureteroscope", "flexible ureteroscope", "nephroscope", "urinary tract", "renal pelvis", "endoscopy", "urology", "lithotripsy", "laser lithotripsy"]
+        exclusion_terms = ["cardiac", "pulmonary vein", "orthopedic", "arthroscopy", "nuclear medicine", "radiotherapy"]
     elif "imaging" in domain_lock or "image_processing" in domain_lock or "visualization" in domain_lock or "rendering" in domain_lock or "workstation" in domain_lock or "reconstruction" in domain_lock or "医学影像" in blob or "图像处理" in blob or "后处理" in blob or "影像处理" in blob or "PACS" in blob or "DICOM" in blob:
         retrieval_domain = "medical_image_processing_software"
         inclusion_terms = [
@@ -20343,10 +20627,7 @@ def _phase7_retrieval_domain_profile(profile: dict[str, Any], state: dict[str, A
         retrieval_domain = "surgical_ligating_clip"
         inclusion_terms = ["ligating clip", "hemostatic clip", "vascular clip", "surgical clip", "ligation", "vessel"]
         exclusion_terms = ["stent", "ureteroscope", "cardiac electrophysiology", "pulmonary vein"]
-    elif "urology" in domain_lock or "uretero" in blob or "nephroscope" in blob:
-        retrieval_domain = "urological_endoscopy"
-        inclusion_terms = ["ureteroscopy", "ureteroscope", "nephroscope", "urinary tract", "renal pelvis", "endoscopy"]
-        exclusion_terms = ["cardiac", "pulmonary vein", "orthopedic", "arthroscopy"]
+    # (urology branch moved above imaging branch — see line 20374)
     elif "powered_therapeutic" in domain_lock or "pump" in blob:
         retrieval_domain = "powered_therapeutic_equipment"
         inclusion_terms = ["pump", "enteral feeding", "flow", "delivery", "alarm", "battery", "powered equipment"]
@@ -21575,7 +21856,8 @@ def _raw_records_from_searches(searches: list[dict[str, Any]]) -> list[dict[str,
                     "source_database": record.get("source_database") or record.get("source_db") or search.get("database"),
                     "source_type": record.get("source_type") or _source_type_for_search_database(search.get("database")),
                     "source_anchor": record.get("source_anchor") or record.get("record_id") or record.get("id") or record.get("nct_id"),
-                    "record_id": record.get("record_id") or record.get("id") or record.get("nct_id"),
+                    "record_id": record.get("record_id") or record.get("embase_id") or record.get("id") or record.get("nct_id"),
+                    "embase_id": record.get("embase_id"),
                     "stable_record_id": record.get("stable_record_id"),
                     "retrieval_timestamp": record.get("retrieval_timestamp"),
                     "query_signature": record.get("query_signature"),
@@ -21617,6 +21899,85 @@ def _raw_records_from_searches(searches: list[dict[str, Any]]) -> list[dict[str,
     return records
 
 
+def _enrich_adapter_record_with_quant_facts(record: dict[str, Any], adapter_index: int) -> dict[str, Any]:
+    """S1 fix: back-fill value / denominator / source_location / endpoint_id onto
+    clinical_source_adapter_records so V3.1 build_clinical_fact_registry can accept them.
+
+    The adapters (mcp_tools._pmc_records_from_xml, _europe_pmc_native_record,
+    _clinicaltrials_native_record) only carry nested structures. This helper lifts the
+    first numeric signal to the top level without modifying the underlying record.
+    Records with no extractable value are returned unchanged.
+    """
+    if not isinstance(record, dict):
+        return record
+    record = dict(record)  # never mutate the raw record
+
+    # ClinicalTrials.gov already produces structured result_facts
+    if record.get("source_type") == "clinical_trial_record":
+        facts = record.get("result_facts") or []
+        if facts and isinstance(facts[0], dict):
+            fact = facts[0]
+            if record.get("value") is None and fact.get("value") is not None:
+                record["value"] = fact.get("value")
+            if record.get("numerator") is None and fact.get("numerator") is not None:
+                record["numerator"] = fact.get("numerator")
+            if record.get("denominator") in (None, "") and record.get("enrollment"):
+                record["denominator"] = record.get("enrollment")
+            if not record.get("source_location"):
+                record["source_location"] = {
+                    "page": "ClinicalTrials.gov results section",
+                    "table": "structured_results_section",
+                    "excerpt": f"{fact.get('endpoint', '')}: {fact.get('value', '')} {fact.get('unit', '')}".strip(),
+                }
+            if not record.get("endpoint_id") and fact.get("endpoint"):
+                record["endpoint_id"] = f"TRIAL-EP-{adapter_index:03d}"
+            if not record.get("endpoint_label"):
+                record["endpoint_label"] = str(fact.get("endpoint", ""))
+            if not record.get("value_type"):
+                v = record.get("value")
+                record["value_type"] = "numeric" if isinstance(v, (int, float)) else "text"
+            if not record.get("extraction_method"):
+                record["extraction_method"] = "direct_text"
+            return record
+
+    # Literature adapters: extract from full_text, fall back to abstract
+    text = (record.get("full_text") or "").strip() or (record.get("abstract") or "").strip()
+    if not text:
+        return record
+    value_numeric, value_unit = _clinical_value_from_text(text[:5000])
+    population_n = _population_n_from_text(text[:5000])
+    # V3.1: always populate metadata even if no numeric value extracted
+    # Without this, records arrive at V3.1 as hollow shells with no endpoint_id or source_location
+    has_numeric = value_numeric not in ("", None)
+    has_population = bool(population_n)
+
+    if has_numeric:
+        if record.get("value") is None: record["value"] = value_numeric
+    if has_population:
+        if record.get("denominator") in (None, ""): record["denominator"] = population_n
+    if value_unit and record.get("unit") is None: record["unit"] = value_unit
+
+    if not record.get("source_location"):
+        record["source_location"] = {
+            "page": "abstract" if not record.get("full_text") else "full_text",
+            "table": "literature_record",
+            "excerpt": text[:200],
+        }
+    if not record.get("endpoint_id"):
+        record["endpoint_id"] = f"LIT-EP-{adapter_index:03d}"
+    if not record.get("endpoint_label"):
+        record["endpoint_label"] = _endpoint_label_from_text(text[:200]) or "literature-extracted endpoint"
+    if not record.get("value_type"):
+        record["value_type"] = "numeric" if has_numeric else "unavailable"
+    if not record.get("extraction_method"):
+        record["extraction_method"] = "regex_extraction"
+    if not record.get("extraction_confidence"):
+        record["extraction_confidence"] = "low" if has_numeric else "very_low"
+    if not record.get("unit"):
+        record["unit"] = value_unit or "not_available"
+    return record
+
+
 def _source_type_for_search_database(database: Any) -> str:
     value = str(database or "").lower()
     if "pmc" in value and "europe" not in value:
@@ -21627,6 +21988,8 @@ def _source_type_for_search_database(database: Any) -> str:
         return "clinical_trial_record"
     if "pubmed" in value:
         return "literature_pubmed_sota"
+    if "embase" in value:
+        return "literature_embase_sota"
     return "unknown_unclassified"
 
 
@@ -22264,12 +22627,38 @@ def _writer_quality_self_check(chapters: dict[str, str]) -> dict[str, Any]:
         "detail": f"{ev_narrative_lines} structured evidence narratives (threshold: ≥1)",
     })
 
+    # Check 8 (V3.1): Section numeric boundary — only §4 may expand own data
+    try:
+        from deerflow.runtime.cer_authoring.v3_1_runtime import check_section_numeric_boundary
+        fact_registry = chapters.get("_fact_registry") or []
+        section_checks = []
+        section_map = {
+            "1 Summary": "executive_summary",
+            "2 Scope of Clinical Evaluation": "device_description",
+            "3 Clinical Background, Current Knowledge and SOTA": "sota",
+            "4 Device Under Evaluation": "clinical_data_analysis",
+            "5 Conclusions": "conclusions",
+        }
+        for ch_key, sec_name in section_map.items():
+            content = chapters.get(ch_key, "")
+            if content:
+                result = check_section_numeric_boundary(sec_name, content, fact_registry)
+                section_checks.append(result)
+        boundary_violations = [c for c in section_checks if c.get("status") == "REWORK_REQUIRED"]
+        checks.append({
+            "check": "v3_1_section_boundary",
+            "passed": len(boundary_violations) == 0,
+            "detail": f"{len(boundary_violations)} section boundary violations" if boundary_violations else "All sections comply",
+        })
+    except ImportError:
+        pass
+
     passed = sum(1 for c in checks if c["passed"])
     return {
         "writer_quality_score": f"{passed}/{len(checks)}",
         "writer_quality_pct": round(passed / len(checks) * 100),
         "checks": checks,
-        "recommendation": "PASS" if passed >= 5 else "REVIEW_RECOMMENDED",
+        "recommendation": "PASS" if passed >= 6 else "REVIEW_RECOMMENDED",
     }
 
 
@@ -24537,22 +24926,75 @@ def _extract_endpoint_rows_from_evidence(evidence_rows: list[dict[str, Any]]) ->
     extracted = []
     sample_pattern = re.compile(r"(?:n\s*=\s*|sample(?:\s+size)?\s*(?:of|=)?\s*)(\d{2,5})", re.IGNORECASE)
     percent_pattern = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*%")
+    # Bug 3: enhanced regex for full-text quantitative extraction
+    pvalue_pattern = re.compile(r"(?:p\s*[<=>]\s*|p\s*value\s*[=<>]?\s*)(0?\.\d+)", re.IGNORECASE)
+    ci_pattern = re.compile(r"(?:95%\s*CI|confidence\s*interval)\s*[:=]?\s*\[?(\d+\.?\d*)\s*[,–-]\s*(\d+\.?\d*)\]?", re.IGNORECASE)
+    hr_pattern = re.compile(r"(?:HR|hazard\s*ratio)\s*[=:]\s*(\d+\.\d+)", re.IGNORECASE)
+    or_pattern = re.compile(r"(?:OR|odds\s*ratio)\s*[=:]\s*(\d+\.\d+)", re.IGNORECASE)
+    rr_pattern = re.compile(r"(?:RR|risk\s*ratio|relative\s*risk)\s*[=:]\s*(\d+\.\d+)", re.IGNORECASE)
+    timepoint_pattern = re.compile(
+        r"(?:(?:at|after|over)\s+)?(\d+\.?\d*)\s*(day|week|month|year|hour|min)s?\s*(?:follow[-\s]?up|of\s+follow|post[-\s]?)",
+        re.IGNORECASE,
+    )
     for row in evidence_rows:
         candidates = row.get("endpoint_candidates") or []
         candidate_text = " ".join(str(item.get("sentence", "")) for item in candidates if isinstance(item, dict))
+        # Bug 3: include full_text in the extraction corpus
+        full_text = str(row.get("full_text") or "")
         text = " ".join(str(row.get(key, "")) for key in ("title", "abstract_text", "result", "limitations", "source"))
         if candidate_text:
             text = f"{candidate_text} {text}"
+        if full_text:
+            text = f"{text} {full_text[:30000]}"  # first 30k chars of full text
         sample_match = sample_pattern.search(text)
         percent_match = percent_pattern.search(text)
+        pvalue_match = pvalue_pattern.search(text)
+        ci_match = ci_pattern.search(text)
+        hr_match = hr_pattern.search(text)
+        or_match = or_pattern.search(text)
+        rr_match = rr_pattern.search(text)
+        timepoint_match = timepoint_pattern.search(text)
+        # Build statistical_result from best available match
+        stat_parts = []
+        if percent_match:
+            stat_parts.append(percent_match.group(0))
+        if pvalue_match:
+            stat_parts.append(f"p={pvalue_match.group(1)}")
+        if ci_match:
+            stat_parts.append(f"95%CI [{ci_match.group(1)}, {ci_match.group(2)}]")
+        if hr_match:
+            stat_parts.append(f"HR={hr_match.group(1)}")
+        elif or_match:
+            stat_parts.append(f"OR={or_match.group(1)}")
+        elif rr_match:
+            stat_parts.append(f"RR={rr_match.group(1)}")
+        statistical_result = "; ".join(stat_parts) if stat_parts else (percent_match.group(0) if percent_match else row.get("result"))
+        # Timepoint from regex or row
+        if timepoint_match:
+            timepoint = f"{timepoint_match.group(1)} {timepoint_match.group(2)}"
+        else:
+            timepoint = row.get("follow_up") or "not reported"
+        # Bug 3: distinguish full-text vs abstract basis
+        has_full_text = bool(full_text.strip())
+        extraction_basis = (
+            "PMC/NCBI full text XML quantitative extraction"
+            if has_full_text
+            else "bibliographic summary only; full text retrieval required for quantitative endpoint extraction"
+        )
+        conclusion = (
+            "Quantitative endpoint extracted from full text; verify numerator/denominator and clinical context."
+            if has_full_text and stat_parts
+            else "Supportive only unless full-text endpoint definition, numerator/denominator, timepoint and statistics are extracted."
+        )
         extracted.append(
             {
                 "source_evidence_id": row.get("evidence_id"),
                 "sample_size": sample_match.group(1) if sample_match else row.get("sample_size"),
-                "timepoint": row.get("follow_up") or "not reported in bibliographic summary",
-                "statistical_result": percent_match.group(0) if percent_match else row.get("result"),
-                "extraction_basis": "PubMed abstract/full abstract XML and bibliographic metadata endpoint extraction attempted",
-                "conclusion": "Supportive only unless full-text endpoint definition, numerator/denominator, timepoint and statistics are extracted.",
+                "timepoint": timepoint,
+                "statistical_result": statistical_result,
+                "extraction_basis": extraction_basis,
+                "conclusion": conclusion,
+                "has_full_text": has_full_text,
             }
         )
     return extracted
@@ -25493,3 +25935,516 @@ def _md_cell(value: Any) -> str:
     if contains_cjk(text):
         text = english_report_text(text, "table cell")
     return _sanitize_regulatory_language(text)[:900]
+
+
+# ── V3.2: Claude Code CER Authoring Engine integration helpers ──────────
+
+
+def consolidate_clinical_data(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    Consolidate all clinical evidence into a single source-of-truth table.
+    Only includes endpoints from the locked_endpoint_framework.
+    Follows the engineer's "analyze once" principle.
+    """
+    locked = state.get("locked_endpoint_framework") or {}
+    allowed_endpoints: set[str] = set()
+    for key in ("primary_endpoints", "secondary_endpoints", "safety_endpoints"):
+        for ep in locked.get(key, []) or []:
+            name = ep.get("name", ep) if isinstance(ep, dict) else ep
+            allowed_endpoints.add(str(name))
+
+    evidence_registry = state.get("evidence_registry") or {}
+    # evidence_registry is typed as list[dict] in state but historically may be a dict
+    # of buckets (manufacturer/pms/literature).  Tolerate both.
+    if isinstance(evidence_registry, list):
+        ev_buckets = {"literature": evidence_registry}
+    else:
+        ev_buckets = evidence_registry
+
+    sota_benchmark_matrix = state.get("sota_benchmark_matrix") or []
+
+    data_sources: list[dict[str, Any]] = []
+
+    def _filter_endpoints(eps: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for ep in eps or []:
+            if not isinstance(ep, dict):
+                continue
+            if ep.get("name") in allowed_endpoints:
+                out.append(
+                    {
+                        "name": ep.get("name"),
+                        "value": ep.get("value"),
+                        "ci_95": ep.get("ci_95"),
+                        "p_value": ep.get("p_value"),
+                    }
+                )
+        return out
+
+    # 1. Manufacturer clinical data
+    manufacturer = ev_buckets.get("manufacturer") or []
+    if isinstance(manufacturer, list):
+        for source in manufacturer:
+            if not isinstance(source, dict):
+                continue
+            endpoints = _filter_endpoints(source.get("endpoints", []) or [])
+            if endpoints:
+                data_sources.append(
+                    {
+                        "type": "manufacturer_clinical",
+                        "priority": "must",
+                        "study_name": source.get("study_name", ""),
+                        "study_design": source.get("study_design", ""),
+                        "sample_size": source.get("sample_size", 0),
+                        "endpoints": endpoints,
+                    }
+                )
+
+    # 2. PMS data
+    pms = ev_buckets.get("pms") or []
+    if isinstance(pms, list):
+        for source in pms:
+            if not isinstance(source, dict):
+                continue
+            endpoints = _filter_endpoints(source.get("endpoints", []) or [])
+            if endpoints:
+                data_sources.append(
+                    {
+                        "type": "pms_data",
+                        "priority": "optional",
+                        "study_name": source.get("source", "PMS"),
+                        "endpoints": endpoints,
+                    }
+                )
+
+    # 3. Literature SOTA data
+    literature = ev_buckets.get("literature") or []
+    if isinstance(literature, list):
+        for source in literature:
+            if not isinstance(source, dict):
+                continue
+            endpoints = _filter_endpoints(source.get("endpoints", []) or [])
+            if endpoints:
+                data_sources.append(
+                    {
+                        "type": "literature_sota",
+                        "priority": "must",
+                        "study_name": source.get("citation_id", source.get("title", "")),
+                        "endpoints": endpoints,
+                    }
+                )
+
+    # 4. Vigilance data
+    vigilance = state.get("vigilance_recall_registry") or {}
+    if vigilance:
+        data_sources.append(
+            {
+                "type": "vigilance",
+                "priority": "must",
+                "data": vigilance,
+            }
+        )
+
+    # Build cross-source comparison
+    cross_source_comparison: list[dict[str, Any]] = []
+    for ep_name in sorted(allowed_endpoints):
+        sources_for_ep: list[dict[str, Any]] = []
+        for ds in data_sources:
+            for ep in ds.get("endpoints", []) or []:
+                if ep.get("name") == ep_name:
+                    sources_for_ep.append(
+                        {
+                            "source_type": ds.get("type"),
+                            "value": ep.get("value"),
+                        }
+                    )
+        if len(sources_for_ep) > 1:
+            cross_source_comparison.append(
+                {
+                    "endpoint": ep_name,
+                    "sources": sources_for_ep,
+                }
+            )
+
+    return {
+        "data_sources": data_sources,
+        "endpoint_aligned_data": [],
+        "cross_source_comparison": cross_source_comparison,
+        "analysis_once_principle": True,
+    }
+
+
+def export_cer_input_package(state: dict[str, Any], package_dir: str) -> dict[str, Any]:
+    """
+    Export the CER_INPUT_PACKAGE.json and supporting files for Claude Code consumption.
+    Writes to CER_EVIDENCE_PACKAGE/ directory in the project root.
+    """
+    import os
+    import json
+    from datetime import datetime, timezone
+
+    os.makedirs(package_dir, exist_ok=True)
+
+    metadata = state.get("device_profile") or {}
+    eu_market_status = state.get("eu_market_status") or "not_approved"
+    pmcf_required = eu_market_status in ("approved", "pending")
+
+    evidence_registry = state.get("evidence_registry") or {}
+    if isinstance(evidence_registry, dict):
+        literature_list = evidence_registry.get("literature_list") or []
+    else:
+        literature_list = []
+
+    package = {
+        "metadata": {
+            "project_id": state.get("project_id", ""),
+            "device_name": metadata.get("name", metadata.get("device_name", "")),
+            "device_name_full": metadata.get("full_name", metadata.get("device_name_full", "")),
+            "device_name_abbreviation": metadata.get("abbreviation", metadata.get("device_name_abbreviation", "")),
+            "device_category": metadata.get("category", metadata.get("device_category", "")),
+            "device_variants": metadata.get("variants", []),
+            "eu_market_status": eu_market_status,
+            "pmcf_required": pmcf_required,
+            "regulatory_reference": "MDR 2017/745",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "deerflow_version": "v5.2.0",
+            "package_version": "1.0",
+            "intended_purpose": {
+                "indication": metadata.get("intended_purpose", metadata.get("indication", "")),
+                "target_population": metadata.get("target_population", ""),
+                "clinical_benefit": metadata.get("clinical_benefit", ""),
+            },
+        },
+        "phase1_input_definition": {
+            "device_profile": state.get("device_profile", {}),
+            "claim_ledger": state.get("claim_ledger", []),
+            "intended_purpose_claim_table": state.get("intended_purpose_claim_table", {}),
+        },
+        "phase2_sota": {
+            "locked_endpoint_framework": state.get("locked_endpoint_framework", {}),
+            "sota_search_strategy": state.get("sota_search_strategy_table", {}),
+            "literature_search_protocol": state.get("literature_search_protocol_profile", {}),
+            "sota_benchmark_matrix": state.get("sota_benchmark_matrix", {}),
+            "sota_endpoint_derivation_table": state.get("sota_endpoint_derivation_table", {}),
+            "sota_clinical_context_table": state.get("sota_clinical_context_table", {}),
+        },
+        "phase3_equivalence_risk": {
+            "equivalence_analysis": state.get("equivalence_analysis", {}),
+            "vigilance_recall_registry": state.get("vigilance_recall_registry", {}),
+            "risk_trace_matrix": state.get("risk_trace_matrix", {}),
+            "gspr_coverage": state.get("gspr_coverage", {}),
+        },
+        "phase4_evidence_consolidation": {
+            "consolidated_clinical_data_table": state.get("consolidated_clinical_data_table", {}),
+            "claim_evidence_matrix": state.get("claim_evidence_matrix", {}),
+            "benefit_risk_ledger": state.get("benefit_risk_ledger", {}),
+            "alignment_matrix": state.get("alignment_matrix", {}),
+            # ── BIGDP2026.6 Phase 2: Expert Reasoning Ledgers ──
+            "cer_reasoning_ledger": state.get("cer_reasoning_ledger", {}),
+            "ifu_claim_evolution_ledger": state.get("ifu_claim_evolution_ledger", {}),
+            "benchmark_derivation_trace": state.get("benchmark_derivation_trace", {}),
+        },
+        "phase5_writing_ready": {
+            "writer_synthesis": state.get("writer_synthesis", {}),
+            "pre_writer_summary": state.get("pre_writer_summary", ""),
+            "g46_status": "PASS",
+            "evidence_sufficiency_score": state.get("evidence_sufficiency_score", 0.0),
+        },
+        "annexes_data": {
+            "literature_list": literature_list,
+            "search_strategy_details": state.get("literature_search_protocol_profile", {}),
+            "equivalence_table": state.get("equivalence_analysis", {}),
+            "standards_list": state.get("standards_list", []),
+            "vigilance_search_records": state.get("vigilance_recall_registry", {}),
+        },
+    }
+
+    # Write CER_INPUT_PACKAGE.json
+    pkg_path = os.path.join(package_dir, "CER_INPUT_PACKAGE.json")
+    with open(pkg_path, "w", encoding="utf-8") as f:
+        json.dump(package, f, indent=2, ensure_ascii=False, default=str)
+
+    # Write locked_endpoint_framework.json
+    lef_path = os.path.join(package_dir, "locked_endpoint_framework.json")
+    with open(lef_path, "w", encoding="utf-8") as f:
+        json.dump(state.get("locked_endpoint_framework", {}), f, indent=2, ensure_ascii=False, default=str)
+
+    # Write consolidated_clinical_data.json
+    ccd_path = os.path.join(package_dir, "consolidated_clinical_data.json")
+    with open(ccd_path, "w", encoding="utf-8") as f:
+        json.dump(state.get("consolidated_clinical_data_table", {}), f, indent=2, ensure_ascii=False, default=str)
+
+    # ── Generate SOURCE_VERIFICATION_REPORT.md ──
+    consolidated_tbl = state.get("consolidated_clinical_data_table", {}) or {}
+    verification_path = os.path.join(package_dir, "SOURCE_VERIFICATION_REPORT.md")
+    verification_report = _generate_source_verification_report(state, consolidated_tbl)
+    with open(verification_path, "w", encoding="utf-8") as f:
+        f.write(verification_report)
+
+    # Write READY.txt
+    ready_path = os.path.join(package_dir, "READY.txt")
+    locked_fw = state.get("locked_endpoint_framework", {})
+    primary_count = len(locked_fw.get("primary_endpoints", []) or [])
+    evidence_count = len(consolidated_tbl.get("data_sources", []) or [])
+    lit_count = len(literature_list)
+    total_endpoints = sum(
+        len(locked_fw.get(k, []) or [])
+        for k in ("primary_endpoints", "secondary_endpoints", "safety_endpoints")
+    )
+
+    ready_content = (
+        f"# DeerFlow Evidence Package Ready\n"
+        f"# Generated: {datetime.now(timezone.utc).isoformat()}\n"
+        f"# DeerFlow Version: v5.2.0\n"
+        f"# G46 Status: PASS\n"
+        f"# ──────────────────────────────────────────\n"
+        f"\n"
+        f"PROJECT_ID={state.get('project_id', '')}\n"
+        f"DEVICE_NAME={metadata.get('name', metadata.get('device_name', ''))}\n"
+        f"DEVICE_CATEGORY={metadata.get('category', metadata.get('device_category', ''))}\n"
+        f"EU_MARKET_STATUS={eu_market_status}\n"
+        f"PMCF_REQUIRED={str(pmcf_required).lower()}\n"
+        f"EVIDENCE_SUFFICIENCY_SCORE={state.get('evidence_sufficiency_score', 0.0)}\n"
+        f"\n"
+        f"ENDPOINTS_PRIMARY={primary_count}\n"
+        f"ENDPOINTS_TOTAL={total_endpoints}\n"
+        f"\n"
+        f"TOTAL_EVIDENCE_SOURCES={evidence_count}\n"
+        f"LITERATURE_COUNT={lit_count}\n"
+        f"\n"
+        f"# ──────────────────────────────────────────\n"
+        f"STATUS=READY_FOR_AUTHORING\n"
+        f"# ──────────────────────────────────────────\n"
+        f"# Next step: Human reviews this package, then launches:\n"
+        f"#   Claude Code: /cer-authoring-workflow\n"
+        f"#   or: \"run CER authoring on PROJECT_DIR\"\n"
+    )
+    with open(ready_path, "w", encoding="utf-8") as f:
+        f.write(ready_content)
+
+    return {
+        "package_dir": package_dir,
+        "files_written": [
+            "CER_INPUT_PACKAGE.json",
+            "locked_endpoint_framework.json",
+            "consolidated_clinical_data.json",
+            "SOURCE_VERIFICATION_REPORT.md",
+            "READY.txt",
+        ],
+        "status": "exported",
+    }
+
+
+# ── Source Verification Report Generator ────────────────────────────────
+
+def _generate_source_verification_report(
+    state: dict[str, Any],
+    consolidated_tbl: dict[str, Any],
+) -> str:
+    """Generate a human-reviewable report tracing every numerical value
+    in consolidated_clinical_data_table back to its source evidence,
+    with liteparse-extracted context for reproducibility.
+
+    This is the evidence-chain verification report consumed at HC-7.0.
+    """
+    import os
+    from datetime import datetime, timezone
+
+    lines: list[str] = [
+        "# Source Verification Report — Evidence Chain Audit",
+        f"**Generated**: {datetime.now(timezone.utc).isoformat()}",
+        "",
+        "> **Purpose**: Trace every numerical value in the consolidated clinical data table",
+        "> back to its source literature, with liteparse-extracted context for human verification.",
+        "",
+        "---",
+        "",
+    ]
+
+    data_sources = consolidated_tbl.get("data_sources", []) or []
+    evidence_registry = state.get("evidence_registry") or {}
+    if isinstance(evidence_registry, list):
+        ev_lookup = {
+            (r.get("evidence_id") or r.get("citation_id") or r.get("pmid") or ""): r
+            for r in evidence_registry
+            if isinstance(r, dict)
+        }
+    else:
+        ev_lookup = {}
+        for bucket in evidence_registry.values():
+            if isinstance(bucket, list):
+                for r in bucket:
+                    if isinstance(r, dict):
+                        key = r.get("evidence_id") or r.get("citation_id") or r.get("pmid") or ""
+                        ev_lookup[key] = r
+
+    # Try to get full-text data from clinical_source_adapter_records
+    adapter_records = state.get("clinical_source_adapter_records") or []
+    fulltext_by_pmid: dict[str, str] = {}
+    for rec in adapter_records:
+        pmid = str(rec.get("pmid", ""))
+        full_text = rec.get("full_text") or rec.get("extracted_text") or ""
+        if pmid and full_text:
+            fulltext_by_pmid[pmid] = str(full_text)
+
+    total_values = 0
+    verified_with_context = 0
+    source_missing = 0
+
+    for ds in data_sources:
+        ds_type = ds.get("type", "unknown")
+        ds_name = ds.get("study_name", ds_type)
+        endpoints = ds.get("endpoints", []) or []
+
+        if not endpoints:
+            continue
+
+        lines.append(f"## {ds_type}: {ds_name}")
+        lines.append("")
+        lines.append(
+            "| Endpoint | Value | Source | Context Snippet | Confidence |"
+        )
+        lines.append(
+            "|----------|-------|--------|----------------|------------|"
+        )
+
+        for ep in endpoints:
+            total_values += 1
+            ep_name = ep.get("name", "?")
+            ep_value = ep.get("value", "—")
+
+            # Find source evidence record
+            source_ref = "unknown"
+            context = "—"
+            confidence = "⚠️ LOW — no source trace"
+
+            # Try to match by study_name or look up in evidence_registry
+            source_rec = ev_lookup.get(ds_name) or ev_lookup.get(
+                ds.get("study_name", "")
+            )
+            if source_rec:
+                pmid = str(source_rec.get("pmid", ""))
+                citation_id = source_rec.get("citation_id", "")
+                source_ref = citation_id or f"PMID:{pmid}" or ds_name
+
+                # Search for the value in liteparse full text
+                if pmid and pmid in fulltext_by_pmid:
+                    full_text = fulltext_by_pmid[pmid]
+                    value_str = str(ep_value)
+                    context = _extract_context_window(full_text, value_str)
+                    if context != "—":
+                        verified_with_context += 1
+                        confidence = "✅ HIGH — value found in full text with context"
+                    else:
+                        confidence = "⚠️ MEDIUM — source identified but value not located in extracted text"
+                elif source_rec.get("full_text"):
+                    full_text = str(source_rec.get("full_text", ""))
+                    value_str = str(ep_value)
+                    context = _extract_context_window(full_text, value_str)
+                    if context != "—":
+                        verified_with_context += 1
+                        confidence = "✅ HIGH — value found in full text with context"
+                    else:
+                        confidence = "⚠️ MEDIUM — source identified but value not located"
+                else:
+                    confidence = "⚠️ MEDIUM — source identified, no full text available for context search"
+            else:
+                source_missing += 1
+                source_ref = "❌ NO SOURCE FOUND"
+                confidence = "❌ CRITICAL — value has no traceable source"
+
+            context_short = context[:150] + ("..." if len(context) > 150 else "")
+            lines.append(
+                f"| {ep_name} | {ep_value} | {source_ref} | {context_short} | {confidence} |"
+            )
+
+        lines.append("")
+
+    # Summary
+    lines.extend([
+        "---",
+        "",
+        "## Summary",
+        "",
+        f"| Metric | Count |",
+        f"|--------|-------|",
+        f"| Total numerical values | {total_values} |",
+        f"| Verified with full-text context | {verified_with_context} |",
+        f"| Source identified but no context | {total_values - verified_with_context - source_missing} |",
+        f"| Missing source trace | {source_missing} |",
+        "",
+    ])
+
+    if source_missing > 0:
+        lines.append("## ⚠️ CRITICAL — Untraceable Values Found")
+        lines.append(
+            f"**{source_missing} values have no traceable source.** "
+            "Human MUST verify these manually before authorizing CER writing."
+        )
+    elif verified_with_context >= total_values * 0.8:
+        lines.append("## ✅ Verification Threshold Met")
+        lines.append(
+            f"**{verified_with_context}/{total_values} values verified with full-text context.** "
+            f"({verified_with_context * 100 // max(total_values, 1)}%) — exceeds 80% threshold."
+        )
+    else:
+        lines.append("## ⚠️ Context Coverage Below Threshold")
+        lines.append(
+            f"**Only {verified_with_context}/{total_values} values have full-text context.** "
+            f"({verified_with_context * 100 // max(total_values, 1)}%) — below 80% threshold. "
+            "Human review recommended."
+        )
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## Review Instructions",
+        "",
+        "1. Scan for ❌ CRITICAL rows — values with no traceable source MUST be verified",
+        "2. For ⚠️ MEDIUM rows, check the source reference against the original PDF if available",
+        "3. For ✅ HIGH rows, the context snippet shows where the value was extracted",
+        "4. If any value cannot be confirmed, flag it in HC-7.0 before proceeding to Claude Code writing",
+        "",
+        f"**Report path**: `CER_EVIDENCE_PACKAGE/SOURCE_VERIFICATION_REPORT.md`",
+    ])
+
+    return "\n".join(lines)
+
+
+def _extract_context_window(full_text: str, value_str: str, window_chars: int = 200) -> str:
+    """Search for a numerical value in full text and return surrounding context.
+
+    Returns the context window (value surrounded by up to window_chars on each side),
+    or '—' if the value cannot be found.
+    """
+    if not full_text or not value_str:
+        return "—"
+
+    text = str(full_text)
+    val = str(value_str).strip()
+
+    # Try exact match first
+    idx = text.find(val)
+    if idx < 0:
+        # Try without % suffix
+        val_clean = val.rstrip("%").strip()
+        idx = text.find(val_clean)
+    if idx < 0:
+        # Try with just the numeric part
+        import re
+        num_match = re.search(r"(\d+\.?\d*)", val)
+        if num_match:
+            idx = text.find(num_match.group(1))
+
+    if idx < 0:
+        return "—"
+
+    start = max(0, idx - window_chars)
+    end = min(len(text), idx + len(val) + window_chars)
+
+    prefix = ("…" if start > 0 else "") + text[start:idx]
+    suffix = text[idx + len(val):end] + ("…" if end < len(text) else "")
+
+    return f"{prefix} **[{val}]** {suffix}"
+

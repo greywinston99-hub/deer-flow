@@ -1,0 +1,12 @@
+{
+  "phase": "2A",
+  "status": "NOT_STARTED",
+  "last_successful_checkpoint": null,
+  "current_repair_round": 0,
+  "max_repair_rounds": 3,
+  "stop_reason": null,
+  "active_challenges_open": 0,
+  "active_challenges_blocking": 0,
+  "stop_the_line_active": false,
+  "updated_at": ""
+}

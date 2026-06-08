@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import os
 import threading
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -167,6 +168,43 @@ def _is_retryable_loop_runtime_error(exc: RuntimeError) -> bool:
     return any(kw in msg for kw in ("event loop", "queue", "closed", "bound"))
 
 
+def _text_from_message_content(raw_content: Any) -> str:
+    if isinstance(raw_content, str):
+        return raw_content
+    if isinstance(raw_content, list):
+        parts = []
+        pending_str_parts = []
+        for block in raw_content:
+            if isinstance(block, str):
+                pending_str_parts.append(block)
+            elif isinstance(block, dict):
+                if pending_str_parts:
+                    parts.append("".join(pending_str_parts))
+                    pending_str_parts.clear()
+                text_val = block.get("text")
+                if isinstance(text_val, str):
+                    parts.append(text_val)
+        if pending_str_parts:
+            parts.append("".join(pending_str_parts))
+        return "\n".join(parts) if parts else "No text content in response"
+    return str(raw_content)
+
+
+def _extract_final_message_text(final_state: dict[str, Any]) -> str:
+    messages = final_state.get("messages", [])
+    last_ai_message = None
+    for msg in reversed(messages):
+        if isinstance(msg, AIMessage):
+            last_ai_message = msg
+            break
+    if last_ai_message is not None:
+        return _text_from_message_content(last_ai_message.content)
+    if messages:
+        last_message = messages[-1]
+        return _text_from_message_content(last_message.content if hasattr(last_message, "content") else str(last_message))
+    return "No response generated"
+
+
 class SubagentExecutor:
     """Executor for running subagents."""
 
@@ -246,6 +284,60 @@ class SubagentExecutor:
             state["thread_data"] = self.thread_data
 
         return state
+
+    def _execute_sync_stream(self, task: str, result_holder: SubagentResult | None = None) -> SubagentResult:
+        """Execute a no-tool subagent with synchronous streaming.
+
+        CER authoring subagents run without tools and have repeatedly exposed
+        provider/DNS failures in the thread-local async event-loop path. The
+        synchronous LangGraph stream uses the already-verified sync model client
+        path while still collecting final AI messages.
+        """
+
+        result = result_holder or SubagentResult(
+            task_id=str(uuid.uuid4())[:8],
+            trace_id=self.trace_id,
+            status=SubagentStatus.RUNNING,
+            started_at=datetime.now(),
+        )
+        if result.started_at is None:
+            result.started_at = datetime.now()
+        result.status = SubagentStatus.RUNNING
+
+        try:
+            agent = self._create_agent()
+            state = self._build_initial_state(task)
+            run_config: RunnableConfig = {"recursion_limit": self.config.max_turns}
+            context = {}
+            if self.thread_id:
+                run_config["configurable"] = {"thread_id": self.thread_id}
+                context["thread_id"] = self.thread_id
+
+            final_state = None
+            for chunk in agent.stream(state, config=run_config, context=context, stream_mode="values"):  # type: ignore[arg-type]
+                final_state = chunk
+                messages = chunk.get("messages", [])
+                if messages:
+                    last_message = messages[-1]
+                    if isinstance(last_message, AIMessage):
+                        message_dict = last_message.model_dump()
+                        message_id = message_dict.get("id")
+                        is_duplicate = any(msg.get("id") == message_id for msg in result.ai_messages) if message_id else message_dict in result.ai_messages
+                        if not is_duplicate:
+                            result.ai_messages.append(message_dict)
+
+            if final_state is None:
+                result.result = "No response generated"
+            else:
+                result.result = _extract_final_message_text(final_state)
+            result.status = SubagentStatus.COMPLETED
+            result.completed_at = datetime.now()
+        except Exception as e:
+            logger.exception(f"[trace={self.trace_id}] Subagent {self.config.name} sync execution failed")
+            result.status = SubagentStatus.FAILED
+            result.error = str(e)
+            result.completed_at = datetime.now()
+        return result
 
     async def _aexecute(self, task: str, result_holder: SubagentResult | None = None) -> SubagentResult:
         """Execute a task asynchronously.
@@ -409,6 +501,9 @@ class SubagentExecutor:
             SubagentResult with the execution result.
         """
         import gc
+
+        if not self.tools and os.getenv("DEERFLOW_SUBAGENT_ASYNC_STREAM", "").strip() != "1":
+            return self._execute_sync_stream(task, result_holder)
 
         loop = None
         for attempt in range(2):

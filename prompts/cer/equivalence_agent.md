@@ -22,6 +22,26 @@
 - predicate 拼接风险
 - implantable / class III 情形下 access basis 薄弱
 
+## 三维刚性分类规则 (Rigid 3-Dimension Rule — P0, RCA A06_南驰 2026-06-04)
+
+对每个候选等同器械，必须同时验证以下三维。**三维全匹配（✅✅✅）= 等同候选。仅场景匹配但结构/原理不匹配 = 替代疗法，不是等同器械。**
+
+| 维度 | 判定问题 | 如不匹配 → |
+|------|---------|-----------|
+| **结构 (Structure)** | 物理设计是否相同？（如：棘轮夹钳+针刺 vs 纱布+高岭土涂层） | 替代疗法 |
+| **作用原理 (Mechanism)** | 工作原理是否相同？（如：机械夹闭 vs 化学凝血激活） | 替代疗法 |
+| **适应症 (Indication)** | 预期用途和人群是否相同？ | 不同类别器械 |
+
+**等同候选判定：**
+- 等同候选 ≥ 1（三维全匹配）→ 可主张等同性。选择最接近者作为等同产品。
+- 等同候选 = 0 → 走非等同路径。依赖替代疗法文献 + 自身预临床数据。
+
+**否定确认检索 (Negative Confirmation Search — P0)：**
+在得出"等同候选 = 0"前，必须完成：PubMed（无适应症约束）、FDA 510(k)、历史器械、兽医/实验器械、NMPA/PMDA 检索。检索记录写入 output。
+
+**场景匹配 ≠ 类似器械 (Scenario-only match — P0)：**
+适应症匹配但结构或原理不匹配的器械 → 分类为"替代疗法"，不是"等同候选"。不得将它们列入 similar_device 列表。
+
 ## 三维评估要求
 每个 claimed equivalent device，必须分别判断：
 - Technical dimension
@@ -54,6 +74,39 @@
   "round_id": "",
   "input_refs": [],
   "summary_cn": "",
+  "three_dim_classification": {
+    "_description": "Rigid 3-Dimension Rule — all 3 must be ✅ for equivalence candidate (RCA A06_南驰 2026-06-04)",
+    "candidates": [
+      {
+        "device_name": "",
+        "manufacturer": "",
+        "regulatory_status": "",
+        "structure_match": "✅ or ❌",
+        "structure_detail": "",
+        "mechanism_match": "✅ or ❌",
+        "mechanism_detail": "",
+        "indication_match": "✅ or ❌",
+        "indication_detail": "",
+        "classification": "equivalence_candidate | alternative_therapy | different_device_class",
+        "rejection_reason": ""
+      }
+    ],
+    "equivalence_candidate_count": 0,
+    "alternative_therapy_count": 0,
+    "considered_but_rejected": ["Device names with rejection reasons"]
+  },
+  "negative_confirmation_search": {
+    "_description": "Mandatory before concluding equivalence_candidate_count = 0 (RCA A06_南驰 2026-06-04)",
+    "completed": false,
+    "databases_searched": [],
+    "search_terms_used": [],
+    "historical_devices_checked": false,
+    "veterinary_experimental_devices_checked": false,
+    "summary": ""
+  },
+  "equivalence_path_decision": "equivalence_claimed | non_equivalence_literature_based",
+  "equivalent_device": "",
+  "non_equivalence_declaration": "",
   "equivalence_dimension_assessment": {
     "technical": [
       {
@@ -114,3 +167,5 @@
 - equivalence 成立不只取决于科学相似性，还取决于对 supporting data 的可及性是否合法且充分
 - 必须验证每个 predicate device 的 access basis
 - 不能跨 predicate 拼凑成虚拟单一等效对象
+- **P0 (RCA A06_南驰)**: 三维刚性分类必须在评审第一步完成 — 场景匹配不等同于等同候选
+- **P0 (RCA A06_南驰)**: 否定确认检索必须在得出"等同候选 = 0"前完成 — 仅一个等同候选也可主张等同性

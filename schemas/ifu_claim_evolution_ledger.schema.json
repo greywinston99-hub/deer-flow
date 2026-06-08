@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.ai/schemas/ifu_claim_evolution_ledger.schema.json",
+  "title": "IFU Claim Evolution Ledger",
+  "description": "Tracks each IFU claim through 5 stages: raw IFU text → extracted → classified → evidence-supported → final CER claim. BIGDP2026.6 Phase 2.",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "ifu_source", "claims"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "default": "1.0.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generated_by": {
+      "type": "string",
+      "default": "_node_build_ifu_evolution_ledger"
+    },
+    "ifu_source": {
+      "type": "object",
+      "description": "Source IFU document metadata.",
+      "properties": {
+        "filename": { "type": "string" },
+        "version": { "type": "string" },
+        "date": { "type": "string" },
+        "manufacturer": { "type": "string" },
+        "language": { "type": "string" }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "description": "Per-claim 5-stage evolution records.",
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "evolution_stages"],
+        "properties": {
+          "claim_id": { "type": "string" },
+          "evolution_stages": {
+            "type": "object",
+            "required": ["stage_1_ifu_text", "stage_2_extracted_claim", "stage_3_classified_claim", "stage_4_evidence_supported_claim", "stage_5_final_cer_claim"],
+            "properties": {
+              "stage_1_ifu_text": {
+                "type": "object",
+                "description": "Raw text from IFU document.",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "ifu_page": { "type": "string" },
+                  "ifu_section": { "type": "string" },
+                  "ifu_line": { "type": "string" },
+                  "extraction_timestamp": { "type": "string", "format": "date-time" },
+                  "extraction_source": { "type": "string", "description": "Agent or node that extracted this text." }
+                }
+              },
+              "stage_2_extracted_claim": {
+                "type": "object",
+                "description": "Claim extracted from IFU text.",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "transformation_reason": { "type": "string", "description": "Why was the IFU text transformed into this claim form?" },
+                  "extraction_timestamp": { "type": "string", "format": "date-time" },
+                  "extraction_source": { "type": "string" }
+                }
+              },
+              "stage_3_classified_claim": {
+                "type": "object",
+                "description": "Claim classified by regulatory type.",
+                "required": ["text", "classification"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "classification": { "type": "string", "enum": ["clinical_performance", "clinical_safety", "usability", "warning", "non_clinical"] },
+                  "transformation_reason": { "type": "string" },
+                  "classification_timestamp": { "type": "string", "format": "date-time" },
+                  "classification_source": { "type": "string" }
+                }
+              },
+              "stage_4_evidence_supported_claim": {
+                "type": "object",
+                "description": "Claim after evidence support assessment.",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "evidence_support_type": { "type": "string", "enum": ["direct", "indirect", "equivalent", "manufacturer", "PMS", "insufficient"] },
+                  "linked_evidence_ids": { "type": "array", "items": { "type": "string" } },
+                  "transformation_reason": { "type": "string" },
+                  "assessment_timestamp": { "type": "string", "format": "date-time" },
+                  "assessment_source": { "type": "string" }
+                }
+              },
+              "stage_5_final_cer_claim": {
+                "type": "object",
+                "description": "Final CER claim wording for Writer.",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "conclusion_strength": { "type": "string", "enum": ["strong", "moderate", "limited", "not_supported"] },
+                  "transformation_reason": { "type": "string" },
+                  "finalization_timestamp": { "type": "string", "format": "date-time" },
+                  "finalization_source": { "type": "string" }
+                }
+              }
+            }
+          },
+          "evolution_flags": {
+            "type": "object",
+            "description": "Flags for claim evolution concerns.",
+            "properties": {
+              "claim_strengthened": { "type": "boolean", "description": "Final claim is stronger than IFU text." },
+              "claim_narrowed": { "type": "boolean", "description": "Final claim scope was narrowed vs IFU." },
+              "safety_qualifier_added": { "type": "boolean", "description": "Safety qualifier was added by CER process." },
+              "marketing_language_detected": { "type": "boolean", "description": "IFU text contained marketing/promotional language." },
+              "marketing_language_downgraded": { "type": "boolean", "description": "Marketing language was downgraded/qualified in CER." },
+              "requires_human_review": { "type": "boolean", "description": "Flagged for human review before Writer." }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "total_claims": { "type": "integer" },
+        "claims_strengthened": { "type": "integer" },
+        "claims_narrowed": { "type": "integer" },
+        "claims_with_safety_qualifier": { "type": "integer" },
+        "marketing_language_detected": { "type": "integer" },
+        "claims_requiring_human_review": { "type": "integer" }
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "overall_status": "PASS",
+  "quarantine": false,
+  "gates": {
+    "gate_1_domain_consistency": {
+      "gate": "Gate 1 — Device Domain Consistency",
+      "gate_id": "WRITER_GATE_01",
+      "status": "SKIPPED",
+      "reason": "No device_profile available; cannot resolve domain.",
+      "findings": [],
+      "warnings": [],
+      "quarantine": false
+    },
+    "gate_2_ifu_consumption": {
+      "gate": "Gate 2 — IFU Fact Consumption",
+      "gate_id": "WRITER_GATE_02",
+      "status": "SKIPPED",
+      "reason": "No device_profile available.",
+      "findings": [],
+      "quarantine": false
+    },
+    "gate_3_evidence_conclusion": {
+      "gate": "Gate 3 — Evidence-Conclusion Consistency",
+      "gate_id": "WRITER_GATE_03",
+      "status": "SKIPPED",
+      "reason": "No claim_support_matrix available.",
+      "findings": [],
+      "quarantine": false
+    },
+    "gate_4_body_cleanliness": {
+      "gate": "Gate 4 — Submission Body Cleanliness",
+      "gate_id": "WRITER_GATE_04",
+      "status": "PASS",
+      "banned_strings_scanned": 34,
+      "finding_count": 0,
+      "findings": [],
+      "quarantine": false,
+      "message": "PASS: No banned internal strings in CER body."
+    },
+    "gate_5_render_boundary": {
+      "gate": "Gate 5 — Render Boundary",
+      "gate_id": "WRITER_GATE_05",
+      "status": "PASS",
+      "patterns_scanned": 22,
+      "finding_count": 0,
+      "findings": [],
+      "quarantine": false,
+      "message": "PASS: No internal metadata in CER body."
+    },
+    "gate_6_claim_br_consistency": {
+      "gate": "Gate 6 — Claim/BR Text Consistency",
+      "gate_id": "WRITER_GATE_06",
+      "status": "PASS",
+      "finding_count": 0,
+      "findings": [],
+      "quarantine": false,
+      "message": "PASS: CER body consistent with claim/BR ledger."
+    }
+  },
+  "context_contamination_trace": {},
+  "message": "All writer gates PASS; report may proceed to release candidate."
+}

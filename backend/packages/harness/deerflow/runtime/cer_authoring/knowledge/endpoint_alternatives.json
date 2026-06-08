@@ -1,59 +1,467 @@
 {
   "orthopedic_knee": [
-    {"primary": "knee_angle_difference", "alternatives": ["KSS_score", "WOMAC_score", "KOOS_score"], "equivalence": "clinical", "confidence": 0.85},
-    {"primary": "implant_survival_rate", "alternatives": ["revision_free_survival", "kaplan_meier_survival"], "equivalence": "statistical", "confidence": 0.90}
+    {
+      "primary": "knee_angle_difference",
+      "alternatives": [
+        "KSS_score",
+        "WOMAC_score",
+        "KOOS_score"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "implant_survival_rate",
+      "alternatives": [
+        "revision_free_survival",
+        "kaplan_meier_survival"
+      ],
+      "equivalence": "statistical",
+      "confidence": 0.9,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69,
+        "RM-001": 59
+      }
+    }
   ],
   "cardiac_ablation": [
-    {"primary": "pulmonary_artery_pressure_reduction", "alternatives": ["6MWD", "PAH_hemodynamics", "PVR_reduction"], "equivalence": "clinical", "confidence": 0.80},
-    {"primary": "arrhythmia_free_survival", "alternatives": ["AF_recurrence_free", "repeat_ablation_rate"], "equivalence": "clinical", "confidence": 0.85}
+    {
+      "primary": "pulmonary_artery_pressure_reduction",
+      "alternatives": [
+        "6MWD",
+        "PAH_hemodynamics",
+        "PVR_reduction"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.8,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "arrhythmia_free_survival",
+      "alternatives": [
+        "AF_recurrence_free",
+        "repeat_ablation_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    }
   ],
   "urology_endoscopy": [
-    {"primary": "stone_free_rate", "alternatives": ["residual_fragment_rate", "retreatment_rate", "auxiliary_procedure_rate"], "equivalence": "clinical", "confidence": 0.90},
-    {"primary": "ureteral_access_success", "alternatives": ["sheath_placement_success", "first_pass_success"], "equivalence": "procedural", "confidence": 0.85}
+    {
+      "primary": "stone_free_rate",
+      "alternatives": [
+        "residual_fragment_rate",
+        "retreatment_rate",
+        "auxiliary_procedure_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.9,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "ureteral_access_success",
+      "alternatives": [
+        "sheath_placement_success",
+        "first_pass_success"
+      ],
+      "equivalence": "procedural",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73
+      }
+    }
   ],
   "cardiovascular_intervention": [
-    {"primary": "MACE_rate", "alternatives": ["MACCE_rate", "TLF_rate", "TVF_rate"], "equivalence": "clinical", "confidence": 0.90},
-    {"primary": "target_lesion_revascularization", "alternatives": ["target_vessel_revascularization", "clinically_driven_TLR"], "equivalence": "clinical", "confidence": 0.85}
+    {
+      "primary": "MACE_rate",
+      "alternatives": [
+        "MACCE_rate",
+        "TLF_rate",
+        "TVF_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.9,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "target_lesion_revascularization",
+      "alternatives": [
+        "target_vessel_revascularization",
+        "clinically_driven_TLR"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    }
   ],
   "blood_purification": [
-    {"primary": "urea_reduction_ratio", "alternatives": ["Kt_V", "spKt_V", "eKt_V"], "equivalence": "mathematical", "confidence": 0.95},
-    {"primary": "beta2_microglobulin_removal", "alternatives": ["middle_molecule_clearance", "large_solute_removal"], "equivalence": "clinical", "confidence": 0.80}
+    {
+      "primary": "urea_reduction_ratio",
+      "alternatives": [
+        "Kt_V",
+        "spKt_V",
+        "eKt_V"
+      ],
+      "equivalence": "mathematical",
+      "confidence": 0.95,
+      "v5_linked_defects": {
+        "EQ-001": 73
+      }
+    },
+    {
+      "primary": "beta2_microglobulin_removal",
+      "alternatives": [
+        "middle_molecule_clearance",
+        "large_solute_removal"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.8,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    }
   ],
   "cardiovascular_occluder": [
-    {"primary": "closure_success_rate", "alternatives": ["device_success", "procedural_success", "immediate_closure_rate"], "equivalence": "clinical", "confidence": 0.90},
-    {"primary": "residual_shunt_rate", "alternatives": ["follow_up_shunt_rate", "TTE_confirmed_closure"], "equivalence": "clinical", "confidence": 0.88},
-    {"primary": "device_thrombosis_rate", "alternatives": ["thromboembolic_event_rate", "TIA_stroke_rate"], "equivalence": "clinical", "confidence": 0.82}
+    {
+      "primary": "closure_success_rate",
+      "alternatives": [
+        "device_success",
+        "procedural_success",
+        "immediate_closure_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.9,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "residual_shunt_rate",
+      "alternatives": [
+        "follow_up_shunt_rate",
+        "TTE_confirmed_closure"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.88,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "device_thrombosis_rate",
+      "alternatives": [
+        "thromboembolic_event_rate",
+        "TIA_stroke_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.82,
+      "v5_linked_defects": {
+        "DO-001": 153,
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    }
   ],
   "ventricular_assist": [
-    {"primary": "survival_to_transplant", "alternatives": ["survival_to_30_days", "survival_to_discharge", "bridge_to_decision_success"], "equivalence": "clinical", "confidence": 0.85},
-    {"primary": "hemolysis_rate", "alternatives": ["LDH_level", "plasma_free_hemoglobin", "pump_thrombosis_rate"], "equivalence": "clinical", "confidence": 0.88},
-    {"primary": "neurological_event_rate", "alternatives": ["stroke_rate", "TIA_rate", "neurological_dysfunction_score"], "equivalence": "clinical", "confidence": 0.83}
+    {
+      "primary": "survival_to_transplant",
+      "alternatives": [
+        "survival_to_30_days",
+        "survival_to_discharge",
+        "bridge_to_decision_success"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69,
+        "RM-001": 59
+      }
+    },
+    {
+      "primary": "hemolysis_rate",
+      "alternatives": [
+        "LDH_level",
+        "plasma_free_hemoglobin",
+        "pump_thrombosis_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.88,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "neurological_event_rate",
+      "alternatives": [
+        "stroke_rate",
+        "TIA_rate",
+        "neurological_dysfunction_score"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.83,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    }
   ],
   "microwave_ablation": [
-    {"primary": "complete_ablation_rate", "alternatives": ["technique_efficacy_rate", "tumor_necrosis_rate", "ablation_zone_adequacy"], "equivalence": "clinical", "confidence": 0.90},
-    {"primary": "local_tumor_progression", "alternatives": ["local_recurrence_rate", "ablation_site_recurrence"], "equivalence": "clinical", "confidence": 0.88},
-    {"primary": "complication_rate", "alternatives": ["major_complication_rate", "Clavien_Dindo_grade", "adverse_event_rate"], "equivalence": "clinical", "confidence": 0.85}
+    {
+      "primary": "complete_ablation_rate",
+      "alternatives": [
+        "technique_efficacy_rate",
+        "tumor_necrosis_rate",
+        "ablation_zone_adequacy"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.9,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "local_tumor_progression",
+      "alternatives": [
+        "local_recurrence_rate",
+        "ablation_site_recurrence"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.88,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "complication_rate",
+      "alternatives": [
+        "major_complication_rate",
+        "Clavien_Dindo_grade",
+        "adverse_event_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    }
   ],
   "orthopedic_robotic": [
-    {"primary": "component_alignment_accuracy", "alternatives": ["mechanical_axis_deviation", "coronal_alignment_error", "outlier_rate"], "equivalence": "clinical", "confidence": 0.85},
-    {"primary": "revision_rate", "alternatives": ["implant_survival", "all_cause_revision", "aseptic_loosening_rate"], "equivalence": "clinical", "confidence": 0.90},
-    {"primary": "functional_outcome", "alternatives": ["KSS_score", "WOMAC_score", "ROM_improvement", "forgotten_joint_score"], "equivalence": "clinical", "confidence": 0.83}
+    {
+      "primary": "component_alignment_accuracy",
+      "alternatives": [
+        "mechanical_axis_deviation",
+        "coronal_alignment_error",
+        "outlier_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "revision_rate",
+      "alternatives": [
+        "implant_survival",
+        "all_cause_revision",
+        "aseptic_loosening_rate"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.9,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "functional_outcome",
+      "alternatives": [
+        "KSS_score",
+        "WOMAC_score",
+        "ROM_improvement",
+        "forgotten_joint_score"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.83,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    }
   ],
   "diagnostic_imaging": [
-    {"primary": "diagnostic_accuracy", "alternatives": ["AUC", "sensitivity", "specificity", "PPV", "NPV"], "equivalence": "statistical", "confidence": 0.92},
-    {"primary": "lesion_detection_rate", "alternatives": ["per_patient_sensitivity", "per_lesion_sensitivity", "detection_yield"], "equivalence": "clinical", "confidence": 0.85},
-    {"primary": "workflow_time", "alternatives": ["door_to_report_time", "examination_duration", "throughput_rate"], "equivalence": "procedural", "confidence": 0.82}
+    {
+      "primary": "diagnostic_accuracy",
+      "alternatives": [
+        "AUC",
+        "sensitivity",
+        "specificity",
+        "PPV",
+        "NPV"
+      ],
+      "equivalence": "statistical",
+      "confidence": 0.92,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "lesion_detection_rate",
+      "alternatives": [
+        "per_patient_sensitivity",
+        "per_lesion_sensitivity",
+        "detection_yield"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "workflow_time",
+      "alternatives": [
+        "door_to_report_time",
+        "examination_duration",
+        "throughput_rate"
+      ],
+      "equivalence": "procedural",
+      "confidence": 0.82,
+      "v5_linked_defects": {
+        "EQ-001": 73
+      }
+    }
   ],
   "emergency_defibrillation": [
-    {"primary": "shock_success_rate", "alternatives": ["ROSC_rate", "defibrillation_efficacy", "first_shock_success"], "equivalence": "clinical", "confidence": 0.90},
-    {"primary": "survival_to_discharge", "alternatives": ["survival_to_30_days", "CPC_score", "neurological_outcome"], "equivalence": "clinical", "confidence": 0.88},
-    {"primary": "time_to_shock", "alternatives": ["response_time", "AED_application_interval", "collapse_to_shock_time"], "equivalence": "procedural", "confidence": 0.85}
+    {
+      "primary": "shock_success_rate",
+      "alternatives": [
+        "ROSC_rate",
+        "defibrillation_efficacy",
+        "first_shock_success"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.9,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "survival_to_discharge",
+      "alternatives": [
+        "survival_to_30_days",
+        "CPC_score",
+        "neurological_outcome"
+      ],
+      "equivalence": "clinical",
+      "confidence": 0.88,
+      "v5_linked_defects": {
+        "EQ-001": 73,
+        "CL-001": 69
+      }
+    },
+    {
+      "primary": "time_to_shock",
+      "alternatives": [
+        "response_time",
+        "AED_application_interval",
+        "collapse_to_shock_time"
+      ],
+      "equivalence": "procedural",
+      "confidence": 0.85,
+      "v5_linked_defects": {
+        "EQ-001": 73
+      }
+    }
   ],
   "_meta": {
     "total_domains": 11,
     "total_endpoint_groups": 27,
-    "equivalence_types": ["clinical", "statistical", "mathematical", "procedural"],
+    "equivalence_types": [
+      "clinical",
+      "statistical",
+      "mathematical",
+      "procedural"
+    ],
     "confidence_interpretation": ">0.90 = strong equivalence, 0.80-0.90 = acceptable with justification, <0.80 = requires additional validation",
-    "source": "5 engineer-reviewed CER reports + 11 real project NB review records, aligned with G42 ENDPOINT_REPLACEABLE pattern"
+    "source": "5 engineer-reviewed CER reports + 11 real project NB review records, aligned with G42 ENDPOINT_REPLACEABLE pattern",
+    "v5_linked_defects": {
+      "EQ-001": 73,
+      "CL-001": 69
+    }
+  },
+  "v5_enrichment": {
+    "applied_at": "2026-05-30T12:50:31.934689",
+    "total_v5_findings_available": 63,
+    "defect_types_available": 27,
+    "v5_linked_defects": {
+      "PM-001": 312,
+      "DO-001": 153,
+      "EV-001": 126
+    },
+    "deepened": true,
+    "cross_refs_added": 2,
+    "deepened_r2": true,
+    "cross_refs_added_r2": 29,
+    "total_v5_refs": 31,
+    "all_defect_stats": {
+      "PM-001": 312,
+      "LB-001": 162,
+      "DO-001": 153,
+      "BR-001": 148,
+      "EV-001": 126,
+      "MF-001": 108,
+      "TR-001": 102,
+      "EQ-001": 73,
+      "GS-001": 72,
+      "CL-001": 69,
+      "RM-001": 59,
+      "CV-001": 54,
+      "DT-001": 53,
+      "SW-001": 49,
+      "AU-001": 10,
+      "CM-001": 9,
+      "IV-001": 6,
+      "SC-001": 3,
+      "DQ-001": 2
+    }
+  },
+  "v5_linked_defects": {
+    "PM-001": 312,
+    "DO-001": 153,
+    "EV-001": 126
   }
 }

@@ -1,0 +1,142 @@
+{
+  "schema": "cer_section_defense_rules",
+  "version": "v1.0",
+  "generated_at": "2026-05-29T22:48:53.870888",
+  "sections": {
+    "§1 Summary": {
+      "defense_rules": [
+        "Conclusion must be traceable to §4-5 analysis",
+        "No new claims not in body",
+        "Benefits and risks both stated",
+        "No 'bald statements' without evidence reference"
+      ],
+      "common_defects": [
+        "DO-001",
+        "DT-001",
+        "BR-001"
+      ],
+      "required_tables": [
+        "Summary of clinical evidence",
+        "Benefit-risk conclusion summary"
+      ]
+    },
+    "§2 Device Description": {
+      "defense_rules": [
+        "Device identity anchor: name, model/variant list, EMDN, MDR Class+Rule",
+        "EVERY product variant: design rationale, safety/performance impact",
+        "Intended purpose specificity: patient population, clinical setting, intended users",
+        "Novel features: explicit description + evidence support",
+        "Device name IDENTICAL across all sections"
+      ],
+      "common_defects": [
+        "DO-001",
+        "DT-001"
+      ],
+      "required_tables": [
+        "Model/variant comparison table",
+        "Device specifications table"
+      ]
+    },
+    "§3 SOTA": {
+      "defense_rules": [
+        "Answer 3 core questions: standard of care? benchmarks? gap?",
+        "PICO-based search strategy documented",
+        "≥2 databases searched",
+        "PRISMA flow diagram",
+        "Safety/Performance Endpoint table with benchmark values + sources"
+      ],
+      "common_defects": [
+        "EV-001",
+        "TR-001"
+      ],
+      "required_tables": [
+        "PICO search strategy",
+        "SOTA benchmark table",
+        "PRISMA diagram"
+      ]
+    },
+    "§4 Clinical Evidence": {
+      "defense_rules": [
+        "Equivalence: 3-pillar comparison complete",
+        "Literature: reproducible search",
+        "Clinical investigation: study design, sample size, endpoints",
+        "Evidence appraisal: quality scoring, relevance assessment",
+        "Every claim linked to specific evidence source"
+      ],
+      "common_defects": [
+        "EV-001",
+        "EQ-001",
+        "CL-001",
+        "CM-001"
+      ],
+      "required_tables": [
+        "Evidence source index",
+        "Literature flow diagram",
+        "Equivalence comparison matrix"
+      ]
+    },
+    "§5 Benefit-Risk": {
+      "defense_rules": [
+        "Benefits quantified",
+        "Risks mapped to RMF hazard IDs",
+        "Residual risk acceptability justified",
+        "Alternative therapy comparison"
+      ],
+      "common_defects": [
+        "BR-001",
+        "RM-001"
+      ],
+      "required_tables": [
+        "Benefit-risk ledger",
+        "Risk trace matrix"
+      ]
+    },
+    "§6 GSPR": {
+      "defense_rules": [
+        "Every N/A justified with device-specific technical rationale",
+        "Risk management cross-reference",
+        "MDR Annex I numbering alignment",
+        "Standards references up-to-date"
+      ],
+      "common_defects": [
+        "GS-001",
+        "SW-001"
+      ],
+      "required_tables": [
+        "GSPR checklist",
+        "Standards compliance matrix"
+      ]
+    },
+    "§7 PMS/PMCF": {
+      "defense_rules": [
+        "PMCF plan: next evaluation date, planned studies, data sources",
+        "Trigger conditions for re-evaluation",
+        "PMCF-CER feedback loop",
+        "PMS data: complaint trends, vigilance summary, CAPA"
+      ],
+      "common_defects": [
+        "PM-001"
+      ],
+      "required_tables": [
+        "PMCF plan summary",
+        "PMS data summary"
+      ]
+    },
+    "IFU/Labeling": {
+      "defense_rules": [
+        "IFU: intended purpose, contraindications, warnings, precautions",
+        "Symbols per ISO 15223-1",
+        "Language per MDR Art 10(11)",
+        "UDI per MDR Art 27",
+        "Clinical study references in product information"
+      ],
+      "common_defects": [
+        "LB-001"
+      ],
+      "required_tables": [
+        "IFU content checklist",
+        "Labeling compliance matrix"
+      ]
+    }
+  }
+}

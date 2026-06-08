@@ -1,0 +1,51 @@
+{
+  "scenario_id": "S-02",
+  "scenario_name": "Claim Without Direct Evidence",
+  "rule_category": "Conclusion Strength Logic",
+  "rules_tested": ["CON-02", "CON-04", "EVS-05"],
+  "description": "Claim has only indirect literature evidence (no direct study on subject device). Conclusion strength must be limited or moderate, NOT strong.",
+
+  "input": {
+    "ifu_text": "Device reduces procedure time compared to standard care.",
+    "subject_device": {"device_name": "NewClosure V2", "device_class": "IIb"},
+    "available_evidence": [
+      {
+        "evidence_id": "E-001", "pmid": "11111111",
+        "study_design": "Meta-analysis", "sample_size": 500,
+        "device_studied": "Competitor Closure Device X",
+        "support_type": "indirect",
+        "findings": "Pooled analysis shows closure devices reduce procedure time by 15-25% vs manual compression."
+      },
+      {
+        "evidence_id": "E-002", "pmid": "22222222",
+        "study_design": "Retrospective cohort", "sample_size": 80,
+        "device_studied": "Competitor Closure Device Y",
+        "support_type": "indirect",
+        "findings": "Mean procedure time 12.4 min vs 18.2 min for manual."
+      }
+    ]
+  },
+
+  "expected_expert_reasoning": {
+    "conclusion_strength": "moderate",
+    "reason": "Two indirect studies support the claim; no direct study on subject device. Indirect evidence with consistent direction → moderate at best.",
+    "must_not_be": "strong",
+    "evidence_support_type": "indirect"
+  },
+
+  "expected_ledger": {
+    "cer_reasoning_ledger": {
+      "claim_classification": "clinical_performance",
+      "evidence_support_type": "indirect",
+      "conclusion_strength": "moderate"
+    }
+  },
+
+  "expected_gate_behavior": {
+    "G43": { "status": "PASS" },
+    "G46": { "claim_evidence": "PASS" }
+  },
+
+  "expected_writer_permission": "allowed_with_limitations",
+  "writer_must_include": ["indirect evidence limitation", "no direct study on subject device"]
+}

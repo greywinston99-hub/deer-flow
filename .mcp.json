@@ -1,0 +1,61 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/winstonwei/Documents/Playground/deer-flow"
+      ],
+      "env": {}
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--headless"
+      ],
+      "env": {}
+    },
+    "web-fetch": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "env": {}
+    },
+    "sqlite": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-sqlite",
+        "--db-path",
+        "/Users/winstonwei/Documents/Playground/deer-flow/backend/.deer-flow/checkpoints.db"
+      ],
+      "env": {},
+      "description": "Direct query of agent invocation traces, schema validation results, checkpoint states, and execution metadata from DeerFlow LangGraph checkpoints.db. Use for diagnosing agent failures, tracking invocation counts, and measuring review pipeline throughput without parsing JSONL files."
+    },
+    "markitdown": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-markitdown"
+      ],
+      "env": {},
+      "description": "Convert NB audit letters (.docx/.pdf) and CER source documents to structured Markdown for agent ingestion and crosswalk matching."
+    },
+    "pubmed": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-pubmed"
+      ],
+      "env": {},
+      "description": "Search PubMed for clinical literature to validate CER SOTA search strategies. Verify literature search coverage, publication recency, and evidence hierarchy completeness against the biomedical literature database."
+    }
+  }
+}

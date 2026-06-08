@@ -92,6 +92,20 @@ def test_self_inspection_empty_state():
     print("Empty state report valid: all defaults correct")
 
 
+def test_self_inspection_llm_available_uses_deepseek_or_kimi_api_not_anthropic(monkeypatch):
+    """Kimi API/DeepSeek credentials are sufficient; Anthropic official key is not required."""
+    from deerflow.runtime.cer_authoring.pipeline import build_self_inspection_report
+
+    for key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("KIMI_API_KEY", "test-kimi-api")
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+
+    report = build_self_inspection_report({})
+
+    assert report["environment_assessment"]["llm_api_available"] is True
+
+
 def test_self_inspection_rich_state():
     """Rich state with mock data produces enhanced report."""
     from deerflow.runtime.cer_authoring.pipeline import build_self_inspection_report

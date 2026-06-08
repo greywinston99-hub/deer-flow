@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER PMS PMCF Schema",
+  "description": "Schema for PMS/PMCF assessment",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_pms_pmcf"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "pms_pmcf_report"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_clinical_evidence_panel"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_clinical_evidence_panel"
+    },
+    "sub_assessment_id": {
+      "type": "string",
+      "const": "pms_pmcf_assessment"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "pmcf_plan_ref": {
+          "type": "string"
+        },
+        "pmcf_report_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDR_Annex_XIV_Part_A_6",
+        "MDR_Article_84",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "requires_human_review": {
+      "type": "boolean",
+      "const": true
+    },
+    "human_gate_ref": {
+      "type": "string",
+      "const": "HG-05"
+    },
+    "human_gate_topic": {
+      "type": "string",
+      "const": "PMS/PMCF necessity and adequacy"
+    },
+    "reviewer_question_id": {
+      "type": "string",
+      "const": "RQ-PMS-001"
+    },
+    "dimension": {
+      "type": "string",
+      "const": "dim_7"
+    },
+    "pmcf_adequacy": {
+      "type": "object",
+      "properties": {
+        "pmcf_plan_exists": {
+          "type": "boolean"
+        },
+        "pmcf_activities_adequate": {
+          "type": "boolean"
+        },
+        "update_triggers_defined": {
+          "type": "boolean"
+        },
+        "surveillance_continuity_planned": {
+          "type": "boolean"
+        }
+      }
+    },
+    "no_final_decision_made": {
+      "type": "boolean",
+      "const": true
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

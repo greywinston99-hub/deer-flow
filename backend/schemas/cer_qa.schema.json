@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CER QA Gate Schema",
+  "description": "Schema for QA synthesis gate",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_type",
+    "project_id",
+    "cer_run_id",
+    "workflow_id",
+    "step_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "cer_qa"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "QA_synthesis"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "cer_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string",
+      "const": "cer_review_workflow_v1"
+    },
+    "step_id": {
+      "type": "string",
+      "const": "cer_qa_gate"
+    },
+    "produced_by_step": {
+      "type": "string",
+      "const": "cer_qa_gate"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "scaffold_stub",
+        "draft",
+        "validated",
+        "real_analysis"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "source_traceability": {
+      "type": "object",
+      "properties": {
+        "preceding_artifacts_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "l1_compliance_report_ref": {
+          "type": "string"
+        },
+        "stage_1_evaluation_ref": {
+          "type": "string"
+        },
+        "cep_route_decision_ref": {
+          "type": "string"
+        },
+        "clinical_evidence_panel_summary_ref": {
+          "type": "string"
+        },
+        "ifu_sscp_consistency_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "regulatory_anchor_id": {
+      "type": "string",
+      "enum": [
+        "MDR_Article_83",
+        null
+      ]
+    },
+    "human_gate_required": {
+      "type": "boolean",
+      "const": false
+    },
+    "qa_synthesis": {
+      "type": "object",
+      "properties": {
+        "all_preceding_steps_complete": {
+          "type": "boolean"
+        },
+        "findings_aggregated": {
+          "type": "boolean"
+        },
+        "ready_for_human_gate": {
+          "type": "boolean"
+        }
+      }
+    },
+    "note": {
+      "type": "string"
+    },
+    "schema_gate_status": {
+      "type": "string",
+      "enum": [
+        "scaffold_complete",
+        "validated",
+        "real_analysis",
+        "schema_validated"
+      ]
+    }
+  }
+}

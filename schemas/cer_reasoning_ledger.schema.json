@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.ai/schemas/cer_reasoning_ledger.schema.json",
+  "title": "CER Reasoning Ledger",
+  "description": "Expert reasoning artifact encoding claim classification, evidence support type, endpoint rationale, gap disposition, and conclusion strength. BIGDP2026.6 Phase 2.",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "product_identity_reasoning", "claims"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version for forward compatibility.",
+      "default": "1.0.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of ledger generation."
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Node or agent that generated this ledger.",
+      "default": "_node_build_reasoning_ledger"
+    },
+    "product_identity_reasoning": {
+      "type": "object",
+      "description": "Reasoning about the subject device identity.",
+      "required": ["device_name", "device_class", "intended_use_summary"],
+      "properties": {
+        "device_name": { "type": "string" },
+        "device_class": { "type": "string", "enum": ["I", "IIa", "IIb", "III"] },
+        "intended_use_summary": { "type": "string" },
+        "mechanism_of_action": { "type": "string" },
+        "target_population": { "type": "string" },
+        "anatomical_site": { "type": "string" },
+        "equivalence_claimed": { "type": "boolean" },
+        "equivalent_device_name": { "type": "string" }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "description": "Per-claim expert reasoning records.",
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "claim_classification", "claim_criticality", "evidence_support_type", "conclusion_strength"],
+        "properties": {
+          "claim_id": { "type": "string" },
+          "claim_text": { "type": "string" },
+          "claim_classification": {
+            "type": "string",
+            "enum": ["clinical_performance", "clinical_safety", "usability", "warning", "non_clinical"],
+            "description": "Regulatory claim type classification."
+          },
+          "claim_criticality": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "How critical this claim is to the CER conclusions."
+          },
+          "evidence_support_type": {
+            "type": "string",
+            "enum": ["direct", "indirect", "equivalent", "manufacturer", "PMS", "insufficient"],
+            "description": "Type of evidence supporting this claim."
+          },
+          "endpoint_rationale": {
+            "type": "string",
+            "description": "Why these endpoints were selected for this claim."
+          },
+          "linked_endpoints": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Endpoint names linked to this claim."
+          },
+          "benchmark_rationale": {
+            "type": "string",
+            "description": "Why the SOTA benchmark is appropriate for this claim."
+          },
+          "linked_benchmark_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "gap_disposition": {
+            "type": "string",
+            "enum": ["no_gap", "PMCF", "labeling", "risk_control", "cannot_support"],
+            "description": "How identified evidence gaps are disposed."
+          },
+          "gap_rationale": { "type": "string" },
+          "conclusion_strength": {
+            "type": "string",
+            "enum": ["strong", "moderate", "limited", "not_supported"],
+            "description": "Strength of conclusion that can be drawn for this claim."
+          },
+          "linked_evidence_ids": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Evidence IDs supporting this claim."
+          },
+          "source_artifacts": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Upstream artifacts that informed this reasoning (e.g., claim_evidence_matrix, device_profile)."
+          }
+        }
+      }
+    },
+    "overall_assessment": {
+      "type": "object",
+      "description": "Holistic assessment across all claims.",
+      "properties": {
+        "total_claims": { "type": "integer" },
+        "strong_conclusions": { "type": "integer" },
+        "moderate_conclusions": { "type": "integer" },
+        "limited_conclusions": { "type": "integer" },
+        "not_supported_conclusions": { "type": "integer" },
+        "claims_with_gaps": { "type": "integer" },
+        "pmcf_recommended": { "type": "boolean" },
+        "overall_readiness": {
+          "type": "string",
+          "enum": ["ready_for_writer", "needs_evidence_enhancement", "needs_human_decision", "not_ready"],
+          "description": "Overall readiness assessment for Writer release."
+        }
+      }
+    }
+  }
+}

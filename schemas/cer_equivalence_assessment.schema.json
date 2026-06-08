@@ -2,12 +2,76 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://deerflow.local/schemas/cer_equivalence_assessment.schema.json",
   "title": "CER Equivalence Assessment",
-  "description": "Structured equivalence assessment for CER review - technical, biological, and clinical dimensions.",
+  "description": "Structured equivalence assessment for CER review — technical, biological, and clinical dimensions. v2 (2026-06-04): Added Rigid 3-Dimension classification, negative confirmation search, equivalence path decision.",
   "type": "object",
   "required": ["assessment_id", "predicate_device", "dimensions", "overall_status"],
   "properties": {
+    "_schema_version": { "type": "string", "const": "v2 (2026-06-04 — Rigid 3-Dimension Rule, RCA A06_南驰)" },
+    "classification_method": { "type": "string", "const": "rigid_3_dimension_rule" },
     "assessment_id": { "type": "string" },
     "predicate_device": { "type": "string" },
+    "three_dim_classification": {
+      "type": "object",
+      "description": "Rigid 3-Dimension Rule — all 3 must be ✅ for equivalence candidate (RCA A06_南驰 2026-06-04)",
+      "required": ["candidates", "equivalence_candidate_count", "alternative_therapy_count"],
+      "properties": {
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["device_name", "structure_match", "mechanism_match", "indication_match", "classification"],
+            "properties": {
+              "device_name": { "type": "string" },
+              "manufacturer": { "type": "string" },
+              "regulatory_status": { "type": "string" },
+              "structure_match": { "type": "string", "enum": ["✅", "❌"] },
+              "structure_detail": { "type": "string" },
+              "mechanism_match": { "type": "string", "enum": ["✅", "❌"] },
+              "mechanism_detail": { "type": "string" },
+              "indication_match": { "type": "string", "enum": ["✅", "❌"] },
+              "indication_detail": { "type": "string" },
+              "classification": { "type": "string", "enum": ["equivalence_candidate", "alternative_therapy", "different_device_class"] },
+              "rejection_reason": { "type": "string" },
+              "supporting_literature": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "equivalence_candidate_count": { "type": "integer", "description": "Only devices with ✅✅✅" },
+        "alternative_therapy_count": { "type": "integer" },
+        "considered_but_rejected": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Device names with rejection reasons for each"
+        }
+      }
+    },
+    "negative_confirmation_search": {
+      "type": "object",
+      "description": "Mandatory before concluding equivalence_candidate_count = 0",
+      "required": ["completed"],
+      "properties": {
+        "completed": { "type": "boolean" },
+        "databases_searched": { "type": "array", "items": { "type": "string" } },
+        "search_terms_used": { "type": "array", "items": { "type": "string" } },
+        "fda_510k_searched": { "type": "boolean" },
+        "historical_devices_checked": { "type": "boolean" },
+        "veterinary_experimental_devices_checked": { "type": "boolean" },
+        "summary": { "type": "string" }
+      }
+    },
+    "equivalence_path_decision": {
+      "type": "string",
+      "enum": ["equivalence_claimed", "non_equivalence_literature_based"],
+      "description": "equivalence_claimed if ≥1 candidate with ✅✅✅; non_equivalence_literature_based if 0"
+    },
+    "equivalent_device": {
+      "type": "string",
+      "description": "null if non_equivalence_literature_based"
+    },
+    "non_equivalence_declaration": {
+      "type": "string",
+      "description": "Required if equivalence_path_decision = non_equivalence_literature_based"
+    },
     "dimensions": {
       "type": "object",
       "required": ["technical", "biological", "clinical"],

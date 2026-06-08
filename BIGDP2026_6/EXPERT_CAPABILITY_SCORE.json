@@ -1,0 +1,46 @@
+{
+  "overall_score": 100.0,
+  "total_points": "860/860",
+  "dimensions": {
+    "D1_Product_Identity_Claim_Boundary": {
+      "score": 100.0,
+      "points": "80/80"
+    },
+    "D2_IFU_Claim_Evolution": {
+      "score": 100.0,
+      "points": "80/80"
+    },
+    "D3_Evidence_Support_Strength": {
+      "score": 100.0,
+      "points": "80/80"
+    },
+    "D4_Benchmark_Derivation": {
+      "score": 100.0,
+      "points": "80/80"
+    },
+    "D5_PMCF_Gap_Disposition": {
+      "score": 100.0,
+      "points": "80/80"
+    },
+    "D6_Gate_Strength": {
+      "score": 100.0,
+      "points": "80/80"
+    },
+    "D7_Writer_Handoff_Semantic_QA": {
+      "score": 100.0,
+      "points": "80/80"
+    },
+    "D8_Real_Project_Dry_Run": {
+      "score": 100.0,
+      "points": "100/100"
+    },
+    "D9_Human_Gate_Trigger_Quality": {
+      "score": 100.0,
+      "points": "100/100"
+    },
+    "D10_Residual_Risk_Handling": {
+      "score": 100.0,
+      "points": "100/100"
+    }
+  }
+}

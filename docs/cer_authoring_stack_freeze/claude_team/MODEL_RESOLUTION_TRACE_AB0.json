@@ -1,0 +1,99 @@
+{
+  "schema": "model_resolution_trace_v1",
+  "run_id": "AB-0",
+  "project": "PILOT_02_MIDOS",
+  "timestamp": "2026-05-15T21:55:00Z",
+  "status": "RUNTIME_BLOCKED",
+  "blocked_reason": "DeerFlow LLM runtime not accessible from VS Code Claude Code. run_cer_authoring.py --strict-v7 hung with no output for 10+ minutes.",
+  "global_model_env": "kimi-k2.6-code",
+  "per_agent_overrides": {},
+  "agents": [
+    {
+      "agent_name": "cer-authoring-lead-agent",
+      "task_type": "controller_triage",
+      "expected_model": "kimi-k2.6-code",
+      "actual_resolved_model": "kimi-k2.6-code",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "not_reached",
+      "model_invocation_success": false,
+      "note": "Verified in isolation — routing resolves correctly. Runtime invocation not tested."
+    },
+    {
+      "agent_name": "intake-profile-claim",
+      "task_type": "extraction_structuring",
+      "expected_model": "kimi-k2.6-code",
+      "actual_resolved_model": "kimi-k2.6-code",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "not_reached",
+      "model_invocation_success": false,
+      "note": "Verified in isolation."
+    },
+    {
+      "agent_name": "methodology-sota",
+      "task_type": "evidence_reasoning",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "not_reached",
+      "model_invocation_success": false,
+      "note": "Verified in isolation. deepseek-v4-pro would be used at runtime."
+    },
+    {
+      "agent_name": "evidence",
+      "task_type": "evidence_reasoning",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "not_reached",
+      "model_invocation_success": false,
+      "note": "Verified in isolation."
+    },
+    {
+      "agent_name": "cer-writer",
+      "task_type": "cer_writer",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "not_reached",
+      "model_invocation_success": false,
+      "note": "Writer model verified in isolation. A/B candidates ready via env var override."
+    },
+    {
+      "agent_name": "risk-equivalence-gspr",
+      "task_type": "risk_equivalence",
+      "expected_model": "kimi-k2.6-code",
+      "actual_resolved_model": "kimi-k2.6-code",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "not_reached",
+      "model_invocation_success": false,
+      "note": "Verified in isolation."
+    },
+    {
+      "agent_name": "qa-review",
+      "task_type": "qa_reviewer",
+      "expected_model": "deepseek-v4-pro",
+      "actual_resolved_model": "deepseek-v4-pro",
+      "route_source": "routing_policy_v1",
+      "fallback_used": false,
+      "provider_status": "not_reached",
+      "model_invocation_success": false,
+      "note": "QA model verified in isolation. A/B candidates ready via env var override."
+    }
+  ],
+  "agent_count": 7,
+  "all_resolved_correctly": true,
+  "any_fallback_used": false,
+  "validation_rules": {
+    "per_agent_routing_active": "VERIFIED_IN_ISOLATION — Per-agent resolution tested and correct for all 7 agents",
+    "no_global_model_masquerading": "VERIFIED — Each agent resolves independently via resolve_agent_model()",
+    "forbidden_models_blocked": "VERIFIED — is_model_allowed_for_agent() correctly blocks kimi-code and minimax for Writer/QA",
+    "trace_infrastructure": "IMPLEMENTED — record_resolution_trace() + write_resolution_trace_json() integrated in agent_runtime.py + artifacts.py",
+    "runtime_invocation": "BLOCKED — DeerFlow LLM runtime not accessible from VS Code Claude Code"
+  }
+}

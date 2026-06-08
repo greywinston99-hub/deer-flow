@@ -1,0 +1,1043 @@
+{
+  "schema_version": "1.0",
+  "description": "CER Chapter Defense Rules — per-chapter guard configuration for DeerFlow Writer Agent",
+  "source_assets": [
+    "CER_01_MATRIX_章节结构对比矩阵.md",
+    "CER_02_LOGIC_逻辑关系与依赖分析.md",
+    "CER_03_STYLE_写作风格与行文密码.md",
+    "CER_04_ANSWERS_第一性原理问题回答.md",
+    "CER_05_TABLES_表格体系与证据脉络分析.md",
+    "DEFECT_TAXONOMY.md"
+  ],
+  "chapters": [
+    {
+      "chapter_id": "CER-00",
+      "chapter_name": "§0 Summary",
+      "meddev_reference": "Summary (non-standard preamble)",
+      "frequency": "5/5",
+      "word_count_guideline": "200-800 words (1-3% of total)",
+      "defense_points": [
+        {
+          "id": "SD-01-01",
+          "name": "No new information introduced",
+          "description": "Summary must not introduce evidence or data not present in subsequent chapters",
+          "check_method": "forward_reference_scan",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-01-02",
+          "name": "Contains all required elements",
+          "description": "Must include: device name, intended purpose, evaluation type, key findings, overall conclusion",
+          "check_method": "element_checklist",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-01-03",
+          "name": "Length within guideline",
+          "description": "Summary should be 200-800 words; excessive length indicates scope creep",
+          "check_method": "word_count",
+          "severity": "Minor"
+        },
+        {
+          "id": "SD-01-04",
+          "name": "Matches §5 Conclusions",
+          "description": "Summary conclusion statements must be consistent with §5, not stronger or weaker",
+          "check_method": "cross_chapter_consistency",
+          "severity": "Major"
+        }
+      ],
+      "required_tables": [],
+      "required_evidence": [],
+      "common_defects": [
+        "TM-001",
+        "DT-001"
+      ],
+      "writer_guard_prompt": "You are writing §1 Summary of a Clinical Evaluation Report. RULES: (1) NEVER introduce new evidence or data here — only summarize what follows; (2) Include: device name, intended purpose, evaluation type, key evidence sources, and overall conclusion; (3) Keep length between 200-800 words; (4) Ensure conclusion strength matches §5 exactly — do not strengthen or weaken; (5) Use present tense; (6) No tables in this section.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-01",
+      "chapter_name": "§0 Scope & Introduction",
+      "meddev_reference": "§0",
+      "frequency": "5/5",
+      "word_count_guideline": "100-300 words",
+      "defense_points": [
+        {
+          "id": "SD-01-01",
+          "name": "Scope clearly defined",
+          "description": "Must define the scope of the clinical evaluation including device identification and evaluation objectives",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-01-02",
+          "name": "Regulatory context stated",
+          "description": "Must reference applicable MDR articles and relevant harmonized standards",
+          "check_method": "citation_check",
+          "severity": "Major"
+        }
+      ],
+      "required_tables": [],
+      "required_evidence": [
+        "Clinical Evaluation Plan (CEP) reference"
+      ],
+      "common_defects": [
+        "TM-001",
+        "DT-001"
+      ],
+      "writer_guard_prompt": "You are writing §0 Scope & Introduction. RULES: (1) Define the scope and objectives of the clinical evaluation; (2) Identify the device name, model, and manufacturer; (3) Reference applicable regulations (MDR Art 61) and standards; (4) State the evaluation approach (literature-only / clinical investigation / combined); (5) Keep concise.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-02",
+      "chapter_name": "§1 Device Description",
+      "meddev_reference": "§1",
+      "frequency": "5/5",
+      "word_count_guideline": "5-15% of total (~1,500-6,000 words)",
+      "defense_points": [
+        {
+          "id": "SD-02-01",
+          "name": "Device identity anchor complete",
+          "description": "Must define: device name, model/variant, EMDN code, MDR classification (Class + Rule), intended purpose",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-02-02",
+          "name": "All variants documented",
+          "description": "If multiple models/variants exist, each must be described with functional differences",
+          "check_method": "variant_coverage_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-02-03",
+          "name": "Principle of operation stated",
+          "description": "Working mechanism must be described in sufficient detail for technical understanding",
+          "check_method": "content_depth_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-02-04",
+          "name": "Marketing history included",
+          "description": "Must include: countries of authorization, sales data if available, vigilance summary if available",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-02-05",
+          "name": "Previous generations described",
+          "description": "Must describe predecessor devices and design evolution rationale",
+          "check_method": "field_presence_check",
+          "severity": "Minor"
+        },
+        {
+          "id": "SD-02-06",
+          "name": "Contraindications and warnings listed",
+          "description": "Must include contraindications, warnings, precautions, and intended user/environment",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-02-07",
+          "name": "Table/Figure references consistent",
+          "description": "All Table/Figure references in §2 must have corresponding tables in this section or Annex",
+          "check_method": "reference_integrity_check",
+          "severity": "Minor"
+        }
+      ],
+      "required_tables": [
+        {
+          "table_type": "Device Description Table",
+          "min_count": 1,
+          "required_fields": [
+            "Device Name",
+            "Model/Variant",
+            "EMDN Code",
+            "Classification",
+            "Intended Purpose"
+          ],
+          "source_asset": "CER_05_TABLES_Type-A"
+        },
+        {
+          "table_type": "Variant Specification Table",
+          "min_count": 0,
+          "condition": "If multiple variants exist",
+          "required_fields": [
+            "Variant ID",
+            "Functional Differences",
+            "Technical Parameters"
+          ],
+          "source_asset": "CER_05_TABLES_Type-A"
+        }
+      ],
+      "required_evidence": [
+        "Technical documentation (device specs)",
+        "Risk management file (ISO 14971) reference",
+        "IFU / labeling document reference",
+        "Marketing authorization certificates (if any)"
+      ],
+      "common_defects": [
+        "DO-001",
+        "GS-001",
+        "TM-001"
+      ],
+      "writer_guard_prompt": "You are writing §2 Scope / Device Description. RULES: (1) Device identity MUST include: name, model/variant, EMDN code, MDR Class+Rule, intended purpose — this is NON-NEGOTIABLE; (2) If multiple variants exist, describe EACH with functional differences; (3) Include: contraindications, warnings, precautions, intended users, intended environment; (4) Describe previous generations and design evolution; (5) Include marketing history (authorized countries, sales data if available); (6) Use present tense; (7) Passive voice acceptable for technical descriptions; (8) Sentence length 22-32 words average; (9) Every Table/Figure must be referenced in text.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-03",
+      "chapter_name": "§2 Intended Purpose & Indications",
+      "meddev_reference": "§2",
+      "frequency": "5/5",
+      "word_count_guideline": "200-800 words",
+      "defense_points": [
+        {
+          "id": "SD-03-01",
+          "name": "Intended purpose explicitly stated",
+          "description": "Must clearly state the intended purpose, indications, contra-indications, target population, and intended users",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-03-02",
+          "name": "Intended purpose consistent with IFU",
+          "description": "Intended purpose in CER must match the IFU/labeling exactly",
+          "check_method": "exact_match_check",
+          "severity": "Blocker"
+        }
+      ],
+      "required_tables": [],
+      "required_evidence": [
+        "IFU / labeling document",
+        "Risk management file (intended use confirmation)"
+      ],
+      "common_defects": [
+        "LB-001",
+        "GS-001"
+      ],
+      "writer_guard_prompt": "You are writing §2 Intended Purpose & Indications. RULES: (1) EXPLICITLY state intended medical indication and purpose; (2) List ALL indications and contra-indications; (3) Define target population (age, condition, anatomical location); (4) Define intended users (clinical specialty, training level); (5) Ensure 100% consistency with IFU — any deviation is a Blocker defect.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-04",
+      "chapter_name": "§3 Clinical Background & SOTA",
+      "meddev_reference": "§3",
+      "frequency": "5/5",
+      "word_count_guideline": "15-25% of total",
+      "defense_points": [
+        {
+          "id": "SD-03-01",
+          "name": "Three core questions answered",
+          "description": "Must answer Q1 (Gold Standard), Q2 (Safety risk differential), Q3 (Unmet need vs optimization)",
+          "check_method": "content_coverage_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-03-02",
+          "name": "Disease epidemiology present",
+          "description": "Must include: disease prevalence, incidence, natural history, disease burden",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-03-03",
+          "name": "Alternative treatments described",
+          "description": "Must describe all alternative treatments: pharmacological, surgical, interventional, other devices",
+          "check_method": "content_coverage_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-03-04",
+          "name": "Clinical practice guidelines cited",
+          "description": "Must cite relevant clinical guidelines with publication year and issuing body",
+          "check_method": "citation_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-03-05",
+          "name": "Safety and Performance Endpoints defined",
+          "description": "Must define SOTA benchmark values for safety and performance endpoints in tabular format",
+          "check_method": "table_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-03-06",
+          "name": "Potential hazards identified",
+          "description": "Must list known risks and complications of the disease and existing treatments",
+          "check_method": "content_coverage_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-03-07",
+          "name": "Search strategy documented (if standalone)",
+          "description": "If SOTA search strategy is in §3, must include: databases, search terms, inclusion/exclusion criteria, dates",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-03-08",
+          "name": "SOTA → §4 evidence chain established",
+          "description": "SOTA conclusions must explicitly set up the evidentiary questions that §4 will answer",
+          "check_method": "cross_chapter_logic_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-04-01",
+          "name": "Evaluation type explicitly stated",
+          "description": "Must clearly state: literature-only, clinical investigation, or combined approach",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-04-02",
+          "name": "Justification for evaluation type",
+          "description": "Must justify why this evaluation type is appropriate for the device risk class and novelty",
+          "check_method": "content_depth_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-04-03",
+          "name": "Reference to Clinical Evaluation Plan",
+          "description": "Must reference the Clinical Evaluation Plan that defines this approach",
+          "check_method": "citation_check",
+          "severity": "Major"
+        }
+      ],
+      "required_tables": [
+        {
+          "table_type": "Safety and Performance Endpoints Table",
+          "min_count": 1,
+          "required_fields": [
+            "Endpoint Type",
+            "Clinical Benefit/Risk",
+            "Evaluation Parameter",
+            "SOTA Benchmark",
+            "Acceptance Criterion"
+          ],
+          "source_asset": "CER_05_TABLES_Type-G"
+        },
+        {
+          "table_type": "Alternative Treatments Comparison Table",
+          "min_count": 0,
+          "condition": "Recommended for complex indications",
+          "required_fields": [
+            "Treatment",
+            "Efficacy Rate",
+            "Key Adverse Events",
+            "Limitations"
+          ],
+          "source_asset": "CER_05_TABLES_Type-G"
+        },
+        {
+          "table_type": "Clinical Guidelines Summary Table",
+          "min_count": 0,
+          "condition": "If multiple guidelines exist",
+          "required_fields": [
+            "Guideline",
+            "Year",
+            "Issuing Body",
+            "Key Recommendations"
+          ],
+          "source_asset": "CER_05_TABLES"
+        }
+      ],
+      "required_evidence": [
+        "Published epidemiological studies",
+        "Clinical practice guidelines",
+        "Published literature on alternative treatments",
+        "Published safety/performance data for SOTA benchmark values",
+        "Clinical Evaluation Plan (CEP)"
+      ],
+      "common_defects": [
+        "EV-002",
+        "ST-001"
+      ],
+      "writer_guard_prompt": "You are writing §3 Clinical Background / SOTA. CRITICAL RULES: (1) MUST answer three core questions before writing: Q1=What is the gold standard? Q2=What is the safety risk differential vs gold standard? Q3=Is this unmet need or optimization?; (2) MUST include Safety and Performance Endpoints table with SOTA benchmark values — this is NON-NEGOTIABLE; (3) Disease epidemiology MUST include prevalence/incidence with citations; (4) Alternative treatments MUST cover all categories: pharmacological, surgical, interventional, other devices; (5) Clinical guidelines MUST be cited with year and issuing body; (6) Known hazards MUST be listed; (7) SOTA conclusions MUST explicitly frame the evidentiary questions for §4; (8) Use present tense for disease description, past tense for study history; (9) Paragraph length 25-40 words.\n\n---\n\nYou are writing §4.1 Type of Evaluation. RULES: (1) EXPLICITLY state the evaluation type: literature-only / clinical investigation / combined; (2) JUSTIFY why this type is appropriate for the device's risk class and novelty; (3) REFERENCE the Clinical Evaluation Plan; (4) If clinical investigation path: mention study design, population, endpoints; (5) If literature-only path: explain why sufficient published evidence exists; (6) Keep concise — this is a declarative section.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-05",
+      "chapter_name": "§4 Equivalence Demonstration",
+      "meddev_reference": "§4",
+      "frequency": "5/5",
+      "word_count_guideline": "15-30% of total (~3,000-32,000 words)",
+      "defense_points": [
+        {
+          "id": "SD-05-01",
+          "name": "Equivalence decision documented",
+          "description": "Must explicitly state whether equivalence is claimed or not; if not, must explain why",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-05-02",
+          "name": "Three-dimension comparison table present",
+          "description": "If equivalence claimed: MUST have Technical + Biological + Clinical comparison table per MDR Art 61",
+          "check_method": "table_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-05-03",
+          "name": "Every difference justified",
+          "description": "Each 'Different' or 'Similar' entry must have impact assessment: 'does not affect safety/performance because...'",
+          "check_method": "content_depth_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-05-04",
+          "name": "Equivalent device is EU-authorized",
+          "description": "The claimed equivalent device must have CE mark or equivalent authorization in target market",
+          "check_method": "fact_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-05-05",
+          "name": "Intended purpose identical",
+          "description": "Intended purpose must be identical (not just similar) between subject and equivalent device",
+          "check_method": "exact_match_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-05-06",
+          "name": "Reference to §2 device specs",
+          "description": "Must reference §2 device description parameters in the comparison (≥3 references recommended)",
+          "check_method": "cross_chapter_reference_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-05-07",
+          "name": "Similar devices table (if no equivalence)",
+          "description": "If equivalence NOT claimed: must include similar devices comparison table for market positioning",
+          "check_method": "table_presence_check",
+          "severity": "Major"
+        }
+      ],
+      "required_tables": [
+        {
+          "table_type": "Equivalence Demonstration Table",
+          "min_count": 1,
+          "condition": "If equivalence is claimed",
+          "required_fields": [
+            "Characteristic",
+            "Subject Device",
+            "Equivalent Device",
+            "Comparison",
+            "Justification"
+          ],
+          "source_asset": "CER_05_TABLES_Type-B"
+        },
+        {
+          "table_type": "Similar Devices Comparison Table",
+          "min_count": 0,
+          "condition": "If equivalence is NOT claimed (recommended)",
+          "required_fields": [
+            "Device Name",
+            "Technology",
+            "Key Features",
+            "Market Status"
+          ],
+          "source_asset": "CER_05_TABLES_Type-B"
+        }
+      ],
+      "required_evidence": [
+        "Clinical Evaluation Plan (CEP)",
+        "Equivalent device technical documentation (publicly available)",
+        "Equivalent device published clinical data",
+        "Subject device technical documentation",
+        "ISO 10993 biocompatibility data (if material comparison)"
+      ],
+      "common_defects": [
+        "DT-001",
+        "EQ-001",
+        "GS-001",
+        "DO-001",
+        "EV-001"
+      ],
+      "writer_guard_prompt": "You are writing §4.2 Demonstration of Equivalence. CRITICAL RULES: (1) FIRST sentence must declare: 'Equivalence is [claimed / not claimed]'; (2) If CLAIMED: MUST include three-dimension comparison table (Technical / Biological / Clinical) per MDR Art 61; (3) If CLAIMED: intended purpose MUST be IDENTICAL — this is NON-NEGOTIABLE; (4) Every 'Different' or 'Similar' entry MUST have impact justification ending with 'does not affect clinical safety and performance because...'; (5) MUST reference §2 device specs ≥3 times; (6) Equivalent device MUST be EU-authorized (CE marked); (7) If NOT claimed: MUST include Similar Devices table for market positioning; (8) Use standard wording: 'Substantially equivalent' / 'Equivalent with minor differences' / 'Not equivalent'; (9) Reference MEDDEV 2.7/1 Rev.4 and MDCG 2020-5 in opening.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-06",
+      "chapter_name": "§5 Clinical Evidence",
+      "meddev_reference": "§5-§8",
+      "frequency": "5/5",
+      "word_count_guideline": "35-50% of total, largest section",
+      "defense_points": [
+        {
+          "id": "SD-06-01",
+          "name": "Standards conformance documented",
+          "description": "Must list all applicable harmonized standards with conformance status and evidence reference",
+          "check_method": "table_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-06-02",
+          "name": "Pre-clinical evaluation summary present",
+          "description": "Must include: bench testing, biocompatibility (ISO 10993), animal studies, usability testing",
+          "check_method": "content_coverage_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-06-03",
+          "name": "Clinical investigation data complete",
+          "description": "If CI exists: must include design, population, endpoints, results, statistical analysis",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-06-04",
+          "name": "Literature search strategy complete",
+          "description": "Must include: databases, search terms, inclusion/exclusion, screening process, dates, executors",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-06-05",
+          "name": "Literature appraisal performed",
+          "description": "Must include quality assessment using recognized tools (Cochrane RoB, NOS, etc.)",
+          "check_method": "content_coverage_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-06-06",
+          "name": "Vigilance data from ≥2 databases",
+          "description": "Must search MHRA + BfArM + FDA MAUDE (minimum: 2 databases); include search date and terms",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-06-07",
+          "name": "GSPR analysis covers all applicable requirements",
+          "description": "Must address: GSPR 1 (safety/performance), GSPR 6 (benefit-risk), GSPR 8 (side-effects) minimum",
+          "check_method": "content_coverage_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-06-08",
+          "name": "Each GSPR has ≥2 evidence types",
+          "description": "Each GSPR analysis must cite at least 2 types of evidence (standard, pre-clinical, clinical, literature, vigilance)",
+          "check_method": "content_depth_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-06-09",
+          "name": "Five-paragraph GSPR structure followed",
+          "description": "Each GSPR: Requirement Restatement → Evidence Sources → Evidence Summary → Analysis → Conformity Conclusion",
+          "check_method": "structure_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-06-10",
+          "name": "Benefit-risk analysis complete",
+          "description": "Must include: clinical benefits (quantified), clinical risks (quantified), risk mitigation, overall conclusion",
+          "check_method": "content_coverage_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-06-11",
+          "name": "Quantitative analysis where possible",
+          "description": "Must use quantitative data where available; qualitative only when quantitative impossible",
+          "check_method": "content_depth_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-06-12",
+          "name": "Data consistency across subsections",
+          "description": "Numbers cited in §4.3, §4.4, §4.5, §4.6, §4.7 must be mutually consistent",
+          "check_method": "cross_subsection_consistency",
+          "severity": "Blocker"
+        }
+      ],
+      "required_tables": [
+        {
+          "table_type": "Standards Conformance Table",
+          "min_count": 1,
+          "required_fields": [
+            "Category",
+            "Standard Number",
+            "Standard Name",
+            "Conformance Status",
+            "Evidence Reference"
+          ],
+          "source_asset": "CER_05_TABLES_Type-H"
+        },
+        {
+          "table_type": "Literature Search Protocol Table",
+          "min_count": 1,
+          "required_fields": [
+            "Database",
+            "Search Date",
+            "Search Terms",
+            "Language Filter",
+            "Date Range",
+            "Hits",
+            "Relevant Hits"
+          ],
+          "source_asset": "CER_05_TABLES_Type-C"
+        },
+        {
+          "table_type": "Literature Appraisal Table",
+          "min_count": 1,
+          "required_fields": [
+            "Literature No.",
+            "Author/Year",
+            "Study Design",
+            "Sample Size",
+            "Evidence Level",
+            "Suitability Score",
+            "Key Findings",
+            "Limitations"
+          ],
+          "source_asset": "CER_05_TABLES_Type-D"
+        },
+        {
+          "table_type": "Clinical Data Summary Table",
+          "min_count": 1,
+          "condition": "If clinical investigation exists",
+          "required_fields": [
+            "Study Identifier",
+            "Study Design",
+            "Sample Size",
+            "Study Period",
+            "Key Outcomes",
+            "Safety Data"
+          ],
+          "source_asset": "CER_05_TABLES_Type-E"
+        },
+        {
+          "table_type": "Safety Data Table",
+          "min_count": 1,
+          "required_fields": [
+            "Event Type",
+            "Severity",
+            "Relatedness",
+            "Expectedness",
+            "Outcome",
+            "Frequency"
+          ],
+          "source_asset": "CER_05_TABLES_Type-F"
+        },
+        {
+          "table_type": "Vigilance Search Results Table",
+          "min_count": 1,
+          "required_fields": [
+            "Database",
+            "Search Date",
+            "Search Strategy",
+            "Hits",
+            "Relevant Events",
+            "Key Findings"
+          ],
+          "source_asset": "CER_05_TABLES_Type-F"
+        },
+        {
+          "table_type": "Benefit-Risk Analysis Table",
+          "min_count": 1,
+          "required_fields": [
+            "Risk ID",
+            "Risk Description",
+            "Probability",
+            "Severity",
+            "Risk Level",
+            "Control Measures",
+            "Residual Risk"
+          ],
+          "source_asset": "CER_05_TABLES_Type-I"
+        }
+      ],
+      "required_evidence": [
+        "Standard conformance test reports",
+        "Pre-clinical evaluation reports (bench, biocompatibility, animal)",
+        "Clinical investigation reports (if applicable)",
+        "Literature search results and appraisal",
+        "Vigilance database search results (MHRA, BfArM, FDA)",
+        "Risk management file",
+        "Post-market surveillance data (if available)"
+      ],
+      "common_defects": [
+        "EV-001",
+        "EV-002",
+        "GS-001",
+        "BR-001",
+        "CL-001",
+        "DT-001",
+        "RM-001",
+        "PM-001"
+      ],
+      "writer_guard_prompt": "You are writing §4 Evidence Analysis (the largest and most critical section). ABSOLUTE RULES: (1) GSPR analysis MUST cover GSPR 1, 6, 8 minimum; (2) EACH GSPR MUST cite ≥2 evidence types (standard, pre-clinical, clinical, literature, vigilance); (3) EACH GSPR MUST follow 5-paragraph structure: Requirement → Sources → Summary → Analysis → Conclusion; (4) Benefit-risk analysis MUST quantify benefits AND risks with rates/percentages; (5) Vigilance data MUST cover ≥2 databases (MHRA+BfArM+FDA minimum); (6) Literature search MUST document: databases, terms, inclusion/exclusion, dates, executors; (7) ALL numerical data MUST be consistent across §4 subsections — cross-check before finalizing; (8) Standards conformance table MUST list all applicable harmonized standards; (9) Use past tense for study results, present tense for analysis conclusions; (10) Sentence length 25-30 words for analysis paragraphs.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-07",
+      "chapter_name": "§6 Benefit-Risk Analysis",
+      "meddev_reference": "§9",
+      "frequency": "5/5",
+      "word_count_guideline": "500-2,000 words",
+      "defense_points": [
+        {
+          "id": "SD-07-01",
+          "name": "Benefits quantified",
+          "description": "Must quantify clinical benefits with appropriate metrics and confidence intervals",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-07-02",
+          "name": "Risks quantified",
+          "description": "Must quantify clinical risks including probability and severity assessments",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-07-03",
+          "name": "Risk mitigation measures documented",
+          "description": "Must describe risk control measures and residual risk assessment",
+          "check_method": "content_coverage_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-07-04",
+          "name": "Overall benefit-risk conclusion",
+          "description": "Must provide explicit conclusion on benefit-risk acceptability",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        }
+      ],
+      "required_tables": [
+        {
+          "table_type": "Benefit-Risk Analysis Table",
+          "min_count": 1,
+          "required_fields": [
+            "Risk ID",
+            "Risk Description",
+            "Probability",
+            "Severity",
+            "Risk Level",
+            "Control Measures",
+            "Residual Risk"
+          ],
+          "source_asset": "CER_05_TABLES_Type-I"
+        }
+      ],
+      "required_evidence": [
+        "Risk management file (ISO 14971)",
+        "Clinical data supporting benefit claims"
+      ],
+      "common_defects": [
+        "BR-001",
+        "RM-001"
+      ],
+      "writer_guard_prompt": "You are writing §6 Benefit-Risk Analysis. CRITICAL RULES: (1) QUANTIFY all benefits and risks with rates/percentages where possible; (2) Document ALL risk control measures from ISO 14971; (3) Assess RESIDUAL risk after controls; (4) Provide EXPLICIT overall benefit-risk conclusion using 'acceptable when weighed against the benefits' phrasing; (5) Reference MDR Annex I GSPR requirements.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-08",
+      "chapter_name": "§7 Conclusions",
+      "meddev_reference": "§10",
+      "frequency": "5/5",
+      "word_count_guideline": "150-300 words (1-3% of total)",
+      "defense_points": [
+        {
+          "id": "SD-07-01",
+          "name": "Limitations statement present",
+          "description": "Must include limitations declaration (industry standard wording acceptable)",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-07-02",
+          "name": "Overall conformity conclusion",
+          "description": "Must state that device meets relevant GSPRs based on evaluated evidence",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-07-03",
+          "name": "Safety conclusion",
+          "description": "Must explicitly state safety conclusion for claimed use",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-07-04",
+          "name": "Performance conclusion",
+          "description": "Must explicitly state performance conclusion for claimed use",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-07-05",
+          "name": "Benefit-risk conclusion",
+          "description": "Must explicitly state benefit-risk acceptability",
+          "check_method": "field_presence_check",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-07-06",
+          "name": "Next evaluation plan",
+          "description": "Must include next evaluation date or trigger event",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-07-07",
+          "name": "Conclusion strength matches evidence",
+          "description": "Wording strength must match evidence strength (see strength matching table)",
+          "check_method": "content_depth_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-07-08",
+          "name": "Each conclusion traceable to §4",
+          "description": "Every conclusion statement must have corresponding evidence in §4",
+          "check_method": "cross_chapter_traceability",
+          "severity": "Blocker"
+        },
+        {
+          "id": "SD-07-09",
+          "name": "No new evidence introduced",
+          "description": "Conclusions must not introduce evidence not presented in §4",
+          "check_method": "forward_reference_scan",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-07-10",
+          "name": "Conciseness enforced",
+          "description": "Each sentence = one judgment; no clause stacking; 150-300 words total",
+          "check_method": "word_count_and_structure",
+          "severity": "Minor"
+        }
+      ],
+      "required_tables": [],
+      "required_evidence": [],
+      "common_defects": [
+        "BR-001",
+        "DT-001"
+      ],
+      "writer_guard_prompt": "You are writing §5 Conclusions. CRITICAL RULES: (1) MUST contain EXACTLY these 6 elements: Limitations + Overall Conformity + Safety + Performance + Benefit-Risk + Next Evaluation; (2) EACH conclusion MUST be traceable to §4 evidence — if you cannot find the evidence, DO NOT write the conclusion; (3) NEVER introduce new evidence here; (4) Conclusion strength MUST match evidence: strong evidence → 'confirms/demonstrates', moderate → 'indicates/supports', weak → 'is consistent with'; (5) EACH sentence = ONE judgment only — no clause stacking; (6) Use present tense; (7) Keep 150-300 words total; (8) Industry standard limitation wording is acceptable: 'The limitations...unpublished documents about negative result cannot be examined.'; (9) Benefit-risk conclusion MUST use 'acceptable when weighed against the benefits' phrasing.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-09",
+      "chapter_name": "Annexes",
+      "meddev_reference": "Annexes",
+      "frequency": "5/5",
+      "word_count_guideline": "10-20% of total",
+      "defense_points": [
+        {
+          "id": "SD-09-01",
+          "name": "Literature list complete",
+          "description": "All literature cited in §4.4/§4.5 must have full bibliographic entries in Annex",
+          "check_method": "reference_integrity_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-09-02",
+          "name": "Search strategy details annexed",
+          "description": "Complete search strategies (screenshots or full text) should be in Annex",
+          "check_method": "field_presence_check",
+          "severity": "Minor"
+        },
+        {
+          "id": "SD-09-03",
+          "name": "Equivalence table fully detailed",
+          "description": "If §4.2 has summary equivalence table, Annex should have full detailed version",
+          "check_method": "reference_integrity_check",
+          "severity": "Minor"
+        },
+        {
+          "id": "SD-09-04",
+          "name": "Standards list complete",
+          "description": "All standards referenced in §4.3.1 must be listed with full designation",
+          "check_method": "reference_integrity_check",
+          "severity": "Minor"
+        },
+        {
+          "id": "SD-09-05",
+          "name": "Vigilance search records preserved",
+          "description": "Screenshots or records of vigilance database searches should be in Annex",
+          "check_method": "field_presence_check",
+          "severity": "Minor"
+        },
+        {
+          "id": "SD-09-06",
+          "name": "Annex references in main text",
+          "description": "Every Annex must be referenced at least once in the main text",
+          "check_method": "reference_integrity_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-09-07",
+          "name": "No orphan annexes",
+          "description": "No Annex should exist without being referenced in the main text",
+          "check_method": "orphan_detection",
+          "severity": "Minor"
+        }
+      ],
+      "required_tables": [],
+      "required_evidence": [
+        "Complete literature list with full bibliographic details",
+        "Search strategy screenshots/records",
+        "Equivalence table full version",
+        "Standards list with full designations",
+        "Vigilance search screenshots",
+        "Clinical investigation raw data (if applicable)"
+      ],
+      "common_defects": [
+        "EV-002",
+        "EQ-001",
+        "GS-001",
+        "DT-001"
+      ],
+      "writer_guard_prompt": "You are compiling Annexes. RULES: (1) Literature List: MUST include ALL literature cited in §4.4/§4.5 with full bibliographic details; (2) Search Strategy Annex: include screenshots or full text of database searches; (3) Equivalence Table Annex: if §4.2 has summary, Annex has FULL detailed version; (4) Standards List: all standards from §4.3.1 with complete designations; (5) Vigilance Records: screenshots of database searches; (6) CRITICAL: every Annex MUST be referenced ≥1 time in main text — orphan annexes are NOT allowed; (7) Number Annexes sequentially (Annex 1, Annex 2...); (8) Each Annex must have a title page.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    },
+    {
+      "chapter_id": "CER-10",
+      "chapter_name": "§8-§11 Administrative Sections",
+      "meddev_reference": "§11-§14",
+      "frequency": "5/5",
+      "word_count_guideline": "100-300 words (1-3% of total)",
+      "defense_points": [
+        {
+          "id": "SD-08-01",
+          "name": "Next evaluation date specified",
+          "description": "Must specify date or trigger condition for next CER update",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-08-02",
+          "name": "Evaluator qualifications documented",
+          "description": "Must include names, titles, and relevant qualifications of evaluators",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-08-03",
+          "name": "Declaration of interest included",
+          "description": "Must include conflict of interest declarations",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        },
+        {
+          "id": "SD-08-04",
+          "name": "Dates and signatures complete",
+          "description": "Must include approval dates and signatures",
+          "check_method": "field_presence_check",
+          "severity": "Major"
+        }
+      ],
+      "required_tables": [
+        {
+          "table_type": "Signature/Approval Table",
+          "min_count": 1,
+          "required_fields": [
+            "Name",
+            "Title",
+            "Qualification",
+            "Signature",
+            "Date"
+          ],
+          "source_asset": "CER_05_TABLES"
+        }
+      ],
+      "required_evidence": [],
+      "common_defects": [
+        "TM-001",
+        "DT-001",
+        "EV-001"
+      ],
+      "writer_guard_prompt": "You are writing §6-§9 Administrative Sections. RULES: (1) §6 Next Evaluation: specify date or trigger condition; (2) §7 Qualification: list evaluator names, titles, qualifications; (3) §8 Declaration: include conflict of interest statement; (4) §9 Signatures: include approval dates and signature placeholders; (5) These sections are template-driven — ensure no template placeholders remain (TM-001 risk); (6) Keep minimal — administrative only, no technical content.",
+      "v5_enhanced": true,
+      "v5_defect_frequencies": {}
+    }
+  ],
+  "cross_chapter_validation_rules": [
+    {
+      "rule_id": "CCV-01",
+      "name": "§2 → §4.2 device spec consistency",
+      "description": "All device specifications in §4.2 equivalence table must match §2 device description",
+      "check_method": "cross_reference_exact_match",
+      "affected_chapters": [
+        "CER-02",
+        "CER-05"
+      ],
+      "severity": "Blocker"
+    },
+    {
+      "rule_id": "CCV-02",
+      "name": "§3 SOTA → §4.7 analysis benchmark consistency",
+      "description": "SOTA benchmark values in §3.9 must match values cited in §4.7 analysis",
+      "check_method": "cross_reference_exact_match",
+      "affected_chapters": [
+        "CER-04",
+        "CER-06"
+      ],
+      "severity": "Blocker"
+    },
+    {
+      "rule_id": "CCV-03",
+      "name": "§4 → §5 conclusion traceability",
+      "description": "Every statement in §5 must have supporting evidence in §4",
+      "check_method": "backward_traceability_check",
+      "affected_chapters": [
+        "CER-06",
+        "CER-08"
+      ],
+      "severity": "Blocker"
+    },
+    {
+      "rule_id": "CCV-04",
+      "name": "§4.4 literature count → Annex literature list count",
+      "description": "Number of included literature in §4.4 must equal number of entries in Annex literature list",
+      "check_method": "count_match",
+      "affected_chapters": [
+        "CER-06",
+        "CER-09"
+      ],
+      "severity": "Major"
+    },
+    {
+      "rule_id": "CCV-05",
+      "name": "§1 Summary → §5 Conclusions wording consistency",
+      "description": "Summary and Conclusions must use identical conclusion strength and statements",
+      "check_method": "semantic_similarity_check",
+      "affected_chapters": [
+        "CER-00",
+        "CER-08"
+      ],
+      "severity": "Major"
+    },
+    {
+      "rule_id": "CCV-06",
+      "name": "Table numbering continuity",
+      "description": "All Table references in text must have corresponding tables; no gaps in numbering",
+      "check_method": "reference_integrity_check",
+      "affected_chapters": [
+        "ALL"
+      ],
+      "severity": "Minor"
+    }
+  ],
+  "injection_config": {
+    "deerflow_component": "WriterGuard",
+    "injection_mode": "per_chapter_prompt_prefix",
+    "activation_trigger": "before_chapter_writing",
+    "priority": 100
+  },
+  "v5_enrichment": {
+    "applied_at": "2026-05-29T22:54:33.344380",
+    "total_findings_mapped": 1570
+  }
+}

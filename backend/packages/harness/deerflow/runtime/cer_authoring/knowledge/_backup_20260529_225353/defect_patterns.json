@@ -1,0 +1,511 @@
+{
+  "patterns": [
+    {
+      "id": "DP-001",
+      "name": "domain_contamination",
+      "severity": "critical",
+      "category": "content",
+      "detection": "forbidden_term_in_body",
+      "fix": "trace_source_and_reroute",
+      "cer_section": "2 Scope"
+    },
+    {
+      "id": "DP-002",
+      "name": "template_residue",
+      "severity": "critical",
+      "category": "content",
+      "detection": "banned_string_in_body",
+      "fix": "strip_template_and_regenerate",
+      "cer_section": "1-9 All"
+    },
+    {
+      "id": "DP-003",
+      "name": "evidence_conclusion_mismatch",
+      "severity": "critical",
+      "category": "logic",
+      "detection": "support_level_vs_wording",
+      "fix": "downgrade_wording",
+      "cer_section": "5 Conclusions"
+    },
+    {
+      "id": "DP-004",
+      "name": "circular_reasoning",
+      "severity": "high",
+      "category": "logic",
+      "detection": "claim_citing_claim",
+      "fix": "add_external_evidence",
+      "cer_section": "4.2 Equivalence"
+    },
+    {
+      "id": "DP-005",
+      "name": "missing_sota_benchmark",
+      "severity": "high",
+      "category": "data",
+      "detection": "claim_without_sota",
+      "fix": "trigger_alignment_check",
+      "cer_section": "3 SOTA"
+    },
+    {
+      "id": "DP-006",
+      "name": "insufficient_evidence",
+      "severity": "high",
+      "category": "data",
+      "detection": "g42_insufficient",
+      "fix": "endpoint_substitution_then_pmcf",
+      "cer_section": "4 Evidence"
+    },
+    {
+      "id": "DP-007",
+      "name": "over_strong_conclusion",
+      "severity": "high",
+      "category": "logic",
+      "detection": "oxford_vs_wording",
+      "fix": "downgrade_to_oxford_level",
+      "cer_section": "5 Conclusions"
+    },
+    {
+      "id": "DP-008",
+      "name": "missing_rmf_coverage",
+      "severity": "critical",
+      "category": "data",
+      "detection": "no_rmf_for_warning",
+      "fix": "flag_gap_and_downgrade",
+      "cer_section": "4.7 GSPR"
+    },
+    {
+      "id": "DP-009",
+      "name": "endpoint_context_lost",
+      "severity": "high",
+      "category": "data",
+      "detection": "fact_without_claim_link",
+      "fix": "add_claim_context_hint",
+      "cer_section": "3 SOTA, 4.7 GSPR"
+    },
+    {
+      "id": "DP-010",
+      "name": "br_quality_asymmetry",
+      "severity": "high",
+      "category": "logic",
+      "detection": "benefit_risk_diff_quality",
+      "fix": "separate_quality_tiers",
+      "cer_section": "5 Conclusions"
+    },
+    {
+      "id": "DP-011",
+      "name": "ifu_quality_degraded",
+      "severity": "medium",
+      "category": "input",
+      "detection": "scanned_unreadable_ifu",
+      "fix": "flag_for_human_review",
+      "cer_section": "2 Scope"
+    },
+    {
+      "id": "DP-012",
+      "name": "screening_pool_shallow",
+      "severity": "medium",
+      "category": "data",
+      "detection": "pool_below_threshold",
+      "fix": "expand_search_or_document",
+      "cer_section": "4.4 Literature"
+    },
+    {
+      "id": "DP-013",
+      "name": "spiral_exhausted",
+      "severity": "high",
+      "category": "process",
+      "detection": "max_rounds_reached",
+      "fix": "controlled_compromise",
+      "cer_section": "4 Evidence"
+    },
+    {
+      "id": "DP-014",
+      "name": "equivalence_not_justified",
+      "severity": "high",
+      "category": "logic",
+      "detection": "missing_3d_comparison",
+      "fix": "add_technical_bio_clinical",
+      "cer_section": "4.2 Equivalence"
+    },
+    {
+      "id": "DP-015",
+      "name": "gspr_coverage_gap",
+      "severity": "medium",
+      "category": "data",
+      "detection": "gspr_without_evidence",
+      "fix": "flag_gap_or_route_to_rmf",
+      "cer_section": "4.7 GSPR"
+    },
+    {
+      "id": "DP-016",
+      "name": "pmcf_premature",
+      "severity": "medium",
+      "category": "process",
+      "detection": "pmcf_before_alternatives",
+      "fix": "try_endpoint_substitution_first",
+      "cer_section": "6 PMCF"
+    },
+    {
+      "id": "DP-017",
+      "name": "pico_over_generation",
+      "severity": "low",
+      "category": "efficiency",
+      "detection": "pico_for_ifu_warning",
+      "fix": "skip_pico_for_non_clinical",
+      "cer_section": "3 SOTA"
+    },
+    {
+      "id": "DP-018",
+      "name": "keyword_mismatch_regional",
+      "severity": "medium",
+      "category": "data",
+      "detection": "term_not_found",
+      "fix": "expand_with_regional_variants",
+      "cer_section": "4.4 Literature"
+    },
+    {
+      "id": "DP-019",
+      "name": "confidence_overstated",
+      "severity": "medium",
+      "category": "logic",
+      "detection": "low_confidence_strong_wording",
+      "fix": "apply_confidence_wording_map",
+      "cer_section": "5 Conclusions"
+    },
+    {
+      "id": "DP-020",
+      "name": "model_resolution_fallback",
+      "severity": "low",
+      "category": "system",
+      "detection": "default_model_used",
+      "fix": "log_and_proceed",
+      "cer_section": "System"
+    },
+    {
+      "id": "DP-021",
+      "name": "annex_traceability_gap",
+      "severity": "medium",
+      "category": "data",
+      "detection": "claim_without_annex_ref",
+      "fix": "add_cross_reference",
+      "cer_section": "Annex"
+    },
+    {
+      "id": "DP-022",
+      "name": "human_confirmation_skipped",
+      "severity": "critical",
+      "category": "process",
+      "detection": "interrupt_not_triggered",
+      "fix": "enforce_interrupt_flow",
+      "cer_section": "HC Interrupts"
+    },
+    {
+      "id": "DP-023",
+      "name": "alignment_conflict",
+      "severity": "high",
+      "category": "logic",
+      "detection": "equivalence_vs_vigilance_mismatch",
+      "fix": "flag_and_document",
+      "cer_section": "4.7 GSPR"
+    },
+    {
+      "id": "DP-024",
+      "name": "sota_benchmark_low_confidence",
+      "severity": "medium",
+      "category": "data",
+      "detection": "benchmark_confidence_low",
+      "fix": "downgrade_wording",
+      "cer_section": "3 SOTA"
+    },
+    {
+      "id": "DP-025",
+      "name": "data_source_type_undifferentiated",
+      "severity": "medium",
+      "category": "data",
+      "detection": "manufacturer_vs_literature_mixed",
+      "fix": "add_data_source_type",
+      "cer_section": "4 Evidence"
+    },
+    {
+      "id": "DP-026",
+      "name": "follow_up_inadequate",
+      "severity": "high",
+      "category": "data",
+      "detection": "short_follow_up_for_implant",
+      "fix": "flag_pmcf_long_term",
+      "cer_section": "6 PMCF"
+    },
+    {
+      "id": "DP-027",
+      "name": "rare_event_underpowered",
+      "severity": "high",
+      "category": "data",
+      "detection": "sample_too_small_for_rare_event",
+      "fix": "flag_pmcf_large_sample",
+      "cer_section": "4 Evidence"
+    },
+    {
+      "id": "DP-028",
+      "name": "cer_update_missing",
+      "severity": "low",
+      "category": "process",
+      "detection": "no_update_mode",
+      "fix": "reserved_for_future",
+      "cer_section": "6 Next Evaluation"
+    },
+    {
+      "id": "DP-029",
+      "name": "skill_not_integrated",
+      "severity": "medium",
+      "category": "system",
+      "detection": "skill_file_no_prompt_ref",
+      "fix": "add_skill_reference",
+      "cer_section": "System"
+    },
+    {
+      "id": "DP-030",
+      "name": "gate_weight_misconfigured",
+      "severity": "medium",
+      "category": "system",
+      "detection": "critical_treated_as_minor",
+      "fix": "check_critical_gates_list",
+      "cer_section": "System"
+    },
+    {
+      "id": "DP-031",
+      "name": "equivalence_performance_data_missing",
+      "severity": "medium",
+      "category": "data",
+      "detection": "performance_comparison_empty_but_equivalence_claimed",
+      "fix": "remove_comparison_clause_and_declare_missing",
+      "note": "工程师反馈：客户拒绝提供性能对比数据时，删除等效性表格中的性能对比条款，仅保留技术/生物学/临床特性对比，在差异论证中声明 Performance data not publicly available。MDR 未要求公开所有性能数据，但要求论证逻辑自洽。",
+      "cer_section": "4.2 Equivalence"
+    },
+    {
+      "id": "DP-032",
+      "name": "population_study_mismatch",
+      "severity": "high",
+      "category": "logic",
+      "detection": "study_population_vs_ifu_target_population",
+      "fix": "document_differences_assess_generalizability",
+      "note": "工程师反馈：当纳入研究的患者群体与 IFU 声明的目标人群不匹配时，必须记录人群差异、评估推广性、添加局限性声明、并规划针对性 PMCF。不可忽略差异直接引用。",
+      "cer_section": "4 Evidence"
+    },
+    {
+      "id": "DP-033",
+      "name": "statistical_power_insufficient",
+      "severity": "high",
+      "category": "data",
+      "detection": "study_underpowered_without_justification",
+      "fix": "recalculate_power_flag_limitation_plan_pmcf",
+      "note": "工程师反馈：纳入的研究若样本量不足且未提供统计功效分析，需重新计算或引用功效分析、在 CER 中标记为局限性、规划足量样本的 PMCF、适当降低证据权重。",
+      "cer_section": "4 Evidence"
+    },
+    {
+      "id": "DP-034",
+      "name": "annex_body_inconsistency",
+      "severity": "high",
+      "category": "logic",
+      "detection": "annex_counts_vs_body_references_mismatch",
+      "fix": "extract_annex_metadata_reconcile_with_body",
+      "note": "工程师反馈：附件表格/流程图中的数字（如文献数量、不良事件数）与正文叙述不一致是最常见的审核发现之一。需提取附件元数据、与正文叙述和登记表对比、调和差异后重新生成。",
+      "cer_section": "Annex, 4"
+    },
+    {
+      "id": "DP-035",
+      "name": "dependency_chain_broken",
+      "severity": "critical",
+      "category": "logic",
+      "detection": "upstream_chapter_data_missing_in_downstream",
+      "fix": "trace_dependency_chain_regenerate",
+      "note": "工程师反馈：CER 有三条刚性依赖链（§2→§3→§4→§5），上游数据必须在下游可见。若 §2 设备规格未被 §4.2 等效性引用，或 §4.7 分析未引用 §4.6 警戒数据，即为依赖链断裂。",
+      "cer_section": "2-3-4-5"
+    },
+    {
+      "id": "DP-036",
+      "name": "citation_density_low",
+      "severity": "medium",
+      "category": "data",
+      "detection": "references_per_1000_words_below_threshold",
+      "fix": "add_cross_references_and_table_figure_citations",
+      "note": "工程师反馈：5 份真实 CER 报告中引用密度差异显著（帕姆 62 次 vs 亚宏 13 次）。最小要求：§4.2 引用 §2 ≥3 处，§4.7 引用 §4.4 ≥5 处，§5 引用 §4.7 ≥3 处，Annex 文献列表 100% 对应。",
+      "cer_section": "3 SOTA, 4 Evidence"
+    },
+    {
+      "id": "DP-037",
+      "name": "gspr_traceability_gap",
+      "severity": "critical",
+      "category": "logic",
+      "detection": "clinical_data_not_mapped_to_gspr",
+      "fix": "build_gspr_to_evidence_cross_reference_table",
+      "nb_defect_type": "GS-001",
+      "nb_frequency": "9 of 64 real NB records (14%)",
+      "note": "来自 64 条真实 NB 审评记录。BSI 和 TUV SUD 均高频发现：临床数据未显式映射到具体 GSPR 条款。修复：为每条临床数据建立 GSPR→证据交叉引用表。",
+      "cer_section": "4.7 GSPR"
+    },
+    {
+      "id": "DP-038",
+      "name": "documentation_insufficiency_nb",
+      "severity": "critical",
+      "category": "data",
+      "detection": "annexes_unpopulated_or_placeholder_tables",
+      "fix": "populate_all_annexes_with_actual_data",
+      "nb_defect_type": "DO-001",
+      "nb_frequency": "26 of 64 real NB records (41%) — most common NB finding",
+      "note": "来自 64 条真实 NB 审评记录。这是 NB 发现中最常见的缺陷类型（41%）。CER 附件未填充实际数据或只有占位表格。修复：所有附件必须填充真实运行数据，检索协议必须包含 PRISMA 流程图。",
+      "cer_section": "Annex"
+    },
+    {
+      "id": "DP-039",
+      "name": "labeling_ifu_inconsistency_nb",
+      "severity": "critical",
+      "category": "content",
+      "detection": "cer_device_description_mismatches_ifu",
+      "fix": "cross_reference_cer_21_against_ifu_text",
+      "nb_defect_type": "LB-001",
+      "nb_frequency": "4 of 64 real NB records (6%)",
+      "note": "来自 64 条真实 NB 审评记录。CER §2.1 中设备描述、预期用途或禁忌症与 IFU 原文不一致。修复：逐项交叉核验 CER 设备描述与 IFU 正文。",
+      "cer_section": "2 Scope"
+    },
+    {
+      "id": "DP-040",
+      "name": "pmcf_plan_inadequate_nb",
+      "severity": "high",
+      "category": "data",
+      "detection": "pmcf_lacks_specific_objectives_endpoints_timelines",
+      "fix": "specify_pmcf_objectives_endpoints_sample_size_timeline",
+      "nb_defect_type": "PM-001",
+      "nb_frequency": "3 of 64 real NB records (5%)",
+      "note": "来自 64 条真实 NB 审评记录。PMCF 计划缺少具体目标、可度量终点、样本量和时间表。修复：为每个已识别缺口定义具体的 PMCF 目标、终点、样本量和时间线。",
+      "cer_section": "6 PMCF"
+    },
+    {
+      "id": "DP-041",
+      "name": "evidence_appraisal_inconsistent_nb",
+      "severity": "high",
+      "category": "data",
+      "detection": "appraisal_criteria_not_documented_or_inconsistently_applied",
+      "fix": "document_appraisal_methodology_and_apply_consistently",
+      "nb_defect_type": "EV-001",
+      "nb_frequency": "6 of 64 real NB records (9%)",
+      "note": "来自 64 条真实 NB 审评记录。文献评价方法未文档化或评价标准应用不一致。修复：文档化评价方法（研究设计、人群、终点、结果、质量评分、局限性），并一致应用于所有证据条目。",
+      "cer_section": "4.5 Appraisal"
+    },
+    {
+      "id": "DP-042",
+      "name": "equivalence_argument_incomplete_nb",
+      "severity": "high",
+      "category": "logic",
+      "detection": "equivalence_comparison_missing_dimensions",
+      "fix": "complete_3d_comparison_per_mdcg_2020_5",
+      "nb_defect_type": "EQ-001",
+      "nb_frequency": "3 of 64 real NB records (5%)",
+      "note": "来自 64 条真实 NB 审评记录。等效性论证未按 MDCG 2020-5 覆盖全部三个维度（技术/生物学/临床），或差异影响评估缺失。",
+      "cer_section": "4.2 Equivalence"
+    },
+    {
+      "id": "DP-043",
+      "name": "software_document_control_nb",
+      "severity": "medium",
+      "category": "system",
+      "detection": "version_history_or_traceability_gaps",
+      "fix": "document_software_version_and_change_history",
+      "nb_defect_type": "SW-001",
+      "nb_frequency": "3 of 64 real NB records (5%)",
+      "note": "来自 64 条真实 NB 审评记录。版本历史、追溯性或变更管理文档存在缺口。CER 必须明确记录所评估的软件版本及变更历史。",
+      "cer_section": "2 Scope"
+    },
+    {
+      "id": "DP-044",
+      "name": "manufacturer_data_gap_nb",
+      "severity": "high",
+      "category": "data",
+      "detection": "pms_complaints_sales_data_not_provided",
+      "fix": "request_manufacturer_pms_and_sales_exposure_data",
+      "nb_defect_type": "MF-001",
+      "nb_frequency": "2 of 64 real NB records (3%)",
+      "note": "来自 64 条真实 NB 审评记录。制造商未提供 PMS 数据、投诉记录或销售暴露数据。CER 必须声明数据缺口并降级相关结论。",
+      "cer_section": "4.3 Manufacturer Data"
+    },
+    {
+      "id": "DP-045",
+      "name": "benefit_risk_quantitative_gap_nb",
+      "severity": "high",
+      "category": "logic",
+      "detection": "br_conclusion_not_supported_by_quantitative_comparison",
+      "fix": "add_quantitative_benefit_vs_risk_comparison_with_defined_metrics",
+      "nb_defect_type": "BR-001",
+      "nb_frequency": "2 of 64 real NB records (3%)",
+      "note": "来自 64 条真实 NB 审评记录。获益-风险结论缺乏定量比较支持。修复：使用定义度量标准（如获益幅度、风险严重度、发生率）做定量获益-风险对比。",
+      "cer_section": "5 Conclusions"
+    },
+    {
+      "id": "DP-046",
+      "name": "data_transferability_gap_nb",
+      "severity": "medium",
+      "category": "logic",
+      "detection": "study_population_or_device_version_not_justified",
+      "fix": "document_transferability_rationale_or_downgrade_evidence",
+      "nb_defect_type": "DT-001",
+      "nb_frequency": "2 of 64 real NB records (3%)",
+      "note": "来自 64 条真实 NB 审评记录。研究人群或设备版本与当前评价设备的可转移性未充分论证。修复：文档化可转移性理由或降低证据权重。",
+      "cer_section": "4 Evidence"
+    }
+  ],
+  "total": 46,
+  "nb_linked_patterns": 10,
+  "nb_data_source": "64 real NB review records from 11 CER projects (BSI: 50, TUV SUD: 14)",
+  "cross_references": {
+    "_note": "Each defect pattern links to corresponding remediation playbook entries for automated repair recommendation.",
+    "DP-031": {
+      "remediation": "equivalence_no_performance_data"
+    },
+    "DP-032": {
+      "remediation": "study_population_mismatch"
+    },
+    "DP-033": {
+      "remediation": "underpowered_study"
+    },
+    "DP-034": {
+      "remediation": "annex_inconsistency"
+    },
+    "DP-035": {
+      "remediation": "dependency_broken"
+    },
+    "DP-036": {
+      "remediation": "citation_gap"
+    },
+    "DP-037": {
+      "remediation": "missing_rmf",
+      "alt": "gspr_traceability"
+    },
+    "DP-038": {
+      "remediation": "insufficient_evidence"
+    },
+    "DP-039": {
+      "remediation": "wrong_claim_type"
+    },
+    "DP-040": {
+      "remediation": "insufficient_follow_up"
+    },
+    "DP-041": {
+      "remediation": "statistical_power"
+    },
+    "DP-042": {
+      "remediation": "overclaimed_equivalence"
+    },
+    "DP-043": {
+      "remediation": "template_residue"
+    },
+    "DP-044": {
+      "remediation": "missing_rmf"
+    },
+    "DP-045": {
+      "remediation": "br_asymmetry"
+    },
+    "DP-046": {
+      "remediation": "population_mismatch"
+    }
+  },
+  "version": "V2",
+  "last_updated": "2026-05-21"
+}

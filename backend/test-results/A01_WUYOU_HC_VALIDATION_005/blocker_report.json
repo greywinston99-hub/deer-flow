@@ -1,0 +1,68 @@
+{
+  "schema": "cer_authoring_blocker_report_v1",
+  "project_id": "A01_WUYOU_HC_VALIDATION_005",
+  "status": "BLOCKED",
+  "writer_invoked": false,
+  "source_preflight_status": "REWORK_REQUIRED",
+  "pre_writer_readiness_status": "BLOCKED",
+  "final_gate_decision": "HUMAN_HOLD",
+  "blocking_issue_count": 3,
+  "controlled_gap_count": 3,
+  "blocking_issues": [
+    {
+      "condition_name": "WS4_PRISMA",
+      "status": "BLOCKED",
+      "message": "PRISMA not reproducible: 1 major, 0 critical failures.",
+      "upstream_route": "sota_search",
+      "failure_pattern": "prisma_not_reproducible",
+      "source_gate_ids": "WS4_PRISMA_REPRODUCIBILITY"
+    },
+    {
+      "condition_name": "WS6_ENDPOINT_HOMOGENEITY",
+      "status": "REWORK_REQUIRED",
+      "message": "1 endpoint families are heterogeneous — conclusion must be downgraded.",
+      "upstream_route": "endpoint_extraction",
+      "failure_pattern": "endpoint_heterogeneity_downgrade",
+      "source_gate_ids": "WS6_ENDPOINT_HOMOGENEITY"
+    },
+    {
+      "condition_name": "WS9_RMF_LINKAGE",
+      "status": "BLOCKED",
+      "message": "4 IFU warnings have no RMF hazard linkage.",
+      "upstream_route": "risk_gspr_mapping",
+      "failure_pattern": "ifu_warning_unlinked_to_rmf",
+      "source_gate_ids": "WS9_RMF_IFU_LINKAGE"
+    }
+  ],
+  "controlled_gaps": [
+    {
+      "gap_id": "SOURCE-CONTROLLED-GAP-MIXED-DOMAIN-LOCKED",
+      "severity": "major",
+      "message": "Mixed source-domain signals remain present, but manufacturer intake supplied a confirmed subject-device domain lock.",
+      "domains": [
+        "contrast_imaging_bubble_study_system",
+        "plasma_surgical_equipment"
+      ],
+      "locked_domain": "contrast_imaging_bubble_study_system"
+    },
+    {
+      "gap_id": "CLASS-CONTROLLED-GAP-SOURCE-CONFLICT-LOCKED",
+      "severity": "major",
+      "message": "Conflicting source classification signals remain present, but manufacturer intake supplied a confirmed MDR classification lock.",
+      "classes": [
+        "I",
+        "III",
+        "IIa",
+        "IIb"
+      ],
+      "locked_classification": "IIb"
+    },
+    {
+      "gap_id": "GAP-INPUT-EQUIVALENCE",
+      "required_input": "equivalence",
+      "impact": "Equivalence cannot be claimed without confirmed equivalent-device documentation."
+    }
+  ],
+  "recommended_next_action": "Resolve critical source/package blockers before rerunning CER authoring.",
+  "created_at": "2026-05-29T09:12:39Z"
+}

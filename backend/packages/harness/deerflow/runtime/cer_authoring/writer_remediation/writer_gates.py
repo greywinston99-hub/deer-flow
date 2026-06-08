@@ -667,6 +667,7 @@ def run_all_writer_gates(
     quarantined = any(g.get("quarantine") for g in gates)
 
     # S6 fix: also check writer invocation and blocker status
+    state = state or {}
     blocker = state.get("blocker_report") or {}
     writer_invoked = blocker.get("writer_invoked", True)
 

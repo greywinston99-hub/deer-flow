@@ -171,6 +171,20 @@ OUTPUT_FILES = [
     "endpoint_homogeneity_matrix.xlsx",
     "equivalence_route_lock.json",
     "regulatory_style_fingerprint_report.json",
+    # V3.1 artifacts
+    "clinical_fact_registry.json",
+    "endpoint_selection_table.json",
+    "sota_endpoint_master.json",
+    "sota_benchmark_candidate_records.json",
+    "sota_comparability_matrix.csv",
+    "sota_evidence_weighting.json",
+    "sota_benchmark_derivation.json",
+    "own_data_alignment_matrix.json",
+    "sota_comparison_conclusions.json",
+    "reference_framework.json",
+    "treatment_landscape.json",
+    "pmcf_need_determination.json",
+    "search_ledger_integrity_report.json",
 ]
 
 # V2: Standard table field definitions aligned with 262 real CER tables (CER_05_TABLES)

@@ -1,0 +1,18 @@
+# Changed files — Phase 3A Model Routing
+
+## New files (2)
+backend/.../writer_remediation/model_routing.py — routing policy + resolver + boundaries + A/B config
+backend/tests/test_model_routing.py — 25 targeted tests
+
+## Modified files (1)
+backend/.../agent_runtime.py — per-agent model override in invoke_authoring_agent() (~15 lines)
+
+## Forbidden files (zero diff)
+backend/.../graph.py — UNCHANGED
+backend/.../gates.py — UNCHANGED
+backend/.../agents.py — UNCHANGED
+
+## Documentation files (8)
+docs/cer_authoring_stack_freeze/claude_team/MODEL_ROUTING_*.md
+docs/cer_authoring_stack_freeze/claude_team/WRITER_MODEL_AB_RUNNER_OR_PLAN.md
+docs/cer_authoring_stack_freeze/claude_team/QA_MODEL_AB_RUNNER_OR_PLAN.md

@@ -1,0 +1,12 @@
+{
+  "schema": "cer_classification_consistency_report_v1",
+  "status": "PASS",
+  "classification_signals": [
+    "IIb",
+    "IIa",
+    "I",
+    "III"
+  ],
+  "locked_classification": "IIb",
+  "manufacturer_intake_lock": true
+}

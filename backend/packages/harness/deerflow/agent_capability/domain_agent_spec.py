@@ -33,7 +33,7 @@ class DomainAgentSpec:
     # ── Tool config (maps 1:1 to SubagentConfig) ─────────
     tools: list[str] | None = None
     disallowed_tools: list[str] | None = None
-    model: str = "minimax-m2.7-highspeed"
+    model: str = "deepseek-v4-pro"
     max_turns: int = 50
     timeout_seconds: int = 900
 

@@ -1,0 +1,10 @@
+Targeted W1-W5 tests: 25 passed, 0 failed
+
+W1 Gate 1 (Domain Consistency): 5 tests PASS
+W1 Gate 3 (Evidence-Conclusion): 5 tests PASS
+W2 Gate 2 (IFU Consumption): 3 tests PASS
+W2 Gate 4 (Body Cleanliness): 3 tests PASS
+W3 Gate 5 (QA Hardening): 6 tests PASS
+W4 Quarantine Routing: 3 tests PASS
+
+Run date: 2026-05-15

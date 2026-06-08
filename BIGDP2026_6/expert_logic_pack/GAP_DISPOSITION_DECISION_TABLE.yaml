@@ -1,0 +1,84 @@
+# GAP_DISPOSITION_DECISION_TABLE.yaml
+# Maps evidence gap patterns → disposition
+schema_version: "1.0.0"
+
+decisions:
+  - gap_pattern: "no_evidence_at_all"
+    trigger: "evidence_ids is empty"
+    disposition: "PMCF_required"
+    writer_permission: "allowed_with_limitations"
+    writer_must_include: ["PMCF recommendation", "absence of clinical evidence noted"]
+    rule_ref: "GAP-01"
+    severity: "major"
+
+  - gap_pattern: "limited_evidence"
+    trigger: "conclusion_strength == limited AND gap_disposition not explicitly set"
+    disposition: "PMCF_required"
+    writer_permission: "allowed_with_limitations"
+    writer_must_include: ["limited evidence caveat", "PMCF recommendation"]
+    rule_ref: "GAP-02"
+    severity: "major"
+
+  - gap_pattern: "single_study_only"
+    trigger: "evidence_count == 1 AND study_design != RCT_multicenter"
+    disposition: "PMCF_required"
+    writer_permission: "allowed_with_limitations"
+    writer_must_include: ["single-study limitation", "PMCF for confirmatory study"]
+    rule_ref: "GAP-02"
+    severity: "major"
+
+  - gap_pattern: "contradictory_evidence"
+    trigger: "evidence contradicts claim"
+    disposition: "cannot_support_claim"
+    writer_permission: "blocked"
+    writer_must_include: ["claim marked as NOT SUPPORTED", "contradictory evidence cited"]
+    rule_ref: "GAP-03"
+    severity: "critical"
+
+  - gap_pattern: "endpoint_mismatch"
+    trigger: "claimed_endpoint != evidence_endpoint AND is_surrogate=true"
+    disposition: "PMCF_required"
+    writer_permission: "allowed_with_limitations"
+    writer_must_include: ["surrogate endpoint caveat", "PMCF to measure claimed endpoint directly"]
+    rule_ref: "GAP-01"
+    severity: "major"
+
+  - gap_pattern: "safety_claim_no_rmf"
+    trigger: "claim_type == clinical_safety AND rmf_alignment == false"
+    disposition: "risk_control_required"
+    writer_permission: "allowed_with_limitations"
+    writer_must_include: ["RMF alignment pending", "risk control documentation required"]
+    rule_ref: "GAP-04"
+    severity: "major"
+
+  - gap_pattern: "equivalence_not_documented"
+    trigger: "support_type == equivalent AND equivalence_documented == false"
+    disposition: "cannot_support_claim"
+    writer_permission: "blocked"
+    writer_must_include: ["equivalence not documented", "cannot use equivalent device data"]
+    rule_ref: "EVS-03"
+    severity: "critical"
+
+  - gap_pattern: "administrative_claim_unverifiable"
+    trigger: "claim_type == non_clinical AND no_technical_documentation"
+    disposition: "labeling_limitation"
+    writer_permission: "allowed_with_limitations"
+    writer_must_include: ["labeling update recommendation", "TD reference missing"]
+    rule_ref: "none"
+    severity: "warning"
+
+  - gap_pattern: "high_uncertainty_critical_claim"
+    trigger: "claim_criticality == high AND conclusion_strength IN (limited, not_supported)"
+    disposition: "human_gate_required"
+    writer_permission: "blocked_until_human_decision"
+    writer_must_include: ["human decision pending"]
+    rule_ref: "HG-03"
+    severity: "critical"
+
+  - gap_pattern: "no_gap"
+    trigger: "evidence_count >= 2 AND conclusion_strength IN (strong, moderate) AND no_contradiction"
+    disposition: "no_gap"
+    writer_permission: "allowed"
+    writer_must_include: []
+    rule_ref: "none"
+    severity: "info"

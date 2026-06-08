@@ -1,0 +1,696 @@
+{
+  "schema": "cer_manufacturer_intake_report_v1",
+  "status": "PASS",
+  "path": "/Users/winstonwei/CER-RAG/升级 CCD-3 个项目文件/2026.5.28- 试运行项目/A01_无忧跳动/MANUFACTURER_INTAKE_PACK_TEMPLATE_2026-05-28_FILLED_v2.xlsx",
+  "rows": [
+    {
+      "field_id": "subject_device_boundary",
+      "question": "Is the subject device the main plasma surgical equipment, the single-use electrode/accessory, or a system combination?",
+      "response": "System combination — Bubble Study System (active medical electrical equipment, Model BS-2, Class IIb) + Disposable Contrast Injection Tubing Set (single-use sterile consumable, Models DCS-3030/3030B/5030/5030B, Class IIa) + Disposable Mask (accessory). The CER covers the system as a whole with the tubing set as an integral accessory/consumable.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU of Bubble Study System (Doc No. 05E-OT-149, V1.0); DoC of the system (DOC_003); DoC of the tubing (DOC_001)",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "subject_device_domain",
+      "question": "Locked domain: plasma_surgical_equipment / plasma_surgical_electrode / other.",
+      "response": "contrast_imaging_bubble_study_system",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Domain ID assigned for DeerFlow routing. SOTA query pack, writer template, and domain term matrix must be configured in DeerFlow for this domain. NB: BSI Group The Netherlands B.V.",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "product_name_en",
+      "question": "English product name.",
+      "response": "Bubble Study System / Disposable Contrast Injection Tubing Set",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 (Bubble Study System); IFU_004 (Disposable Contrast Injection Tubing Set); DoC_003; DoC_001",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "product_name_cn",
+      "question": "Chinese product name.",
+      "response": "全自动超声造影注射系统 / 一次性使用造影注射管路套件",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "CH5.3 使用说明书 (IFU_036); 临床试验报告 (CLINEV_001)",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "model_specifications",
+      "question": "Model/specification list covered by this CER.",
+      "response": "BS-2 (Bubble Study System); DCS-3030, DCS-3030B, DCS-5030, DCS-5030B (Disposable Contrast Injection Tubing Set)",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "DoC_003 (system model BS-2, Basic UDI-DI 697603339BSZT); DoC_001 (tubing models, Basic UDI-DI 697603339DCSR9)",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "system_or_component",
+      "question": "Is this a standalone device, accessory, consumable, or system?",
+      "response": "System — standalone active device (Class IIb) with integral single-use consumable accessory (Class IIa)",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 (system consists of main unit, touchscreen, air-blowing handle, power adapter, power cord, magnetic cable, optional footswitch); IFU_004 (tubing set consists of syringe, triple three-way stopcock, proximal extension tube, distal extension tube, air filter, vial puncture device and clamp)",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "mdr_classification",
+      "question": "Single MDR classification: I / IIa / IIb / III.",
+      "response": "IIb",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Subject device (Bubble Study System) primary classification per DoC_003 Annex IX. Tubing set (Disposable Contrast Injection Tubing Set) is Class IIa per DoC_001; treated as integral accessory/consumable within system CER.",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "mdr_rule",
+      "question": "MDR Annex VIII rule used for classification.",
+      "response": "Rule 10 + Rule 12 (system); Rule 2 (tubing set)",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "System: Rule 10 (active device for diagnosis) + Rule 12(2)(a) (administering substances via potentially hazardous IV route → IIb). Tubing: Rule 2 (non-active device channeling blood/body liquids for infusion → IIa). Confirmed by manufacturer and NB (BSI).",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "classification_rationale",
+      "question": "Classification rationale and manufacturer/NB confirmation basis.",
+      "response": "Bubble Study System is an active device intended for diagnosis (contrast imaging) and administers agitated saline via intravenous route. Per MDR Annex VIII Rule 12(2)(a), devices administering substances in a potentially hazardous manner are Class IIb. IV administration carries air embolism risk. Tubing set channels blood/saline for transient infusion per Rule 2 → Class IIa. Manufacturer and NB (BSI) confirmed Annex IX conformity assessment.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "DoC_003; DoC_001; GSPR_001; GSPR_002; GSPR_003",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "manufacturer_name",
+      "question": "Legal manufacturer name.",
+      "response": "WYTD MEDICAL TECHNOLOGY (SHENZHEN) CO., LTD.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "DoC_003; IFU_001; IFU_004. Address: 301 & 401, Building 11, Biomedical Innovation Industrial Park, No.14, Jinhui Road, Jinsha Community, Kengzi Street, Pingshan District, Shenzhen, Guangdong, China. EU AR: BioDomi GmbH (SRN: DE-AR-000016611). Manufacturer SRN: pending application.",
+      "sheet": "P0_Device_Scope"
+    },
+    {
+      "field_id": "model",
+      "ifu_cer_field": "Model / specification",
+      "response": "BS-2 (system); DCS-3030, DCS-3030B, DCS-5030, DCS-5030B (tubing set)",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "DoC_003; DoC_001; IFU_001; IFU_004",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "intended_purpose",
+      "ifu_cer_field": "Intended purpose / intended use",
+      "response": "The Bubble Study System is used in conjunction with Disposable Masks and Disposable Contrast Injection Tubing Set for the preparation and injection of agitated saline during bubble study procedures for transthoracic echocardiographic contrast imaging or contrast-enhanced transcranial Doppler ultrasound imaging. The NIBP module monitors patient pulse and non-invasive blood pressure.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §2.1; IFU_004 [Intended Purpose]; DoC_003 Intended Purpose",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "indications",
+      "ifu_cer_field": "Indications",
+      "response": "Detection and grading of right-to-left shunt (RLS), including patent foramen ovale (PFO). Used in patients with cryptogenic stroke, high-risk TIA, migraine with aura, or other clinically suspected right-to-left shunt conditions.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial protocol (CLINEV_001 §临床试验目的); 2022 PFO expert consensus cited in clinical trial report",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "intended_user",
+      "ifu_cer_field": "Intended user / user profile",
+      "response": "Trained and experienced medical staff with professional certification. Specifically: cardiac ultrasound physicians for c-TTE; neurology ultrasound physicians for c-TCD.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 (\"Only qualified medical personnel with professional certification may operate this system\"); IFU_004 (\"restricted to trained and experienced medical staff\"); Clinical trial report (CLINEV_001)",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "patient_population",
+      "ifu_cer_field": "Patient population / target population",
+      "response": "Adults aged 18-75 years, both sexes. Patients clinically suspected of right-to-left shunt who can complete contrast echocardiography or transcranial Doppler ultrasound assessment and can cooperate with Valsalva maneuver.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial report CLINEV_001 §受试者选择 (inclusion criteria)",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "anatomical_site",
+      "ifu_cer_field": "Anatomical site / clinical setting",
+      "response": "Cardiac: right atrium, interatrial septum (foramen ovale) for transthoracic echocardiographic contrast imaging (c-TTE). Cerebral: middle cerebral artery (MCA) for contrast-enhanced transcranial Doppler ultrasound imaging (c-TCD). Intravenous administration via elbow vein.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §2.1; Clinical trial report CLINEV_001 §发泡试验原理",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "clinical_benefit",
+      "ifu_cer_field": "Clinical benefit",
+      "response": "Automated preparation and injection of standardized agitated saline contrast agent ensures stable bubble size and quantity, improves reproducibility and reliability of bubble study procedures. Pressure monitoring optimizes patient compliance with Valsalva maneuver. Non-invasive screening with high sensitivity for detection of RLS/PFO.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial report CLINEV_001 §产品特点; IFU_001 §Product Overview",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "performance_claims",
+      "ifu_cer_field": "Performance claims",
+      "response": "Primary: Positive detection concordance rate ≥80% vs manual agitated saline (target 92%, clinical acceptance 80%); Negative detection concordance rate ≥80% (same targets). Secondary: RLS semi-quantitative grading consistency (Negative/I/II/III); RLS type consistency (intrinsic vs potential); Device success rate; Diagnostic success rate; Adverse event rate. Standardized agitation: 1ml air + 8ml saline + 1ml blood, 20 agitation cycles. Tubing: EO sterilized, sterile, pyrogen-free, 3-year shelf life.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial report CLINEV_001 §临床评价标准; IFU_004 [Product Performance and Features]",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "contraindications",
+      "ifu_cer_field": "Contraindications",
+      "response": "1) Severe cardiac, hepatic, renal, or pulmonary impairment; malignant tumors; hematological or autoimmune diseases. 2) Patients unable to cooperate due to consciousness or cognitive disorders. 3) Carotid artery stenosis, congenital intracranial segment vertebral artery dysplasia, or absence of temporal window with inability to locate unilateral MCA. 4) Pregnant or lactating women. Additional (clinical trial): atherosclerotic stenosis or arterial dissection causing stroke; severe multi-organ failure; intellectual disability or severe hearing impairment; epilepsy; psychiatric disorders; 3 months participation in other clinical trials.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §2.2; IFU_004 [Contraindications]; Clinical trial report CLINEV_001 §排除标准",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "warnings",
+      "ifu_cer_field": "Warnings / precautions",
+      "response": "1) Read installation and use instructions before use. 2) Tubing set is single-use only; reuse increases cross-infection risk. 3) Do not use if individual packaging damaged. 4) Check packaging/connectors before use. 5) Do not pull plunger beyond graduation marks. 6) Do not connect extension tube to indwelling needle before air expelled. 7) Stop and replace if blockage or leakage. 8) Restricted to trained medical staff. 9) System: Class I Type BF, IPX0 main unit/IPX1 footswitch; not for flammable anesthetic environments. 10) Unauthorized modification prohibited. 11) Ensure protective grounding.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §Safety Warning Information; IFU_004 [Precautions, Warnings, and Notices]",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "side_effects",
+      "ifu_cer_field": "Side effects / undesirable effects",
+      "response": "Potential adverse events: pain/tenderness at injection site; transient hemodynamic dysfunction; thromboembolic events (circulatory air embolism, pulmonary air embolism); vascular thrombosis; vascular perforation; vasospasm. Agitated saline contrast is generally well-tolerated; serious adverse events are rare. Clinical trial: no serious adverse events related to device reported.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial report CLINEV_001 §安全性评价; IFU_004 [Precautions]; Clinical protocol adverse event definitions",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "sterility_status",
+      "ifu_cer_field": "Sterility status",
+      "response": "Disposable Contrast Injection Tubing Set: sterilized with ethylene oxide, sterile, pyrogen-free. Bubble Study System main unit and accessories (touchscreen, handle, footswitch): non-sterile.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_004 [Product Performance and Features]; DoC_001",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "single_use_status",
+      "ifu_cer_field": "Reuse / single-use status",
+      "response": "Disposable Contrast Injection Tubing Set: single use only. Bubble Study System main unit, touchscreen, handle: reusable. Footswitch: reusable (optional).",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §System Configuration; IFU_004 [Precautions]",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "shelf_life_storage",
+      "ifu_cer_field": "Shelf life / storage",
+      "response": "Tubing set shelf life: 3 years. Store indoors in well-ventilated, dry area free from corrosive gases, away from heat sources. Avoid squeezing/collision during transport. System: see individual device label. Operating environment: 10-40°C, 15-85%RH non-condensing, 700-1060 hPa. Storage: -20°C to 55°C, RH ≤93%, 700-1060 hPa.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §2.3.2, §5.1; IFU_004 [Special Storage and Transportation Conditions]",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "compatible_accessories",
+      "ifu_cer_field": "Accessories / compatible electrodes",
+      "response": "Disposable Mask (for patient breathing/Valsalva); Disposable Contrast Injection Tubing Set (DCS-3030, DCS-3030B, DCS-5030, DCS-5030B); Footswitch (optional, USB connection); NIBP module with blood pressure cuff (adult, pediatric sizes); Power adapter; Magnetic cable.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §3.2 Compatible Consumables; IFU_004; Clinical trial report CLINEV_001 §产品结构组成",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "field_id": "document_control",
+      "ifu_cer_field": "Document number, version, date, owner",
+      "response": "Document Number: 05E-OT-149; Version: V1.0; Release Date: 2025-05-19; Manufacturer: WYTD MEDICAL TECHNOLOGY (SHENZHEN) CO., LTD.; Software Release Version: V1.1",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 cover page; DoC_003 (Software V1.1, Basic UDI-DI 697603339BSZT)",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    {
+      "control_id": "gspr_checklist",
+      "required_input": "GSPR checklist available and mapped to evidence.",
+      "response": "Available. (1) \"GSPR checklist of Bubble Study System\" (GSPR_001) for active device; (2) \"GSPR checklist - Active Non-Sterile\" (GSPR_002); (3) \"GSPR checklist - Non-Active Sterile\" (GSPR_003) for tubing set. Standards referenced: EN 60601-1, YY 9706.102, YY 9706.230, GB/T 14710, ISO 10993 series, ISO 14971. Evidence mapped to test reports, V&V documents, risk management files.",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "GSPR_001; GSPR_002; GSPR_003; GSPR_004",
+      "sheet": "P1_Evidence_Controls"
+    },
+    {
+      "control_id": "rmf_available",
+      "required_input": "Risk Management File / report available.",
+      "response": "Available for both system and consumables. System: Risk Management Plan (RMF_009), Risk Management Report (RMF_007), domestic RMP (RMF_017), domestic RMR (RMF_015), PFMEA (RMF_008). Consumables: Risk Management Plan (RMF_011), Risk Management Report (RMF_010). Process: IEC 60601-1 risk analysis (RMF_013).",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "RMF_007; RMF_009; RMF_010; RMF_011; RMF_015; RMF_017; RMF_008; RMF_013",
+      "sheet": "P1_Evidence_Controls"
+    },
+    {
+      "control_id": "ifu_warning_rmf_crosswalk",
+      "required_input": "Each IFU warning mapped to hazard/residual risk.",
+      "response": "Mapped. Key warnings cross-referenced to hazards in RMF: single-use warning → cross-infection hazard (biological risk); packaging damage warning → sterility breach hazard; air embolism warning → vascular air embolism hazard (critical); blockage/leakage warning → device failure hazard; Valsalva non-compliance warning → diagnostic accuracy hazard. Residual risks documented in RMF with risk acceptability assessment per ISO 14971.",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "RMF_007 §Risk Analysis; RMF_010 §耗材风险评价; IFU_001 §Safety Precautions; IFU_004 [Precautions]",
+      "sheet": "P1_Evidence_Controls"
+    },
+    {
+      "control_id": "pms_data",
+      "required_input": "PMS, complaints, sales/use exposure and vigilance data available.",
+      "response": "PMS Plan available (PMS_002, PMS_003). Pre-market clinical data: prospective, multi-center, cross-over controlled clinical trial (CLINEV_001, protocol WYTD-YY-A03 V1.1). 3 centers: Fuwai Hospital Shenzhen, Hebei Medical University First Hospital, Xiangyang Central Hospital. 180 subjects, Dec 2024 - Apr 2025. Post-market: complaints and vigilance data collection planned; PSUR not yet available (pre-market stage).",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "PMS_002; PMS_003; CLINEV_001; CLINEV_002 (protocol); CLINEV_003; CLINEV_004; CLINEV_005",
+      "sheet": "P1_Evidence_Controls"
+    },
+    {
+      "control_id": "pmcf_plan",
+      "required_input": "PMCF plan or no-PMCF justification available.",
+      "response": "PMCF Plans available for both system (PMCF_003) and tubing (PMCF_004). Both follow MDCG 2020-7 template structure (Sections A-G). C.4 Clinical experience gathering: 67 cases/year, open-label consecutive collection. C.5 Literature screening: Medline/PubMed/Embase/Cochrane. However: (1) C.2 PMCF study determination is incomplete/blank in both plans; (2) Plans are based on \"no study 低风险\" template (PMCF_001) which may be insufficient for Class IIb diagnostic device with air embolism risk; (3) Some placeholder text remains (e.g., \"xxx Questionnaires\"); (4) MDR Art. 74 requires PMCF to be a continuous process — the justification for limited PMCF activities needs strengthening for Class IIb.",
+      "required_level": "P1",
+      "status": "draft",
+      "note": "PMCF_003; PMCF_004; PMCF_001 (template). GAPS TO CLOSE: (a) Complete C.2 PMCF study determination with explicit justification for no PMCF study vs general PMCF; (b) Strengthen risk-based justification for limited PMCF given Class IIb classification and IV route hazard; (c) Replace placeholder text; (d) Verify NB (BSI) acceptance of this PMCF approach. Until gaps closed, status remains draft — CER benefit-risk closure will be rated as controlled uncertainty, not strong closure.",
+      "sheet": "P1_Evidence_Controls"
+    },
+    {
+      "control_id": "claim_evidence_mapping",
+      "required_input": "Each final-body claim has support status, evidence strength ceiling and allowed wording.",
+      "response": "Primary claim (diagnostic accuracy): Positive/negative RLS detection concordance vs manual method. Evidence: prospective multi-center clinical trial (180 subjects, crossover design). Strength: moderate-high (prospective controlled trial). Secondary claims: RLS semi-quantitative grading consistency, RLS type consistency, device success rate, diagnostic success rate. Safety claim: AE rate non-inferior to manual method. All claims supported by clinical trial data (CLINEV_001).",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "CLINEV_001; CLINEV_002 (protocol); Clinical trial statistical analysis plan",
+      "sheet": "P1_Evidence_Controls"
+    },
+    {
+      "control_id": "sota_search_protocol",
+      "required_input": "SOTA search protocol with databases, strategy, inclusion/exclusion and appraisal method.",
+      "response": "Available. (1) \"Annex 1 Literature Search Protocol and Report - SOTA\" (SOTA_001) for state-of-the-art literature review. (2) \"Annex 2 Literature Search Protocol and Report - Device under evaluation\" (SOTA_002). Databases, search strategy, inclusion/exclusion criteria, and appraisal method documented.",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "SOTA_001; SOTA_002; SOTA_003 (literature screening flowchart template); SOTA_004 (SOTA body template)",
+      "sheet": "P1_Evidence_Controls"
+    },
+    {
+      "control_id": "equivalence_boundary",
+      "required_input": "Equivalence/similar-device boundary confirmed.",
+      "response": "No direct equivalent device identified. Bubble Study System is a novel automated device for agitated saline preparation and injection. Clinical evaluation based on direct clinical evidence (prospective multi-center trial) rather than equivalence route. The manual agitated saline preparation method serves as the clinical reference comparator in the crossover trial.",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "Clinical trial protocol CLINEV_002; CLINEV_001 §临床试验目的. Device is novel — equivalence route not applicable.",
+      "sheet": "P1_Evidence_Controls"
+    },
+    {
+      "field_id": "cer_document_number",
+      "document_control_field": "CER document number",
+      "response": "CER-BS2-001",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "Placeholder assigned for CER tracking. Manufacturer must confirm final document number per internal numbering system.",
+      "sheet": "P2_Doc_Control"
+    },
+    {
+      "field_id": "cer_version",
+      "document_control_field": "CER version",
+      "response": "1.0",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "Initial version. To be confirmed by manufacturer upon formal release.",
+      "sheet": "P2_Doc_Control"
+    },
+    {
+      "field_id": "cer_date",
+      "document_control_field": "CER date",
+      "response": "2025-05-28",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "Draft date. To be updated to actual CER completion date.",
+      "sheet": "P2_Doc_Control"
+    },
+    {
+      "field_id": "author",
+      "document_control_field": "Author name / role",
+      "response": "To be assigned — Clinical Evaluation Specialist",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "Author must be a qualified person with clinical/technical competence per MDR Annex XIV Part A.4. CV required.",
+      "sheet": "P2_Doc_Control"
+    },
+    {
+      "field_id": "reviewer",
+      "document_control_field": "Reviewer name / role",
+      "response": "To be assigned — Regulatory Affairs Manager",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "Independent reviewer required per manufacturer QMS procedures.",
+      "sheet": "P2_Doc_Control"
+    },
+    {
+      "field_id": "approver",
+      "document_control_field": "Approver name / role",
+      "response": "To be assigned — Authorized Person / Management Representative",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "Final approval per manufacturer internal procedures and MDR requirements.",
+      "sheet": "P2_Doc_Control"
+    },
+    {
+      "field_id": "evaluator_qualification",
+      "document_control_field": "Evaluator qualification / CV availability",
+      "response": "Evaluator must demonstrate: (1) Higher education degree in relevant clinical/technical field + 5 years experience, OR 10 years professional experience in relevant field; (2) Knowledge of MDR 2017/745 Annex XIV requirements; (3) Understanding of device technology and clinical application; (4) No conflicts of interest. CV and declaration to be provided.",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "Per MDR Annex XIV Part A.4. Evaluator qualification statement and CV must be appended to CER.",
+      "sheet": "P2_Doc_Control"
+    },
+    {
+      "field_id": "declaration_of_interest",
+      "document_control_field": "Declaration of interest status",
+      "response": "No known conflicts of interest. Formal declaration to be signed by evaluator per MDR requirements.",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "To be completed with evaluator signature before CER finalization.",
+      "sheet": "P2_Doc_Control"
+    },
+    {
+      "field_id": "next_cer_update",
+      "document_control_field": "Next CER update date or interval",
+      "response": "Annual review or upon significant change (e.g., design change, new clinical data, updated SOTA, incident report trend). First review: 2026-05-28.",
+      "required_level": "P2",
+      "status": "draft",
+      "note": "Aligned with PMS plan (PMS_002/PMS_003) and MDR Article 83 PSUR cycle.",
+      "sheet": "P2_Doc_Control"
+    }
+  ],
+  "confirmed_fields": {
+    "subject_device_boundary": {
+      "field_id": "subject_device_boundary",
+      "question": "Is the subject device the main plasma surgical equipment, the single-use electrode/accessory, or a system combination?",
+      "response": "System combination — Bubble Study System (active medical electrical equipment, Model BS-2, Class IIb) + Disposable Contrast Injection Tubing Set (single-use sterile consumable, Models DCS-3030/3030B/5030/5030B, Class IIa) + Disposable Mask (accessory). The CER covers the system as a whole with the tubing set as an integral accessory/consumable.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU of Bubble Study System (Doc No. 05E-OT-149, V1.0); DoC of the system (DOC_003); DoC of the tubing (DOC_001)",
+      "sheet": "P0_Device_Scope"
+    },
+    "subject_device_domain": {
+      "field_id": "subject_device_domain",
+      "question": "Locked domain: plasma_surgical_equipment / plasma_surgical_electrode / other.",
+      "response": "contrast_imaging_bubble_study_system",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Domain ID assigned for DeerFlow routing. SOTA query pack, writer template, and domain term matrix must be configured in DeerFlow for this domain. NB: BSI Group The Netherlands B.V.",
+      "sheet": "P0_Device_Scope"
+    },
+    "product_name_en": {
+      "field_id": "product_name_en",
+      "question": "English product name.",
+      "response": "Bubble Study System / Disposable Contrast Injection Tubing Set",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 (Bubble Study System); IFU_004 (Disposable Contrast Injection Tubing Set); DoC_003; DoC_001",
+      "sheet": "P0_Device_Scope"
+    },
+    "product_name_cn": {
+      "field_id": "product_name_cn",
+      "question": "Chinese product name.",
+      "response": "全自动超声造影注射系统 / 一次性使用造影注射管路套件",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "CH5.3 使用说明书 (IFU_036); 临床试验报告 (CLINEV_001)",
+      "sheet": "P0_Device_Scope"
+    },
+    "model_specifications": {
+      "field_id": "model_specifications",
+      "question": "Model/specification list covered by this CER.",
+      "response": "BS-2 (Bubble Study System); DCS-3030, DCS-3030B, DCS-5030, DCS-5030B (Disposable Contrast Injection Tubing Set)",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "DoC_003 (system model BS-2, Basic UDI-DI 697603339BSZT); DoC_001 (tubing models, Basic UDI-DI 697603339DCSR9)",
+      "sheet": "P0_Device_Scope"
+    },
+    "system_or_component": {
+      "field_id": "system_or_component",
+      "question": "Is this a standalone device, accessory, consumable, or system?",
+      "response": "System — standalone active device (Class IIb) with integral single-use consumable accessory (Class IIa)",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 (system consists of main unit, touchscreen, air-blowing handle, power adapter, power cord, magnetic cable, optional footswitch); IFU_004 (tubing set consists of syringe, triple three-way stopcock, proximal extension tube, distal extension tube, air filter, vial puncture device and clamp)",
+      "sheet": "P0_Device_Scope"
+    },
+    "mdr_classification": {
+      "field_id": "mdr_classification",
+      "question": "Single MDR classification: I / IIa / IIb / III.",
+      "response": "IIb",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Subject device (Bubble Study System) primary classification per DoC_003 Annex IX. Tubing set (Disposable Contrast Injection Tubing Set) is Class IIa per DoC_001; treated as integral accessory/consumable within system CER.",
+      "sheet": "P0_Device_Scope"
+    },
+    "mdr_rule": {
+      "field_id": "mdr_rule",
+      "question": "MDR Annex VIII rule used for classification.",
+      "response": "Rule 10 + Rule 12 (system); Rule 2 (tubing set)",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "System: Rule 10 (active device for diagnosis) + Rule 12(2)(a) (administering substances via potentially hazardous IV route → IIb). Tubing: Rule 2 (non-active device channeling blood/body liquids for infusion → IIa). Confirmed by manufacturer and NB (BSI).",
+      "sheet": "P0_Device_Scope"
+    },
+    "classification_rationale": {
+      "field_id": "classification_rationale",
+      "question": "Classification rationale and manufacturer/NB confirmation basis.",
+      "response": "Bubble Study System is an active device intended for diagnosis (contrast imaging) and administers agitated saline via intravenous route. Per MDR Annex VIII Rule 12(2)(a), devices administering substances in a potentially hazardous manner are Class IIb. IV administration carries air embolism risk. Tubing set channels blood/saline for transient infusion per Rule 2 → Class IIa. Manufacturer and NB (BSI) confirmed Annex IX conformity assessment.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "DoC_003; DoC_001; GSPR_001; GSPR_002; GSPR_003",
+      "sheet": "P0_Device_Scope"
+    },
+    "manufacturer_name": {
+      "field_id": "manufacturer_name",
+      "question": "Legal manufacturer name.",
+      "response": "WYTD MEDICAL TECHNOLOGY (SHENZHEN) CO., LTD.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "DoC_003; IFU_001; IFU_004. Address: 301 & 401, Building 11, Biomedical Innovation Industrial Park, No.14, Jinhui Road, Jinsha Community, Kengzi Street, Pingshan District, Shenzhen, Guangdong, China. EU AR: BioDomi GmbH (SRN: DE-AR-000016611). Manufacturer SRN: pending application.",
+      "sheet": "P0_Device_Scope"
+    },
+    "model": {
+      "field_id": "model",
+      "ifu_cer_field": "Model / specification",
+      "response": "BS-2 (system); DCS-3030, DCS-3030B, DCS-5030, DCS-5030B (tubing set)",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "DoC_003; DoC_001; IFU_001; IFU_004",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "intended_purpose": {
+      "field_id": "intended_purpose",
+      "ifu_cer_field": "Intended purpose / intended use",
+      "response": "The Bubble Study System is used in conjunction with Disposable Masks and Disposable Contrast Injection Tubing Set for the preparation and injection of agitated saline during bubble study procedures for transthoracic echocardiographic contrast imaging or contrast-enhanced transcranial Doppler ultrasound imaging. The NIBP module monitors patient pulse and non-invasive blood pressure.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §2.1; IFU_004 [Intended Purpose]; DoC_003 Intended Purpose",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "indications": {
+      "field_id": "indications",
+      "ifu_cer_field": "Indications",
+      "response": "Detection and grading of right-to-left shunt (RLS), including patent foramen ovale (PFO). Used in patients with cryptogenic stroke, high-risk TIA, migraine with aura, or other clinically suspected right-to-left shunt conditions.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial protocol (CLINEV_001 §临床试验目的); 2022 PFO expert consensus cited in clinical trial report",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "intended_user": {
+      "field_id": "intended_user",
+      "ifu_cer_field": "Intended user / user profile",
+      "response": "Trained and experienced medical staff with professional certification. Specifically: cardiac ultrasound physicians for c-TTE; neurology ultrasound physicians for c-TCD.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 (\"Only qualified medical personnel with professional certification may operate this system\"); IFU_004 (\"restricted to trained and experienced medical staff\"); Clinical trial report (CLINEV_001)",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "patient_population": {
+      "field_id": "patient_population",
+      "ifu_cer_field": "Patient population / target population",
+      "response": "Adults aged 18-75 years, both sexes. Patients clinically suspected of right-to-left shunt who can complete contrast echocardiography or transcranial Doppler ultrasound assessment and can cooperate with Valsalva maneuver.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial report CLINEV_001 §受试者选择 (inclusion criteria)",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "anatomical_site": {
+      "field_id": "anatomical_site",
+      "ifu_cer_field": "Anatomical site / clinical setting",
+      "response": "Cardiac: right atrium, interatrial septum (foramen ovale) for transthoracic echocardiographic contrast imaging (c-TTE). Cerebral: middle cerebral artery (MCA) for contrast-enhanced transcranial Doppler ultrasound imaging (c-TCD). Intravenous administration via elbow vein.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §2.1; Clinical trial report CLINEV_001 §发泡试验原理",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "clinical_benefit": {
+      "field_id": "clinical_benefit",
+      "ifu_cer_field": "Clinical benefit",
+      "response": "Automated preparation and injection of standardized agitated saline contrast agent ensures stable bubble size and quantity, improves reproducibility and reliability of bubble study procedures. Pressure monitoring optimizes patient compliance with Valsalva maneuver. Non-invasive screening with high sensitivity for detection of RLS/PFO.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial report CLINEV_001 §产品特点; IFU_001 §Product Overview",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "performance_claims": {
+      "field_id": "performance_claims",
+      "ifu_cer_field": "Performance claims",
+      "response": "Primary: Positive detection concordance rate ≥80% vs manual agitated saline (target 92%, clinical acceptance 80%); Negative detection concordance rate ≥80% (same targets). Secondary: RLS semi-quantitative grading consistency (Negative/I/II/III); RLS type consistency (intrinsic vs potential); Device success rate; Diagnostic success rate; Adverse event rate. Standardized agitation: 1ml air + 8ml saline + 1ml blood, 20 agitation cycles. Tubing: EO sterilized, sterile, pyrogen-free, 3-year shelf life.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial report CLINEV_001 §临床评价标准; IFU_004 [Product Performance and Features]",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "contraindications": {
+      "field_id": "contraindications",
+      "ifu_cer_field": "Contraindications",
+      "response": "1) Severe cardiac, hepatic, renal, or pulmonary impairment; malignant tumors; hematological or autoimmune diseases. 2) Patients unable to cooperate due to consciousness or cognitive disorders. 3) Carotid artery stenosis, congenital intracranial segment vertebral artery dysplasia, or absence of temporal window with inability to locate unilateral MCA. 4) Pregnant or lactating women. Additional (clinical trial): atherosclerotic stenosis or arterial dissection causing stroke; severe multi-organ failure; intellectual disability or severe hearing impairment; epilepsy; psychiatric disorders; 3 months participation in other clinical trials.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §2.2; IFU_004 [Contraindications]; Clinical trial report CLINEV_001 §排除标准",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "warnings": {
+      "field_id": "warnings",
+      "ifu_cer_field": "Warnings / precautions",
+      "response": "1) Read installation and use instructions before use. 2) Tubing set is single-use only; reuse increases cross-infection risk. 3) Do not use if individual packaging damaged. 4) Check packaging/connectors before use. 5) Do not pull plunger beyond graduation marks. 6) Do not connect extension tube to indwelling needle before air expelled. 7) Stop and replace if blockage or leakage. 8) Restricted to trained medical staff. 9) System: Class I Type BF, IPX0 main unit/IPX1 footswitch; not for flammable anesthetic environments. 10) Unauthorized modification prohibited. 11) Ensure protective grounding.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §Safety Warning Information; IFU_004 [Precautions, Warnings, and Notices]",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "side_effects": {
+      "field_id": "side_effects",
+      "ifu_cer_field": "Side effects / undesirable effects",
+      "response": "Potential adverse events: pain/tenderness at injection site; transient hemodynamic dysfunction; thromboembolic events (circulatory air embolism, pulmonary air embolism); vascular thrombosis; vascular perforation; vasospasm. Agitated saline contrast is generally well-tolerated; serious adverse events are rare. Clinical trial: no serious adverse events related to device reported.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "Clinical trial report CLINEV_001 §安全性评价; IFU_004 [Precautions]; Clinical protocol adverse event definitions",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "sterility_status": {
+      "field_id": "sterility_status",
+      "ifu_cer_field": "Sterility status",
+      "response": "Disposable Contrast Injection Tubing Set: sterilized with ethylene oxide, sterile, pyrogen-free. Bubble Study System main unit and accessories (touchscreen, handle, footswitch): non-sterile.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_004 [Product Performance and Features]; DoC_001",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "single_use_status": {
+      "field_id": "single_use_status",
+      "ifu_cer_field": "Reuse / single-use status",
+      "response": "Disposable Contrast Injection Tubing Set: single use only. Bubble Study System main unit, touchscreen, handle: reusable. Footswitch: reusable (optional).",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §System Configuration; IFU_004 [Precautions]",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "shelf_life_storage": {
+      "field_id": "shelf_life_storage",
+      "ifu_cer_field": "Shelf life / storage",
+      "response": "Tubing set shelf life: 3 years. Store indoors in well-ventilated, dry area free from corrosive gases, away from heat sources. Avoid squeezing/collision during transport. System: see individual device label. Operating environment: 10-40°C, 15-85%RH non-condensing, 700-1060 hPa. Storage: -20°C to 55°C, RH ≤93%, 700-1060 hPa.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §2.3.2, §5.1; IFU_004 [Special Storage and Transportation Conditions]",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "compatible_accessories": {
+      "field_id": "compatible_accessories",
+      "ifu_cer_field": "Accessories / compatible electrodes",
+      "response": "Disposable Mask (for patient breathing/Valsalva); Disposable Contrast Injection Tubing Set (DCS-3030, DCS-3030B, DCS-5030, DCS-5030B); Footswitch (optional, USB connection); NIBP module with blood pressure cuff (adult, pediatric sizes); Power adapter; Magnetic cable.",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 §3.2 Compatible Consumables; IFU_004; Clinical trial report CLINEV_001 §产品结构组成",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "document_control": {
+      "field_id": "document_control",
+      "ifu_cer_field": "Document number, version, date, owner",
+      "response": "Document Number: 05E-OT-149; Version: V1.0; Release Date: 2025-05-19; Manufacturer: WYTD MEDICAL TECHNOLOGY (SHENZHEN) CO., LTD.; Software Release Version: V1.1",
+      "required_level": "P0",
+      "status": "confirmed",
+      "note": "IFU_001 cover page; DoC_003 (Software V1.1, Basic UDI-DI 697603339BSZT)",
+      "sheet": "P0_IFU_Key_Fields"
+    },
+    "gspr_checklist": {
+      "control_id": "gspr_checklist",
+      "required_input": "GSPR checklist available and mapped to evidence.",
+      "response": "Available. (1) \"GSPR checklist of Bubble Study System\" (GSPR_001) for active device; (2) \"GSPR checklist - Active Non-Sterile\" (GSPR_002); (3) \"GSPR checklist - Non-Active Sterile\" (GSPR_003) for tubing set. Standards referenced: EN 60601-1, YY 9706.102, YY 9706.230, GB/T 14710, ISO 10993 series, ISO 14971. Evidence mapped to test reports, V&V documents, risk management files.",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "GSPR_001; GSPR_002; GSPR_003; GSPR_004",
+      "sheet": "P1_Evidence_Controls"
+    },
+    "rmf_available": {
+      "control_id": "rmf_available",
+      "required_input": "Risk Management File / report available.",
+      "response": "Available for both system and consumables. System: Risk Management Plan (RMF_009), Risk Management Report (RMF_007), domestic RMP (RMF_017), domestic RMR (RMF_015), PFMEA (RMF_008). Consumables: Risk Management Plan (RMF_011), Risk Management Report (RMF_010). Process: IEC 60601-1 risk analysis (RMF_013).",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "RMF_007; RMF_009; RMF_010; RMF_011; RMF_015; RMF_017; RMF_008; RMF_013",
+      "sheet": "P1_Evidence_Controls"
+    },
+    "ifu_warning_rmf_crosswalk": {
+      "control_id": "ifu_warning_rmf_crosswalk",
+      "required_input": "Each IFU warning mapped to hazard/residual risk.",
+      "response": "Mapped. Key warnings cross-referenced to hazards in RMF: single-use warning → cross-infection hazard (biological risk); packaging damage warning → sterility breach hazard; air embolism warning → vascular air embolism hazard (critical); blockage/leakage warning → device failure hazard; Valsalva non-compliance warning → diagnostic accuracy hazard. Residual risks documented in RMF with risk acceptability assessment per ISO 14971.",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "RMF_007 §Risk Analysis; RMF_010 §耗材风险评价; IFU_001 §Safety Precautions; IFU_004 [Precautions]",
+      "sheet": "P1_Evidence_Controls"
+    },
+    "pms_data": {
+      "control_id": "pms_data",
+      "required_input": "PMS, complaints, sales/use exposure and vigilance data available.",
+      "response": "PMS Plan available (PMS_002, PMS_003). Pre-market clinical data: prospective, multi-center, cross-over controlled clinical trial (CLINEV_001, protocol WYTD-YY-A03 V1.1). 3 centers: Fuwai Hospital Shenzhen, Hebei Medical University First Hospital, Xiangyang Central Hospital. 180 subjects, Dec 2024 - Apr 2025. Post-market: complaints and vigilance data collection planned; PSUR not yet available (pre-market stage).",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "PMS_002; PMS_003; CLINEV_001; CLINEV_002 (protocol); CLINEV_003; CLINEV_004; CLINEV_005",
+      "sheet": "P1_Evidence_Controls"
+    },
+    "claim_evidence_mapping": {
+      "control_id": "claim_evidence_mapping",
+      "required_input": "Each final-body claim has support status, evidence strength ceiling and allowed wording.",
+      "response": "Primary claim (diagnostic accuracy): Positive/negative RLS detection concordance vs manual method. Evidence: prospective multi-center clinical trial (180 subjects, crossover design). Strength: moderate-high (prospective controlled trial). Secondary claims: RLS semi-quantitative grading consistency, RLS type consistency, device success rate, diagnostic success rate. Safety claim: AE rate non-inferior to manual method. All claims supported by clinical trial data (CLINEV_001).",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "CLINEV_001; CLINEV_002 (protocol); Clinical trial statistical analysis plan",
+      "sheet": "P1_Evidence_Controls"
+    },
+    "sota_search_protocol": {
+      "control_id": "sota_search_protocol",
+      "required_input": "SOTA search protocol with databases, strategy, inclusion/exclusion and appraisal method.",
+      "response": "Available. (1) \"Annex 1 Literature Search Protocol and Report - SOTA\" (SOTA_001) for state-of-the-art literature review. (2) \"Annex 2 Literature Search Protocol and Report - Device under evaluation\" (SOTA_002). Databases, search strategy, inclusion/exclusion criteria, and appraisal method documented.",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "SOTA_001; SOTA_002; SOTA_003 (literature screening flowchart template); SOTA_004 (SOTA body template)",
+      "sheet": "P1_Evidence_Controls"
+    },
+    "equivalence_boundary": {
+      "control_id": "equivalence_boundary",
+      "required_input": "Equivalence/similar-device boundary confirmed.",
+      "response": "No direct equivalent device identified. Bubble Study System is a novel automated device for agitated saline preparation and injection. Clinical evaluation based on direct clinical evidence (prospective multi-center trial) rather than equivalence route. The manual agitated saline preparation method serves as the clinical reference comparator in the crossover trial.",
+      "required_level": "P1",
+      "status": "confirmed",
+      "note": "Clinical trial protocol CLINEV_002; CLINEV_001 §临床试验目的. Device is novel — equivalence route not applicable.",
+      "sheet": "P1_Evidence_Controls"
+    }
+  },
+  "p0_missing_fields": [],
+  "p0_total": 26,
+  "p0_confirmed": 26
+}

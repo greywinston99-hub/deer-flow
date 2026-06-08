@@ -1,0 +1,223 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-06-08T00:00:35.791857+00:00",
+  "generated_by": "_node_build_ifu_evolution_ledger",
+  "ifu_source": {
+    "filename": "IFU_VasoSeal_v3.2.pdf",
+    "version": "3.2",
+    "date": "",
+    "manufacturer": "",
+    "language": "en"
+  },
+  "claims": [
+    {
+      "claim_id": "C-01",
+      "evolution_stages": {
+        "stage_1_ifu_text": {
+          "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+          "ifu_page": "",
+          "ifu_section": "",
+          "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "extraction_source": "ifu_claim_extraction"
+        },
+        "stage_2_extracted_claim": {
+          "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+          "transformation_reason": "Direct extraction from IFU text.",
+          "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "extraction_source": "claim_decomposition"
+        },
+        "stage_3_classified_claim": {
+          "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+          "classification": "clinical_performance",
+          "transformation_reason": "Classified as clinical_performance based on claim content analysis.",
+          "classification_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "classification_source": "claim_decomposition"
+        },
+        "stage_4_evidence_supported_claim": {
+          "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+          "evidence_support_type": "direct",
+          "linked_evidence_ids": [
+            "E-001",
+            "E-002",
+            "E-003"
+          ],
+          "transformation_reason": "Claim wording preserved; evidence linkage established.",
+          "assessment_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "assessment_source": "claim_evidence_matrix"
+        },
+        "stage_5_final_cer_claim": {
+          "text": "Achieves hemostasis within 3 minutes in >=90% of patients",
+          "conclusion_strength": "strong",
+          "transformation_reason": "Final CER claim wording confirmed for Writer.",
+          "finalization_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "finalization_source": "_node_build_ifu_evolution_ledger"
+        }
+      },
+      "evolution_flags": {
+        "claim_strengthened": false,
+        "claim_narrowed": false,
+        "safety_qualifier_added": false,
+        "marketing_language_detected": false,
+        "marketing_language_downgraded": false,
+        "requires_human_review": false
+      }
+    },
+    {
+      "claim_id": "C-02",
+      "evolution_stages": {
+        "stage_1_ifu_text": {
+          "text": "Device-related major adverse event rate <2%",
+          "ifu_page": "",
+          "ifu_section": "",
+          "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "extraction_source": "ifu_claim_extraction"
+        },
+        "stage_2_extracted_claim": {
+          "text": "Device-related major adverse event rate <2%",
+          "transformation_reason": "Direct extraction from IFU text.",
+          "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "extraction_source": "claim_decomposition"
+        },
+        "stage_3_classified_claim": {
+          "text": "Device-related major adverse event rate <2%",
+          "classification": "clinical_safety",
+          "transformation_reason": "Classified as clinical_safety based on claim content analysis.",
+          "classification_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "classification_source": "claim_decomposition"
+        },
+        "stage_4_evidence_supported_claim": {
+          "text": "Device-related major adverse event rate <2%",
+          "evidence_support_type": "direct",
+          "linked_evidence_ids": [
+            "E-004"
+          ],
+          "transformation_reason": "Claim wording preserved; evidence linkage established.",
+          "assessment_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "assessment_source": "claim_evidence_matrix"
+        },
+        "stage_5_final_cer_claim": {
+          "text": "Device-related major adverse event rate <2%",
+          "conclusion_strength": "moderate",
+          "transformation_reason": "Final CER claim wording confirmed for Writer.",
+          "finalization_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "finalization_source": "_node_build_ifu_evolution_ledger"
+        }
+      },
+      "evolution_flags": {
+        "claim_strengthened": false,
+        "claim_narrowed": false,
+        "safety_qualifier_added": true,
+        "marketing_language_detected": false,
+        "marketing_language_downgraded": false,
+        "requires_human_review": false
+      }
+    },
+    {
+      "claim_id": "C-03",
+      "evolution_stages": {
+        "stage_1_ifu_text": {
+          "text": "Ergonomic handle design reduces operator fatigue",
+          "ifu_page": "",
+          "ifu_section": "",
+          "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "extraction_source": "ifu_claim_extraction"
+        },
+        "stage_2_extracted_claim": {
+          "text": "Ergonomic handle design reduces operator fatigue",
+          "transformation_reason": "Direct extraction from IFU text.",
+          "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "extraction_source": "claim_decomposition"
+        },
+        "stage_3_classified_claim": {
+          "text": "Ergonomic handle design reduces operator fatigue",
+          "classification": "usability",
+          "transformation_reason": "Classified as usability based on claim content analysis.",
+          "classification_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "classification_source": "claim_decomposition"
+        },
+        "stage_4_evidence_supported_claim": {
+          "text": "Ergonomic handle design reduces operator fatigue",
+          "evidence_support_type": "insufficient",
+          "linked_evidence_ids": [],
+          "transformation_reason": "No evidence linked \u2014 claim marked as insufficient.",
+          "assessment_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "assessment_source": "claim_evidence_matrix"
+        },
+        "stage_5_final_cer_claim": {
+          "text": "Ergonomic handle design reduces operator fatigue",
+          "conclusion_strength": "limited",
+          "transformation_reason": "Final CER claim wording confirmed for Writer.",
+          "finalization_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "finalization_source": "_node_build_ifu_evolution_ledger"
+        }
+      },
+      "evolution_flags": {
+        "claim_strengthened": false,
+        "claim_narrowed": false,
+        "safety_qualifier_added": false,
+        "marketing_language_detected": false,
+        "marketing_language_downgraded": false,
+        "requires_human_review": true
+      }
+    },
+    {
+      "claim_id": "C-04",
+      "evolution_stages": {
+        "stage_1_ifu_text": {
+          "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+          "ifu_page": "",
+          "ifu_section": "",
+          "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "extraction_source": "ifu_claim_extraction"
+        },
+        "stage_2_extracted_claim": {
+          "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+          "transformation_reason": "Direct extraction from IFU text.",
+          "extraction_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "extraction_source": "claim_decomposition"
+        },
+        "stage_3_classified_claim": {
+          "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+          "classification": "clinical_performance",
+          "transformation_reason": "Classified as clinical_performance based on claim content analysis.",
+          "classification_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "classification_source": "claim_decomposition"
+        },
+        "stage_4_evidence_supported_claim": {
+          "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+          "evidence_support_type": "direct",
+          "linked_evidence_ids": [
+            "E-001",
+            "E-002"
+          ],
+          "transformation_reason": "Claim wording preserved; evidence linkage established.",
+          "assessment_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "assessment_source": "claim_evidence_matrix"
+        },
+        "stage_5_final_cer_claim": {
+          "text": "The revolutionary VasoSeal Pro X guarantees perfect closure with zero complications in all patients",
+          "conclusion_strength": "strong",
+          "transformation_reason": "Marketing language detected in IFU; claim downgraded to evidence-supported wording.",
+          "finalization_timestamp": "2026-06-08T00:00:35.791857+00:00",
+          "finalization_source": "_node_build_ifu_evolution_ledger"
+        }
+      },
+      "evolution_flags": {
+        "claim_strengthened": false,
+        "claim_narrowed": false,
+        "safety_qualifier_added": false,
+        "marketing_language_detected": true,
+        "marketing_language_downgraded": true,
+        "requires_human_review": true
+      }
+    }
+  ],
+  "summary": {
+    "total_claims": 4,
+    "claims_strengthened": 0,
+    "claims_narrowed": 0,
+    "claims_with_safety_qualifier": 1,
+    "marketing_language_detected": 1,
+    "claims_requiring_human_review": 2
+  }
+}

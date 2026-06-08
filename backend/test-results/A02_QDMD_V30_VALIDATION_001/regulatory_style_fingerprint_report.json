@@ -1,0 +1,71 @@
+{
+  "schema": "regulatory_style_fingerprint_v1",
+  "generated_at": "2026-05-29T14:12:30.435042+00:00",
+  "metrics": {
+    "total_sentences": 2,
+    "total_words": 26,
+    "avg_sentence_length": 13.0,
+    "sentence_length_acceptable": true,
+    "conclusion_avg_sentence_length": 0,
+    "conclusion_under_20_words": false,
+    "passive_count": 1,
+    "passive_ratio": 0.5,
+    "passive_in_range_15_25_pct": false,
+    "long_sentences_over_32": 0,
+    "very_long_sentences_over_40": 0
+  },
+  "gspr_paragraphs": {
+    "status": "FAIL",
+    "has_requirement_statement": false,
+    "has_evidence_source": false,
+    "has_evidence_summary": false,
+    "has_reasoning": false,
+    "has_compliance_judgment": false,
+    "missing": [
+      "requirement",
+      "evidence_source",
+      "evidence_summary",
+      "reasoning",
+      "compliance_judgment"
+    ]
+  },
+  "literature_appraisal": {
+    "status": "FAIL",
+    "has_source": false,
+    "has_method": false,
+    "has_result": false,
+    "has_relevance": false,
+    "has_quality": false,
+    "has_limitation": false,
+    "missing": [
+      "source",
+      "method",
+      "result",
+      "relevance",
+      "quality",
+      "limitation"
+    ]
+  },
+  "conclusion": {
+    "status": "FAIL_WITH_GAPS",
+    "has_safety_conclusion": false,
+    "has_performance_conclusion": false,
+    "has_benefit_risk_conclusion": false,
+    "has_pms_pmcf_limitation": false,
+    "has_limitation_statement": false,
+    "missing": [
+      "safety",
+      "performance",
+      "benefit_risk",
+      "pms_pmcf",
+      "limitation"
+    ]
+  },
+  "body_annex_boundary": {
+    "status": "PASS",
+    "annex_referenced_in_body": false,
+    "body_only_references_without_narrative": false,
+    "warning": ""
+  },
+  "overall_status": "FAIL"
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "equivalence_route_lock_v1",
+  "generated_at": "2026-05-30T07:05:31.533515+00:00",
+  "decision": "equivalence_not_claimed",
+  "decision_reason": "No similar device identified in the market.",
+  "similar_devices_count": 0,
+  "similar_device_ids": [],
+  "plans_to_reference_clinical_data": false,
+  "matrices_status": {
+    "technical_equivalence_complete": false,
+    "biological_equivalence_complete": false,
+    "clinical_equivalence_complete": false,
+    "all_complete": false
+  },
+  "manufacturer_risk_acceptance": false,
+  "equivalence_claimed": false,
+  "equivalence_closed": false,
+  "writer_instruction": "Writer must explicitly state: 'Equivalence is not claimed for the device under evaluation.' Provide justification."
+}

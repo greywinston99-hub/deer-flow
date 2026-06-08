@@ -115,6 +115,12 @@ class SharedAuthoringState(ThreadState):
     final_gate_decision: NotRequired[str | None]
     agent_team_mode: NotRequired[str | None]
 
+    # ── Claude Code CER Authoring Engine integration ──
+    locked_endpoint_framework: Annotated[dict[str, Any], merge_dict]
+    consolidated_clinical_data_table: Annotated[dict[str, Any], merge_dict]
+    eu_market_status: NotRequired[str | None]
+    cer_input_package_exported: NotRequired[bool]
+
     source_inventory: Annotated[list[dict[str, Any]], merge_records]
     manufacturer_intake_report: Annotated[dict[str, Any], merge_dict]
     source_lock_report: Annotated[dict[str, Any], merge_dict]
@@ -299,3 +305,23 @@ class SharedAuthoringState(ThreadState):
     review_feedback: NotRequired[dict[str, Any] | None]
     resolved_feedback_ids: Annotated[list[str], merge_records]
     feedback_resolution_log: Annotated[list[dict[str, Any]], merge_records]
+
+    # ── V3.1 keys: SOTA Benchmark Derivation Layer ──
+    clinical_fact_registry: Annotated[list[dict[str, Any]], merge_records]
+    endpoint_selection_table: Annotated[list[dict[str, Any]], merge_records]
+    reference_framework: Annotated[dict[str, Any], merge_dict]
+    treatment_landscape: Annotated[dict[str, Any], merge_dict]
+    sota_endpoint_master: Annotated[list[dict[str, Any]], merge_records]
+    sota_source_role_matrix: Annotated[dict[str, Any], merge_dict]
+    sota_benchmark_candidate_records: Annotated[list[dict[str, Any]], merge_records]
+    sota_comparability_matrix: Annotated[list[dict[str, Any]], merge_records]
+    sota_evidence_weighting: Annotated[dict[str, Any], merge_dict]
+    sota_benchmark_derivation: Annotated[dict[str, Any], merge_dict]
+    own_data_alignment_matrix: Annotated[list[dict[str, Any]], merge_records]
+    sota_comparison_conclusions: Annotated[list[dict[str, Any]], merge_records]
+    endpoint_selection_completed: Annotated[bool, operator.or_]
+    clinical_fact_registry_locked: Annotated[bool, operator.or_]
+    search_ledger_integrity_checked: Annotated[bool, operator.or_]
+    pmcf_need_determination: Annotated[dict[str, Any], merge_dict]
+    single_clinical_analysis_applied: Annotated[bool, operator.or_]
+    hc_sota_benchmark_decision: Annotated[dict[str, Any], merge_dict]

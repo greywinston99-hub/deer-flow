@@ -1,0 +1,106 @@
+{
+  "schema_name": "cer_authoring_model_provider_preflight",
+  "status": "PASS",
+  "missing_provider_count": 0,
+  "missing_providers": {},
+  "checks": [
+    {
+      "agent_name": "cer-authoring-lead-agent",
+      "model_name": "kimi-k2.6-code",
+      "provider_status": "configured",
+      "missing_env": [],
+      "fallback_models": [
+        "kimi-k2.6-api"
+      ],
+      "configured_fallback_models": [
+        "kimi-k2.6-api"
+      ]
+    },
+    {
+      "agent_name": "authoring-intake-profile-claim-agent",
+      "model_name": "kimi-k2.6-code",
+      "provider_status": "configured",
+      "missing_env": [],
+      "fallback_models": [
+        "kimi-k2.6-api"
+      ],
+      "configured_fallback_models": [
+        "kimi-k2.6-api"
+      ]
+    },
+    {
+      "agent_name": "authoring-methodology-sota-agent",
+      "model_name": "deepseek-v4-pro",
+      "provider_status": "configured",
+      "missing_env": [],
+      "fallback_models": [
+        "kimi-k2.6-api"
+      ],
+      "configured_fallback_models": [
+        "kimi-k2.6-api"
+      ]
+    },
+    {
+      "agent_name": "authoring-evidence-agent",
+      "model_name": "deepseek-v4-pro",
+      "provider_status": "configured",
+      "missing_env": [],
+      "fallback_models": [
+        "kimi-k2.6-api"
+      ],
+      "configured_fallback_models": [
+        "kimi-k2.6-api"
+      ]
+    },
+    {
+      "agent_name": "authoring-risk-equivalence-gspr-agent",
+      "model_name": "deepseek-v4-pro",
+      "provider_status": "configured",
+      "missing_env": [],
+      "fallback_models": [
+        "kimi-k2.6-api"
+      ],
+      "configured_fallback_models": [
+        "kimi-k2.6-api"
+      ]
+    },
+    {
+      "agent_name": "risk-equivalence-gspr",
+      "model_name": "kimi-k2.6-code",
+      "provider_status": "configured",
+      "missing_env": [],
+      "fallback_models": [
+        "kimi-k2.6-api"
+      ],
+      "configured_fallback_models": [
+        "kimi-k2.6-api"
+      ]
+    },
+    {
+      "agent_name": "authoring-cer-writer-agent",
+      "model_name": "deepseek-v4-pro",
+      "provider_status": "configured",
+      "missing_env": [],
+      "fallback_models": [
+        "kimi-k2.6-api",
+        "deepseek-v4-pro"
+      ],
+      "configured_fallback_models": [
+        "kimi-k2.6-api",
+        "deepseek-v4-pro"
+      ]
+    },
+    {
+      "agent_name": "authoring-qa-review-agent",
+      "model_name": "deepseek-v4-pro",
+      "provider_status": "configured",
+      "missing_env": [],
+      "fallback_models": [
+        "kimi-k2.6-api"
+      ],
+      "configured_fallback_models": [
+        "kimi-k2.6-api"
+      ]
+    }
+  ]
+}

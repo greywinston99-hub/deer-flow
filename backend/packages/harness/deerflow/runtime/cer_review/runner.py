@@ -285,11 +285,21 @@ class CERReviewRunner:
             "cer_gate_closure": self._run_d1_gate_closure,
         }
 
-        # Detect workflow mode:
-        # - "v1" if workflow has "stages" (old v1 with stage-based execution)
-        # - "d1" if workflow has "ordered_steps" with D1 step_ids
-        # - "v0" if workflow has "ordered_steps" with legacy step_ids
-        if "stages" in self.workflow:
+        # Detect workflow mode (BIGDP2026.6 B.4.2: prefer explicit version field):
+        # - Explicit workflow_version field takes priority
+        # - Fallback: "v1" if workflow has "stages"; "d1"/"v0" if "ordered_steps"
+        explicit_version = str(self.workflow.get("workflow_version") or "").strip()
+        supported_versions = {"1.0", "1", "d1"}
+        if explicit_version:
+            if explicit_version in supported_versions:
+                self.workflow_mode = "v1" if explicit_version in ("1.0", "1") else explicit_version
+            else:
+                raise ValueError(
+                    f"Unsupported workflow_version '{explicit_version}' in {self.workflow_name}. "
+                    f"Supported versions: {supported_versions}. "
+                    f"Update workflow YAML or add version support in runner.py."
+                )
+        elif "stages" in self.workflow:
             self.workflow_mode = "v1"
         elif "ordered_steps" in self.workflow:
             first_step = self.workflow.get("ordered_steps", [{}])[0]

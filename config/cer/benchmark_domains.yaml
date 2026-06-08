@@ -1,0 +1,116 @@
+# BIGDP2026.6 Phase 5: SOTA Benchmark Domain Configuration
+# =========================================================
+# External benchmark domain definitions.  Adding a new domain requires
+# ONLY a YAML config entry — no Python code changes needed.
+#
+# Each domain defines:
+#   - clinical_domain: human-readable domain name
+#   - keywords: search terms for domain matching
+#   - typical_endpoints: expected clinical endpoints and their clinical meanings
+#   - benchmark_sources: preferred study types and minimum evidence requirements
+#   - acceptability_criteria: what makes a benchmark "acceptable" for this domain
+
+domains:
+  cardiac_pfa:
+    clinical_domain: "Cardiac Pulsed Field Ablation"
+    keywords:
+      - "pulsed field ablation"
+      - "PFA"
+      - "cardiac ablation"
+      - "atrial fibrillation ablation"
+      - "electroporation"
+    typical_endpoints:
+      - name: "acute_procedural_success"
+        clinical_meaning: "Percentage of patients achieving complete pulmonary vein isolation"
+        type: "primary_efficacy"
+        expected_range: "95-100%"
+        unit: "percentage"
+      - name: "freedom_from_af"
+        clinical_meaning: "Freedom from atrial fibrillation recurrence at 12 months"
+        type: "primary_efficacy"
+        expected_range: "70-85%"
+        unit: "percentage"
+      - name: "adverse_events"
+        clinical_meaning: "Device or procedure-related serious adverse event rate"
+        type: "primary_safety"
+        expected_range: "0-5%"
+        unit: "percentage"
+      - name: "procedure_time"
+        clinical_meaning: "Total procedure time (skin-to-skin)"
+        type: "secondary_efficacy"
+        expected_range: "60-180 min"
+        unit: "minutes"
+    benchmark_sources:
+      preferred_study_types: ["meta_analysis", "RCT", "prospective_multicenter"]
+      minimum_studies: 3
+      minimum_patients: 100
+    acceptability_criteria:
+      - "At least 3 studies with ≥100 total patients"
+      - "Direct comparison endpoint available"
+      - "Published within last 5 years"
+
+  urology_nephroscope:
+    clinical_domain: "Urology Nephroscope / Percutaneous Nephrolithotomy"
+    keywords:
+      - "nephroscope"
+      - "nephrolithotomy"
+      - "PCNL"
+      - "percutaneous stone removal"
+      - "kidney stone"
+      - "urolithiasis"
+    typical_endpoints:
+      - name: "stone_free_rate"
+        clinical_meaning: "Percentage of patients stone-free post-procedure"
+        type: "primary_efficacy"
+        expected_range: "75-95%"
+        unit: "percentage"
+      - name: "complication_rate"
+        clinical_meaning: "Clavien-Dindo grade ≥2 complication rate"
+        type: "primary_safety"
+        expected_range: "5-20%"
+        unit: "percentage"
+      - name: "operative_time"
+        clinical_meaning: "Total operative time"
+        type: "secondary_efficacy"
+        expected_range: "45-120 min"
+        unit: "minutes"
+      - name: "hospital_stay"
+        clinical_meaning: "Length of hospital stay post-procedure"
+        type: "secondary_efficacy"
+        expected_range: "1-3 days"
+        unit: "days"
+    benchmark_sources:
+      preferred_study_types: ["meta_analysis", "RCT", "prospective_cohort"]
+      minimum_studies: 3
+      minimum_patients: 100
+    acceptability_criteria:
+      - "At least 3 studies with ≥100 total patients"
+      - "Stone-free rate reported with imaging confirmation"
+      - "Complication rate reported by Clavien-Dindo classification"
+
+
+# ── Generic fallback template for unknown domains ──
+generic_fallback:
+  clinical_domain: "unknown"
+  note: >
+    This domain is not explicitly configured.  Benchmarks are derived
+    from available evidence with reduced confidence.  CER writers MUST
+    document this limitation and justify why the available benchmarks
+    are acceptable for the regulatory context.
+  typical_endpoints: []
+  benchmark_sources:
+    preferred_study_types: ["any_available"]
+    minimum_studies: 1
+    minimum_patients: 30
+  acceptability_criteria:
+    - "Any available clinical data with N≥30"
+    - "Explicitly noted as 'fallback — domain not in benchmark registry'"
+    - "CER must document limitation"
+  confidence: "low"
+  directness: "fallback"
+
+
+# ── Version and metadata ──
+schema_version: "1.0.0"
+generated_by: "BIGDP2026.6 Phase 5"
+last_updated: "2026-06-08"

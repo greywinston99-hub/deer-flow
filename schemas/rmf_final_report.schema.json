@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deerflow.local/schemas/rmf_final_report.schema.json",
+  "title": "RMF Final Report",
+  "description": "Aggregated RMF final report. Final compliance language is forbidden when human gate is absent — see human_gate_status field.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "run_id",
+    "summary",
+    "dimension_summary",
+    "human_gate_status"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "rmf_final_report"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "dimension_summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "COMP": {
+          "$ref": "#/$defs/dimensionStatusBlock"
+        },
+        "CORR": {
+          "$ref": "#/$defs/dimensionStatusBlock"
+        },
+        "ADEQ": {
+          "$ref": "#/$defs/dimensionStatusBlock"
+        },
+        "TRAC": {
+          "$ref": "#/$defs/dimensionStatusBlock"
+        },
+        "CONS": {
+          "$ref": "#/$defs/dimensionStatusBlock"
+        },
+        "ACPT": {
+          "$ref": "#/$defs/dimensionStatusBlock"
+        }
+      }
+    },
+    "rule_based_findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "escalations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "escalation_id",
+          "reason"
+        ],
+        "properties": {
+          "escalation_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "linked_findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "boundaries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "boundary_id",
+          "topic"
+        ],
+        "properties": {
+          "boundary_id": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "recommended_gate": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "conditional_pass",
+        "rework_required"
+      ]
+    },
+    "human_gate_status": {
+      "type": "string",
+      "enum": [
+        "absent",
+        "pending",
+        "approved",
+        "rejected",
+        "conditional"
+      ]
+    },
+    "capa_action_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "action_id",
+          "blocking"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "blocking": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "backflow_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "source_traceability": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "document_id"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "finding_id",
+        "severity",
+        "description"
+      ],
+      "properties": {
+        "finding_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocking",
+            "advisory",
+            "informational"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    },
+    "dimensionStatusBlock": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "green",
+            "amber",
+            "red",
+            "needs_human_review"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "gate": "Gate 5 — Remediated QA (Content + Domain + Evidence + Cleanliness)",
+  "gate_id": "WRITER_GATE_05",
+  "status": "PASS",
+  "score": 80,
+  "dimensions": {
+    "domain_consistency": {
+      "label": "Device Domain Body Consistency",
+      "status": "SKIPPED",
+      "findings": [],
+      "warnings": []
+    },
+    "evidence_conclusion_consistency": {
+      "label": "Evidence-to-Conclusion Consistency",
+      "status": "SKIPPED",
+      "findings": [],
+      "negated_pass": 0
+    },
+    "ifu_consumption": {
+      "label": "IFU Fact Consumption",
+      "status": "SKIPPED",
+      "placeholder_count": 0,
+      "has_ifu_source": false
+    },
+    "body_cleanliness": {
+      "label": "Submission Body Cleanliness",
+      "status": "PASS",
+      "findings": []
+    }
+  },
+  "failing_dimensions": [],
+  "warning_dimensions": [],
+  "total_findings": 0,
+  "hard_fail_findings": 0,
+  "findings": [],
+  "quarantine": false,
+  "message": "QA PASS (score 80): All content and domain checks passed."
+}

@@ -1,6 +1,11 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# DEPRECATED — BIGDP2026.6 Phase 6
+# This workflow is deprecated. Use cer_review_v1.yaml for production.
+# Kept for reference only. Do NOT use for new CER Review runs.
+# ═══════════════════════════════════════════════════════════════════════════
 workflow_name: cer_review_v0
 workflow_version: "0.1"
-workflow_status: p0_skeleton
+workflow_status: deprecated
 mode: single_project_serial_review
 description: >
   CER Review Workflow v0 P0 skeleton for running one real CER project review.

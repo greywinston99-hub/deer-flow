@@ -1,0 +1,8 @@
+W0_HANDOFF_VERIFIED
+- All 12 handoff files read and validated
+- 3 contaminated draft paths confirmed
+- 259 tests passing baseline confirmed
+- device_profile.json, claim_support_matrix.json confirmed in all 3 projects
+- Domain contamination confirmed in 米道斯 report
+- Evidence-conclusion mismatch confirmed (all claims INSUFFICIENT but body says "partially support")
+- Internal language leakage confirmed (Claude/DeerFlow/MCP/not_allowed/score:100 in body)
