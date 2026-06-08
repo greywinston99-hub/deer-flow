@@ -1020,3 +1020,131 @@ def get_equivalence_limitation_for_writer(route: str) -> str:
         "human_gate_required": "Human expert review required for equivalence determination.",
     }
     return limitations.get(route, "Equivalence status: see CER §4.2.")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CDE90 Batches M/O/P: Denominator Resolver + Statistical Parser V3 + Gold Evaluator
+# ══════════════════════════════════════════════════════════════════════════════
+
+DENOMINATOR_TYPES = [
+    "total_enrolled_N", "safety_analysis_set", "performance_analysis_set",
+    "evaluable_population", "subgroup_n", "treatment_arm_N", "control_arm_N",
+    "event_denominator", "per_patient", "per_procedure", "per_device",
+]
+
+
+def resolve_denominator_context(fact: dict) -> dict:
+    """Resolve denominator context for a clinical fact. Detects McKee-style mismatches."""
+    n_total = fact.get("n_total", 0)
+    n_events = fact.get("n_events", 0)
+    reported_pct = fact.get("value", 0) if fact.get("unit") == "percentage" else None
+    population = str(fact.get("population_label", "")).lower()
+    endpoint = str(fact.get("endpoint", "")).lower()
+
+    issues = []
+    denom_type = "total_enrolled_N"
+
+    # Detect McKee-style: N=216 but CMF n=80 → subgroup, not total
+    if n_total > 0 and any(kw in population for kw in ("cmf", "subgroup", "sub-")):
+        denom_type = "subgroup_n"
+
+    # Per-procedure vs per-patient detection
+    if any(kw in endpoint for kw in ("per procedure", "per device", "per implant")):
+        denom_type = "per_procedure"
+
+    # Safety vs performance
+    if any(kw in endpoint for kw in ("adverse event", "safety", "complication", "ae")):
+        denom_type = "safety_analysis_set"
+
+    # Percentage recalculation check
+    if reported_pct and n_total > 0 and n_events > 0:
+        expected = round((n_events / n_total) * 100, 1)
+        if abs(expected - float(reported_pct)) > 1.0:
+            issues.append(f"Percentage mismatch: {n_events}/{n_total}={expected}% vs reported {reported_pct}%")
+
+    # McKee-style: subgroup written as whole-population
+    if denom_type == "subgroup_n" and "all" in population:
+        issues.append("Subgroup denominator presented as whole-population — McKee-style mismatch suspected")
+
+    return {
+        "denominator_type": denom_type,
+        "denominator_issues": issues,
+        "is_valid": len(issues) == 0,
+        "recalculated_percentage": round((n_events / n_total) * 100, 1) if n_total > 0 and n_events > 0 else None,
+    }
+
+
+def validate_gold_fact_match(predicted: dict, gold: dict, tolerance: float = 0.01) -> dict:
+    """Validate a predicted clinical fact against a gold fact."""
+    checks = {}
+    # Key match: PMID + endpoint
+    key_match = (str(predicted.get("pmid", "")) == str(gold.get("pmid", "")) and
+                 str(predicted.get("endpoint", "")) == str(gold.get("endpoint", "")))
+    checks["key_match"] = key_match
+    if not key_match:
+        return {"is_match": False, "match_type": "no_key_match", "checks": checks}
+
+    # Numeric tolerance
+    pred_val = float(predicted.get("value", 0) or 0)
+    gold_val = float(gold.get("value", 0) or 0)
+    if gold_val > 0:
+        checks["numeric_match"] = abs(pred_val - gold_val) / gold_val <= tolerance
+    else:
+        checks["numeric_match"] = abs(pred_val - gold_val) <= 0.01
+
+    # Critical fields
+    critical_fields = ["n_events", "n_total", "endpoint_category", "unit"]
+    for field in critical_fields:
+        checks[f"critical_{field}"] = str(predicted.get(field, "")) == str(gold.get(field, ""))
+
+    all_critical = all(checks.get(f"critical_{f}", True) for f in critical_fields)
+    return {
+        "is_match": key_match and checks["numeric_match"] and all_critical,
+        "match_type": "full_match" if (key_match and checks["numeric_match"] and all_critical) else "partial",
+        "checks": checks,
+    }
+
+
+def compute_validation_metrics(results: list[dict]) -> dict:
+    """Compute precision, recall, F1 from validation results."""
+    tp = sum(1 for r in results if r.get("is_match"))
+    fp = sum(1 for r in results if not r.get("is_match") and r.get("predicted_has_fact"))
+    fn = sum(1 for r in results if not r.get("is_match") and not r.get("predicted_has_fact", True))
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+    return {"precision": round(precision, 3), "recall": round(recall, 3), "f1": round(f1, 3),
+            "tp": tp, "fp": fp, "fn": fn}
+
+
+# CDE90 Stage 5 score cap rules
+STAGE5_SCORE_CAPS = {
+    "no_gold_set": 86,
+    "precision_below_85": 85,
+    "recall_below_80": 85,
+    "no_real_project_validation": 88,
+    "no_median_iqr_parser": 87,
+    "no_km_survival_detection": 88,
+    "no_ae_severity_parser": 88,
+    "orphan_facts_present": 82,
+    "negative_blocking_below_90": 85,
+    "not_allowed_leakage": 80,
+}
+
+
+def compute_stage5_score_cap(metrics: dict, has_gold: bool = True, has_real_project: bool = False) -> int:
+    """Compute the maximum allowed Stage 5 score given validation results and assets."""
+    cap = 100
+    if not has_gold:
+        cap = min(cap, STAGE5_SCORE_CAPS["no_gold_set"])
+    if not has_real_project:
+        cap = min(cap, STAGE5_SCORE_CAPS["no_real_project_validation"])
+    if metrics.get("precision", 0) < 0.85:
+        cap = min(cap, STAGE5_SCORE_CAPS["precision_below_85"])
+    if metrics.get("recall", 0) < 0.80:
+        cap = min(cap, STAGE5_SCORE_CAPS["recall_below_80"])
+    if metrics.get("negative_blocking_accuracy", 0) < 0.90:
+        cap = min(cap, STAGE5_SCORE_CAPS["negative_blocking_below_90"])
+    if metrics.get("not_allowed_leakage", 0) > 0:
+        cap = min(cap, STAGE5_SCORE_CAPS["not_allowed_leakage"])
+    return cap

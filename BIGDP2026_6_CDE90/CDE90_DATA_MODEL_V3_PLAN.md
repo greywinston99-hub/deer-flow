@@ -35,7 +35,7 @@ Each fact carries its full context from birth:
 | confidence_interval_upper | float | if CI |
 | p_value | float | if reported |
 | source_eligibility | string | fulltext_verified / abstract_only / secondary / unavailable |
-| data_use_allowed | string | benchmark / BR / claim_support / background_only / not_allowed |
+| data_use_allowed | list | benchmark, claim_support, BR_GSPR, background_only, not_allowed, human_gate_required (multi-value: one fact can be eligible for multiple uses) |
 | clinical_use_limitation | string | none / abstract_only / no_fulltext / subgroup_only / low_sample_size / endpoint_mismatch |
 | extraction_confidence | string | high / medium / low |
 | verification_status | string | source_verified / gold_label_verified / unverified |

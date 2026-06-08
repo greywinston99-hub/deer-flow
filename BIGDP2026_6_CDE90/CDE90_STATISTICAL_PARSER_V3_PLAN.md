@@ -36,8 +36,8 @@ If parser cannot determine denominator / endpoint / population / source anchor:
 
 ```
 fact_status = incomplete
-data_use_allowed = background_only
-NOT allowed for: benchmark, strong claim, BR conclusion
+data_use_allowed includes [background_only, human_gate_required]
+NOT allowed: benchmark, claim_support, BR_GSPR for strong conclusions
 human_gate_required = true
 ```
 

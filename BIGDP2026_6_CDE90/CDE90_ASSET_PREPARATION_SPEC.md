@@ -18,6 +18,14 @@ Every asset file must include these common fields:
 | dataset_role | string | calibration / stress / holdout |
 | confidence | string | high / medium / low |
 | locked_status | string | open_input / calibration_only / validation_only / locked_no_writer |
+| writer_access_allowed | bool | default NO for gold/feedback/negative cases |
+| project_id | string | source project identifier |
+| project_name | string | source project name |
+| target_batch | string | M / N / O / P / Q |
+| target_capability | string | data_model / table_extraction / statistical_parsing / denominator_resolver / gold_validation |
+| absorption_type | string | gold_validation / parser_training / fixture_generation / semantic_test / holdout_validation |
+| closure_level_supported | string | FULLY_CLOSED / DERIVED_VALIDATION / HEURISTIC_ONLY / SYNTHETIC_ONLY |
+| notes | string | free-text |
 | extraction_date | string | ISO date |
 
 ## Asset 1: clinical_fact_gold_set_v1.csv
@@ -92,10 +100,60 @@ Additional fields beyond gold set: correct_denominator_type (total_enrolled_N / 
 
 Additional fields: statistical_type (from 20-type list), parser_complexity, requires_context_for_parsing.
 
-## Asset 5: ae_followup_gold.csv — Min 40 facts
-## Asset 6: not_allowed_fact_cases.csv — Min 30 negative cases
-## Asset 7: benchmark_eligibility_labels.csv — Min 30 facts
-## Asset 8: claim_support_eligibility.csv — Min 30 facts
+## Asset 5: ae_followup_gold.csv
+
+**Min 40 facts.** Additional fields beyond common + gold set base:
+
+| Field | Type | Example |
+|:---|:---|:---|
+| ae_term | string | skin injury |
+| ae_severity_grade | string | Grade 1 / 2 / 3 / 4 |
+| ae_relatedness | string | device_related / procedure_related / unrelated |
+| ae_count | int | 5 |
+| ae_rate | float | 2.3 |
+| followup_duration_value | float | 12 |
+| followup_duration_unit | string | months |
+| followup_completeness | float | 85.0 (percent) |
+
+## Asset 6: not_allowed_fact_cases.csv
+
+**Min 30 negative cases.** Facts that SHOULD NOT be extracted or MUST carry limitation.
+
+| Field | Type | Example |
+|:---|:---|:---|
+| case_id | string | NEG-001 |
+| source_pmid | string | 31539432 |
+| source_quote | string | (the text that looks like a fact but isn't) |
+| why_not_allowed | string | abstract_only / wrong_population / excluded_article / no_source / data_not_in_source |
+| would_be_misclassified_as | string | AE / performance_claim / benchmark |
+| correct_action | string | do_not_extract / background_only / human_gate_required |
+| is_negative | bool | true |
+
+## Asset 7: benchmark_eligibility_labels.csv
+
+**Min 30 facts.**
+
+| Field | Type | Example |
+|:---|:---|:---|
+| fact_ref | string | GF-042 or PMID+endpoint ref |
+| benchmark_eligible | bool | true / false |
+| eligibility_rationale | string | direct comparator with CI and source |
+| comparator_name | string | tourniquet / sutures / staples |
+| required_benchmark_format | string | rate + CI / mean ± SD / KM curve |
+| missing_for_full_eligibility | string | CI not reported / no source PMID / no comparator |
+
+## Asset 8: claim_support_eligibility.csv
+
+**Min 30 facts.**
+
+| Field | Type | Example |
+|:---|:---|:---|
+| fact_ref | string | GF-042 or PMID+endpoint ref |
+| claim_support_eligible | bool | true / false |
+| claim_type_supported | string | safety / performance / clinical_benefit |
+| support_strength | string | strong / moderate / limited |
+| eligibility_rationale | string | direct device evidence, endpoint match |
+| limitation_for_claim_use | string | subgroup only / short follow-up / small sample |
 
 ---
 

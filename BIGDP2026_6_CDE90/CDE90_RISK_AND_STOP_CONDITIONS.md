@@ -33,6 +33,10 @@ Stop if:
 | No table extraction | 84 |
 | No denominator resolver | 85 |
 | No gold set | 86 |
+| No median/IQR parser | 87 |
+| No KM/survival handling or candidate detection | 88 |
+| No AE severity parser | 88 |
 | No real project validation | 88 |
 | No source anchors | 80 |
 | Orphan numeric facts present | 82 |
+| Figure/KM numeric extraction claimed without source verification | not allowed — KM figure detection ≠ extraction |

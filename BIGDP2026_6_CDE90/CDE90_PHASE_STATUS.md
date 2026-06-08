@@ -8,16 +8,16 @@
 
 | Phase | Status | Started | Completed |
 |:---|:---|:---|:---|
-| ═══ CDE90 Planning ═══ | `PLANNING` | 2026-06-08 | — |
-| CDE90 Master Plan | `PLANNING` | — | — |
-| CDE90 Gap Analysis | `PLANNING` | — | — |
-| Batch M — Data Model V3 | `PLANNING` | — | — |
-| Batch N — Table/Fulltext Extraction | `PLANNING` | — | — |
-| Batch O — Statistical Parser V3 | `PLANNING` | — | — |
-| Batch P — Denominator/Arm Resolver | `PLANNING` | — | — |
-| Batch Q — Gold Dataset & Validation | `PLANNING` | — | — |
+| ═══ CDE90 Planning ═══ | `ACCEPTED` | 2026-06-08 | 2026-06-08 |
+| CDE90 Master Plan | `ACCEPTED` | — | — |
+| CDE90 Gap Analysis | `ACCEPTED` | — | — |
+| Batch M — Data Model V3 | `ACCEPTED` | — | — |
+| Batch N — Table/Fulltext Extraction | `ACCEPTED` | — | — |
+| Batch O — Statistical Parser V3 | `ACCEPTED` | — | — |
+| Batch P — Denominator/Arm Resolver | `ACCEPTED` | — | — |
+| Batch Q — Gold Dataset & Validation | `ACCEPTED` | — | — |
 | ═══ Assets ═══ | | | |
-| Asset Preparation (Work Buddy) | `NOT_STARTED` | — | — |
+| Asset Preparation (Work Buddy) | `READY_TO_START` | — | — |
 | ═══ Implementation ═══ | | | |
 | Claude Code Implementation | `NOT_STARTED` | — | — |
 | Validation | `NOT_STARTED` | — | — |
@@ -25,4 +25,4 @@
 
 ---
 
-**Current:** PLANNING — all 11 files drafted. Next: Controller review → Work Buddy asset prep → Batch M.
+**Status:** `CDE90_PLAN_ACCEPTED_WITH_REFINEMENT` — all 12 files revised. Next: Work Buddy asset prep → Claude Code Batch M.

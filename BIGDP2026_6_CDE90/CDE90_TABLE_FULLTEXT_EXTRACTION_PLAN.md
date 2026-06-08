@@ -15,7 +15,7 @@
 | SOTA evidence tables | PDF in literature | liteparse | P1 |
 | Extracted text tables | plain text from abstract/fulltext | text parser | P1 |
 | Table footnotes | PDF/DOCX | liteparse | P1 |
-| Kaplan-Meier figure detection | PDF images | flag only (no OCR) | P2 |
+| Kaplan-Meier figure detection | PDF images | candidate flag only (no numeric OCR) | P2 — detection ≠ extraction; KM candidate cannot count as source-verified KM fact unless numeric data verified from text/table |
 
 ## 2. Extraction Pipeline
 
