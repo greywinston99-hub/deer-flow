@@ -764,6 +764,251 @@ def detect_writer_issues(prose_text: str, ledger: dict) -> list[dict]:
         results.append({"detector": "all_clear", "status": "PASS", "detail": "No issues detected"})
 
     return results
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V4 Batch I: Regulatory Strategy Router + Evidence Burden Engine
+# ══════════════════════════════════════════════════════════════════════════════
+
+STRATEGY_ROUTES = ["WET", "legacy", "own_data_primary", "equivalence", "literature_primary", "innovation"]
+SUFFICIENCY_LEVELS = ["sufficient", "partially_sufficient", "insufficient", "cannot_support"]
+FINAL_STRATEGIES = ["WET_supported", "legacy_with_gap", "equivalence_limited", "literature_primary_with_PMCF", "innovation_CI_required", "cannot_support_current_claim"]
+
+WET_6_CONDITIONS = [
+    "device_technology_established_stable",
+    "low_risk_scope_acceptable",
+    "SOTA_stable",
+    "PMS_PMCF_data_sufficient",
+    "BR_clearly_acceptable",
+    "intended_purpose_narrow_well_defined",
+]
+
+
+def classify_strategy_route(state: dict) -> dict:
+    """Classify the regulatory strategy route for a CER project.
+
+    Returns: {strategy_context_route, route_confidence, sufficiency_decision,
+              final_CER_strategy, evidence_burden_level, required_next_action, ...}
+    """
+    device = state.get("device_profile", {})
+    device_class = str(device.get("device_class", "")).upper()
+    equivalence_claimed = state.get("equivalence_claimed", False)
+    has_own_data = bool(state.get("own_clinical_data"))
+    is_implantable = bool(device.get("is_implantable"))
+    is_active = bool(device.get("is_active"))
+    is_novel = bool(device.get("is_novel"))
+    has_legacy_evidence = bool(state.get("legacy_evidence_sources"))
+
+    # WET 6-condition check
+    wet_checks = {}
+    for cond in WET_6_CONDITIONS:
+        wet_checks[cond] = bool(state.get(f"wet_{cond}", True))
+    wet_passes = all(wet_checks.values())
+
+    # Route determination
+    if wet_passes and device_class not in ("III",) and not is_implantable and not is_active:
+        route = "WET"
+        confidence = "high" if all(wet_checks.values()) else "medium"
+    elif has_legacy_evidence:
+        route = "legacy"
+        confidence = "medium"
+    elif has_own_data:
+        route = "own_data_primary"
+        confidence = "medium" if state.get("own_data_quality_score", 0) >= 60 else "low"
+    elif equivalence_claimed and state.get("equivalence_data_access"):
+        route = "equivalence"
+        confidence = "medium"
+    elif is_novel:
+        route = "innovation"
+        confidence = "low"
+    else:
+        route = "literature_primary"
+        confidence = "medium"
+
+    # Sufficiency decision
+    evidence_count = len(state.get("evidence_registry", []))
+    has_pivotal = any(str(e.get("weight", "")).lower() == "pivotal" for e in state.get("evidence_registry", []))
+    if evidence_count >= 3 and has_pivotal:
+        sufficiency = "sufficient"
+    elif evidence_count >= 1:
+        sufficiency = "partially_sufficient" if has_pivotal else "insufficient"
+    else:
+        sufficiency = "cannot_support"
+
+    # Hard overrides
+    if sufficiency == "cannot_support":
+        final_strategy = "cannot_support_current_claim"
+        required_action = "human_gate"
+    elif route == "WET" and not state.get("PMS_PMCF_review_complete"):
+        final_strategy = "cannot_support_current_claim"
+        required_action = "PMCF"
+    elif route == "equivalence" and not state.get("equivalence_data_access"):
+        final_strategy = "cannot_support_current_claim"
+        required_action = "clinical_investigation"
+    elif route == "innovation" and not state.get("clinical_investigation_plan"):
+        final_strategy = "innovation_CI_required"
+        required_action = "clinical_investigation"
+    else:
+        strategy_map = {
+            "WET": "WET_supported",
+            "legacy": "legacy_with_gap",
+            "equivalence": "equivalence_limited",
+            "literature_primary": "literature_primary_with_PMCF",
+            "innovation": "innovation_CI_required",
+            "own_data_primary": "literature_primary_with_PMCF",
+        }
+        final_strategy = strategy_map.get(route, "literature_primary_with_PMCF")
+        required_action = "proceed" if sufficiency == "sufficient" else "PMCF"
+
+    return {
+        "strategy_context_route": route,
+        "route_confidence": confidence,
+        "sufficiency_decision": sufficiency,
+        "final_CER_strategy": final_strategy,
+        "evidence_burden_level": "high" if device_class in ("III",) else "moderate" if is_implantable else "low",
+        "required_next_action": required_action,
+        "alternative_routes_rejected": [],
+        "route_rationale": f"Route={route}, WET checks={wet_checks}, evidence={evidence_count} items",
+        "writer_conclusion_constraints": "moderate_only" if route != "WET" else "strong_allowed",
+        "wet_6_condition_results": wet_checks,
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V4 Batch J: Literature Intelligence V2
+# ══════════════════════════════════════════════════════════════════════════════
+
+LITERATURE_ROLES = [
+    "direct_device_evidence", "equivalent_device_evidence", "similar_device_context",
+    "comparator_benchmark", "alternative_treatment", "background_sota",
+    "safety_signal", "excluded",
+]
+
+
+def classify_literature_role(article: dict, device_name: str = "") -> dict:
+    """Classify literature article role for CER evidence use.
+
+    Returns primary + secondary roles with confidence and rationale.
+    """
+    title = str(article.get("title", "")).lower()
+    abstract = str(article.get("abstract", "") or article.get("findings", "")).lower()
+    device_studied = str(article.get("device_studied", "")).lower()
+    study_type = str(article.get("study_design", "")).lower()
+    n = int(article.get("sample_size", 0))
+    has_fulltext = str(article.get("full_text_available", "")).lower() in ("yes", "true", "1")
+
+    roles = []
+    # Direct device evidence
+    if device_studied and device_name.lower() in device_studied:
+        roles.append("direct_device_evidence")
+    elif device_studied and any(kw in device_studied for kw in ("equivalent", "similar")):
+        roles.append("equivalent_device_evidence")
+    elif "comparator" in abstract or "vs" in abstract or "versus" in abstract:
+        roles.append("comparator_benchmark")
+    elif "review" in study_type or "meta-analysis" in study_type or "systematic" in study_type:
+        roles.append("background_sota")
+    elif any(kw in title + abstract for kw in ("safety", "adverse event", "complication")):
+        roles.append("safety_signal")
+
+    # Exclusion rules
+    if n < 10:
+        roles = ["excluded"]
+    elif any(kw in title + abstract for kw in ("animal", "porcine", "swine", "rat ", "mouse", "in vitro")):
+        roles = ["excluded"]
+
+    primary = roles[0] if roles else "alternative_treatment"
+    secondary = [r for r in roles[1:] if r != primary] if len(roles) > 1 else []
+
+    return {
+        "primary_article_role": primary,
+        "secondary_roles": secondary,
+        "role_confidence": "high" if primary in ("direct_device_evidence", "excluded") else "medium",
+        "role_rationale": f"Primary={primary} from device_match={bool(device_studied)}, study_type={study_type}",
+        "role_conflict_flags": [],
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V4 Batch K: Strategy-Specific CER Blueprint Engine
+# ══════════════════════════════════════════════════════════════════════════════
+
+ROUTE_BLUEPRINTS = {
+    "WET": {
+        "allowed_claim_strength": "moderate_only",
+        "forbidden_language": ["demonstrates superiority", "proves", "confirms", "establishes"],
+        "required_elements": ["PMS_review", "SOTA_stability_evidence", "6_condition_check"],
+        "writer_tone": "moderate; no superiority language",
+        "NB_likely_questions": ["Why was WET route chosen?", "Are all 6 conditions satisfied?"],
+    },
+    "legacy": {
+        "allowed_claim_strength": "moderate_only",
+        "forbidden_language": ["grandfathered", "historical acceptance", "long safety record alone"],
+        "required_elements": ["MDR_gap_matrix", "PMS_review", "SOTA_update"],
+        "writer_tone": "acknowledge limitations; document MDR gap",
+    },
+    "equivalence": {
+        "allowed_claim_strength": "moderate_only",
+        "forbidden_language": ["direct evidence", "proven on subject device"],
+        "required_elements": ["3_dim_comparison", "data_access_confirmation", "differences_impact_analysis"],
+        "writer_tone": "based on equivalent device data; indirect support",
+    },
+    "literature_primary": {
+        "allowed_claim_strength": "limited_only",
+        "forbidden_language": ["strongly demonstrates", "definitively proves"],
+        "required_elements": ["systematic_search", "SOTA_benchmark", "PMCF_limitation"],
+        "writer_tone": "evidence-supported with limitations; PMCF recommended",
+    },
+    "innovation": {
+        "allowed_claim_strength": "limited_only",
+        "forbidden_language": ["safe and effective", "standard of care"],
+        "required_elements": ["clinical_investigation_plan", "PMCF_commitment"],
+        "writer_tone": "investigational; clinical investigation required",
+    },
+}
+
+
+def get_route_blueprint(route: str) -> dict:
+    """Get the CER blueprint constraints for a strategy route."""
+    return ROUTE_BLUEPRINTS.get(route, ROUTE_BLUEPRINTS["literature_primary"])
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V4 Batch L: NB Explainability Packet
+# ══════════════════════════════════════════════════════════════════════════════
+
+def generate_nb_explainability_packet(strategy_result: dict, state: dict) -> dict:
+    """Generate NB_EXPLAINABILITY_PACKET.json with likely NB challenges and answers."""
+    challenges = []
+    route = strategy_result.get("strategy_context_route", "unknown")
+
+    challenges.append({
+        "decision_type": "strategy_route",
+        "question": f"Why was the '{route}' strategy route chosen for this CER?",
+        "system_answer": strategy_result.get("route_rationale", ""),
+        "regulatory_basis": "MDR Annex XIV, MEDDEV 2.7/1 Rev.4",
+        "evidence_basis": f"Evidence items: {len(state.get('evidence_registry',[]))}",
+        "limitation": f"Confidence: {strategy_result.get('route_confidence','medium')}",
+        "trigger_for_rework": "Strategy route must be re-evaluated if new evidence or device change occurs",
+    })
+
+    if route == "WET":
+        wet_results = strategy_result.get("wet_6_condition_results", {})
+        challenges.append({
+            "decision_type": "WET_legacy",
+            "question": "Are all 6 WET conditions satisfied for this device?",
+            "system_answer": f"WET conditions: {wet_results}",
+            "regulatory_basis": "MDCG 2020-5, MDR Article 61",
+            "evidence_basis": "PMS/PMCF data, SOTA stability assessment",
+            "limitation": f"Passing: {sum(1 for v in wet_results.values() if v)}/{len(wet_results)}",
+            "trigger_for_rework": "Any WET condition change requires re-evaluation",
+        })
+
+    return {
+        "schema": "NB_EXPLAINABILITY_PACKET_v1",
+        "generated_at": "",
+        "strategy_rationale": strategy_result.get("route_rationale", ""),
+        "likely_NB_challenges": challenges,
+    }
 def get_equivalence_limitation_for_writer(route: str) -> str:
     """Generate Writer limitation text based on equivalence route."""
     limitations = {
