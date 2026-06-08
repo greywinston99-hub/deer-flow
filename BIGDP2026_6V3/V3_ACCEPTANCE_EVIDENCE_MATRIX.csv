@@ -1,0 +1,9 @@
+check_id,batch,requirement,status,code_evidence,test_evidence,runtime_evidence,asset_evidence,regulatory_decision_evidence,closure_level,notes
+V3-E1,E,U1 E0 eligibility,PASS,expert_rule_loader.py:classify_source_eligibility,test_v3_batch_e_clinical_fact_v2.py:17 tests,graph node integration,PARTIAL assets (E1-E4 CSVs),HEURISTIC,HEURISTIC_ONLY,No gold labels
+V3-E2,E,U1 stat parsers,PASS,expert_rule_loader.py:parse_hr_rr_or/parse_ci_pvalue,test_v3_batch_e:5 parser tests,Runtime callable,PARTIAL,HEURISTIC,HEURISTIC_ONLY,Regex-based extraction
+V3-F1,F,U2 semantic validator,PASS,expert_rule_loader.py:validate_semantic_claim_support,test_v3_batch_fgh:4 tests,G43 integration candidate,PARTIAL (F1 CSV),HEURISTIC,HEURISTIC_ONLY,No expert labels
+V3-F2,F,U3 equivalence gate,PASS,expert_rule_loader.py:validate_equivalence_route,test_v3_batch_fgh:4 tests,Runtime gate,EQV Rulebook + F2-F3 CSVs,DERIVED,DERIVED_VALIDATION,From regulatory sources
+V3-G1,G,U4 domain library,PASS,config/cer/endpoint_domain_templates.yaml,test_v3_batch_fgh:2 tests,YAML config loadable,PARTIAL (G1-G2 CSVs),HEURISTIC,HEURISTIC_ONLY,No expert endpoint labels
+V3-G2,G,U5 BR/GSPR crosswalk,PASS,expert_rule_loader.py:validate_br_gspr_crosswalk,test_v3_batch_fgh:3 tests,Gate extension,PARTIAL (G3-G6 CSVs),DERIVED,DERIVED_VALIDATION,NB feedback patterns
+V3-H1,H,U6 Writer QA,PASS,expert_rule_loader.py:detect_writer_issues,test_v3_batch_fgh:3 tests,Package validator extension,H1-H3 CSVs + Level 3 text,DERIVED,DERIVED_VALIDATION,Synthetic prose only
+V3-REG,All,Regression stability,PASS,,598/598 pass,All 6 Us functional,V2 baseline intact,VERIFIED,VERIFIED,No regressions
