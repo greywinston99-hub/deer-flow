@@ -1,0 +1,8 @@
+item,requirement,code_evidence,test_evidence,runtime_evidence,asset_evidence,closure_level,status,notes
+F1-1,endpoint_match check,validate_semantic_claim_support in expert_rule_loader.py,test_v3_batch_fgh::TestU2SemanticSupport,Runtime callable,F1 CSV (12 rows PARTIAL),HEURISTIC_ONLY,PASS,Keyword-based
+F1-2,population_match check,same,same,same,F1 CSV,HEURISTIC_ONLY,PASS,String matching
+F1-3,directness check,same,same,same,F1 CSV,HEURISTIC_ONLY,PASS,support_type based
+F1-4,support_strength check,same,same,same,F1 CSV,HEURISTIC_ONLY,PASS,Score threshold
+F2-1,equivalence route decision,validate_equivalence_route in expert_rule_loader.py,test_v3_batch_fgh::TestU3EquivalenceGate,Runtime gate,EQV Rulebook + F2-F3 CSVs,DERIVED_VALIDATION,PASS,From MDR Annex XIV
+F2-2,6 routes defined,EQUIVALENCE_ROUTES constant,test_v3_batch_fgh::test_equivalence_routes_defined,Importable,EQV Rulebook,DERIVED_VALIDATION,PASS,Complete route set
+F2-3,Writer limitation text,get_equivalence_limitation_for_writer,test_v3_batch_fgh,Runtime callable,EQV rules,DERIVED_VALIDATION,PASS,Per-route limitation

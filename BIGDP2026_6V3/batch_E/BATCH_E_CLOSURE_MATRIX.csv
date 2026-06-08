@@ -1,0 +1,8 @@
+item,requirement,code_evidence,test_evidence,runtime_evidence,asset_evidence,closure_level,status,notes
+E0-1,source_eligibility classifier,classify_source_eligibility in expert_rule_loader.py,test_v3_batch_e:4 tests,Runtime callable,E1 CSV (62 rows PARTIAL),HEURISTIC_ONLY,PASS,No gold verification
+E0-2,evidence_tier classifier,classify_evidence_tier in expert_rule_loader.py,test_v3_batch_e:3 tests,Runtime callable,E1 CSV,HEURISTIC_ONLY,PASS,Design-based tiering
+E0-3,data_use_allowed multi-value,determine_data_use in expert_rule_loader.py,test_v3_batch_e:4 tests,Runtime callable,E1-E4 CSVs,HEURISTIC_ONLY,PASS,Rules from regulatory sources
+E0-4,clinical_use_limitation,determine_clinical_limitation in expert_rule_loader.py,test_v3_batch_e:2 tests,Runtime callable,E2 CSV,HEURISTIC_ONLY,PASS,Structured limitations
+E0-5,HR parser,parse_hr_rr_or in expert_rule_loader.py,test_v3_batch_e:2 tests,Runtime callable,E1 CSV,HEURISTIC_ONLY,PASS,Regex-based
+E0-6,RR/OR parser,parse_hr_rr_or in expert_rule_loader.py,test_v3_batch_e:2 tests,Runtime callable,E1 CSV,HEURISTIC_ONLY,PASS,Regex-based
+E0-7,CI/p-value parser,parse_ci_pvalue in expert_rule_loader.py,test_v3_batch_e:2 tests,Runtime callable,E1 CSV,HEURISTIC_ONLY,PASS,Regex-based

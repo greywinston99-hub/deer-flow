@@ -1,0 +1,8 @@
+item,requirement,code_evidence,test_evidence,runtime_evidence,asset_evidence,closure_level,status,notes
+G1-1,5 domain templates,config/cer/endpoint_domain_templates.yaml,test_v3_batch_fgh::TestU4DomainLibrary,YAML loadable,G1 CSV (28 rows PARTIAL),HEURISTIC_ONLY,PASS,hemostasis/ablation/implant/CV/surgical
+G1-2,generic fallback,same,same,same,G1 CSV,HEURISTIC_ONLY,PASS,Unknown domain handling
+G1-3,safety endpoints per domain,same,same,same,G1 CSV,HEURISTIC_ONLY,PASS,Expected safety endpoints
+G1-4,comparator per domain,same,same,same,G2 CSV (14 rows),HEURISTIC_ONLY,PASS,Expected comparators
+G2-1,benefit evidence check,validate_br_gspr_crosswalk in expert_rule_loader.py,test_v3_batch_fgh::TestU5BRGSPR,Runtime callable,G3 CSV (12 rows),DERIVED_VALIDATION,PASS,Benefit→evidence mapping
+G2-2,uncertainty disposition,same,same,same,G6 CSV (7 rows),DERIVED_VALIDATION,PASS,PMCF/labeling/risk_control/human_gate/cannot_support
+G2-3,unfavourable evidence,same,same,same,G3-G6 CSVs,DERIVED_VALIDATION,PASS,Detection only

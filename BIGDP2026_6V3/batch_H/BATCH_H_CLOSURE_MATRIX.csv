@@ -1,0 +1,8 @@
+item,requirement,code_evidence,test_evidence,runtime_evidence,asset_evidence,closure_level,status,notes
+H1-1,conclusion_overstatement detector,detect_writer_issues in expert_rule_loader.py,test_v3_batch_fgh::TestU6WriterQA,Runtime callable,H1-H2 CSVs (28 rows),DERIVED_VALIDATION,PASS,Level 3 synthetic prose
+H1-2,unsupported_claim detector,same,same,same,H1-H2 CSVs,DERIVED_VALIDATION,PASS,not_supported→block
+H1-3,no_source_numeric detector,same,same,same,H1-H2 CSVs,DERIVED_VALIDATION,PASS,PMID presence check
+H1-4,endpoint_taxonomy detector,same,same,same,H1-H2 CSVs,DERIVED_VALIDATION,PASS,AE vs treatment_failure
+H1-5,PMCF_overclaim detector,same,same,same,H1-H2 CSVs,DERIVED_VALIDATION,PASS,PMCF≠resolve
+H1-6,benchmark_limitation detector,same,same,same,H1-H2 CSVs,DERIVED_VALIDATION,PASS,Fallback→limitation
+H1-7,all_clear when clean,same,test_v3_batch_fgh::test_clean_prose_passes,same,H1-H2 CSVs,DERIVED_VALIDATION,PASS,No false positives
