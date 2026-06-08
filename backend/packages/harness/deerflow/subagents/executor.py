@@ -1,5 +1,7 @@
 """Subagent execution engine."""
 
+from __future__ import annotations
+
 import asyncio
 import atexit
 import logging
@@ -22,7 +24,6 @@ from langchain_core.runnables import RunnableConfig
 
 MAX_CONCURRENT_SUBAGENTS = 3
 
-from deerflow.agents.thread_state import SandboxState, ThreadDataState, ThreadState
 from deerflow.config import get_app_config
 from deerflow.config.app_config import AppConfig
 from deerflow.models import create_chat_model
@@ -278,8 +279,8 @@ class SubagentExecutor:
         tools: list[BaseTool],
         app_config: AppConfig | None = None,
         parent_model: str | None = None,
-        sandbox_state: SandboxState | None = None,
-        thread_data: ThreadDataState | None = None,
+        sandbox_state: "SandboxState | None" = None,
+        thread_data: "ThreadDataState | None" = None,
         thread_id: str | None = None,
         trace_id: str | None = None,
     ):
@@ -336,12 +337,13 @@ class SubagentExecutor:
 
         # system_prompt is included in initial state messages (see _build_initial_state)
         # to avoid multiple SystemMessages which some LLM APIs don't support.
+        from deerflow.agents.thread_state import ThreadState as _ThreadState
         return create_agent(
             model=model,
             tools=tools if tools is not None else self.tools,
             middleware=middlewares,
             system_prompt=None,
-            state_schema=ThreadState,
+            state_schema=_ThreadState,
         )
 
     async def _load_skills(self) -> list[Skill]:
