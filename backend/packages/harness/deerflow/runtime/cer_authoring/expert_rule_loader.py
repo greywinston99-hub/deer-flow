@@ -579,3 +579,100 @@ def parse_ci_pvalue(text: str) -> list[dict]:
         results.append({"stat_type": "p_value", "value": p,
                         "significant": p < 0.05, "extraction_basis": f"p={'<' if '<' in text else '='}{p_val}"})
     return results
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V_3 U2: Semantic Claim-Evidence Validator
+# ══════════════════════════════════════════════════════════════════════════════
+
+def validate_semantic_claim_support(claim: dict, evidence: dict) -> dict:
+    """Validate semantic support between a claim and evidence item.
+
+    Returns dict with: is_valid, checks_passed, checks_failed, rationale.
+    """
+    checks = {}
+    claim_endpoints = set(str(claim.get("endpoint", "")).lower().split(","))
+    evidence_endpoints = set(str(evidence.get("endpoint", "")).lower().split(","))
+    claim_population = str(claim.get("population", "")).lower()
+    evidence_population = str(evidence.get("population", "")).lower()
+    claim_device = str(claim.get("device_name", "")).lower()
+    evidence_device = str(evidence.get("device_studied", "")).lower()
+    support_type = str(evidence.get("support_type", "direct")).lower()
+
+    # Endpoint match
+    checks["endpoint_match"] = bool(claim_endpoints & evidence_endpoints) or not claim_endpoints
+    # Population match
+    checks["population_match"] = (claim_population in evidence_population or evidence_population in claim_population
+                                    or not claim_population or not evidence_population)
+    # Device match
+    checks["device_match"] = (claim_device in evidence_device or evidence_device in claim_device
+                               or not claim_device or not evidence_device)
+    # Directness check
+    checks["directness_ok"] = support_type != "insufficient"
+    # Support strength check
+    evidence_strength = str(evidence.get("evidence_strength_score", 50))
+    checks["support_strength_ok"] = support_type == "direct" or float(evidence_strength or 50) >= 30
+
+    passed = [k for k, v in checks.items() if v]
+    failed = [k for k, v in checks.items() if not v]
+    is_valid = len(failed) == 0
+
+    return {
+        "is_valid": is_valid,
+        "checks_passed": passed,
+        "checks_failed": failed,
+        "rationale": f"Semantic support: {len(passed)}/{len(checks)} checks passed. "
+                     + (f"Failed: {', '.join(failed)}" if failed else "All checks passed."),
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V_3 U3: Equivalence Runtime Gate
+# ══════════════════════════════════════════════════════════════════════════════
+
+EQUIVALENCE_ROUTES = [
+    "equivalence_claimed", "equivalence_not_claimed", "equivalence_supporting_only",
+    "equivalence_for_context_only", "equivalence_not_allowed", "human_gate_required",
+]
+
+
+def validate_equivalence_route(state: dict) -> str:
+    """Determine the equivalence route based on device comparison data.
+
+    Returns one of EQUIVALENCE_ROUTES.
+    """
+    equiv_claimed = state.get("equivalence_claimed", False)
+    equiv_device = state.get("equivalent_device_name", "")
+    has_technical = bool(state.get("equivalence_technical_comparison"))
+    has_biological = bool(state.get("equivalence_biological_comparison"))
+    has_clinical = bool(state.get("equivalence_clinical_comparison"))
+    has_data_access = bool(state.get("equivalence_data_access"))
+    has_differences_analysis = bool(state.get("equivalence_differences_impact_analysis"))
+
+    if not equiv_claimed or not equiv_device:
+        return "equivalence_not_claimed"
+
+    dims_ok = has_technical and has_biological and has_clinical
+    if not dims_ok:
+        return "equivalence_not_allowed"
+
+    if not has_data_access:
+        return "human_gate_required"
+
+    if not has_differences_analysis:
+        return "equivalence_supporting_only"
+
+    return "equivalence_claimed"
+
+
+def get_equivalence_limitation_for_writer(route: str) -> str:
+    """Generate Writer limitation text based on equivalence route."""
+    limitations = {
+        "equivalence_claimed": "Equivalent device data used per MDR Annex XIV. Differences analyzed and determined not clinically significant.",
+        "equivalence_not_claimed": "Equivalence is not claimed. Clinical evaluation follows literature-based, non-equivalence approach.",
+        "equivalence_supporting_only": "Equivalent device data used as supporting context only. Differences impact analysis incomplete.",
+        "equivalence_for_context_only": "Equivalent device data used for background context only. Not used for clinical conclusions.",
+        "equivalence_not_allowed": "Equivalence cannot be claimed — incomplete 3-dimension comparison.",
+        "human_gate_required": "Human expert review required for equivalence determination.",
+    }
+    return limitations.get(route, "Equivalence status: see CER §4.2.")
