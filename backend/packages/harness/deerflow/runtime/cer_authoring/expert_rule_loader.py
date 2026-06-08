@@ -311,3 +311,109 @@ def get_rules_by_category(category: str) -> list[dict[str, Any]]:
     """Get all rules in a given category."""
     rulebook = load_rulebook()
     return [r for r in rulebook.get("rules", []) if r.get("category") == category]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BIGDP2026.6V_2 Batch C: Endpoint Semantic Classifier
+# ══════════════════════════════════════════════════════════════════════════════
+
+ENDPOINT_CLASSIFICATION_TAXONOMY = {
+    "adverse_event": {
+        "label": "Adverse Event (AE)",
+        "definition": "Device-related untoward medical event per ISO 14155",
+        "examples": ["skin damage", "infection", "device malfunction", "hematoma", "pseudoaneurysm"],
+        "is_safety_endpoint": True,
+    },
+    "serious_adverse_event": {
+        "label": "Serious Adverse Event (SAE)",
+        "definition": "AE resulting in death, life-threatening, hospitalization, disability, or intervention",
+        "examples": ["major bleeding requiring transfusion", "retroperitoneal hemorrhage", "death"],
+        "is_safety_endpoint": True,
+    },
+    "device_deficiency": {
+        "label": "Device Deficiency",
+        "definition": "Inadequacy of device identity, quality, durability, reliability, safety, or performance",
+        "examples": ["device fracture", "coating delamination", "premature battery depletion"],
+        "is_safety_endpoint": True,
+    },
+    "treatment_failure": {
+        "label": "Treatment Failure / Switching",
+        "definition": "Clinical decision to abandon device for alternative therapy — NOT an AE",
+        "examples": ["conversion to manual compression", "switch to surgical closure", "device abandonment for tourniquet"],
+        "is_safety_endpoint": False,
+        "note": "Reflects efficacy limitation, not safety issue. Must be reported separately from AE.",
+    },
+    "inadequate_hemostasis": {
+        "label": "Inadequate Hemostasis",
+        "definition": "Efficacy endpoint — failure to achieve hemostasis within expected timeframe",
+        "examples": ["continued bleeding at 3 min", "hemostasis not achieved within protocol window"],
+        "is_safety_endpoint": False,
+        "note": "Efficacy endpoint, not safety. Report as hemostasis failure rate under efficacy.",
+    },
+    "rescue_therapy_switch": {
+        "label": "Rescue Therapy / Alternative Treatment",
+        "definition": "Use of rescue therapy when primary device fails to achieve intended result",
+        "examples": ["additional closure device applied", "surgical repair", "prolonged manual pressure"],
+        "is_safety_endpoint": False,
+    },
+    "procedural_outcome": {
+        "label": "Procedural Outcome",
+        "definition": "Endpoint measuring procedural success or efficiency",
+        "examples": ["device success rate", "procedure time", "length of stay"],
+        "is_safety_endpoint": False,
+    },
+    "other": {
+        "label": "Other / Unclassified",
+        "definition": "Endpoint not matching any defined category",
+        "examples": [],
+        "is_safety_endpoint": False,
+    },
+}
+
+
+def classify_endpoint(endpoint_name: str, context_text: str = "") -> str:
+    """Classify an endpoint into the standard taxonomy.
+
+    Uses keyword matching against endpoint name and context text.
+    Returns one of the ENDPOINT_CLASSIFICATION_TAXONOMY keys.
+    """
+    name_lower = endpoint_name.lower()
+    ctx_lower = context_text.lower()
+    combined = f"{name_lower} {ctx_lower}"
+
+    # Priority order: check specific patterns first
+    # SAE → serious + AE
+    if any(kw in combined for kw in ("serious adverse", "sae", "major bleed", "death", "life-threat")):
+        return "serious_adverse_event"
+
+    # Device deficiency
+    if any(kw in combined for kw in ("fracture", "delamination", "battery", "malfunction", "deficiency")):
+        return "device_deficiency"
+
+    # Rescue therapy / treatment switch
+    if any(kw in combined for kw in ("rescue", "switch", "conversion to", "abandon", "tourniquet", "manual compression", "surgical clos")):
+        return "rescue_therapy_switch"
+
+    # Treatment failure (broader match after rescue)
+    if any(kw in combined for kw in ("treatment fail", "device fail", "switch to", "alternative therap")):
+        return "treatment_failure"
+
+    # Inadequate hemostasis
+    if any(kw in combined for kw in ("hemostasis", "bleeding", "blood loss", "closure time", "continued bleed")):
+        return "inadequate_hemostasis"
+
+    # AE — general adverse events
+    if any(kw in combined for kw in ("adverse event", "complication", "ae", "hematoma", "infection", "pseudoaneurysm", "skin dam", "skin inj", "nerve inj")):
+        return "adverse_event"
+
+    # Procedural outcome
+    if any(kw in combined for kw in ("success", "procedure time", "length of stay", "device success", "technical success")):
+        return "procedural_outcome"
+
+    return "other"
+
+
+def is_safety_endpoint(endpoint_classification: str) -> bool:
+    """Check if endpoint classification is safety-related."""
+    taxonomy = ENDPOINT_CLASSIFICATION_TAXONOMY.get(endpoint_classification, {})
+    return taxonomy.get("is_safety_endpoint", False)
